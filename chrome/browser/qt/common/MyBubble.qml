@@ -52,7 +52,7 @@ Item {
     property int fingerY: 0
 
     property variant payload
-    property int itemHeight: 50
+    property int itemHeight: 45
     property int fingerMode: 0
 
     signal close()
@@ -150,6 +150,7 @@ Item {
               anchors.fill: parent
               anchors.leftMargin:20
               anchors.rightMargin:20
+              spacing: 5
               Text {
                 id: title
                 width:column.width
@@ -228,8 +229,6 @@ Item {
 
               Row {
                 id: button
-                anchors.top: folderGroup.bottom
-                anchors.topMargin: 10
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 20
                 height: itemHeight

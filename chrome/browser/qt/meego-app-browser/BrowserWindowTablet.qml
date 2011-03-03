@@ -412,7 +412,7 @@ Item {
             when: scene.orientation == 1
             PropertyChanges {
                 target: statusbar
-                mode: 0
+            //    mode: 0
             }
             PropertyChanges {
                 target: outerContent
@@ -431,7 +431,7 @@ Item {
             when:scene.orientation == 3
             PropertyChanges {
                 target: statusbar
-                mode: 0
+            //    mode: 0
             }
             PropertyChanges {
                 target: outerContent
@@ -451,7 +451,7 @@ Item {
             when: scene.orientation == 0
             PropertyChanges {
                 target: statusbar
-                mode: 1
+            //    mode: 1
             }
             PropertyChanges {
                 target: outerContent
@@ -470,7 +470,7 @@ Item {
             when:scene.orientation == 2
             PropertyChanges {
                 target: statusbar
-                mode: 1
+              //  mode: 1
             }
             PropertyChanges {
                 target: outerContent
