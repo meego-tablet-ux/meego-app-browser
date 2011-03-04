@@ -37,7 +37,7 @@ Item {
   id: container
   property alias model: view.model
   property int itemWidth: 200
-  width: scene.width
+  width: parent.width
   states: [
     State {
       name: "hide"
@@ -164,6 +164,7 @@ Item {
     ListView {
       id: view
       anchors.fill: parent
+      boundsBehavior: Flickable.DragOverBounds
       anchors.leftMargin: 5
       anchors.rightMargin: 5
       spacing: 10
