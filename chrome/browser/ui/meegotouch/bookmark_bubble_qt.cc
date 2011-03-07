@@ -120,12 +120,12 @@ BookmarkBubbleQt::BookmarkBubbleQt( BrowserWindowQt* window,
                                     Browser* browser,
                                      Profile* profile,
                                      const GURL& url,
-                                     bool newly_bookmarked)
+                                     bool already_bookmarked)
     : url_(url),
       browser_(browser),
       profile_(profile),
       window_(window),
-      newly_bookmarked_(newly_bookmarked),
+      newly_bookmarked_(!already_bookmarked),
       apply_edits_(true),
       remove_bookmark_(false){
 
@@ -138,7 +138,7 @@ BookmarkBubbleQt::BookmarkBubbleQt( BrowserWindowQt* window,
   context->setContextProperty("bookmarkBubbleObject", impl_);
 
   QString q_title;
-  if (newly_bookmarked) {
+  if (newly_bookmarked_) {
     q_title = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_BOOMARK_BUBBLE_PAGE_BOOKMARKED).c_str());
   } else {
     q_title = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_BOOMARK_BUBBLE_PAGE_BOOKMARK).c_str());
@@ -216,13 +216,19 @@ void BookmarkBubbleQt::ApplyEdits() {
       if (new_parent != node->parent()) {
         UserMetrics::RecordAction(
             UserMetricsAction("BookmarkBubble_ChangeParent"), profile_);
-        model->Move(node, new_parent, new_parent->child_count());
+       if (newly_bookmarked_) {
+          model->Move(node, new_parent, new_parent->child_count());
+        } else {
+          model->Copy(node, new_parent, new_parent->child_count());
+        }
       }
     }
    
     if (folder_index_ == folder_combo_model_->GetItemCount() - 1) {
        //TODO ./brower/browser.cc RegisterAppPrefs, ConvertContentsToApplication
-      model->Remove(node->parent(), node->parent()->GetIndexOf(node));
+      if(newly_bookmarked_) {
+        model->Remove(node->parent(), node->parent()->GetIndexOf(node));
+      }
       TabContents* current_tab_contents =
                          browser_->tabstrip_model()->GetSelectedTabContents()->tab_contents();
 
