@@ -223,12 +223,12 @@ Item {
 		//model: MaxViewModel { }
 		interactive: gridMouseArea.longPressId == -1
 
-    GestureArea {
-        anchors.fill: parent
-        TapAndHold {}
-        Pan {}
-        Pinch {}
-    }
+    		GestureArea {
+        	    anchors.fill: parent
+        	    TapAndHold {}
+        	    Pan {}
+        	    Pinch {}
+    		}
 
 		MouseArea {
 		    anchors.fill: parent
@@ -294,7 +294,7 @@ Item {
 		    PropertyChanges {
 			target:list
 			width: itemWidth*4 + itemHMargin*8   //4 coloums
-			height: 50
+			height: list.cellHeight * 2 + 15 //bottom margin
 		    }
 		},
 
@@ -304,11 +304,23 @@ Item {
 		    PropertyChanges {
 			target: list
 			width: (newtab.width > (itemWidth*3 + itemHMargin*6))?(itemWidth*3 + itemHMargin*6):(itemWidth*2 + itemHMargin*4)
-			height: 100
+			height: (newtab.width > (itemWidth*3 + itemHMargin*6))?(list.cellHeight * 3 + 15):(list.cellHeight * 4 + 15)
 		    }
 		}
 	    ]
-
+	    GridView {
+		id: list
+		cellWidth: itemWidth + 2*itemHMargin
+		cellHeight: 50
+      		anchors.bottomMargin: 15
+		width: itemWidth*4 + itemHMargin*8   //4 coloums
+		height: cellHeight * 2 + 15     //bottom margin
+		delegate: MiniViewDelegate { }
+		snapMode: GridView.SnapToRow
+		model: sector.gridModel
+		//model: MaxViewModel { }
+	    }
+/*
 	    ListView {
 		id: list
 		width: sector.itemWidth*4 + sector.itemHMargin*8   //4 coloums
@@ -319,6 +331,7 @@ Item {
 		//delegate: Text { text: title }
 		model: sector.gridModel
 	    }
+*/
 	}
     }
 }

@@ -35,8 +35,8 @@ import Qt 4.7
 
 Item { 
     id: main
-    width: titleText.width + favIcon.width + 40
-    height: 50
+    width: list.cellWidth
+    height: list.cellHeight
 
     Image { 
 	id: favIcon
@@ -51,6 +51,7 @@ Item {
 	anchors.left: favIcon.right
 	anchors.verticalCenter: parent.verticalCenter
         anchors { leftMargin:15; rightMargin:25}
+	width: parent.width - favIcon.width - 40   // add margin
 	text: title
 	elide: Text.ElideRight
 	color: "blue"
