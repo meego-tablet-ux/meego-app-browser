@@ -72,12 +72,27 @@
 ****************************************************************************/
 
 import Qt 4.7
+import Qt.labs.gestures 2.0
 
 Item {
   id: root
 
   property int currentIndex: 0
   default property alias content: visualModel.children
+
+  MouseArea {
+    anchors.fill: parent
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
+  }
+
+  GestureArea {
+    anchors.fill: parent
+    Tap {}
+    TapAndHold {}
+    Pan {}
+    Pinch {}
+    Swipe {}
+  }
 
   Image {
     id: selectorPad

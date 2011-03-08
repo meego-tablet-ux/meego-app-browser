@@ -88,8 +88,11 @@ Item {
 
   GestureArea {
     anchors.fill: parent
-    onTap {}
-    onTapAndHold {}
+    Tap {}
+    TapAndHold {}
+    Pan {}
+    Pinch {}
+    Swipe {}
   }
 
   Item {
