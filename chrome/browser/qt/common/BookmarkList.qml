@@ -73,12 +73,24 @@
 
 import Qt 4.7
 import MeeGo.Components 0.1
+import Qt.labs.gestures 2.0
 
 //Rectangle {  // for test in qmlviwer
 //  width: 800; height: 600 // for test in qmlviewer
 Item {
   id: bmlistContainer
   anchors.fill: parent
+
+  MouseArea {
+    anchors.fill: parent
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
+  }
+
+  GestureArea {
+    anchors.fill: parent
+    onTap {}
+    onTapAndHold {}
+  }
 
   Item {
     id: bmGlobal
