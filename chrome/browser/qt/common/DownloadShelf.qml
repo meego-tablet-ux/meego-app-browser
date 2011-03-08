@@ -305,6 +305,7 @@ Item {
       anchors.fill: parent
       anchors.leftMargin: 10
       anchors.rightMargin: 10
+//      boundsBehavior: Flickable.StopAtBounds
       spacing: 10
       delegate: downloadDelegate
       model: downloadItemContainer.model
@@ -324,8 +325,16 @@ Item {
       anchors.right: downloadView.right
       opacity: 0
       orientation: Qt.Vertical
-      position: downloadView.visibleArea.yPosition
-      pageSize: downloadView.visibleArea.heightRatio
+    //  position: downloadView.visibleArea.yPosition
+    //  pageSize: downloadView.visibleArea.heightRatio
+      position: { downloadView.visibleArea.yPosition>0 ? downloadView.visibleArea.yPosition:0}
+      pageSize: { 
+        console.log(downloadView.visibleArea.yPosition)
+        if (downloadView.visibleArea.yPosition > 0)
+          downloadView.visibleArea.heightRatio
+        else 
+          downloadView.visibleArea.heightRatio*(1+downloadView.visibleArea.yPosition)   
+      }
     }
 }
 
