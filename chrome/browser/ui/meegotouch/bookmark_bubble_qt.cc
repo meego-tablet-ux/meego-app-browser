@@ -77,6 +77,11 @@ class BookmarkBubbleQtImpl : public QObject
     void setTitle(QString title)
     {
        bubble_->SetTitle(title);
+    }
+  
+    void cancel()
+    {
+       bubble_->Cancel();
     } 
   Q_SIGNALS:
     void popupAt(int x, int y);
@@ -183,6 +188,13 @@ void BookmarkBubbleQt::Apply() {
     if (node)
       model->Remove(node->parent(), node->parent()->GetIndexOf(node));
   }
+}
+
+void BookmarkBubbleQt::Cancel(){
+  BookmarkModel* model = profile_->GetBookmarkModel();
+  const BookmarkNode* node = model->GetMostRecentlyAddedNodeForURL(url_);
+  if (node && newly_bookmarked_)
+    model->Remove(node->GetParent(), node->GetParent()->IndexOfChild(node));
 }
 
 void BookmarkBubbleQt::OnRemoveClicked() {

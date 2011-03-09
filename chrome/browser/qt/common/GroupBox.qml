@@ -53,7 +53,7 @@ Item
         State {
             name: "elapsed"
             PropertyChanges  { target:contentLoader; height: 0; sourceComponent:undefined }
-            PropertyChanges  { target:groupBorderImage; height: 60; opacity: 0.7}
+            PropertyChanges  { target:groupBorderImage; height: 50; opacity: 0.7}
             PropertyChanges  { target:arrowDown; rotation:180; }
         },
         State {
@@ -73,15 +73,13 @@ Item
         source:"image://theme/browser/bg_list_white"
         opacity:1
         width: parent.width
-        border { left: 20; right: 20; top:10; bottom: 10}
-        height:  60//+ border.top
         horizontalTileMode: BorderImage.Stretch
         verticalTileMode: BorderImage.Stretch
 
         BorderImage {
             id: bg
             source: "image://theme/browser/bg_bookmarkbar"
-            border { left: 20; right: 20; top: 50; bottom:20 }
+            border { left: 20; right: 20; top: 40; bottom:10 }
             width: parent.width
             height: parent.height
         }
@@ -92,7 +90,7 @@ Item
             id: groupInfoText
            // text: 
             anchors.top: parent.top
-            anchors.topMargin:20
+            anchors.topMargin:15
             anchors.left: parent.left
             anchors.leftMargin:10
             font.pixelSize: 20
@@ -105,27 +103,18 @@ Item
             id:arrowDown
             source: "image://theme/notes/icn_dropdown_off"
             anchors.top: parent.top
-            anchors.topMargin: 23
+            anchors.topMargin: 18
             anchors.right: parent.right
-            anchors.rightMargin: 25
-            state: "inactive"
+            anchors.rightMargin: 20
+            state: "active"
             states: [
-                State {
-                    name: "inactive"
-                    PropertyChanges {
-                        target: arrowDown
-                        source: "image://theme/notes/icn_dropdown_off"
-                        anchors.topMargin: 23
-                        anchors.rightMargin: 20
-                    }
-                },
                 State {
                     name: "active"
                     PropertyChanges {
                         target: arrowDown
-                        source: "image://theme/notes/icn_dropdown_active"
-                        anchors.topMargin: (64 - arrowDown.height)/2
-                        anchors.rightMargin: 10
+                        source: "image://theme/notes/icn_dropdown_off"
+                        anchors.topMargin: 20
+                        anchors.rightMargin: 20
                     }
                 }
             ]
@@ -136,8 +125,8 @@ Item
     {
         id:contentLoader
         width:groupBorderImage.width - 20
-        anchors { top: parent.top; topMargin: 70; left: parent.left; leftMargin: 8 }
-        onLoaded: groupBorderImage.height = item.height + 70 + groupBorderImage.border.top + groupBorderImage.border.bottom
+        anchors { top: parent.top; topMargin: 50; left: parent.left; leftMargin: 8 }
+        onLoaded: groupBorderImage.height = 50 + contentLoader.childrenRect.height
     }
 
     MouseArea {
@@ -147,14 +136,6 @@ Item
         width:parent.width
         height:50
         hoverEnabled: true
-
-        onEntered: { arrowDown.state = "active"; groupBorderImage.opacity = 1; }
-
-        onExited: {
-            arrowDown.state = "inactive";
-            if(group.state == "elapsed")groupBorderImage.opacity = 0.7;
-        }
-
         onClicked: {
             if(group.state == "expanded") {
                 group.state = "elapsed";

@@ -75,6 +75,9 @@ class BookmarkBubbleQt : public NotificationObserver {
 
   void SetFolderIndex(int index) {folder_index_ = index;}
   void SetTitle(QString title) {name_ = title;}
+  void Cancel();
+
+
   private:
   // Update the bookmark with any edits that have been made.
   void ApplyEdits();

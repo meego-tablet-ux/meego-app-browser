@@ -104,7 +104,10 @@ Item {
 
 	  MouseArea {
 	    anchors.fill: parent
-	    onClicked: container.close()
+	    onClicked: {
+              container.model.cancel();
+              container.close();
+            }
 	  }
 
 	  Item {
@@ -112,7 +115,7 @@ Item {
 	    x: container.bubbleX
 	    y: container.bubbleY
 	    width: container.bubbleWidth
-	    height: column.childrenRect.height + column.anchors.topMargin + column.anchors.bottomMargin + 10
+	    height: 300
 	    opacity: container.bubbleOpacity
 
 	    BorderImage {
@@ -125,6 +128,7 @@ Item {
 	      anchors.top: parent.top
             }
 	    BorderImage {
+                id: borderImageMiddle
 		anchors.top: borderImage1.bottom
 		anchors.bottom: borderImage2.top
 		source: "image://theme/popupbox_2"
@@ -150,7 +154,6 @@ Item {
               anchors.fill: parent
               anchors.leftMargin:20
               anchors.rightMargin:20
-              spacing: 5
               Text {
                 id: title
                 width:column.width
@@ -159,7 +162,7 @@ Item {
                 text: bubbleTitle
                 verticalAlignment:Text.AlignVCenter
                 font.bold: true
-                font.pixelSize: height/2
+                font.pixelSize: height*0.5
               }
               Text {
                 id: nameLabel
@@ -167,7 +170,6 @@ Item {
                 color: "gray"
                 height: itemHeight
                 font.pixelSize: height*0.5
-                horizontalAlignment:Text.AlignHCenter
                 verticalAlignment:Text.AlignVCenter
               }
               BubbleInputBox {
@@ -186,7 +188,6 @@ Item {
                 color: "gray"
                 height: itemHeight
                 font.pixelSize: height*0.5
-                horizontalAlignment:Text.AlignHCenter
                 verticalAlignment:Text.AlignVCenter
               }
               GroupBox {
@@ -208,7 +209,7 @@ Item {
                           width: parent.width
                           opacity: 0.5
                           font.pixelSize: itemHeight*0.5
-                          height: initHeight//container.itemHeight
+                          height: initHeight
                           MouseArea {
                             anchors.fill: parent
                             onClicked: {
@@ -226,35 +227,34 @@ Item {
                     }
                 }
               }
-
-              Row {
-                id: button
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 20
-                height: itemHeight
-                TextButton {
-                    id: doneButton
-                    text: bubbleDone
-                    onClicked: {
-                      container.model.setTitle(nameEdit.text);
-                      container.model.doneButtonClicked();
-                      container.close();
-                    }
-                }
-                TextButton {
-                    id: removeAndCancelButton
-                    text: bubbleRemove
-                    onClicked: {
-                      container.model.setTitle(nameEdit.text);
-                      container.model.removeButtonClicked();
-                      container.close();
-                    }
-                }
-
-              }
-
             }
-	    Behavior on opacity {
+            Row {
+              id: button
+              anchors.horizontalCenter: parent.horizontalCenter
+              anchors.bottom: parent.bottom
+              anchors.bottomMargin: 10
+              spacing: 20
+              height: itemHeight
+              TextButton {
+                id: doneButton
+                text: bubbleDone
+                onClicked: {
+                  container.model.setTitle(nameEdit.text);
+                  container.model.doneButtonClicked();
+                  container.close();
+                }
+              }
+              TextButton {
+                id: removeAndCancelButton
+                text: bubbleRemove
+                onClicked: {
+                  container.model.setTitle(nameEdit.text);
+                  container.model.removeButtonClicked();
+                  container.close();
+                }
+              }
+            }
+      	    Behavior on opacity {
 		PropertyAnimation { duration: 500 }
 	    }
 
