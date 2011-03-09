@@ -39,7 +39,7 @@ Item {
   height: screenHeight
   Loader {
     id: holder
-    source: {screenWidth*25.4/dpiX > 200 && screenHeight*25.4/dpiY > 100 ? "Tablet.qml":"Handset.qml"}
-    //source: "Handset.qml"
+ //   source: {screenWidth*25.4/dpiX > 200 && screenHeight*25.4/dpiY > 100 ? "Tablet.qml":"Handset.qml"}
+    source: "Handset.qml"
   }
 }
