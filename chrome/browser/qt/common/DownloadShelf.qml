@@ -37,7 +37,7 @@ Item {
     id: downloadItemContainer
     width: parent.width
     height:  parent.height
-    property int itemHeight: 110
+    property int itemHeight: 120
     property variant model
 
     Component {
@@ -46,7 +46,7 @@ Item {
         id: downloadItem
         property bool pressed: false
         width: parent.width
-        height: itemHeight
+        height: {isLandscapeView() || show_date != 1?itemHeight:itemHeight+30}
         states: [
           State {
             name: "canceledAndCompleted"
@@ -80,20 +80,31 @@ Item {
         }
  
         Text {
-            id: downloadItemdate 
-            color: "black"
-            elide: Text.ElideRight
-            font.pixelSize: 20
-            width: 120
-            text: { show_date == 1? downloadDate:""}
+          id: downloadItemdatePortrait
+          color: "black"
+          elide: Text.ElideRight
+          font.bold: true
+          font.pixelSize: 20
+          height: {isLandscapeView() || show_date != 1?0:30}
+          text: { show_date == 1? downloadDate:""}
+        }
+        Text {
+          id: downloadItemdateLanscape
+          anchors.top: downloadItemdatePortrait.bottom
+          color: "black"
+          elide: Text.ElideRight
+          font.bold: true
+          font.pixelSize: 20
+          width: {isLandscapeView()?120:0}
+          text: { show_date == 1? downloadDate:""}
         }
         Image {
           id: favicon
-          anchors.left: downloadItemdate.right
+          anchors.left: downloadItemdateLanscape.right
+          anchors.top: downloadItemdatePortrait.bottom
           anchors.leftMargin: 10
+          height: itemHeight*3/4
           width: height
-          height: parent.height/2
-          anchors.verticalCenter: parent.verticalCenter 
           fillMode: Image.Stretch
           source: {
             if (type == 1) "image://theme/mimetypes/64x64/document";
@@ -107,10 +118,10 @@ Item {
         Rectangle {
           id: infoContainer
           height: itemHeight
-          width: downloadItem.width - downloadItemdate.width - favicon.width 
           anchors.left: favicon.right
           anchors.leftMargin: 10 
           anchors.right: parent.right
+          anchors.top: favicon.top
           color: "white"
           border.color: "gray"
           border.width: 2
@@ -133,7 +144,6 @@ Item {
               font.pixelSize: 20
               text: title
               anchors.left: parent.left
-          //    anchors.leftMargin: 5
               MouseArea {
                 anchors.fill: parent
                 onClicked: {
@@ -146,7 +156,6 @@ Item {
               color: "gray"
               font.pixelSize: 20
               anchors.right: parent.right
-          //    anchors.rightMargin: 5
               text: progress
             }
           }
@@ -157,7 +166,7 @@ Item {
             anchors.leftMargin: 5
             color: "black"
             elide: Text.ElideRight
-            width: downloadItem.width - downloadItemdate.width - favicon.width
+            width: downloadItem.width - downloadItemdateLanscape.width - favicon.width
             font.pixelSize: 20
             text: url
           }
@@ -305,7 +314,6 @@ Item {
       anchors.fill: parent
       anchors.leftMargin: 10
       anchors.rightMargin: 10
-//      boundsBehavior: Flickable.StopAtBounds
       spacing: 10
       delegate: downloadDelegate
       model: downloadItemContainer.model
@@ -325,11 +333,8 @@ Item {
       anchors.right: downloadView.right
       opacity: 0
       orientation: Qt.Vertical
-    //  position: downloadView.visibleArea.yPosition
-    //  pageSize: downloadView.visibleArea.heightRatio
       position: { downloadView.visibleArea.yPosition>0 ? downloadView.visibleArea.yPosition:0}
       pageSize: { 
-        console.log(downloadView.visibleArea.yPosition)
         if (downloadView.visibleArea.yPosition > 0)
           downloadView.visibleArea.heightRatio
         else 
