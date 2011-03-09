@@ -37,6 +37,7 @@ Item {
   id: container
   property alias model: view.model
   property int itemWidth: 200
+  parent: outerContent
   width: parent.width
   states: [
     State {

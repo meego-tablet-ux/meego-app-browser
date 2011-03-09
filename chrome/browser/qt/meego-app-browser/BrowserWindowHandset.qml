@@ -134,14 +134,14 @@ Item {
         property int angle: 0
     }
 
-    ApplicationsModel {
+/*    ApplicationsModel {
         id: appsModel
         directory: "/usr/share/meego-tablet-home/applications"
     }
     WindowModel {
         id: windowModel
     }
-
+*/
     // This function returns if the view is in landscape or inverted landscape
     function isLandscapeView() {
         return orientation == 1 || orientation == 3;
@@ -176,7 +176,11 @@ Item {
         z: 10
         MouseArea {
             anchors.fill: parent
-            onClicked: scene.statusBarTriggered()
+            onClicked: {
+              scene.statusBarTriggered();
+              console.log(orientation);
+              console.log(hasfindbar);
+            }
         }
         states: [
             State {
@@ -284,8 +288,8 @@ Item {
                 var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height + infobarLoader.height + bookmarkBarLoader.height)
                 var ix = innerContent.width / 2
                 var ih = 50
-                findbar.x = ix
-                findbar.width = ix
+     //           findbar.x = ix
+     //           findbar.width = ix
                 findbar.height = ih
                 findbar.z = innerContent.z + 1
                 findbar.showfindbar = true
@@ -404,7 +408,7 @@ Item {
             when: scene.orientation == 1
             PropertyChanges {
                 target: statusbar
-                mode: 0
+            //    mode: 0
             }
             PropertyChanges {
                 target: outerContent
@@ -423,7 +427,7 @@ Item {
             when:scene.orientation == 3
             PropertyChanges {
                 target: statusbar
-                mode: 0
+          //      mode: 0
             }
             PropertyChanges {
                 target: outerContent
@@ -443,7 +447,7 @@ Item {
             when: scene.orientation == 0
             PropertyChanges {
                 target: statusbar
-                mode: 1
+           //     mode: 1
             }
             PropertyChanges {
                 target: outerContent
@@ -462,11 +466,11 @@ Item {
             when:scene.orientation == 2
             PropertyChanges {
                 target: statusbar
-                mode: 1
+           //     mode: 1
             }
             PropertyChanges {
                 target: outerContent
-                width: scene.height
+                width: {console.log("yes");scene.height}
                 height: scene.width - statusbar.height
             }
             PropertyChanges {
@@ -474,11 +478,13 @@ Item {
                 angle: -90
                 transformY: scene.height
             }
-        },
+        }
+    ]
+/*    States: [
 
         State {                                                                                   
-            name: "findbarinvertedlandscape"                                                      
-            when:scene.orientation == 3 && hasfindbar                                             
+            name: "findbarlandscape"                                                      
+            when: hasfindbar && (orientation == 3 || orientation == 1)                                             
             PropertyChanges {                                                                     
                 target: findbar                                                                   
                 width: scene.width / 2                                                            
@@ -488,24 +494,14 @@ Item {
                                                                                                   
         State {                                                                                   
             name: "findbarportrait"                                                               
-            when: scene.orientation == 0 && hasfindbar                                            
+            when: hasfindbar && (orientation == 0 || orientation == 2)                                            
             PropertyChanges {                                                                     
                 target: findbar                                                                   
-                width: scene.height / 2                                                           
+                width: {console.log(scene.height);scene.height / 2 }                                                         
                 x: scene.height / 2                                                               
             }                                                                                     
-        },                                                                                        
-                                                                                                  
-        State {                                                                                   
-            name: "findbarinvertedportrait"                                                       
-            when:scene.orientation == 2 && hasfindbar                                             
-            PropertyChanges {                                                                     
-                target: findbar                                                                   
-                width: scene.height / 2                                                           
-                x: scene.height / 2                                                               
-            }                                                                                     
-        } 
-    ]
+        }                                                                                        
+    ]*/
     transitions: [
         Transition {
             from: "*"

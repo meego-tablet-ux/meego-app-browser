@@ -39,7 +39,10 @@ Item {
   id: container
   property bool showfindbar: false
 //  anchors.top: innerContent.top
-
+  parent: innerContent
+//  anchors.right: parent.right
+  width: parent.width/2
+  x: parent.width/2
   GestureArea {
     anchors.fill: parent
     Tap {}
@@ -169,6 +172,7 @@ Item {
         onClicked: {
           container.showfindbar = false;
           findBarModel.closeButtonClicked();
+          scene.hasfindbar = false;
         }
         onPressed: closeIcon.pressed = true
         onReleased: closeIcon.pressed = false
