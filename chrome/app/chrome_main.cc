@@ -10,6 +10,7 @@
 #include <QOrientationReading>
 #include <QOrientationSensor>
 #include <QOrientationFilter>
+#include <QGLFormat>
 #include <cstdlib>
 
 #include <launcherapp.h>
@@ -310,6 +311,8 @@ static void AdjustLinuxOOMScore(const std::string& process_type) {
     // When debugging, these process types can end up being run directly.
     return;
   } else {
+    // to refer to QtOpenGL explicitly
+    QGLFormat dummy_format;
     NOTREACHED() << "Unknown process type";
   }
   if (score > -1)
