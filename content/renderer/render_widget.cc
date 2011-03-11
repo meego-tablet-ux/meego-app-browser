@@ -55,6 +55,7 @@ using WebKit::WebPopupType;
 using WebKit::WebRect;
 using WebKit::WebScreenInfo;
 using WebKit::WebSize;
+using WebKit::WebString;
 using WebKit::WebTextDirection;
 using WebKit::WebTextInputType;
 using WebKit::WebVector;
@@ -185,6 +186,8 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
 #if defined (TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryNodeAtPosition, OnQueryNodeAtPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
+    IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSelection, OnQueryEditorSelection)
+    IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSurroundingText, OnQueryEditorSurroundingText)
 #endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
@@ -420,6 +423,18 @@ void RenderWidget::OnSelectPopupMenuItem(int selected_index)
     external_popup_menu_->DidSelectItem(selected_index);
     external_popup_menu_->close();
     external_popup_menu_.reset();
+}
+
+void RenderWidget::OnQueryEditorSelection(std::string* selection) {
+  WebString wstr;
+  webwidget_->queryEditorCurrentSelection(wstr);
+  *selection = wstr.utf8();
+}
+
+void RenderWidget::OnQueryEditorSurroundingText(std::string* surrounding_text) {
+  WebString wstr;
+  webwidget_->queryEditorSurroundingText(wstr);
+  *surrounding_text = wstr.utf8();
 }
 
 WebExternalPopupMenu* RenderWidget::createExternalPopupMenu(

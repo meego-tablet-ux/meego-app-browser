@@ -322,6 +322,12 @@ IPC_MESSAGE_ROUTED3(ViewHostMsg_UpdateSelectionRange,
                     gfx::Point, /* start point */
                     gfx::Point, /* end point */
                     bool /* if false, cancel selection */)
+
+IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorSelection,
+                           std::string /* result */)
+
+IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorSurroundingText,
+                           std::string /* result */)
 #endif
 
 IPC_MESSAGE_CONTROL1(ViewHostMsg_UpdatedCacheStats,

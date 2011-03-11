@@ -75,7 +75,7 @@ class RWHVQtWidget : public QGraphicsWidget
   virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
   virtual void resizeEvent(QGraphicsSceneResizeEvent* event);
 
-  virtual QVariant inputMethodQuery(Qt::InputMethodQuery query) const;
+  virtual QVariant inputMethodQuery(Qt::InputMethodQuery query);
 
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget * widget);
   virtual bool event(QEvent *event);

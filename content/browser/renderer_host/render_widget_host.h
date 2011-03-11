@@ -406,6 +406,9 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void DidSelectPopupMenuItem(int selected_index);
   void DidCancelPopupMenu();
 
+  void QueryEditorSelection(std::string& selection);
+  void QueryEditorSurroundingText(std::string& surrounding_text);
+
 #endif
 
   void set_ignore_input_events(bool ignore_input_events) {

@@ -989,11 +989,19 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
     std::endl;
 }
 
-QVariant RWHVQtWidget::inputMethodQuery(Qt::InputMethodQuery query) const
+QVariant RWHVQtWidget::inputMethodQuery(Qt::InputMethodQuery query)
 {
   ///\todo wait for implement, need to report correct MicroFocus
   if (query == Qt::ImMicroFocus) {
     return QVariant(cursor_rect_);
+  } else if (query == Qt::ImCurrentSelection) {
+    std::string str;
+    hostView()->host_->QueryEditorSelection(str);
+    return QVariant(QString::fromStdString(str));
+  } else if (query == Qt::ImSurroundingText) {
+    std::string str;
+    hostView()->host_->QueryEditorSurroundingText(str);
+    return QVariant(QString::fromStdString(str));
   } else {
     return QVariant();
   }

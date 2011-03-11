@@ -1410,3 +1410,13 @@ void RenderWidgetHost::ActivateDeferredPluginHandles() {
 void RenderWidgetHost::StartUserGesture() {
   OnUserGesture();
 }
+
+void RenderWidgetHost::QueryEditorSelection(std::string& selection) {
+  SendWithTimeout(new ViewMsg_QueryEditorSelection(routing_id(), &selection),
+      10000);
+}
+
+void RenderWidgetHost::QueryEditorSurroundingText(std::string& surrounding_text) {
+  SendWithTimeout(new ViewMsg_QueryEditorSurroundingText(routing_id(), &surrounding_text),
+      10000);
+}
