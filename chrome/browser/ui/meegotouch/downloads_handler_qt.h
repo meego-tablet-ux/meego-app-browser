@@ -12,6 +12,7 @@
 #include "chrome/browser/download/download_item.h"
 #include "chrome/browser/download/download_manager.h"
 class BrowserWindowQt;
+class Browser;
 class ListValue;
 class DownloadViewItem;
 class DownloadsQtImpl;
@@ -21,7 +22,9 @@ class FilePath;
 class DownloadsQtHandler : public DownloadManager::Observer,
                             public DownloadItem::Observer {
  public:
-  explicit DownloadsQtHandler(BrowserWindowQt* window, DownloadManager* dlm);
+  explicit DownloadsQtHandler(BrowserWindowQt* window,
+                              Browser* browser,
+                              DownloadManager* dlm);
   virtual ~DownloadsQtHandler();
 
   void Init();
@@ -64,6 +67,9 @@ class DownloadsQtHandler : public DownloadManager::Observer,
   // Callback for the "cancel" message - cancels the download.
   void HandleCancel(const int args);
 
+  // Callback for the "retry" message - retrys the download.
+  void HandleRetry(const int args); 
+
   // Callback for the "clearAll" message - clears all the downloads.
   void HandleClearAll();
 
@@ -105,6 +111,7 @@ class DownloadsQtHandler : public DownloadManager::Observer,
   OrderedDownloads download_items_;
 
   BrowserWindowQt* window_;
+  Browser* browser_;
   DownloadsQtImpl* impl_;
   DISALLOW_COPY_AND_ASSIGN(DownloadsQtHandler);
 };

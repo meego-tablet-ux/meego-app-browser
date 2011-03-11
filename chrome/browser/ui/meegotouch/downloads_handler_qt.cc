@@ -250,6 +250,10 @@ public Q_SLOTS:
   {
     downloads_handler_->HandleCancel(index);
   }
+  void retryDownloadItem(const int index)
+  {
+    downloads_handler_->HandleRetry(index);
+  }
   void removeDownloadItem(const int index)
   {
     downloads_handler_->HandleRemove(index);
@@ -277,9 +281,12 @@ private:
 };
 
 
-DownloadsQtHandler::DownloadsQtHandler(BrowserWindowQt* window, DownloadManager* dlm)
+DownloadsQtHandler::DownloadsQtHandler(BrowserWindowQt* window,
+                                       Browser* browser,
+                                       DownloadManager* dlm)
     : search_text_(),
       window_(window),
+      browser_(browser),
       download_manager_(dlm){
 
   impl_ = new DownloadsQtImpl(this);
@@ -306,6 +313,8 @@ DownloadsQtHandler::DownloadsQtHandler(BrowserWindowQt* window, DownloadManager*
   context->setContextProperty("downloadControlResume", q_control_resume);
   QString q_control_remove = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_DOWNLOAD_LINK_REMOVE).c_str());
   context->setContextProperty("downloadControlRemove", q_control_remove);
+  QString q_control_retry = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_DOWNLOAD_LINK_RETRY).c_str());
+  context->setContextProperty("downloadControlRetry", q_control_retry);
   QString q_control_save = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_SAVE_DOWNLOAD).c_str());
   context->setContextProperty("downloadControlSave", q_control_save);
   QString q_control_discard = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_DISCARD_DOWNLOAD).c_str());
@@ -439,6 +448,20 @@ void DownloadsQtHandler::HandleCancel(const int args) {
   DownloadItem* file = GetDownloadById(args);
   if (file)
     file->Cancel(true);
+}
+
+void DownloadsQtHandler::HandleRetry(const int args) {
+  DownloadItem* file = GetDownloadById(args);
+  if (file) {
+    PageNavigator* page_navigator_ = browser_->GetSelectedTabContents();
+    //DCHECK(file->url());
+    DCHECK(page_navigator_);
+
+    page_navigator_->OpenURL(
+      file->url(), GURL(),
+      NEW_FOREGROUND_TAB,
+      PageTransition::LINK);
+  }
 }
 
 void DownloadsQtHandler::HandleClearAll() {

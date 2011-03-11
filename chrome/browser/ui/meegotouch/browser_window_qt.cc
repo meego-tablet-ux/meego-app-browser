@@ -239,7 +239,7 @@ void BrowserWindowQt::InitWidget()
   web_popuplist_.reset(new PopupListQt(this));
   
   DownloadManager* dlm = browser_->profile()->GetDownloadManager();
-  download_handler_.reset(new DownloadsQtHandler(this, dlm));
+  download_handler_.reset(new DownloadsQtHandler(this, browser_.get(), dlm));
 
   // set the srouce at the end to make sure every model is ready now
   window_->getDeclarativeView()->setSource(QUrl(sharePath + mainQml));

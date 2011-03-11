@@ -49,9 +49,14 @@ Item {
         height: {isLandscapeView() || show_date != 1?itemHeight:itemHeight+30}
         states: [
           State {
-            name: "canceledAndCompleted"
-            when: s == 3 || s == 4
-            PropertyChanges  { target:buttonLoader; sourceComponent: completedAndCanceledButtons; anchors.topMargin: 10;}
+            name: "completed"
+            when: s == 4
+            PropertyChanges  { target:buttonLoader; sourceComponent: completedButtons; anchors.topMargin: 10;}
+          },
+          State {
+            name: "canceled"
+            when: s == 3
+            PropertyChanges  { target:buttonLoader; sourceComponent: canceledButtons; anchors.topMargin: 10;}
           },
           State {
             name: "inprocess"
@@ -86,6 +91,7 @@ Item {
           font.bold: true
           font.pixelSize: 20
           height: {isLandscapeView() || show_date != 1?0:30}
+          opacity: {isLandscapeView() || show_date != 1? 0:1}
           text: { show_date == 1? downloadDate:""}
         }
         Text {
@@ -95,7 +101,8 @@ Item {
           elide: Text.ElideRight
           font.bold: true
           font.pixelSize: 20
-          width: {isLandscapeView()?120:0}
+          width: {isLandscapeView()?125:0}
+          opacity: {isLandscapeView()?1:0}
           text: { show_date == 1? downloadDate:""}
         }
         Image {
@@ -263,7 +270,7 @@ Item {
      }
    }
    Component {
-      id: completedAndCanceledButtons
+      id: completedButtons
       Rectangle {
         anchors.topMargin: 10
         Row {
@@ -285,6 +292,43 @@ Item {
        }
      }
    }
+   Component {
+      id: canceledButtons
+      Rectangle {
+        anchors.topMargin: 10
+        Row {
+          anchors.fill: parent
+          spacing: 20
+          Text {
+            id: retryButton
+            color: "blue"
+            font.pixelSize: 20
+            font.underline: true
+            text: downloadControlRetry
+            MouseArea {
+              anchors.fill: parent
+              onClicked: {
+                downloadItemContainer.model.retryDownloadItem(index);
+              }
+            }
+          }
+          Text {
+            id: removeButton
+            color: "blue"
+            font.pixelSize: 20
+            font.underline: true
+            text: downloadControlRemove
+            MouseArea {
+              anchors.fill: parent
+              onClicked: {
+                downloadItemContainer.model.removeDownloadItem(index);
+              }
+            }
+          }
+       }
+     }
+   }
+
    Component {
       id: dangeousButtons
       Rectangle {
