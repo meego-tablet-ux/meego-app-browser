@@ -853,75 +853,73 @@ int ChromeMain(int argc, char** argv) {
 #endif
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  if (process_type.empty()) {
-    ui::SetDefaultX11ErrorHandlers();
+  ui::SetDefaultX11ErrorHandlers();
 
-    bool fullscreen = false;
-    bool opengl = false;
-    bool noRaise = false;
-    bool setSource = false;
-    int width = 1280;
-    int height = 800;
-    QString cmd;
-    QString cdata;
-    QString app;
+  bool fullscreen = false;
+  bool opengl = false;
+  bool noRaise = false;
+  bool setSource = false;
+  int width = 1280;
+  int height = 800;
+  QString cmd;
+  QString cdata;
+  QString app;
 
-    for (int i=1; i<argc; i++)
+  for (int i=1; i<argc; i++)
+  {
+    QString s(argv[i]);
+    if (s == "--opengl")
     {
-      QString s(argv[i]);
-      if (s == "--opengl")
-      {
-        opengl = true;
-      }
-      else if (s == "--fullscreen")
-      {
-        fullscreen = true;
-      }
-      else if (s == "--cmd")
-      {
-        cmd = QString(argv[++i]);
-      }
-      else if (s == "--cdata")
-      {
-        cdata = QString(argv[++i]);
-      }
-      else if (s.startsWith("--app="))
-      {
-        app = s.split("=").at(1);
-      }
-      else if (s == "--noraise")
-      {
-        noRaise = true;
-      }
-      else if (s == "--width")
-      {
-        width = atoi (argv[++i]);
-      }
-      else if (s == "--height")
-      {
-        height = atoi (argv[++i]);
-      }
+      opengl = true;
     }
-
-    QString identifier = QString(app);
-    LauncherApp application(argc, argv, identifier, noRaise);
-
-    initAtoms ();
-
-    g_main_window = new LauncherWindow(fullscreen, width, height, opengl, noRaise, setSource);
-
-    //show main window to improve startup time
-    g_main_window->show();
-
-    foreach (QString path, QCoreApplication::libraryPaths())
+    else if (s == "--fullscreen")
     {
-      QPluginLoader loader(path + "/libmultipointtouchplugin.so");
-                           loader.load();
-      if (loader.isLoaded())
-      {
-        loader.instance();
-        break;
-      }
+      fullscreen = true;
+    }
+    else if (s == "--cmd")
+    {
+      cmd = QString(argv[++i]);
+    }
+    else if (s == "--cdata")
+    {
+      cdata = QString(argv[++i]);
+    }
+    else if (s.startsWith("--app="))
+    {
+      app = s.split("=").at(1);
+    }
+    else if (s == "--noraise")
+    {
+      noRaise = true;
+    }
+    else if (s == "--width")
+    {
+      width = atoi (argv[++i]);
+    }
+    else if (s == "--height")
+    {
+      height = atoi (argv[++i]);
+    }
+  }
+
+  QString identifier = QString(app);
+  LauncherApp application(argc, argv, identifier, noRaise);
+
+  initAtoms ();
+
+  g_main_window = new LauncherWindow(fullscreen, width, height, opengl, noRaise, setSource);
+
+  //show main window to improve startup time
+  g_main_window->show();
+
+  foreach (QString path, QCoreApplication::libraryPaths())
+  {
+    QPluginLoader loader(path + "/libmultipointtouchplugin.so");
+                         loader.load();
+    if (loader.isLoaded())
+    {
+      loader.instance();
+      break;
     }
   }
 #endif
