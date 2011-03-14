@@ -72,9 +72,10 @@ void BrowserMainPartsQt::PreEarlyInitialization() {
 }
 
 void BrowserMainPartsQt::DetectRunningAsRoot() {
-  if (geteuid() == 0) {
-    exit(EXIT_FAILURE);
-  }
+  /* TODO: To allow run under chroot envrionment, we allow process run as root */
+  //if (geteuid() == 0) {
+  //  exit(EXIT_FAILURE);
+  //}
 }
 
 void BrowserMainPartsQt::SetupSandbox() {
