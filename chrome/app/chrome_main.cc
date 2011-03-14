@@ -852,10 +852,6 @@ int ChromeMain(int argc, char** argv) {
   // as our process name since we exec() via that to be update-safe.
 #endif
 
-#if defined(OS_POSIX)
-  SetProcessTitleFromCommandLine(argv);
-#endif
-
 #if defined(TOOLKIT_MEEGOTOUCH)
   if (process_type.empty()) {
     ui::SetDefaultX11ErrorHandlers();
@@ -928,6 +924,10 @@ int ChromeMain(int argc, char** argv) {
       }
     }
   }
+#endif
+
+#if defined(OS_POSIX)
+  SetProcessTitleFromCommandLine(argv);
 #endif
 
   int exit_code = RunNamedProcessTypeMain(process_type, main_params);
