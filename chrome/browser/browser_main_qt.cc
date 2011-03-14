@@ -2,21 +2,37 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/browser_main.h"
 #include "chrome/browser/browser_main_qt.h"
-#include "ui/base/x/x11_util.h"
-#include "ui/base/x/x11_util_internal.h"
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "base/command_line.h"
 #include "base/debug/debugger.h"
 #include "chrome/browser/browser_list.h"
 #include "chrome/browser/browser_main_win.h"
 #include "chrome/browser/metrics/metrics_service.h"
+#include "chrome/common/chrome_switches.h"
+#include "content/browser/renderer_host/render_sandbox_host_linux.h"
+#include "content/browser/zygote_host_linux.h"
 #include "content/common/result_codes.h"
+#include "grit/chromium_strings.h"
+#include "grit/generated_resources.h"
+#include "ui/base/l10n/l10n_util.h"
+#include "ui/base/resource/resource_bundle.h"
+#include "ui/base/x/x11_util.h"
+#include "ui/base/x/x11_util_internal.h"
+
+#if defined(USE_NSS)
+#include "base/nss_util.h"
+#endif
 
 #if defined(USE_LINUX_BREAKPAD)
 #include "chrome/app/breakpad_linux.h"
 #endif
+
+namespace {
 
 // Indicates that we're currently responding to an IO error (by shutting down).
 bool g_in_x11_io_error_handler = false;
@@ -40,7 +56,53 @@ int BrowserX11IOErrorHandler(Display* d) {
   return 0;
 }
 
-void WillInitializeMainMessageLoop(const MainFunctionParams& parameters) {
+}  // namespace
+
+void BrowserMainPartsQt::PreEarlyInitialization() {
+  DetectRunningAsRoot();
+
+  BrowserMainPartsPosix::PreEarlyInitialization();
+
+  SetupSandbox();
+
+#if defined(USE_NSS)
+  // We want to be sure to init NSPR on the main thread.
+  base::EnsureNSPRInit();
+#endif
+}
+
+void BrowserMainPartsQt::DetectRunningAsRoot() {
+  if (geteuid() == 0) {
+    exit(EXIT_FAILURE);
+  }
+}
+
+void BrowserMainPartsQt::SetupSandbox() {
+  // TODO(evanm): move this into SandboxWrapper; I'm just trying to move this
+  // code en masse out of chrome_main for now.
+  const char* sandbox_binary = NULL;
+  struct stat st;
+
+  // In Chromium branded builds, developers can set an environment variable to
+  // use the development sandbox. See
+  // http://code.google.com/p/chromium/wiki/LinuxSUIDSandboxDevelopment
+  if (stat("/proc/self/exe", &st) == 0 && st.st_uid == getuid())
+    sandbox_binary = getenv("CHROME_DEVEL_SANDBOX");
+
+#if defined(LINUX_SANDBOX_PATH)
+  if (!sandbox_binary)
+    sandbox_binary = LINUX_SANDBOX_PATH;
+#endif
+
+  std::string sandbox_cmd;
+  if (sandbox_binary && !parsed_command_line().HasSwitch(switches::kNoSandbox))
+    sandbox_cmd = sandbox_binary;
+
+  // Tickle the sandbox host and zygote host so they fork now.
+  RenderSandboxHostLinux* shost = RenderSandboxHostLinux::GetInstance();
+  shost->Init(sandbox_cmd);
+  ZygoteHost* zhost = ZygoteHost::GetInstance();
+  zhost->Init(sandbox_cmd);
 }
 
 void DidEndMainMessageLoop() {
@@ -79,16 +141,13 @@ void PrepareRestartOnCrashEnviroment(const CommandLine &parsed_command_line) {
 void SetBrowserX11ErrorHandlers() {
   // Set up error handlers to make sure profile gets written if X server
   // goes away.
-  ui::SetX11ErrorHandlers(
-      BrowserX11ErrorHandler,
-      BrowserX11IOErrorHandler);
+  ui::SetX11ErrorHandlers(BrowserX11ErrorHandler, BrowserX11IOErrorHandler);
 }
 
 #if !defined(OS_CHROMEOS)
 // static
 BrowserMainParts* BrowserMainParts::CreateBrowserMainParts(
     const MainFunctionParams& parameters) {
-  NOTIMPLEMENTED();
-  return NULL;
+  return new BrowserMainPartsQt(parameters);
 }
 #endif
