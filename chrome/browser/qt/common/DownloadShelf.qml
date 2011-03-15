@@ -277,6 +277,19 @@ Item {
           anchors.fill: parent
           spacing: 20
           Text {
+            id: deleteButton
+            color: "blue"
+            font.pixelSize: 20
+            font.underline: true
+            text: qsTr("Delete") 
+            MouseArea {
+              anchors.fill: parent
+              onClicked: {
+                downloadItemContainer.model.deleteDownloadItem(index);
+              }
+            }
+          }
+          Text {
             id: removeButton
             color: "blue"
             font.pixelSize: 20

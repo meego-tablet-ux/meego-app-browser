@@ -64,6 +64,9 @@ class DownloadsQtHandler : public DownloadManager::Observer,
   // and list.
   void HandleRemove(const int args);
 
+  // Callback for the "delete" message -delete the file download from disk
+  void HandleDelete(const int args);
+
   // Callback for the "cancel" message - cancels the download.
   void HandleCancel(const int args);
 

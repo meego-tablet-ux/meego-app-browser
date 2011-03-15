@@ -258,6 +258,10 @@ public Q_SLOTS:
   {
     downloads_handler_->HandleRemove(index);
   }
+  void deleteDownloadItem(const int index)
+  {
+    downloads_handler_->HandleDelete(index);
+  }
   void saveDownloadItem(const int index)
   {
     downloads_handler_->HandleSaveDangerous(index);
@@ -443,6 +447,13 @@ void DownloadsQtHandler::HandleRemove(const int args) {
   if (file)
     file->Remove(false);
 }
+
+void DownloadsQtHandler::HandleDelete(const int args) {
+  DownloadItem* file = GetDownloadById(args);
+  if (file)
+    file->Remove(true);
+}
+
 
 void DownloadsQtHandler::HandleCancel(const int args) {
   DownloadItem* file = GetDownloadById(args);
