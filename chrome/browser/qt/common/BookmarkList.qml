@@ -202,9 +202,9 @@ Item {
   Component {
     id: bmItemDeleteDialog
     ModalDialog {
-      leftButtonText: qsTr("Remove")
+      leftButtonText: qsTr("Delete")
       rightButtonText: qsTr("Cancel")
-      dialogTitle: qsTr("Sure to remove \'") + bmGlobal.currentTitle.toString().substring(0,30) + qsTr("\'?")
+      dialogTitle: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
       onDialogClicked: {
         if (button == 1) {
           bmGlobal.currentModel.remove(bmGlobal.idHasMenu)
@@ -218,7 +218,7 @@ Item {
     ModalDialog {
       leftButtonText: qsTr("Save")
       rightButtonText: qsTr("Cancel")
-      dialogTitle: qsTr("Edit \'") + bmGlobal.currentTitle.toString().substring(0,30) + qsTr("\'")
+      dialogTitle: qsTr("Edit bookmark"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"");
       onDialogClicked: {
         if (button == 1) {
           if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.gridIdHasMenu, tmpTitle);
