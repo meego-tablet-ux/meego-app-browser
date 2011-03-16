@@ -135,6 +135,7 @@ extern "C" {
 __attribute__((visibility("default")))
 int ChromeMain(int argc, char** argv);
 
+LauncherApp* g_launcher_app = NULL;
 LauncherWindow* g_main_window = NULL;
 
 #include <qapplication.h>
@@ -157,6 +158,90 @@ void gQtMessageOutput(QtMsgType type, const char *msg)
   }
 }
 
+void InitQmlLauncher(const std::string process_type, int argc, char** argv)
+{
+  if (process_type != "")
+    return;
+  
+  ui::SetDefaultX11ErrorHandlers();
+
+  bool fullscreen = false;
+  bool opengl = false;
+  bool noRaise = false;
+  bool setSource = false;
+  int width = 1280;
+  int height = 800;
+  QString cmd;
+  QString cdata;
+  QString app;
+
+  for (int i=1; i<argc; i++)
+  {
+    QString s(argv[i]);
+    if (s == "--opengl")
+    {
+      opengl = true;
+    }
+    else if (s == "--fullscreen")
+    {
+      fullscreen = true;
+    }
+    else if (s == "--cmd")
+    {
+      cmd = QString(argv[++i]);
+    }
+    else if (s == "--cdata")
+    {
+      cdata = QString(argv[++i]);
+    }
+    else if (s.startsWith("--app="))
+    {
+      app = s.split("=").at(1);
+    }
+    else if (s == "--noraise")
+    {
+      noRaise = true;
+    }
+    else if (s == "--width")
+    {
+      width = atoi (argv[++i]);
+    }
+    else if (s == "--height")
+    {
+      height = atoi (argv[++i]);
+    }
+  }
+
+  QString identifier = QString(app);
+  g_launcher_app = new LauncherApp(argc, argv, identifier, noRaise);
+
+  initAtoms ();
+
+  g_main_window = new LauncherWindow(fullscreen, width, height, opengl, noRaise, setSource);
+
+  //show main window to improve startup time
+  g_main_window->show();
+
+  foreach (QString path, QCoreApplication::libraryPaths())
+  {
+    QPluginLoader loader(path + "/libmultipointtouchplugin.so");
+                         loader.load();
+    if (loader.isLoaded())
+    {
+      loader.instance();
+      break;
+    }
+  }    
+}
+
+void FiniQmlLauncher(const std::string process_type)
+{
+  if (process_type != "")
+    return;
+
+  delete g_main_window;
+  delete g_launcher_app;
+}
 }
 #endif
 
@@ -853,75 +938,7 @@ int ChromeMain(int argc, char** argv) {
 #endif
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  ui::SetDefaultX11ErrorHandlers();
-
-  bool fullscreen = false;
-  bool opengl = false;
-  bool noRaise = false;
-  bool setSource = false;
-  int width = 1280;
-  int height = 800;
-  QString cmd;
-  QString cdata;
-  QString app;
-
-  for (int i=1; i<argc; i++)
-  {
-    QString s(argv[i]);
-    if (s == "--opengl")
-    {
-      opengl = true;
-    }
-    else if (s == "--fullscreen")
-    {
-      fullscreen = true;
-    }
-    else if (s == "--cmd")
-    {
-      cmd = QString(argv[++i]);
-    }
-    else if (s == "--cdata")
-    {
-      cdata = QString(argv[++i]);
-    }
-    else if (s.startsWith("--app="))
-    {
-      app = s.split("=").at(1);
-    }
-    else if (s == "--noraise")
-    {
-      noRaise = true;
-    }
-    else if (s == "--width")
-    {
-      width = atoi (argv[++i]);
-    }
-    else if (s == "--height")
-    {
-      height = atoi (argv[++i]);
-    }
-  }
-
-  QString identifier = QString(app);
-  LauncherApp application(argc, argv, identifier, noRaise);
-
-  initAtoms ();
-
-  g_main_window = new LauncherWindow(fullscreen, width, height, opengl, noRaise, setSource);
-
-  //show main window to improve startup time
-  g_main_window->show();
-
-  foreach (QString path, QCoreApplication::libraryPaths())
-  {
-    QPluginLoader loader(path + "/libmultipointtouchplugin.so");
-                         loader.load();
-    if (loader.isLoaded())
-    {
-      loader.instance();
-      break;
-    }
-  }
+  InitQmlLauncher(process_type, argc, argv);
 #endif
 
 #if defined(OS_POSIX)
@@ -937,6 +954,9 @@ int ChromeMain(int argc, char** argv) {
 
   chrome_main::LowLevelShutdown();
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  FiniQmlLauncher(process_type);
+#endif
   return exit_code;
 }
     
