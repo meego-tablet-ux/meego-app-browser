@@ -1035,7 +1035,7 @@ void AboutSource::StartDataRequest(const std::string& path_raw,
 #if defined(OS_CHROMEOS)
     new ChromeOSAboutVersionHandler(this, request_id);
     return;
-#else
+#elif !defined(OS_MEEGO)
     DictionaryValue value;
     response = AboutVersion(&value);
 #endif
