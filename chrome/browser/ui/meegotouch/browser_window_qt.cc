@@ -315,6 +315,10 @@ void BrowserWindowQt::Close()
   if (!CanClose())
     return;
 
+  // Browser::SaveWindowPlacement is used for session restore.
+  if (browser_->ShouldSaveWindowPlacement())
+    browser_->SaveWindowPlacement(GetRestoredBounds(), IsMaximized());
+
   window_->close();
   
   MessageLoop::current()->PostTask(FROM_HERE,
