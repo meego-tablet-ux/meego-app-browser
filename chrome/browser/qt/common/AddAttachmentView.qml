@@ -1,5 +1,5 @@
 import Qt 4.7
-import MeeGo.Components 0.1
+import MeeGo.Labs.Components 0.1
 import MeeGo.Media 0.1
 import Qt.labs.gestures 2.0
 
