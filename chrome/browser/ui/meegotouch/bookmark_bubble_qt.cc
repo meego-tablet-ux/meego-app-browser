@@ -121,11 +121,11 @@ BookmarkBubbleQt::BookmarkBubbleQt( BrowserWindowQt* window,
 
 }
 
-BookmarkBubbleQt::BookmarkBubbleQt( BrowserWindowQt* window,
-                                    Browser* browser,
-                                     Profile* profile,
-                                     const GURL& url,
-                                     bool already_bookmarked)
+BookmarkBubbleQt::BookmarkBubbleQt(BrowserWindowQt* window,
+                                   Browser* browser,
+                                   Profile* profile,
+                                   const GURL& url,
+                                   bool already_bookmarked)
     : url_(url),
       browser_(browser),
       profile_(profile),
@@ -136,7 +136,6 @@ BookmarkBubbleQt::BookmarkBubbleQt( BrowserWindowQt* window,
 
   impl_ = new BookmarkBubbleQtImpl(this);
   InitFolderComboModel();
-
 
   QDeclarativeView *view = window_->DeclarativeView();
   QDeclarativeContext *context = view->rootContext();
@@ -167,11 +166,16 @@ BookmarkBubbleQt::BookmarkBubbleQt( BrowserWindowQt* window,
   const std::string& title = UTF16ToUTF8(node->GetTitle());
   QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
   QString q_node_title = QString::fromStdString(title);
+  name_ = q_node_title;
   context->setContextProperty("bubbleNameInput", q_node_title);
   
   const BookmarkNode* parent = node->parent();
   const std::string& folder = UTF16ToUTF8(parent->GetTitle());
   QString q_node_folder = QString::fromStdString(folder);
+  for (int i = 0; i  < folder_combo_model_->GetItemCount() - 1; i ++) {
+     if (parent == folder_combo_model_->GetNodeAt(i))
+       folder_index_ = i;
+  }
   context->setContextProperty("bubbleFolderInput", q_node_folder);
 }
 
@@ -184,9 +188,24 @@ void BookmarkBubbleQt::Apply() {
     ApplyEdits();
   } else if (remove_bookmark_){
     BookmarkModel* model = profile_->GetBookmarkModel();
-    const BookmarkNode* node = model->GetMostRecentlyAddedNodeForURL(url_);
-    if (node)
-      model->Remove(node->parent(), node->parent()->GetIndexOf(node));
+    const BookmarkNode* new_parent;
+    const string16 new_title = UTF8ToUTF16(name_.toUtf8().data());
+  
+    std::vector<const BookmarkNode*> nodes;
+    model->GetNodesByURL(url_, &nodes);
+    if (folder_index_ < folder_combo_model_->GetItemCount() - 1) {
+      new_parent = folder_combo_model_->GetNodeAt(folder_index_);
+      if (!nodes.empty()){
+        std::vector<const BookmarkNode*>::iterator it; 
+        for ( it=nodes.begin() ; it < nodes.end(); it++ ) {
+          if ((*it)->parent() == new_parent && (*it)->GetTitle() == new_title) {
+            model->Remove((*it)->parent(), (*it)->parent()->GetIndexOf(*it));
+            break;
+          }
+        }
+      }  
+    }
+
   }
 }
 
@@ -194,7 +213,7 @@ void BookmarkBubbleQt::Cancel(){
   BookmarkModel* model = profile_->GetBookmarkModel();
   const BookmarkNode* node = model->GetMostRecentlyAddedNodeForURL(url_);
   if (node && newly_bookmarked_)
-    model->Remove(node->GetParent(), node->GetParent()->IndexOfChild(node));
+    model->Remove(node->parent(), node->parent()->GetIndexOf(node));
 }
 
 void BookmarkBubbleQt::OnRemoveClicked() {
@@ -209,30 +228,36 @@ void BookmarkBubbleQt::OnRemoveClicked() {
 void BookmarkBubbleQt::ApplyEdits() {
   // Set this to make sure we don't attempt to apply edits again.
   apply_edits_ = false;
+  bool already_exist = false;
+  const BookmarkNode* new_parent;
+  const BookmarkNode* new_node;
 
   BookmarkModel* model = profile_->GetBookmarkModel();
   const BookmarkNode* node = model->GetMostRecentlyAddedNodeForURL(url_);
   if (node) {
-    const string16 new_title = UTF8ToUTF16(name_.toUtf8().data());
-    if (new_title != node->GetTitle()) {
-      model->SetTitle(node, new_title);
-      UserMetrics::RecordAction(
-          UserMetricsAction("BookmarkBubble_ChangeTitleInBubble"),
-          profile_);
-    }
-
     // Last index means 'Create Application Bookmark...'
     if (folder_index_ < folder_combo_model_->GetItemCount() - 1) {
-      const BookmarkNode* new_parent = 
-               folder_combo_model_->GetNodeAt(folder_index_);
-      if (new_parent != node->parent()) {
-        UserMetrics::RecordAction(
-            UserMetricsAction("BookmarkBubble_ChangeParent"), profile_);
-       if (newly_bookmarked_) {
-          model->Move(node, new_parent, new_parent->child_count());
-        } else {
-          model->Copy(node, new_parent, new_parent->child_count());
+      new_parent =  folder_combo_model_->GetNodeAt(folder_index_);
+      const string16 new_title = UTF8ToUTF16(name_.toUtf8().data());
+     
+      std::vector<const BookmarkNode*> nodes; 
+      model->GetNodesByURL(url_, &nodes);
+      if (!nodes.empty()){
+        std::vector<const BookmarkNode*>::iterator it;
+        for ( it = nodes.begin() ; it < nodes.end(); it++ ) {
+          if ((*it)->parent() == new_parent) {
+            new_node = *it;
+            already_exist = true;
+          }
         }
+      }
+      if (new_parent != node->parent() && newly_bookmarked_) {
+          model->Remove(node->parent(), node->parent()->GetIndexOf(node));
+      }
+      if (already_exist) {
+        model->SetTitle(new_node, new_title);
+      } else {
+        model->AddURL(new_parent, new_parent->child_count(), new_title, url_);
       }
     }
    

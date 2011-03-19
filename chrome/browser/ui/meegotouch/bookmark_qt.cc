@@ -300,6 +300,17 @@ void BookmarkQt::MoveToAnotherFolder(int index) {
     anotherParent = model_->other_node();
 
   const BookmarkNode* nodeFrom = GetParent()->GetChild(index);
+  std::vector<const BookmarkNode*> nodes;
+  model_->GetNodesByURL(nodeFrom->GetURL(), &nodes);
+  if (!nodes.empty()){
+    std::vector<const BookmarkNode*>::iterator it;
+    for ( it=nodes.begin() ; it < nodes.end(); it++ ) {
+      if ((*it)->parent() == anotherParent) {
+         model_->Remove((*it)->parent(), (*it)->parent()->GetIndexOf(*it));
+      }
+    }
+  }
+ 
   model_->Move(nodeFrom, anotherParent, anotherParent->child_count());
 }
 
@@ -429,7 +440,7 @@ void BookmarkBarQt::BookmarkNodeRemoved(BookmarkModel* model,
   int pos = GetBookmarkButtonCount();
   if (pos == 0) {
     toolbar_impl_->addInstruction();
-    NotifyToMayShowBookmarkBar(false);
+//    NotifyToMayShowBookmarkBar(false);
   }
 }
 
