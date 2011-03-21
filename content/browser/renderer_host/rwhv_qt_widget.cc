@@ -649,7 +649,15 @@ done:
 
 void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  setFocus();
+  if (!hasFocus()) {
+    setFocus();
+    QGraphicsItem *parent = parentItem();
+    while (parent) {
+      if (parent->flags() & QGraphicsItem::ItemIsFocusScope)
+        parent->setFocus(Qt::OtherFocusReason);
+      parent = parent->parentItem();
+    }
+  }
 
   if (!hostView()->IsPopup()) {
     qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
