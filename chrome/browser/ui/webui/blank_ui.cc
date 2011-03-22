@@ -53,16 +53,22 @@ class BlankUIHTMLSource : public ChromeURLDataManager::DataSource {
     virtual void StartDataRequest(const std::string& path,
 						bool is_off_the_record,
 						int request_id) {
+ 	DictionaryValue localized_strings;
+  	localized_strings.SetString("title",
+      		l10n_util::GetStringUTF16(IDS_NEW_TAB_TITLE));
+
+  	ChromeURLDataManager::DataSource::SetFontAndTextDirection(&localized_strings);
+
+  	static const base::StringPiece blank_tab_html("<html><head><title i18n-content=\"title\"></title></head><body></body></html>");
 	
-	std::string title = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_NEW_TAB_TITLE).c_str()).toStdString();
-	std::string full_html;
-	full_html.append("<html><head><meta charset=\"utf-8\"/><title>");
-	full_html.append(title);
-	full_html.append("</title></head></html>");
+
+  	std::string full_html = jstemplate_builder::GetI18nTemplateHtml(
+      		blank_tab_html, &localized_strings);
 
 	RefCountedBytes* html = new RefCountedBytes;
 	html->data.resize(full_html.size());
 	std::copy(full_html.begin(), full_html.end(), html->data.begin());
+
 	SendResponse(request_id, html); 
     }
 
