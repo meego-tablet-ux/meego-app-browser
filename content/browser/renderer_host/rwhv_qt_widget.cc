@@ -202,14 +202,13 @@ void RWHVQtWidget::focusInEvent(QFocusEvent* event)
   QInputContext *ic = qApp->inputContext();
   ic->reset();
   hostView()->GetRenderWidgetHost()->SetInputMethodActive(true);
-
   if (im_enabled_) {
       ic->setFocusWidget(qApp->focusWidget());
       QEvent sip_request(QEvent::RequestSoftwareInputPanel);
       ic->setFocusWidget(qApp->focusWidget());
       ic->filterEvent(&sip_request);
+      qCritical("focus in");
   }
-
   hostView()->ShowCurrentCursor();
   hostView()->GetRenderWidgetHost()->GotFocus();
 
@@ -228,7 +227,7 @@ void RWHVQtWidget::focusOutEvent(QFocusEvent* event)
   ic->reset();
   QEvent sip_request(QEvent::CloseSoftwareInputPanel);
   ic->filterEvent(&sip_request);
-
+  qCritical("focus out");
   hostView()->GetRenderWidgetHost()->SetInputMethodActive(false);
   event->accept();
   return;
@@ -558,41 +557,50 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
   cursor_rect_ = QRect(caret_rect.x(), caret_rect.y(), caret_rect.width(), caret_rect.height());
 
   QInputContext *ic = qApp->inputContext();
-
+  ic->reset();
   // FIXME: if we got unconfirmed composition text, and we try to move cursor
   // from one text entry to another, the unconfirmed composition text will be cancelled
   // but the focus will not move, unless you click another entry again.
   // This bug also exist in GTK code.
 
   bool is_enabled = (type != WebKit::WebTextInputTypeNone);
+  
+  if (type == WebKit::WebTextInputTypeNumber) {
+    setInputMethodHints(Qt::ImhDigitsOnly);
+  } else if (type == WebKit::WebTextInputTypeTelephone){
+    setInputMethodHints(Qt::ImhDialableCharactersOnly);
+  } else if (type == WebKit::WebTextInputTypeEmail) {
+    setInputMethodHints(Qt::ImhEmailCharactersOnly);
+  } else if (type == WebKit::WebTextInputTypeUrl) {
+    setInputMethodHints(Qt::ImhUrlCharactersOnly);
+  } else {
+    setInputMethodHints(Qt::ImhNone);
+  }
 
   if (!is_enabled) {
-    if (im_enabled_) {
-      ic->reset();
+  //if (im_enabled_) {
       setFlag(QGraphicsItem::ItemAcceptsInputMethod, false);
       QEvent sip_request(QEvent::CloseSoftwareInputPanel);
       ic->filterEvent(&sip_request);
       im_enabled_ = false;
-    }
+  //}
   } else {
     // Enable the InputMethod if it's not enabled yet.
-    if (!im_enabled_) {
-      ic->reset();
+  //  if (!im_enabled_) {
       setFlag(QGraphicsItem::ItemAcceptsInputMethod, true);
       QEvent sip_request(QEvent::RequestSoftwareInputPanel);
       ic->setFocusWidget(qApp->focusWidget());
       ic->filterEvent(&sip_request);
       im_enabled_ = true;
-    }
+  //  }
   }
-
+  
   if (type == WebKit::WebTextInputTypePassword) {
     setInputMethodHints(inputMethodHints() | Qt::ImhHiddenText | Qt::ImhNoPredictiveText );
   } else {
     setInputMethodHints(inputMethodHints() & ~(Qt::ImhHiddenText | Qt::ImhNoPredictiveText) );
   }
   ic->update();
-
 }
 
 
