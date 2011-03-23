@@ -41,6 +41,7 @@ Item {
     property int maxPopupListWidth : 600
     property int maxPopupListHeight : 600
     property int currentIndex : 0
+    property alias targetParent : webPopupListContext.targetParent
 
     anchors.fill : parent
     visible : false

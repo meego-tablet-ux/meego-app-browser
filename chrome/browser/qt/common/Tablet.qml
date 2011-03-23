@@ -160,10 +160,11 @@ BrowserWindowTablet {
       popupListLoader.source = "WebPopupList.qml"
       popupListLoader.item.model = PopupListModel
       popupListLoader.item.parent = screenlayer
+      popupListLoader.item.targetParent = screenlayer;
       popupListLoader.item.currentIndex = PopupListModel.currentSelectedItem();
       popupListLoader.item.maxPopupListHeight = screenlayer.height - 20;
 
-      var map = content.mapToItem(scene, Math.round(hx + hw/2), Math.round(hy + hh/2));
+      var map = content.mapToItem(screenlayer, Math.round(hx + hw/2), Math.round(hy + hh/2));
       popupListLoader.item.show(map.x, map.y);
     }
 
