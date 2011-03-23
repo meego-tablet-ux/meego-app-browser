@@ -367,7 +367,8 @@ class BookmarkQtImpl : public QAbstractListModel
 public:
   enum BookmarkRoles {
     TitleRole = Qt::UserRole + 1,
-    UrlRole
+    UrlRole,
+    LengthRole,
   };
   BookmarkQtImpl(BookmarkQt* bookmark_qt, QObject *parent = 0);
 
@@ -427,7 +428,7 @@ class BookmarkQtListImpl : public BookmarkQtImpl
   Q_OBJECT
 public:
   enum ListRoles {
-    ImageRole = UrlRole + 1,
+    ImageRole = LengthRole + 1,
     IdRole
   };
   BookmarkQtListImpl(BookmarkQt* bookmark_qt, QObject *parent = 0);

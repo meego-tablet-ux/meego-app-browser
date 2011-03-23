@@ -659,7 +659,7 @@ BookmarkQtImpl::BookmarkQtImpl(BookmarkQt* bookmark_qt, QObject *parent)
   QHash<int, QByteArray> roles;
   roles[TitleRole] = "title";
   roles[UrlRole] = "url";
-
+  roles[LengthRole] = "length";
   setRoleNames(roles);
 }
 
@@ -750,7 +750,7 @@ QVariant BookmarkQtImpl::data(const QModelIndex& index, int role) const {
 
   if (role == TitleRole)    return bookmarks_[index.row()].title();
   else if (role == UrlRole) return bookmarks_[index.row()].url();
-
+  else if (role == LengthRole) return bookmarks_[index.row()].title().toUtf8().size();
   return QVariant();
 }
 

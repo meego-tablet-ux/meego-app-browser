@@ -102,7 +102,7 @@ Item {
         property bool pressed: false
         property bool active: true
         opacity: active ? 1.0 : 0.5
-        width: { container.itemWidth > texttitle.width+20? texttitle.width+20:container.itemWidth}
+        width:length*20 > container.itemWidth? container.itemWidth:length*20 
         height: parent.height - 6
         radius: 20 
         anchors.verticalCenter: parent.verticalCenter
@@ -137,9 +137,7 @@ Item {
 
         Text {
           id: texttitle
-          anchors.top: parent.top
-          anchors.bottom: parent.bottom
-          anchors.left: parent.left
+          anchors.fill: parent
           anchors.leftMargin: 10
           anchors.rightMargin: 10
           color: "black"
@@ -156,8 +154,10 @@ Item {
           onClicked: {
             container.model.openBookmarkItem(index);
           }
-          onPressed: if (bookmarkitem.active) parent.pressed = true
-          onReleased: if (bookmarkitem.active) parent.pressed = false
+          onPressed: parent.pressed = true
+          onReleased: parent.pressed = false
+          onPositionChanged: parent.pressed = false
+          onPressAndHold: parent.pressed = false
         }
       }
     }
@@ -174,6 +174,8 @@ Item {
       focus: true
       clip: true
       orientation: ListView.Horizontal
+      // only interactive when items are full of container
+      interactive: childrenRect.width + 10 > parent.width? true:false 
       opacity: 1
       states: State {
          name: "ShowBars"

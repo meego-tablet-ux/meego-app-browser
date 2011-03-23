@@ -79,7 +79,7 @@ Item
         BorderImage {
             id: bg
             source: "image://theme/browser/bg_bookmarkbar"
-            border { left: 20; right: 20; top: 40; bottom:10 }
+            border { left: 20; right: 20; top: 45; bottom:5 }
             width: parent.width
             height: parent.height
         }
@@ -94,9 +94,7 @@ Item
             anchors.left: parent.left
             anchors.leftMargin:10
             font.pixelSize: 20
-            color:"black"
-            style: Text.Outline
-            styleColor: "gray"
+            color:"gray"//"black"
         }
 
         Image {

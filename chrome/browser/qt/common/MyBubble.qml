@@ -164,6 +164,13 @@ Item {
                 font.bold: true
                 font.pixelSize: height*0.5
               }
+              Image {
+                id: divide
+                height: 2
+                width: parent.width
+                fillMode: Image.Stretch
+                source: "image://theme/btn_grey_up"
+              }
               Text {
                 id: nameLabel
                 text: bubbleName

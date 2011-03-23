@@ -86,6 +86,7 @@ Item {
       anchors.left: parent.left
       anchors.right: starButton.left
       anchors.topMargin: 10
+      anchors.rightMargin: 5
       height: parent.height
       //anchors.verticalCenter: parent.verticalCenter
       horizontalAlignment: TextInput.AlignLeft
@@ -157,6 +158,8 @@ Item {
       width: height
       anchors.verticalCenter: parent.verticalCenter
       anchors.right: parent.right
+      anchors.leftMargin: 5
+      anchors.rightMargin: 5
       Image {
         id: starIcon
         anchors.fill: parent

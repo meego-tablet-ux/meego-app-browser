@@ -2379,7 +2379,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       </if>
       <if expr="pp_ifdef('use_titlecase') and os == 'linux2'">
         <message name="IDS_CREATE_SHORTCUTS_TITLE" desc="In Title Case: title of the dialog to create application shortcuts for current page.">
-          Create Application Shortcuts
+          Create Application Shortcut
         </message>
       </if>
       <message name="IDS_CREATE_SHORTCUTS_LABEL" desc="Contents of the main label in the create application shortcuts dialog explaining the dialog.">
