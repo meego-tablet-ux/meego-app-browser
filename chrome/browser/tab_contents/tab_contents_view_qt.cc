@@ -154,6 +154,12 @@ void TabContentsViewQt::Focus() {
       gfx::NativeView widget = GetContentNativeView();
       if (widget)
 	widget->setFocus();
+      QGraphicsItem *parent = widget->parentItem();
+      while (parent) {
+	if (parent->flags() & QGraphicsItem::ItemIsFocusScope)
+	  parent->setFocus(Qt::OtherFocusReason);
+	parent = parent->parentItem();
+      }
     }
 }
 
