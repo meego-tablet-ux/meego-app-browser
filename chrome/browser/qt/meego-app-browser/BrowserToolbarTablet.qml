@@ -190,7 +190,6 @@ Item {
             height: buttonHeight
             width: buttonWidth
             anchors.right: parent.right
-            anchors.rightMargin: 20
             popupDirection: 1
             topWidget: scene
         }

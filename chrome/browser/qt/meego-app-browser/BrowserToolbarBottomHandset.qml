@@ -115,7 +115,6 @@ Item {
     TabButton {
       id: tabButton
       anchors.right: parent.right
-      anchors.rightMargin: 10
       height: buttonHeight
       width: buttonWidth
       popupDirection: 0
