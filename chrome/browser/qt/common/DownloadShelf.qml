@@ -45,33 +45,13 @@ Item {
       Rectangle {
         id: downloadItem
         property bool pressed: false
-        width: parent.width
+        width: parent.width;
         height: {isLandscapeView() || show_date != 1?itemHeight:itemHeight+30}
         states: [
           State {
-            name: "completed"
-            when: s == 4
-            PropertyChanges  { target:buttonLoader; sourceComponent: completedButtons; anchors.topMargin: 10;}
-          },
-          State {
-            name: "canceled"
-            when: s == 3
-            PropertyChanges  { target:buttonLoader; sourceComponent: canceledButtons; anchors.topMargin: 10;}
-          },
-          State {
-            name: "inprocess"
-            when: s == 2
-            PropertyChanges  { target:buttonLoader; sourceComponent: inprocessButtons; anchors.topMargin: 10;}
-          },
-          State {
-            name: "paused"
-            when: s == 1
-            PropertyChanges  { target:buttonLoader; sourceComponent: pausedButtons; anchors.topMargin: 10;}
-          },
-          State {
             name: "dangeous"
             when: s == 0
-            PropertyChanges { target:buttonLoader; sourceComponent: dangeousButtons; anchors.top: dangeousWarning.bottom;}
+            PropertyChanges { target:dangeousButtons; height: 20;opacity: 1;}
             PropertyChanges  { target:fileurl; height: 0; opacity: 0;}
             PropertyChanges  { target: downloadItemInfo; height: 0; opacity: 0;}
             PropertyChanges  { target:dangeousWarning;  opacity: 1;}
@@ -200,185 +180,87 @@ Item {
             opacity: 0;
             wrapMode: Text.WordWrap
           }
-          Loader
-          {
-            id:buttonLoader
+          Row {
+            id: dangeousButtons
+            anchors.top: dangeousWarning.bottom
+            anchors.topMargin: 10
+            anchors.left: dangeousWarning.left
+            anchors.leftMargin: 5
+            spacing: 20
+            opacity: 0
+            height: 0
+            TextButton {
+              id: saveDangeousButton
+              text: downloadControlSave
+              onClicked: {
+                downloadItemContainer.model.saveDownloadItem(index);        
+              }
+            }
+            TextButton {
+              id: discardDangeousButton
+              text: downloadControlDiscard
+              onClicked: {
+                downloadItemContainer.model.discardDownloadItem(index);  
+              }
+            }
+          }
+          Rectangle {
             anchors.top: fileurl.bottom
+            anchors.topMargin: 5
+            Row {
+              anchors.fill: parent
+              spacing: 20
+              Text {
+                id: leftButton
+                color: "blue"
+                font.pixelSize: 20
+                font.underline: true
+                text: {
+                  if(s == 1) downloadControlResume;
+                  else if (s == 4) qsTr("Delete");
+                  else if(s == 3) downloadControlRetry;
+                  else if(s == 2) downloadControlPause;
+                  else "";
+                }
+                MouseArea {
+                  anchors.fill: parent
+                  onClicked: {
+                    if(s == 1)
+                      downloadItemContainer.model.resumeDownloadItem(index);
+                    else if (s == 4)
+                      downloadItemContainer.model.deleteDownloadItem(index);
+                    else if(s == 3)
+                      downloadItemContainer.model.retryDownloadItem(index);
+                    else if(s == 2) 
+                      downloadItemContainer.model.pauseDownloadItem(index);
+                  }
+                }
+              }
+              Text {
+                id: rightButton
+                color: "blue"
+                font.pixelSize: 20
+                font.underline: true
+                text: {
+                  if(s == 2 || s == 1) downloadControlCancel;
+                  else if (s == 3 || s == 4) downloadControlRemove;
+                  else "";
+                }
+                MouseArea {
+                  anchors.fill: parent
+                  onClicked: {
+                    if(s == 2 || s == 1) 
+                      downloadItemContainer.model.cancelDownloadItem(index);
+                    else if (s == 3 || s == 4)
+                      downloadItemContainer.model.removeDownloadItem(index);
+                  }
+                }
+              }
+            } 
           }
         }
       }
-    }
-    Component {
-      id: inprocessButtons
-      Rectangle {
-        anchors.topMargin: 10
-        anchors.leftMargin:5
-        Row {
-          anchors.fill: parent
-          spacing: 20
-          Text {
-            id: pauseButton 
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true            
-            text: downloadControlPause
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.pauseDownloadItem(index);
-              }
-            }
-          }
-          Text {
-            id: cancelButton
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true
-            text: downloadControlCancel
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.cancelDownloadItem(index);
-              }
-            }
-          }
-       }
-     }
    }
-   Component {
-      id: pausedButtons
-      Rectangle {
-        anchors.topMargin: 10
-        Row {
-          anchors.fill: parent
-          spacing: 20
-          Text {
-            id: resumeButton
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true
-            text: downloadControlResume
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.resumeDownloadItem(index);
-              }
-            }
-
-          }
-          Text {
-            id: cancelButton
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true
-            text: downloadControlCancel
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.cancelDownloadItem(index);
-              }
-            }
-          }
-       }
-     }
-   }
-   Component {
-      id: completedButtons
-      Rectangle {
-        anchors.topMargin: 10
-        Row {
-          anchors.fill: parent
-          spacing: 20
-          Text {
-            id: deleteButton
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true
-            text: qsTr("Delete") 
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.deleteDownloadItem(index);
-              }
-            }
-          }
-          Text {
-            id: removeButton
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true
-            text: downloadControlRemove
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.removeDownloadItem(index);
-              }
-            }
-          }
-       }
-     }
-   }
-   Component {
-      id: canceledButtons
-      Rectangle {
-        anchors.topMargin: 10
-        Row {
-          anchors.fill: parent
-          spacing: 20
-          Text {
-            id: retryButton
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true
-            text: downloadControlRetry
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.retryDownloadItem(index);
-              }
-            }
-          }
-          Text {
-            id: removeButton
-            color: "blue"
-            font.pixelSize: 20
-            font.underline: true
-            text: downloadControlRemove
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                downloadItemContainer.model.removeDownloadItem(index);
-              }
-            }
-          }
-       }
-     }
-   }
-
-   Component {
-      id: dangeousButtons
-      Rectangle {
-        Row {
-          anchors.fill: parent
-          spacing: 20
-          TextButton {
-            id: saveDangeousButton
-            text: downloadControlSave
-            onClicked: {
-              downloadItemContainer.model.saveDownloadItem(index);        
-            }
-          }
-          TextButton {
-            id: discardDangeousButton
-            text: downloadControlDiscard
-            onClicked: {
-              downloadItemContainer.model.discardDownloadItem(index);  
-            }
-          }
-        }
-     }
-   }
-
    ListView {
       id: downloadView
       anchors.fill: parent
