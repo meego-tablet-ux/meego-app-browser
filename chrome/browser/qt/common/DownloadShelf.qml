@@ -110,7 +110,8 @@ Item {
           anchors.left: downloadItemdateLanscape.right
           anchors.top: downloadItemdatePortrait.bottom
           anchors.leftMargin: 10
-          height: itemHeight*3/4
+          anchors.topMargin: 30
+          height: itemHeight*1/2
           width: height
           fillMode: Image.Stretch
           source: {
@@ -128,7 +129,7 @@ Item {
           anchors.left: favicon.right
           anchors.leftMargin: 10 
           anchors.right: parent.right
-          anchors.top: favicon.top
+          anchors.top: downloadItemdatePortrait.bottom
           color: "white"
           border.color: "gray"
           border.width: 2
@@ -163,13 +164,25 @@ Item {
               color: "gray"
               font.pixelSize: 20
               anchors.right: parent.right
-              text: progress
+              opacity: {s!=2 ? 1:0}
+              text: {s!=2 ? progress:""}
             }
           }
           Text {
-            id: fileurl 
+            id: downloadProgressStatus
+            color: "gray"
             anchors.top:downloadItemInfo.bottom
-            anchors.topMargin: 10
+            anchors.topMargin: 5
+            font.pixelSize: 20
+            anchors.left: parent.left
+            height: {s==2 ? 20:0}
+            opacity: {s==2 ? 1:0}
+            text: progress
+          }
+          Text {
+            id: fileurl 
+            anchors.top:downloadProgressStatus.bottom
+            anchors.topMargin: 5
             anchors.leftMargin: 5
             color: "black"
             elide: Text.ElideRight

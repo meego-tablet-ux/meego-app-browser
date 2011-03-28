@@ -143,8 +143,9 @@ Item {
     }
 */
     // This function returns if the view is in landscape or inverted landscape
+    //Please take care, in Handset, the default display mode is portrait mode, which is different from Tablet
     function isLandscapeView() {
-        return orientation == 1 || orientation == 3;
+        return orientation == 0 || orientation == 2;
     }
 
     function showModalDialog (source) {

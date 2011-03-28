@@ -110,7 +110,6 @@ Item {
       height: parent.height
       text: downloadTitle
       anchors.left: back.right
-      anchors.leftMargin: 30
       anchors.verticalCenter: parent.verticalCenter
       verticalAlignment:Text.AlignVCenter
       font { bold: true; pixelSize: 28 }
@@ -118,8 +117,8 @@ Item {
  
     TextEntry {
       id: searchEdit
-      width: downloadsContainer.width*1/2; height: head.height*4/5
-      anchors { left: head.right; leftMargin: 10; verticalCenter: back.verticalCenter }
+      height: head.height*4/5
+      anchors { left: head.right; leftMargin: 5; right: clearAll.left; rightMargin: 5; verticalCenter: back.verticalCenter }
       defaultText: downloadSearch
       onTextChanged: {
         downloadsContainer.model.textChanged(text);
