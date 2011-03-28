@@ -14,6 +14,7 @@
 #include "content/common/notification_observer.h"
 #include "content/common/notification_registrar.h"
 #include "content/common/page_transition_types.h"
+#include "base/time.h"
 
 class NavigationController;
 class Profile;
@@ -127,6 +128,15 @@ class TabStripModel : public NotificationObserver {
   // Retrieve the number of TabContentses/emptiness of the TabStripModel.
   int count() const { return static_cast<int>(contents_data_.size()); }
   bool empty() const { return contents_data_.empty(); }
+
+  // Tabs limit
+  int tabs_limit() const { return tabs_limit_; }
+  bool IsReachTabsLimit();
+
+  // Returns true if there are any non-phantom tabs. When there are no
+  // non-phantom tabs the delegate is notified by way of TabStripEmpty and the
+  // browser closes.
+  bool HasNonPhantomTabs() const;
 
   // Retrieve the Profile associated with this TabStripModel.
   Profile* profile() const { return profile_; }
@@ -353,6 +363,12 @@ class TabStripModel : public NotificationObserver {
   // Returns true if the tab at |index| is blocked by a tab modal dialog.
   bool IsTabBlocked(int index) const;
 
+  void SetTabToPhantom(int index);
+  // Returns true if the tab is a phantom tab. A phantom tab is one where the
+  // renderer has not been loaded.
+  // See description above class for details on phantom tabs.
+  bool IsPhantomTab(int index) const;
+
   // Returns the index of the first tab that is not a mini-tab. This returns
   // |count()| if all of the tabs are mini-tabs, and 0 if none of the tabs are
   // mini-tabs.
@@ -526,6 +542,17 @@ class TabStripModel : public NotificationObserver {
   // (|forward| is false).
   void SelectRelativeTab(bool forward);
 
+  // Returns the first non-phantom tab starting at |index|, skipping the tab at
+  // |ignore_index|.
+  int IndexOfNextNonPhantomTab(int index, int ignore_index);
+
+  // Returns true if the tab at the specified index should be made phantom when
+  // the tab is closing.
+  bool ShouldMakePhantomOnClose(int index);
+
+  // Makes the tab a phantom tab.
+  void MakePhantom(int index);
+
   // Does the work of MoveTabContentsAt. This has no checks to make sure the
   // position is valid, those are done in MoveTabContentsAt.
   void MoveTabContentsAtImpl(int index,
@@ -559,7 +586,8 @@ class TabStripModel : public NotificationObserver {
         : contents(a_contents),
           reset_group_on_select(false),
           pinned(false),
-          blocked(false) {
+          blocked(false),
+          need_phantom(false) {
       SetGroup(NULL);
     }
 
@@ -604,8 +632,13 @@ class TabStripModel : public NotificationObserver {
     // Is the tab pinned?
     bool pinned;
 
+    // is a phantom tab?
+    bool need_phantom;
+
     // Is the tab interaction blocked by a modal dialog?
     bool blocked;
+
+    base::Time last_visit_time_;
   };
 
   // The TabContents data currently hosted within this TabStripModel.
@@ -630,6 +663,9 @@ class TabStripModel : public NotificationObserver {
   NotificationRegistrar registrar_;
 
   TabStripSelectionModel selection_model_;
+
+  // Tabs limit
+  int tabs_limit_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(TabStripModel);
 };

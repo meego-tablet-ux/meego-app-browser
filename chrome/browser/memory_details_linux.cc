@@ -25,6 +25,7 @@
 // Known browsers which we collect details for.
 enum BrowserType {
   CHROME = 0,
+  // we only need profile chrome
   FIREFOX,
   ICEWEASEL,
   OPERA,
@@ -51,6 +52,7 @@ static const struct {
   const char process_name[16];
   BrowserType browser;
   } kBrowserBinaryNames[] = {
+  // Only chrome
   { "firefox", FIREFOX },
   { "firefox-3.5", FIREFOX },
   { "firefox-3.0", FIREFOX },
@@ -203,6 +205,48 @@ void MemoryDetails::CollectProcessData(
     const std::vector<ProcessMemoryInformation>& child_info) {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::FILE));
 
+#if !defined(COLLECT_ALL_BROWSERS)
+  // All render, pluging and GPU processes etc.,
+  std::vector<pid_t> current_browser_processes;
+
+  for (std::vector<ProcessMemoryInformation>::const_iterator iter = child_info.begin();
+       iter != child_info.end(); ++iter) {
+    if (!iter->pid)
+      continue;
+    current_browser_processes.push_back(iter->pid);
+  }
+
+  // browser process
+  current_browser_processes.push_back(getpid());
+
+  // zygote process
+  const pid_t zygote = ZygoteHost::GetInstance()->pid();
+  current_browser_processes.push_back(zygote);
+  
+  ProcessData current_browser;
+  GetProcessDataMemoryInformation(current_browser_processes, &current_browser);
+  current_browser.name = WideToUTF16(chrome::kBrowserAppName);
+  current_browser.process_name = ASCIIToUTF16("chrome");
+  process_data_.push_back(current_browser);
+
+  ProcessData* const chrome_browser = ChromeBrowser();
+  // Get more information about the process.
+  for (size_t index = 0; index < chrome_browser->processes.size();
+      index++) {
+    ProcessMemoryInformation& process =
+        chrome_browser->processes[index];
+      // check other processes
+    for (std::vector<ProcessMemoryInformation>::const_iterator iter = child_info.begin();
+         iter != child_info.end(); ++iter) {
+      if (process.pid != iter->pid) {
+        continue;
+      }
+      process.type = iter->type;
+      process.titles = iter->titles;
+    }    
+  }
+#else
+  
   std::vector<Process> processes;
   GetProcesses(&processes);
   std::set<pid_t> browsers_found;
@@ -265,7 +309,8 @@ void MemoryDetails::CollectProcessData(
 
     process_data_.push_back(browser);
   }
-
+#endif
+  
   // Finally return to the browser thread.
   BrowserThread::PostTask(
       BrowserThread::UI, FROM_HERE,

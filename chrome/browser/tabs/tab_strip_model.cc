@@ -10,6 +10,7 @@
 #include "base/command_line.h"
 #include "base/stl_util-inl.h"
 #include "base/string_util.h"
+#include "base/string_number_conversions.h"
 #include "build/build_config.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/bookmarks/bookmark_model.h"
@@ -23,6 +24,7 @@
 #include "chrome/browser/tabs/tab_strip_model_delegate.h"
 #include "chrome/browser/tabs/tab_strip_model_order_controller.h"
 #include "chrome/browser/ui/tab_contents/tab_contents_wrapper.h"
+#include "chrome/common/chrome_switches.h"
 #include "chrome/common/extensions/extension.h"
 #include "chrome/common/url_constants.h"
 #include "content/browser/renderer_host/render_process_host.h"
@@ -59,11 +61,15 @@ bool TabStripModelDelegate::CanCloseTab() const {
 ///////////////////////////////////////////////////////////////////////////////
 // TabStripModel, public:
 
+static const int MAX_TABS_LIMIT = 65535;
+static const int MIN_TABS_LIMIT = 1;
+
 TabStripModel::TabStripModel(TabStripModelDelegate* delegate, Profile* profile)
     : delegate_(delegate),
       profile_(profile),
       closing_all_(false),
-      order_controller_(NULL) {
+      order_controller_(NULL),
+      tabs_limit_(MAX_TABS_LIMIT) {
   DCHECK(delegate_);
   registrar_.Add(this,
                  NotificationType::TAB_CONTENTS_DESTROYED,
@@ -72,6 +78,18 @@ TabStripModel::TabStripModel(TabStripModelDelegate* delegate, Profile* profile)
                  NotificationType::EXTENSION_UNLOADED,
                  Source<Profile>(profile_));
   order_controller_ = new TabStripModelOrderController(this);
+
+  // Get the tabs limit
+  const CommandLine& command_line = *CommandLine::ForCurrentProcess();
+  if (command_line.HasSwitch(switches::kTabsLimit)) {
+    std::string tabslimit_str = command_line.GetSwitchValueASCII(
+        switches::kTabsLimit);
+    if (base::StringToInt(tabslimit_str, &tabs_limit_)) {
+    }
+  }
+
+  if (tabs_limit_ < MIN_TABS_LIMIT || tabs_limit_ > MAX_TABS_LIMIT)
+    tabs_limit_ = MAX_TABS_LIMIT;
 }
 
 TabStripModel::~TabStripModel() {
@@ -87,6 +105,14 @@ void TabStripModel::AddObserver(TabStripModelObserver* observer) {
 
 void TabStripModel::RemoveObserver(TabStripModelObserver* observer) {
   observers_.RemoveObserver(observer);
+}
+
+bool TabStripModel::HasNonPhantomTabs() const {
+  for (int i = 0; i < count(); i++) {
+    if (!IsPhantomTab(i))
+      return true;
+  }
+  return false;
 }
 
 void TabStripModel::SetInsertionPolicy(InsertionPolicy policy) {
@@ -113,10 +139,56 @@ void TabStripModel::AppendTabContents(TabContentsWrapper* contents,
                                    ADD_NONE);
 }
 
+bool TabStripModel::IsReachTabsLimit()
+{
+  // count out the chrome tab
+  int num_chrome_tabs = 0;
+  for(int i = 0; i < count(); i++)
+  {
+    if(ContainsIndex(i))
+    {
+      TabContents* contents = GetTabContentsAt(i)->tab_contents();
+      if (contents->GetURL().SchemeIs("chrome") ||
+          contents->GetURL().SchemeIs("chrome-extension"))
+      {
+        num_chrome_tabs++;
+      }
+    }
+  }
+
+  return count() - num_chrome_tabs >= tabs_limit_;
+}
+
 void TabStripModel::InsertTabContentsAt(int index,
                                         TabContentsWrapper* contents,
                                         int add_types) {
   bool active = add_types & ADD_ACTIVE;
+
+  // Check tabs limit, if hit limit, replace one instead of insertion
+  if (!contents->tab_contents()->GetURL().SchemeIs("chrome") &&
+      !contents->tab_contents()->GetURL().SchemeIs("chrome-extension")) {
+    if (IsReachTabsLimit())
+    {
+      int replace_index = 0;
+      for (int i = 1; i < contents_data_.size(); i++)
+      {
+        if (contents_data_.at(replace_index)->last_visit_time_ > contents_data_.at(i)->last_visit_time_)
+        {
+          replace_index = i;
+        }
+      }
+
+      ReplaceTabContentsAt(replace_index, contents);
+
+      if (active)
+      {
+        TabContentsWrapper* selected_contents = GetSelectedTabContents();
+        NotifyTabSelectedIfChanged(selected_contents, replace_index, false);
+      }
+
+      return;
+    }
+  }
   // Force app tabs to be pinned.
   bool pin =
       contents->extension_tab_helper()->is_app() || add_types & ADD_PINNED;
@@ -495,6 +567,17 @@ void TabStripModel::SetTabBlocked(int index, bool blocked) {
       index));
 }
 
+void TabStripModel::SetTabToPhantom(int index) {
+  DCHECK(ContainsIndex(index));
+  if (contents_data_[index]->need_phantom == true ||
+      IsPhantomTab(index))
+    return;
+
+  contents_data_[index]->need_phantom = true;
+
+  CloseTabContentsAt(index, CLOSE_CREATE_HISTORICAL_TAB | CLOSE_USER_GESTURE);
+}
+
 void TabStripModel::SetTabPinned(int index, bool pinned) {
   DCHECK(ContainsIndex(index));
   if (contents_data_[index]->pinned == pinned)
@@ -550,6 +633,10 @@ bool TabStripModel::IsAppTab(int index) const {
 
 bool TabStripModel::IsTabBlocked(int index) const {
   return contents_data_[index]->blocked;
+}
+
+bool TabStripModel::IsPhantomTab(int index) const {
+  return GetTabContentsAt(index)->controller().needs_reload();
 }
 
 int TabStripModel::IndexOfFirstNonMiniTab() const {
@@ -986,7 +1073,13 @@ void TabStripModel::Observe(NotificationType type,
       if (index != TabStripModel::kNoTab) {
         // Note that we only detach the contents here, not close it - it's
         // already been closed. We just want to undo our bookkeeping.
-        DetachTabContentsAt(index);
+        if (ShouldMakePhantomOnClose(index)) {
+          // We don't actually allow pinned tabs to close. Instead they become
+          // phantom.
+          MakePhantom(index);
+        } else {
+          DetachTabContentsAt(index);
+        }
       }
       break;
     }
@@ -1114,6 +1207,9 @@ bool TabStripModel::InternalCloseTabs(const std::vector<int>& indices,
   for (size_t i = 0; i < indices.size(); ++i)
     tabs.push_back(GetContentsAt(indices[i]));
 
+  ///\todo: when phantom tabs enable, FastShutdownForPageCount will close process
+  ///even when it host a phantom tabs
+#if 0
   // We only try the fast shutdown path if the whole browser process is *not*
   // shutting down. Fast shutdown during browser termination is handled in
   // BrowserShutdown.
@@ -1146,6 +1242,7 @@ bool TabStripModel::InternalCloseTabs(const std::vector<int>& indices,
       iter->first->FastShutdownForPageCount(iter->second);
     }
   }
+#endif
 
   // We now return to our regularly scheduled shutdown procedure.
   for (size_t i = 0; i < tabs.size(); ++i) {
@@ -1212,6 +1309,9 @@ void TabStripModel::NotifyTabSelectedIfChanged(TabContentsWrapper* old_contents,
   if (old_contents == new_contents)
     return;
 
+  // Record the last visit time
+  contents_data_.at(to_index)->last_visit_time_ = base::Time::Now();
+
   TabContentsWrapper* last_selected_contents = old_contents;
   if (last_selected_contents) {
     FOR_EACH_OBSERVER(TabStripModelObserver, observers_,
@@ -1244,6 +1344,65 @@ void TabStripModel::SelectRelativeTab(bool next) {
   int delta = next ? 1 : -1;
   index = (index + count() + delta) % count();
   ActivateTabAt(index, true);
+}
+
+int TabStripModel::IndexOfNextNonPhantomTab(int index,
+                                            int ignore_index) {
+  if (index == kNoTab)
+    return kNoTab;
+
+  if (empty())
+    return index;
+
+  index = std::min(count() - 1, std::max(0, index));
+  int start = index;
+  do {
+    if (index != ignore_index && !IsPhantomTab(index))
+      return index;
+    index = (index + 1) % count();
+  } while (index != start);
+
+  // All phantom tabs.
+  return start;
+}
+
+bool TabStripModel::ShouldMakePhantomOnClose(int index) {
+  if (contents_data_[index]->need_phantom == true
+      && !IsPhantomTab(index)
+      && !closing_all_
+      && profile()) {
+      return true;
+  }
+  return false;
+}
+
+void TabStripModel::MakePhantom(int index) {
+  TabContentsWrapper* old_contents = GetContentsAt(index);
+  TabContentsWrapper* new_contents = new TabContentsWrapper(old_contents->tab_contents()->CloneAndMakePhantom());
+
+  contents_data_[index]->contents = new_contents;
+
+  // And notify observers.
+  FOR_EACH_OBSERVER(TabStripModelObserver, observers_,
+                    TabReplacedAt(this, old_contents, new_contents, index));
+
+  if (selected_index() == index && HasNonPhantomTabs()) {
+    // Change the selection, otherwise we're going to force the phantom tab
+    // to become selected.
+    // NOTE: we must do this after the call to Replace otherwise browser's
+    // TabSelectedAt will send out updates for the old TabContents which we've
+    // already told observers has been closed (we sent out TabClosing at).
+    int new_selected_index =
+        order_controller_->DetermineNewSelectedIndex(index);
+    new_selected_index = IndexOfNextNonPhantomTab(new_selected_index,
+                                                  index);
+    SelectTabContentsAt(new_selected_index, true);
+  }
+
+  //if (!HasNonPhantomTabs())
+  //  FOR_EACH_OBSERVER(TabStripModelObserver, observers_, TabStripEmpty());
+  
+  contents_data_[index]->need_phantom = false;
 }
 
 void TabStripModel::MoveTabContentsAtImpl(int index,

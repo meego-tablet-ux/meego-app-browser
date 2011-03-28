@@ -24,6 +24,8 @@
         'safe_browsing_report_proto',
         'syncapi',
         'theme_resources',
+        '../native_client/src/trusted/desc/desc.gyp:nrd_xfer',
+        '../native_client/src/trusted/service_runtime/service_runtime.gyp:sel',
         'userfeedback_proto',
         '../app/app.gyp:app_resources',
         '../build/temp_gyp/googleurl.gyp:googleurl',
@@ -42,6 +44,8 @@
         '../third_party/libjingle/libjingle.gyp:libjingle',
         '../third_party/libxml/libxml.gyp:libxml',
         '../third_party/npapi/npapi.gyp:npapi',
+        '../third_party/WebKit/Source/WebCore/WebCore.gyp/WebCore.gyp:webcore',
+        '../third_party/WebKit/Source/WebKit/chromium/WebKit.gyp:webkit',
         '../ui/base/strings/ui_strings.gyp:ui_strings',
         '../ui/gfx/surface/surface.gyp:surface',
         '../webkit/support/webkit_support.gyp:appcache',
@@ -107,6 +111,8 @@
         'browser/autocomplete/autocomplete_edit.cc',
         'browser/autocomplete/autocomplete_edit.h',
         'browser/autocomplete/autocomplete_edit_view.h',
+        'browser/autocomplete/autocomplete_edit_view_qt.cc',
+        'browser/autocomplete/autocomplete_edit_view_qt.h',
         'browser/autocomplete/autocomplete_edit_view_gtk.cc',
         'browser/autocomplete/autocomplete_edit_view_gtk.h',
         'browser/autocomplete/autocomplete_edit_view_mac.h',
@@ -122,6 +128,8 @@
         'browser/autocomplete/autocomplete_popup_view.h',
         'browser/autocomplete/autocomplete_popup_view_gtk.cc',
         'browser/autocomplete/autocomplete_popup_view_gtk.h',
+        'browser/autocomplete/autocomplete_popup_view_qt.cc',
+        'browser/autocomplete/autocomplete_popup_view_qt.h',
         'browser/autocomplete/autocomplete_popup_view_mac.h',
         'browser/autocomplete/autocomplete_popup_view_mac.mm',
         'browser/autocomplete/builtin_provider.cc',
@@ -208,6 +216,7 @@
         'browser/automation/automation_provider.cc',
         'browser/automation/automation_provider.h',
         'browser/automation/automation_provider_gtk.cc',
+        'browser/automation/automation_provider_qt.cc',
         'browser/automation/automation_provider_json.cc',
         'browser/automation/automation_provider_json.h',
         'browser/automation/automation_provider_list.cc',
@@ -237,6 +246,7 @@
         'browser/automation/testing_automation_provider.h',
         'browser/automation/testing_automation_provider_chromeos.cc',
         'browser/automation/testing_automation_provider_gtk.cc',
+        'browser/automation/testing_automation_provider_qt.cc',
         'browser/automation/testing_automation_provider_mac.mm',
         'browser/automation/testing_automation_provider_views.cc',
         'browser/automation/testing_automation_provider_win.cc',
@@ -301,6 +311,7 @@
         'browser/browser_main.cc',
         'browser/browser_main_gtk.cc',
         'browser/browser_main_gtk.h',
+        'browser/browser_main_qt.cc',
         'browser/browser_main_mac.mm',
         'browser/browser_main_posix.cc',
         'browser/browser_main_posix.h',
@@ -730,6 +741,7 @@
         'browser/clipboard_dispatcher.h',
         'browser/clipboard_dispatcher_gtk.cc',
         'browser/clipboard_dispatcher_mac.mm',
+        'browser/clipboard_dispatcher_qt.cc',
         'browser/clipboard_dispatcher_win.cc',
         'browser/cocoa/authorization_util.h',
         'browser/cocoa/authorization_util.mm',
@@ -897,6 +909,8 @@
         'browser/extensions/extension_devtools_manager.h',
         'browser/extensions/extension_disabled_infobar_delegate.cc',
         'browser/extensions/extension_disabled_infobar_delegate.h',
+        'browser/extensions/extension_dldm_api.cc',
+        'browser/extensions/extension_dldm_api.h',
         'browser/extensions/extension_error_reporter.cc',
         'browser/extensions/extension_error_reporter.h',
         'browser/extensions/extension_event_names.cc',
@@ -1088,6 +1102,7 @@
         'browser/first_run/first_run_import_observer.cc',
         'browser/first_run/first_run_import_observer.h',
         'browser/first_run/first_run_mac.mm',
+        'browser/first_run/first_run_qt.cc',
         'browser/first_run/first_run_win.cc',
         'browser/first_run/upgrade_util.cc',
         'browser/first_run/upgrade_util.h',
@@ -1607,6 +1622,8 @@
         'browser/prefs/command_line_pref_store.h',
         'browser/prefs/default_pref_store.cc',
         'browser/prefs/default_pref_store.h',
+        'browser/prefs/gconf_setting_service.cc',
+        'browser/prefs/gconf_setting_service.h',
         'browser/prefs/overlay_persistent_pref_store.cc',
         'browser/prefs/overlay_persistent_pref_store.h',
         'browser/prefs/pref_change_registrar.cc',
@@ -1701,6 +1718,11 @@
         'browser/profiles/profile_keyed_service_factory.h',
         'browser/profiles/profile_manager.cc',
         'browser/profiles/profile_manager.h',
+        'browser/qt/browser-service/BrowserServiceWrapper.cc',
+        'browser/qt/browser-service/MeeGoPluginAPI.cpp',
+        'browser/qt/browser-service/BrowserService.cpp',
+        'browser/qt/browser-service/BrowserService-marshaller.cpp',
+        'browser/qt/browser-service/BrowserService-glue.h',
         'browser/remoting/directory_add_request.cc',
         'browser/remoting/directory_add_request.h',
         'browser/remoting/remoting_options_handler.cc',
@@ -1736,6 +1758,8 @@
         'browser/renderer_host/render_widget_host_view_gtk.h',
         'browser/renderer_host/render_widget_host_view_mac.h',
         'browser/renderer_host/render_widget_host_view_mac.mm',
+        'browser/renderer_host/render_widget_host_view_qt.cc',
+        'browser/renderer_host/render_widget_host_view_qt.h',
         'browser/renderer_host/render_widget_host_view_views.cc',
         'browser/renderer_host/render_widget_host_view_views.h',
         'browser/renderer_host/render_widget_host_view_win.cc',
@@ -1846,6 +1870,7 @@
         'browser/speech/speech_input_bubble_controller.h',
         'browser/speech/speech_input_bubble_gtk.cc',
         'browser/speech/speech_input_bubble_mac.mm',
+        'browser/speech/speech_input_bubble_qt.cc',
         'browser/speech/speech_input_bubble_views.cc',
         'browser/speech/speech_input_manager.cc',
         'browser/spellcheck_host.cc',
@@ -2024,6 +2049,10 @@
         'browser/tab_contents/render_view_context_menu_gtk.h',
         'browser/tab_contents/render_view_context_menu_mac.h',
         'browser/tab_contents/render_view_context_menu_mac.mm',
+        'browser/tab_contents/render_view_context_menu_qt.cc',
+        'browser/tab_contents/render_view_context_menu_qt.h',
+        'browser/tab_contents/render_view_context_menu_simple.cc',
+        'browser/tab_contents/render_view_context_menu_simple.h',
         'browser/tab_contents/render_view_host_delegate_helper.cc',
         'browser/tab_contents/render_view_host_delegate_helper.h',
         'browser/tab_contents/tab_contents_ssl_helper.cc',
@@ -2032,6 +2061,8 @@
         'browser/tab_contents/tab_contents_view_gtk.h',
         'browser/tab_contents/tab_contents_view_mac.h',
         'browser/tab_contents/tab_contents_view_mac.mm',
+        'browser/tab_contents/tab_contents_view_qt.cc',
+        'browser/tab_contents/tab_contents_view_qt.h',
         'browser/tab_contents/tab_specific_content_settings.cc',
         'browser/tab_contents/tab_specific_content_settings.h',
         'browser/tab_contents/tab_util.cc',
@@ -2048,6 +2079,8 @@
         'browser/tab_contents/web_drop_target_win.h',
         'browser/tabs/default_tab_handler.cc',
         'browser/tabs/default_tab_handler.h',
+        'browser/tabs/phantom_tab_manager.h',
+        'browser/tabs/phantom_tab_manager.cc',
         'browser/tabs/pinned_tab_codec.cc',
         'browser/tabs/pinned_tab_codec.h',
         'browser/tabs/pinned_tab_service.cc',
@@ -2759,6 +2792,7 @@
         'browser/ui/gtk/view_id_util.h',
         'browser/ui/input_window_dialog.h',
         'browser/ui/input_window_dialog_gtk.cc',
+        'browser/ui/input_window_dialog_qt.cc',
         'browser/ui/input_window_dialog_win.cc',
         'browser/ui/login/login_model.h',
         'browser/ui/login/login_prompt.cc',
@@ -2767,7 +2801,82 @@
         'browser/ui/login/login_prompt_mac.h',
         'browser/ui/login/login_prompt_mac.mm',
         'browser/ui/login/login_prompt_ui.cc',
+        'browser/ui/login/login_prompt_qt.cc',
         'browser/ui/login/login_prompt_win.cc',
+        'browser/ui/meegotouch/certificate_dialogs_qt.cc',
+        'browser/ui/meegotouch/certificate_viewer_qt.cc',
+        'browser/ui/meegotouch/constrained_html_delegate_qt.cc',
+        'browser/ui/meegotouch/constrained_window_qt.cc',
+        'browser/ui/meegotouch/crypto_module_password_dialog_qt.cc',
+        'browser/ui/meegotouch/customize_sync_window_qt.cc',
+        'browser/ui/meegotouch/back_forward_button_qt.cc',
+        'browser/ui/meegotouch/back_forward_button_qt.h',
+        'browser/ui/meegotouch/balloon_view_qt.cc',
+        'browser/ui/meegotouch/browser_toolbar_qt.cc',
+        'browser/ui/meegotouch/browser_toolbar_qt.h',
+        'browser/ui/meegotouch/browser_window_factory_qt.cc',
+        'browser/ui/meegotouch/browser_window_qt.h',
+        'browser/ui/meegotouch/browser_window_qt.cc',
+        'browser/ui/meegotouch/bookmark_bubble_qt.cc',
+        'browser/ui/meegotouch/bookmark_bubble_qt.h',
+        'browser/ui/meegotouch/bookmark_editor_qt.cc',
+        'browser/ui/meegotouch/bookmark_qt.cc',
+        'browser/ui/meegotouch/bookmark_qt.h',
+        'browser/ui/meegotouch/dialogs_qt.cc',
+        'browser/ui/meegotouch/dialog_qt.cc',
+        'browser/ui/meegotouch/dialog_qt.h',
+        'browser/ui/meegotouch/downloads_handler_qt.cc',
+        'browser/ui/meegotouch/downloads_handler_qt.h',
+        'browser/ui/meegotouch/download_in_progress_dialog_qt.cc',
+        'browser/ui/meegotouch/download_in_progress_dialog_qt.h',
+        'browser/ui/meegotouch/download_started_animation_qt.cc',
+        'browser/ui/meegotouch/extension_infobar_qt.cc',
+        'browser/ui/meegotouch/extension_installed_bubble_qt.cc',
+        'browser/ui/meegotouch/extension_install_prompt2_qt.cc',
+        'browser/ui/meegotouch/extension_install_prompt_qt.cc',
+        'browser/ui/meegotouch/extension_view_qt.h',
+        'browser/ui/meegotouch/external_protocol_dialog_qt.cc',
+        'browser/ui/meegotouch/find_bar_qt.cc',
+        'browser/ui/meegotouch/find_bar_qt.h',
+        'browser/ui/meegotouch/fullscreen_exit_bubble_qt.cc',
+        'browser/ui/meegotouch/fullscreen_exit_bubble_qt.h',
+        'browser/ui/meegotouch/html_dialog_qt.cc',
+        'browser/ui/meegotouch/hung_renderer_dialog_qt.cc',
+        'browser/ui/meegotouch/importer/import_dialog_qt.cc',
+        'browser/ui/meegotouch/importer/import_lock_dialog_qt.cc',
+        'browser/ui/meegotouch/importer/import_progress_dialog_qt.cc',
+        'browser/ui/meegotouch/infobars/infobar_container_qt.cc',
+        'browser/ui/meegotouch/infobars/infobar_container_qt.h',
+        'browser/ui/meegotouch/infobars/infobar_qt.cc',
+        'browser/ui/meegotouch/infobars/infobar_qt.h',
+        'browser/ui/meegotouch/instant_confirm_dialog_qt.cc',
+        'browser/ui/meegotouch/js_modal_dialog_qt.cc',
+        'browser/ui/meegotouch/js_modal_dialog_qt.h',
+        'browser/ui/meegotouch/location_bar_view_qt.cc',
+        'browser/ui/meegotouch/location_bar_view_qt.h',
+        'browser/ui/meegotouch/menu_qt.cc',
+        'browser/ui/meegotouch/menu_qt.h',
+        'browser/ui/meegotouch/new_tab_ui_qt.cc',
+        'browser/ui/meegotouch/new_tab_ui_qt.h',
+        'browser/ui/meegotouch/options_window_qt.cc',
+        'browser/ui/meegotouch/popup_list_qt.cc',
+        'browser/ui/meegotouch/popup_list_qt.h',
+        'browser/ui/meegotouch/proxy_gconf_setting.cc',
+        'browser/ui/meegotouch/proxy_gconf_setting.h',
+        'browser/ui/meegotouch/qt_theme_provider.cc',
+        'browser/ui/meegotouch/qt_theme_provider.h',
+        'browser/ui/meegotouch/qt_util.cc',
+        'browser/ui/meegotouch/qt_util.h',
+        'browser/ui/meegotouch/select_file_dialog_qt.h',
+        'browser/ui/meegotouch/moc_select_file_dialog_qt.cc',
+        'browser/ui/meegotouch/ssl_client_certificate_selector_qt.cc',
+        'browser/ui/meegotouch/status_tray_qt.cc',
+        'browser/ui/meegotouch/tab_list_qt.cc',
+        'browser/ui/meegotouch/tab_list_qt.h',
+        'browser/ui/meegotouch/tab_contents_container_qt.cc',
+        'browser/ui/meegotouch/tab_contents_container_qt.h',
+        'browser/ui/meegotouch/wrench_menu_model_qt.cc',
+        'browser/ui/meegotouch/wrench_menu_model_qt.h',
         'browser/ui/omnibox/location_bar.h',
         'browser/ui/omnibox/location_bar_util.cc',
         'browser/ui/omnibox/location_bar_util.h',
@@ -2810,6 +2919,7 @@
         'browser/ui/tabs/dock_info.h',
         'browser/ui/tabs/dock_info_gtk.cc',
         'browser/ui/tabs/dock_info_mac.cc',
+        'browser/ui/tabs/dock_info_qt.cc',
         'browser/ui/tabs/dock_info_win.cc',
         'browser/ui/tabs/tab_menu_model.cc',
         'browser/ui/tabs/tab_menu_model.h',
@@ -3173,6 +3283,8 @@
         'browser/ui/web_applications/web_app_ui.h',
         'browser/ui/webui/app_launcher_handler.cc',
         'browser/ui/webui/app_launcher_handler.h',
+        'browser/ui/webui/blank_ui.cc',
+        'browser/ui/webui/blank_ui.h',
         'browser/ui/webui/bookmarks_ui.cc',
         'browser/ui/webui/bookmarks_ui.h',
         'browser/ui/webui/bug_report_ui.cc',
@@ -3266,6 +3378,7 @@
         'browser/ui/webui/options/advanced_options_utils.h',
         'browser/ui/webui/options/advanced_options_utils_gtk.cc',
         'browser/ui/webui/options/advanced_options_utils_mac.mm',
+        'browser/ui/webui/options/advanced_options_utils_qt.cc',
         'browser/ui/webui/options/advanced_options_utils_win.cc',
         'browser/ui/webui/options/autofill_options_handler.cc',
         'browser/ui/webui/options/autofill_options_handler.h',
@@ -3322,6 +3435,7 @@
         'browser/ui/webui/options/font_settings_utils.h',
         'browser/ui/webui/options/font_settings_utils_gtk.cc',
         'browser/ui/webui/options/font_settings_utils_mac.mm',
+        'browser/ui/webui/options/font_settings_utils_qt.cc',
         'browser/ui/webui/options/font_settings_utils_win.cc',
         'browser/ui/webui/options/import_data_handler.cc',
         'browser/ui/webui/options/import_data_handler.h',
@@ -3439,6 +3553,14 @@
             'DEBUG_DEVTOOLS=1',
           ],
         }],
+
+        ['disable_nacl!=1', {
+          'dependencies': [
+            '../native_client/src/trusted/plugin/plugin.gyp:ppGoogleNaClPluginChrome',
+            '../native_client/src/trusted/platform_qualify/platform_qualify.gyp:platform_qual_lib',
+          ],
+        }],
+
         ['chromeos==0', {
           'sources/': [
             ['exclude', '^browser/chromeos'],
@@ -4154,6 +4276,340 @@
                 ['exclude', '^browser/extensions/key_identifier_conversion_views.h'],
               ],
             }],
+            ['meegotouch==1', {
+              'sources': [
+              ],
+            'sources/': [
+              ['exclude', '_(chromeos|gtk)(_unittest)?\\.cc$'],
+              ['exclude', '/gtk/'],
+              ['exclude', '/(gtk)_[^/]*\\.cc$'],
+              ['exclude', '^browser/ui/toolbar/wrench_menu_model.cc'],
+              ['exclude', '^browser/ui/toolbar/wrench_menu_model.h'],
+              ['exclude', '^browser/tab_contents/render_view_context_menu.cc'],
+              ['exclude', '^browser/tab_contents/render_view_context_menu.h'],
+            ],
+            'dependencies': [
+                            '../build/linux/system.gyp:meegotouch',
+            ],
+            # TODO: need to implmenet a python script to generate multiple moc files
+            'actions': [
+              {
+                'action_name': 'moc_browser_window_qt.cc',
+                'inputs': [
+                  'browser/ui/meegotouch/browser_window_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_browser_window_qt.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_render_widget_host_view_qt.cc',
+                'inputs': [
+                  'browser/renderer_host/render_widget_host_view_qt.cc',
+                ],
+                'outputs': [
+                  'browser/renderer_host/moc_render_widget_host_view_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_phantom_tab_manager.h',
+                'inputs': [
+                  'browser/tabs/phantom_tab_manager.cc',
+                ],
+                'outputs': [
+                  'browser/tabs/moc_phantom_tab_manager.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_tab_contents_container',
+                'inputs': [
+                  'browser/ui/meegotouch/tab_contents_container_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_tab_contents_container_qt.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'genmarshal-header',
+                'inputs':[
+                  'browser/qt/browser-service/marshal.list',
+                  'browser/qt/browser-service/BrowserService.xml',
+                ],
+                'outputs':[
+                  'browser/qt/browser-service/BrowserService-marshaller.h', 
+                  'browser/qt/browser-service/BrowserService-marshaller.cpp', 
+                  'browser/qt/browser-service/BrowserService-glue.h',
+                ],
+                'action':[
+                  'browser/qt/browser-service/genmarshal.sh',
+                ],
+              },
+              {
+                'action_name': 'moc_browser_toolbar_qt.cc',
+                'inputs': [
+                  'browser/ui/meegotouch/browser_toolbar_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_browser_toolbar_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_bookmark_qt.h',
+                'inputs': [
+                  'browser/ui/meegotouch/bookmark_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_bookmark_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_bookmark_bubble_qt.cc',
+                'inputs': [
+                  'browser/ui/meegotouch/bookmark_bubble_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_bookmark_bubble_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_downloads_handler_qt.cc',
+                'inputs': [
+                  'browser/ui/meegotouch/downloads_handler_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_downloads_handler_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_autocomplete_edit_view_qt',
+                'inputs': [
+                  'browser/autocomplete/autocomplete_edit_view_qt.cc',
+                ],
+                'outputs': [
+                  'browser/autocomplete/moc_autocomplete_edit_view_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_autocomplete_popup_view_qt',
+                'inputs': [
+                  'browser/autocomplete/autocomplete_popup_view_qt.cc',
+                ],
+                'outputs': [
+                  'browser/autocomplete/moc_autocomplete_popup_view_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },                            
+              {
+                'action_name': 'moc_infobar_container',
+                'inputs': [
+                  'browser/ui/meegotouch/infobars/infobar_container_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/infobars/moc_infobar_container_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },                                                     
+              {
+                'action_name': 'moc_popuplist_qt',
+                'inputs': [
+                  'browser/ui/meegotouch/popup_list_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_popup_list_qt.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },                                                     
+              {
+                'action_name': 'fullscreen_exit_bubble',
+                'inputs': [
+                  'browser/ui/meegotouch/fullscreen_exit_bubble_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_fullscreen_exit_bubble_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_find_bar_qt.cc',
+                'inputs': [
+                  'browser/ui/meegotouch/find_bar_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_find_bar_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },                                                          
+              {
+                'action_name': 'moc_back_forward_button_qt.h',
+                'inputs': [
+                  'browser/ui/meegotouch/back_forward_button_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_back_forward_button_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_tab_list_qt.h',
+                'inputs': [
+                  'browser/ui/meegotouch/tab_list_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_tab_list_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_menu_qt',
+                'inputs': [
+                  'browser/ui/meegotouch/menu_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_menu_qt.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'mmoc_dialog_qt.h',
+                'inputs': [
+                  'browser/ui/meegotouch/dialog_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_dialog_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'mmoc_select_file_dialog_qt.h',
+                'inputs': [
+                  'browser/ui/meegotouch/select_file_dialog_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_select_file_dialog_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'mmoc_new_tab_ui_qt.h',
+                'inputs': [
+                  'browser/ui/meegotouch/new_tab_ui_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_new_tab_ui_qt.cc',
+                ],
+                'action': [
+                  'mmoc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+            ],
+            }],
             # These GTK files haven't been ported to views, while ChromeOS has
             # its own separate implementation below.  So re-include them only on
             # non-ChromeOS views Linux builds.
@@ -4174,7 +4630,7 @@
               ],
             }],
             # GTK build only
-            ['OS=="linux" and toolkit_views==0', {
+            ['OS=="linux" and toolkit_views==0 and meegotouch!=1', {
               'sources/': [
                 ['include', '^browser/printing/print_dialog_gtk.cc'],
                 ['include', '^browser/printing/print_dialog_gtk.h'],

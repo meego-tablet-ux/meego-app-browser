@@ -26,6 +26,7 @@
 #include "ui/gfx/gl/gl_switches.h"
 
 #if defined(OS_LINUX)
+#undef signals
 #include "ui/gfx/gtk_native_view_id_manager.h"
 #endif  // defined(OS_LINUX)
 

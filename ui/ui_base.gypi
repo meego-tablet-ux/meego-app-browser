@@ -42,7 +42,7 @@
         'base/animation/tween.h',
         'base/clipboard/clipboard.cc',
         'base/clipboard/clipboard.h',
-        'base/clipboard/clipboard_linux.cc',
+        'base/clipboard/clipboard_qt.cc',
         'base/clipboard/clipboard_mac.mm',
         'base/clipboard/clipboard_util_win.cc',
         'base/clipboard/clipboard_util_win.h',

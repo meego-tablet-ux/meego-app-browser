@@ -4,9 +4,16 @@
 
 #include "chrome/browser/ui/window_sizer.h"
 
+#include <qapplication.h>
+#include <QDesktopWidget>
+#undef signals
+
 #include <gtk/gtk.h>
 
 #include "base/logging.h"
+#include "base/command_line.h"
+#include "base/logging.h"
+#include "base/threading/thread.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/browser_window.h"
@@ -33,10 +40,17 @@ class DefaultMonitorInfoProvider : public WindowSizer::MonitorInfoProvider {
   }
 
   virtual gfx::Rect GetPrimaryMonitorBounds() const {
-    GdkScreen* screen = gdk_screen_get_default();
-    GdkRectangle rect;
-    gdk_screen_get_monitor_geometry(screen, 0, &rect);
-    return gfx::Rect(rect);
+    if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI) { 
+      GdkScreen* screen = gdk_screen_get_default();
+      GdkRectangle rect;
+      gdk_screen_get_monitor_geometry(screen, 0, &rect);
+      return gfx::Rect(rect);
+    }
+    else
+    {
+      QRect rect = qApp->desktop()->screenGeometry();
+      return gfx::Rect(rect.x(), rect.y(), rect.width(), rect.height());
+    }
   }
 
   virtual gfx::Rect GetMonitorWorkAreaMatching(
@@ -63,37 +77,44 @@ class DefaultMonitorInfoProvider : public WindowSizer::MonitorInfoProvider {
   // retrieving this).
   // TODO(thestig) Use _NET_CURRENT_DESKTOP here as well?
   bool GetScreenWorkArea(gfx::Rect* out_rect) const {
-    gboolean ok;
-    guchar* raw_data = NULL;
-    gint data_len = 0;
-    ok = gdk_property_get(gdk_get_default_root_window(),  // a gdk window
-                          gdk_atom_intern("_NET_WORKAREA", FALSE),  // property
-                          gdk_atom_intern("CARDINAL", FALSE),  // property type
-                          0,  // byte offset into property
-                          0xff,  // property length to retrieve
-                          false,  // delete property after retrieval?
-                          NULL,  // returned property type
-                          NULL,  // returned data format
-                          &data_len,  // returned data len
-                          &raw_data);  // returned data
-    if (!ok)
-      return false;
+    if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI) { 
+      gboolean ok;
+      guchar* raw_data = NULL;
+      gint data_len = 0;
+      ok = gdk_property_get(gdk_get_default_root_window(),  // a gdk window
+                            gdk_atom_intern("_NET_WORKAREA", FALSE),  // property
+                            gdk_atom_intern("CARDINAL", FALSE),  // property type
+                            0,  // byte offset into property
+                            0xff,  // property length to retrieve
+                            false,  // delete property after retrieval?
+                            NULL,  // returned property type
+                            NULL,  // returned data format
+                            &data_len,  // returned data len
+                            &raw_data);  // returned data
+      if (!ok)
+        return false;
 
-    // We expect to get four longs back: x, y, width, height.
-    if (data_len < static_cast<gint>(4 * sizeof(glong))) {
-      NOTREACHED();
+      // We expect to get four longs back: x, y, width, height.
+      if (data_len < static_cast<gint>(4 * sizeof(glong))) {
+        NOTREACHED();
+        g_free(raw_data);
+        return false;
+      }
+
+      glong* data = reinterpret_cast<glong*>(raw_data);
+      gint x = data[0];
+      gint y = data[1];
+      gint width = data[2];
+      gint height = data[3];
       g_free(raw_data);
-      return false;
+
+      out_rect->SetRect(x, y, width, height);
     }
-
-    glong* data = reinterpret_cast<glong*>(raw_data);
-    gint x = data[0];
-    gint y = data[1];
-    gint width = data[2];
-    gint height = data[3];
-    g_free(raw_data);
-
-    out_rect->SetRect(x, y, width, height);
+    else
+    {
+      QRect rect = qApp->desktop()->availableGeometry();
+      out_rect->SetRect(rect.x(), rect.y(), rect.width(), rect.height());
+    }
     return true;
   }
 
@@ -111,21 +132,27 @@ gfx::Point WindowSizer::GetDefaultPopupOrigin(const gfx::Size& size) {
   scoped_ptr<MonitorInfoProvider> provider(CreateDefaultMonitorInfoProvider());
   gfx::Rect monitor_bounds = provider->GetPrimaryMonitorWorkArea();
   gfx::Point corner(monitor_bounds.x(), monitor_bounds.y());
-  if (Browser* browser = BrowserList::GetLastActive()) {
-    GtkWindow* window =
-        reinterpret_cast<GtkWindow*>(browser->window()->GetNativeHandle());
-    int x = 0, y = 0;
-    gtk_window_get_position(window, &x, &y);
-    // Limit to not overflow the work area right and bottom edges.
-    gfx::Point limit(
-        std::min(x + kWindowTilePixels, monitor_bounds.right() - size.width()),
-        std::min(y + kWindowTilePixels,
-                 monitor_bounds.bottom() - size.height()));
-    // Adjust corner to now overflow the work area left and top edges, so
-    // that if a popup does not fit the title-bar is remains visible.
-    corner = gfx::Point(
-        std::max(corner.x(), limit.x()),
-        std::max(corner.y(), limit.y()));
+  if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI) { 
+    if (Browser* browser = BrowserList::GetLastActive()) {
+      GtkWindow* window =
+          reinterpret_cast<GtkWindow*>(browser->window()->GetNativeHandle());
+      int x = 0, y = 0;
+      gtk_window_get_position(window, &x, &y);
+      // Limit to not overflow the work area right and bottom edges.
+      gfx::Point limit(
+          std::min(x + kWindowTilePixels, monitor_bounds.right() - size.width()),
+          std::min(y + kWindowTilePixels,
+                   monitor_bounds.bottom() - size.height()));
+      // Adjust corner to now overflow the work area left and top edges, so
+      // that if a popup does not fit the title-bar is remains visible.
+      corner = gfx::Point(
+          std::max(corner.x(), limit.x()),
+          std::max(corner.y(), limit.y()));
+    }
+  }
+  else
+  {
+    NOTIMPLEMENTED();
   }
   return corner;
 }

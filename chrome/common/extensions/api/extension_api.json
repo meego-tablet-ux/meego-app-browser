@@ -2270,6 +2270,33 @@
       }
     ]
   },
+  { "namespace": "dldm",
+    "types": [],
+    "functions": [
+      {
+        "name": "updateUI",
+        "type": "function",
+        "description": "update download manager UI",
+        "parameters": [
+          {
+            "name": "url", "type": "string"
+          }
+        ]
+      }
+    ],
+    "events": [
+      {
+        "name": "onDownload",
+        "type": "function",
+        "description": "Fired when a download finished",
+        "parameters": [
+          {"name": "url", "type": "string"},
+	  {"name": "success", "type": "boolean"},
+	  {"name": "path", "type": "string"}
+        ]
+      }
+    ]
+  },
   {
     "namespace": "idle",
     "types": [],

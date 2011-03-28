@@ -26,6 +26,13 @@ class SkBitmap;
 typedef struct _GtkClipboard GtkClipboard;
 #endif
 
+#if !defined(TOOLKIT_MEEGOTOUCH)
+typedef GtkClipboard ClipboardType;
+#else
+class QClipboard;
+typedef QClipboard ClipboardType;
+#endif
+
 namespace ui {
 
 class Clipboard {
@@ -40,6 +47,7 @@ class Clipboard {
   // windows it maps to CF_UNICODETEXT.
   enum ObjectType {
     CBF_TEXT,
+
     CBF_HTML,
     CBF_BOOKMARK,
     CBF_FILES,
@@ -133,35 +141,35 @@ class Clipboard {
 #endif
 
   // Tests whether the clipboard contains a certain format
-  bool IsFormatAvailable(const FormatType& format, Buffer buffer) const;
+  bool IsFormatAvailable(const FormatType& format, Buffer buffer);
 
   // As above, but instead of interpreting |format| by some platform-specific
   // definition, interpret it as a literal MIME type.
   bool IsFormatAvailableByString(const std::string& format,
-                                 Buffer buffer) const;
+                                 Buffer buffer);
 
   void ReadAvailableTypes(Buffer buffer, std::vector<string16>* types,
                           bool* contains_filenames) const;
 
   // Reads UNICODE text from the clipboard, if available.
-  void ReadText(Buffer buffer, string16* result) const;
+  void ReadText(Buffer buffer, string16* result);
 
   // Reads ASCII text from the clipboard, if available.
-  void ReadAsciiText(Buffer buffer, std::string* result) const;
+  void ReadAsciiText(Buffer buffer, std::string* result);
 
   // Reads HTML from the clipboard, if available.
-  void ReadHTML(Buffer buffer, string16* markup, std::string* src_url) const;
+  void ReadHTML(Buffer buffer, string16* markup, std::string* src_url);
 
   // Reads an image from the clipboard, if available.
   SkBitmap ReadImage(Buffer buffer) const;
 
   // Reads a bookmark from the clipboard, if available.
-  void ReadBookmark(string16* title, std::string* url) const;
+  void ReadBookmark(string16* title, std::string* url);
 
   // Reads a file or group of files from the clipboard, if available, into the
   // out parameter.
-  void ReadFile(FilePath* file) const;
-  void ReadFiles(std::vector<FilePath>* files) const;
+  void ReadFile(FilePath* file);
+  void ReadFiles(std::vector<FilePath>* files);
 
   // Reads raw data from the clipboard with the given format type. Stores result
   // as a byte vector.
@@ -262,17 +270,22 @@ class Clipboard {
   typedef std::map<FormatType, std::pair<char*, size_t> > TargetMap;
 
  private:
+#if !defined(TOOLKIT_MEEGOTOUCH)
   // Write changes to gtk clipboard.
   void SetGtkClipboard();
+#else
+  void SetQtClipboard();
+  int qclipboard_mode_;
+#endif
   // Insert a mapping into clipboard_data_.
   void InsertMapping(const char* key, char* data, size_t data_len);
 
   // Find the gtk clipboard for the passed buffer enum.
-  GtkClipboard* LookupBackingClipboard(Buffer clipboard) const;
+  ClipboardType* LookupBackingClipboard(Buffer clipboard);
 
   TargetMap* clipboard_data_;
-  GtkClipboard* clipboard_;
-  GtkClipboard* primary_selection_;
+  ClipboardType* clipboard_;
+  ClipboardType* primary_selection_;
 #endif
 
   // MIME type constants.

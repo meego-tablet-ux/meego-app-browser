@@ -1,9 +1,29 @@
 /* Most Visited */
+@media (max-width: 940px) and (orientation:portrait) {
+  #most-visited-maxiview {
+    position: relative;
+    /*padding-left: 20px; */
+    height: 732px;
+    -webkit-user-select: none;
+  }
+}
 
-#most-visited-maxiview {
-  position: relative;
-  height: 366px;
-  -webkit-user-select: none;
+@media (max-width: 500px) and (orientation:portrait) {
+  #most-visited-maxiview {
+    position: relative;
+    /*padding-left: 20px; */
+    height: 600px;
+    -webkit-user-select: none;
+  }
+}
+
+
+@media screen and (orientation:landscape) {
+  #most-visited-maxiview {
+    position: relative;
+    height: 366px;
+    -webkit-user-select: none;
+  }
 }
 
 .thumbnail-container {
@@ -234,11 +254,28 @@ html[dir=rtl] .thumbnail-container > .title > div {
   -webkit-animation: 'fade-in' .15s;
 }
 
-@media (max-width: 940px) {
+/* Small grid only used for 800x480 */
+@media (max-width: 940px) and (orientation:landscape) {
   #most-visited-maxiview {
     height: 294px;
   }
 
+  .thumbnail,
+  .thumbnail-container > .title {
+    width: 150px;
+    height: 93px;
+  }
+
+  .thumbnail-container > .title {
+    height: auto;
+  }
+
+  .thumbnail-wrapper {
+    background-size: 150px 93px;
+  }
+}
+
+@media (max-width: 480px) and (orientation:portrait) {
   .thumbnail,
   .thumbnail-container > .title {
     width: 150px;

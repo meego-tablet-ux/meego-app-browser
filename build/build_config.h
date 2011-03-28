@@ -21,8 +21,8 @@
 #define OS_NACL 1
 #elif defined(__linux__)
 #define OS_LINUX 1
-// Use TOOLKIT_GTK on linux if TOOLKIT_VIEWS isn't defined.
-#if !defined(TOOLKIT_VIEWS)
+// Use TOOLKIT_GTK on linux if TOOLKIT_VIEWS and TOOLKIT_MEEGOTOUCH isn't defined.
+#if !defined(TOOLKIT_VIEWS) && !defined(TOOLKIT_MEEGOTOUCH)
 #define TOOLKIT_GTK
 #endif
 #elif defined(_WIN32)

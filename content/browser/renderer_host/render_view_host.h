@@ -432,6 +432,12 @@ class RenderViewHost : public RenderWidgetHost {
   // Creates a full screen RenderWidget.
   void CreateNewFullscreenWidget(int route_id);
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void OnUpdateSelectionRange(gfx::Point start, gfx::Point end, bool set);
+  void SetSelectionRange(gfx::Point start, gfx::Point end, bool set);
+  void SelectItem(gfx::Point pos);
+#endif
+
   // Tells the renderer which browser window it is being attached to.
   void UpdateBrowserWindowId(int window_id);
 

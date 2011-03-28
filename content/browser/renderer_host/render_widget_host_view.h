@@ -84,6 +84,11 @@ class RenderWidgetHostView {
   // a full screen window.
   virtual void InitAsFullscreen() = 0;
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  virtual void UpdateWebKitNodeInfo(bool is_embedded_object, bool is_content_editable) { }
+  virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set) {}
+#endif
+
   // Returns the associated RenderWidgetHost.
   virtual RenderWidgetHost* GetRenderWidgetHost() const = 0;
 
@@ -259,7 +264,7 @@ class RenderWidgetHostView {
   virtual void GpuRenderingStateDidChange() = 0;
 #endif
 
-#if defined(TOOLKIT_USES_GTK)
+#if defined(TOOLKIT_USES_GTK) || defined(TOOLKIT_MEEGOTOUCH)
   virtual void CreatePluginContainer(gfx::PluginWindowHandle id) = 0;
   virtual void DestroyPluginContainer(gfx::PluginWindowHandle id) = 0;
   virtual void AcceleratedCompositingActivated(bool activated) = 0;

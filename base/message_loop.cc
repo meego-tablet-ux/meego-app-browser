@@ -4,7 +4,7 @@
 
 #include "base/message_loop.h"
 
-#if defined(OS_POSIX) && !defined(OS_MACOSX)
+#if defined(OS_POSIX) && !defined(OS_MACOSX) && defined(TOOLKIT_GTK)
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
 #endif
@@ -27,6 +27,9 @@
 #endif
 #if defined(OS_POSIX) && !defined(OS_MACOSX)
 #include "base/message_pump_glib.h"
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "base/message_pump_qt.h"
+#endif
 #endif
 #if defined(TOUCH_UI)
 #include "base/message_pump_glib_x.h"
@@ -120,6 +123,7 @@ MessageLoop::DestructionObserver::~DestructionObserver() {
 
 MessageLoop::MessageLoop(Type type)
     : type_(type),
+      pump_type_(type),
       nestable_tasks_allowed_(true),
       exception_restoration_(false),
       message_histogram_(NULL),
@@ -148,6 +152,7 @@ MessageLoop::MessageLoop(Type type)
 #define MESSAGE_PUMP_IO NULL
 #elif defined(OS_POSIX)  // POSIX but not MACOSX.
 #define MESSAGE_PUMP_UI new base::MessagePumpForUI()
+#define MESSAGE_PUMP_UI_QT new base::MessagePumpForUIQt()  
 #define MESSAGE_PUMP_IO new base::MessagePumpLibevent()
 #else
 #error Not implemented
@@ -155,6 +160,9 @@ MessageLoop::MessageLoop(Type type)
 
   if (type_ == TYPE_UI) {
     pump_ = MESSAGE_PUMP_UI;
+  } else if (type == TYPE_UI_QT) {
+    pump_ = MESSAGE_PUMP_UI_QT;
+    type_ = TYPE_UI;
   } else if (type_ == TYPE_IO) {
     pump_ = MESSAGE_PUMP_IO;
   } else {
@@ -361,6 +369,7 @@ bool MessageLoop::ProcessNextDelayedNonNestableTask() {
 }
 
 void MessageLoop::RunTask(Task* task) {
+  
   DCHECK(nestable_tasks_allowed_);
   // Execute the task and assume the worst: It is probably not reentrant.
   nestable_tasks_allowed_ = false;
@@ -675,17 +684,30 @@ void MessageLoopForUI::DidProcessMessage(const MSG& message) {
 
 #if defined(USE_X11)
 Display* MessageLoopForUI::GetDisplay() {
+#if defined(TOOLKIT_MEEGOTOUCH)
+  DNOTIMPLEMENTED();
+  return NULL;
+#else
   return gdk_x11_get_default_xdisplay();
+#endif
 }
 #endif  // defined(USE_X11)
 
 #if !defined(OS_MACOSX) && !defined(OS_NACL)
 void MessageLoopForUI::AddObserver(Observer* observer) {
+#if !defined(TOOLKIT_MEEGOTOUCH)
   pump_ui()->AddObserver(observer);
+#else
+  DNOTIMPLEMENTED();
+#endif
 }
 
 void MessageLoopForUI::RemoveObserver(Observer* observer) {
+#if !defined(TOOLKIT_MEEGOTOUCH)
   pump_ui()->RemoveObserver(observer);
+#else
+  DNOTIMPLEMENTED();
+#endif
 }
 
 void MessageLoopForUI::Run(Dispatcher* dispatcher) {

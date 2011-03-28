@@ -32,6 +32,7 @@
 #include "chrome/browser/extensions/extension_cookies_api.h"
 #include "chrome/browser/extensions/extension_data_deleter.h"
 #include "chrome/browser/extensions/extension_error_reporter.h"
+#include "chrome/browser/extensions/extension_dldm_api.h"
 #include "chrome/browser/extensions/extension_history_api.h"
 #include "chrome/browser/extensions/extension_host.h"
 #include "chrome/browser/extensions/extension_management_api.h"
@@ -510,6 +511,7 @@ void ExtensionService::InitEventRouters() {
 
   ExtensionHistoryEventRouter::GetInstance()->ObserveProfile(profile_);
   ExtensionAccessibilityEventRouter::GetInstance()->ObserveProfile(profile_);
+  ExtensionDldmEventRouter::GetInstance()->ObserveProfile(profile_);
   browser_event_router_.reset(new ExtensionBrowserEventRouter(profile_));
   browser_event_router_->Init();
   preference_event_router_.reset(new ExtensionPreferenceEventRouter(profile_));

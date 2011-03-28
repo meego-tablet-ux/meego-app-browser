@@ -20,6 +20,9 @@
 typedef unsigned long Atom;
 typedef struct _GdkDrawable GdkWindow;
 typedef struct _GtkWidget GtkWidget;
+
+class QWidget;
+
 typedef unsigned long XID;
 typedef unsigned long XSharedMemoryId;  // ShmSeg in the X headers.
 typedef struct _XDisplay Display;
@@ -169,6 +172,9 @@ bool GetWindowParent(XID* parent_window, bool* parent_is_root, XID window);
 
 // Get the window manager name.
 bool GetWindowManagerName(std::string* name);
+
+void GrabWindowSnapshot(QWidget* window,
+                        std::vector<unsigned char>* png_representation);
 
 // Change desktop for |window| to the desktop of |destination| window.
 bool ChangeWindowDesktop(XID window, XID destination);

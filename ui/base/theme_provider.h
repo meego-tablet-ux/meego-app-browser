@@ -19,9 +19,11 @@ class NSColor;
 class NSGradient;
 class NSImage;
 #endif  // __OBJC__
-#elif !defined(OS_WIN)
+#elif defined(TOOLKIT_USES_GTK)
 typedef struct _GdkColor GdkColor;
 typedef struct _GdkPixbuf GdkPixbuf;
+#elif defined(TOOLKIT_MEEGOTOUCH)
+class QImage;
 #endif  // OS_*
 
 class Profile;
@@ -99,7 +101,10 @@ class ThemeProvider {
 
   // Gets the NSGradient with the specified |id|.
   virtual NSGradient* GetNSGradient(int id) const = 0;
-#elif defined(OS_POSIX) && !defined(TOOLKIT_VIEWS)
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  virtual QImage* GetPixbufNamed(int id) const = 0;
+  virtual QImage* GetRTLEnabledPixbufNamed(int id) const = 0;
+#elif defined(OS_POSIX) && defined(TOOLKIT_USES_GTK)
   // Gets the GdkPixbuf with the specified |id|.  Returns a pointer to a shared
   // instance of the GdkPixbuf.  This shared GdkPixbuf is owned by the theme
   // provider and should not be freed.

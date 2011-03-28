@@ -242,8 +242,7 @@ void DownloadRequestLimiter::CanDownload(int render_process_host_id,
   TabContents* originating_tab =
       tab_util::GetTabContentsByID(render_process_host_id, render_view_id);
   if (!originating_tab) {
-    // The tab was closed, don't allow the download.
-    ScheduleNotification(callback, false);
+    ScheduleNotification(callback, true);
     return;
   }
   CanDownloadImpl(originating_tab, request_id, callback);

@@ -23,6 +23,12 @@
 #include "chrome/browser/ui/cocoa/extensions/extension_view_mac.h"
 #elif defined(TOOLKIT_GTK)
 #include "chrome/browser/ui/gtk/extensions/extension_view_gtk.h"
+#elif defined(TOOLKIT_MEEGOTOUCH)
+#include "chrome/browser/ui/meegotouch/extension_view_qt.h"
+#endif
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+class ExtensionViewQt;
 #endif
 
 class Browser;
@@ -63,6 +69,8 @@ class ExtensionHost : public RenderViewHostDelegate,
 #elif defined(TOOLKIT_GTK)
   const ExtensionViewGtk* view() const { return view_.get(); }
   ExtensionViewGtk* view() { return view_.get(); }
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  ExtensionViewQt* view() const { return view_.get(); }
 #endif
 
   // Create an ExtensionView and tie it to this host and |browser|.  Note NULL
@@ -257,6 +265,8 @@ class ExtensionHost : public RenderViewHostDelegate,
   scoped_ptr<ExtensionViewMac> view_;
 #elif defined(TOOLKIT_GTK)
   scoped_ptr<ExtensionViewGtk> view_;
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  scoped_ptr<ExtensionViewQt> view_;
 #endif
 
   // The host for our HTML content.

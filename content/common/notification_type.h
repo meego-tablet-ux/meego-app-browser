@@ -491,6 +491,9 @@ class NotificationType {
     // NoDetails.
     BOOKMARK_BAR_VISIBILITY_PREF_CHANGED,
 
+    // Try if this can invoke Bookmark List view
+    BOOKMARK_LIST_VISIBILITY_SHOW,
+
     // Sent just before the installation confirm dialog is shown. The source
     // is the ExtensionInstallUI, the details are NoDetails.
     EXTENSION_WILL_SHOW_CONFIRM_DIALOG,

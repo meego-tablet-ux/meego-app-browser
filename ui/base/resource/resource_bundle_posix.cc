@@ -13,6 +13,12 @@
 #include "ui/base/resource/data_pack.h"
 #include "ui/gfx/font.h"
 
+#include "base/sys_string_conversions.h"
+#include "base/utf_string_conversions.h"
+#include <QApplication>
+#include <QString>
+#include <QDebug>
+
 namespace ui {
 
 namespace {
@@ -41,6 +47,8 @@ ResourceBundle::~ResourceBundle() {
 void ResourceBundle::UnloadLocaleResources() {
   delete locale_resources_data_;
   locale_resources_data_ = NULL;
+  delete us_resources_data_;
+  us_resources_data_ = NULL;
 }
 
 // static
@@ -75,6 +83,38 @@ string16 ResourceBundle::GetLocalizedString(int message_id) {
   }
 
   base::StringPiece data;
+
+  //Try meego's translation first
+  if (us_resources_data_->GetStringPiece(message_id, &data)) {
+    if (data.empty()) {
+      NOTREACHED() << "unable to find resource: " << message_id;
+      return string16();
+    }
+    else
+    {
+      DCHECK_EQ(data.length() % 2, 0U);
+      string16 msg(reinterpret_cast<const char16*>(data.data()),
+                   data.length() / 2);
+      //DLOG(INFO) << "GetRawDataResource for msg id " << message_id << " " << msg;
+
+      QString qmsg = QString::fromUtf16(reinterpret_cast<const ushort*>(data.data()),
+                                        data.length() / 2);
+      //qDebug() << "message id " << message_id << " qmsg " << qmsg;
+      QString translated_qmsg = qApp->translate(NULL, qmsg.toAscii().data());
+      if (translated_qmsg != qmsg)
+      {
+        //qDebug() << "qmsg " << qmsg << "translated_qmsg " << translated_qmsg;
+        string16 result(reinterpret_cast<const char16*>(translated_qmsg.utf16()),
+                        translated_qmsg.length());
+        //DLOG(INFO) << "Found for " << message_id << " " << result;
+        return result;
+      }
+      //DLOG(INFO) << "Go to chromium's translation";
+      //Go to chromium's translation
+    }
+  }
+  
+  
   if (!locale_resources_data_->GetStringPiece(message_id, &data)) {
     // Fall back on the main data pack (shouldn't be any strings here except in
     // unittests).
@@ -111,6 +151,16 @@ std::string ResourceBundle::LoadLocaleResources(
     return std::string();
   }
   locale_resources_data_ = LoadResourcesDataPak(locale_file_path);
+
+  app_locale = "en-US";
+  locale_file_path = GetLocaleFilePath(app_locale);
+  if (locale_file_path.empty()) {
+    // It's possible that there is no locale.pak.
+    NOTREACHED();
+    return std::string();
+  }
+  us_resources_data_ = LoadResourcesDataPak(locale_file_path);
+
   CHECK(locale_resources_data_) << "failed to load locale.pak";
   return app_locale;
 }

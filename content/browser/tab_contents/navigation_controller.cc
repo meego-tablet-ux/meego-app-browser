@@ -951,6 +951,9 @@ void NavigationController::CopyStateFrom(const NavigationController& source) {
   session_storage_namespace_ = source.session_storage_namespace_->Clone();
 
   FinishRestore(source.last_committed_entry_index_, false);
+
+  // Take over the session id from source.
+  session_id_ = source.session_id_;
 }
 
 void NavigationController::CopyStateFromAndPrune(NavigationController* source,

@@ -28,6 +28,9 @@
         'chromeos%': '<(chromeos)',
         'touchui%': '<(touchui)',
 
+        # Enable meegotouch support by default.
+        'meegotouch%': '1',
+
         # To do a shared build on linux we need to be able to choose between
         # type static_library and shared_library. We default to doing a static
         # build but you can override this with "gyp -Dlibrary=shared_library"
@@ -81,6 +84,8 @@
       # Default architecture we're building for is the architecture we're
       # building on.
       'target_arch%': '<(host_arch)',
+
+      'meegotouch%': '<(meegotouch)',
 
       # This variable tells WebCore.gyp and JavaScriptCore.gyp whether they are
       # are built under a chromium full build (1) or a webkit.org chromium
@@ -186,6 +191,7 @@
     'enable_flapper_hacks%': '<(enable_flapper_hacks)',
     'chromeos%': '<(chromeos)',
     'touchui%': '<(touchui)',
+    'meegotouch%': '<(meegotouch)',
     'file_manager_extension%': '<(file_manager_extension)',
     'inside_chromium_build%': '<(inside_chromium_build)',
     'fastbuild%': '<(fastbuild)',
@@ -603,6 +609,9 @@
       ['file_manager_extension==1', {
         'defines': ['FILE_MANAGER_EXTENSION=1'],
       }],
+      ['meegotouch==1', {
+        'defines': ['OS_MEEGO=1', 'TOOLKIT_MEEGOTOUCH=1'],
+      }],
       ['profiling==1', {
         'defines': ['ENABLE_PROFILING=1'],
       }],
@@ -1019,7 +1028,7 @@
           # there is some 4.4 test infrastructure in place and existing
           # aliasing issues have been fixed.
           'no_strict_aliasing%': 1,
-          'conditions': [['OS=="linux"', {'werror%': '-Werror',}],
+          'conditions': [['OS=="linux"', {'werror%': '',}], # '-Werror',}],
                          ['OS=="freebsd"', {'werror%': '',}],
                          ['OS=="openbsd"', {'werror%': '',}],
           ],
@@ -1028,7 +1037,7 @@
           '<(werror)',  # See note above about the werror variable.
           '-pthread',
           '-fno-exceptions',
-          '-Wall',
+          #'-Wall',
           # TODO(evan): turn this back on once all the builds work.
           # '-Wextra',
           # Don't warn about unused function params.  We use those everywhere.
@@ -1042,7 +1051,8 @@
           '-pipe',
         ],
         'cflags_cc': [
-          '-fno-rtti',
+          # we need rtti for Qt port, since MInputContext uses dymanic cast.
+          #'-fno-rtti',
           '-fno-threadsafe-statics',
           # Make inline functions have hidden visiblity by default.
           # Surprisingly, not covered by -fvisibility=hidden.

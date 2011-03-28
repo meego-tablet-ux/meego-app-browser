@@ -4,6 +4,7 @@
 
 #include "content/common/native_web_keyboard_event.h"
 
+#if !defined(TOOLKIT_MEEGOTOUCH)
 #include <gdk/gdk.h>
 
 #include "third_party/WebKit/Source/WebKit/chromium/public/gtk/WebInputEventFactory.h"
@@ -54,6 +55,45 @@ NativeWebKeyboardEvent::NativeWebKeyboardEvent(wchar_t character,
       skip_in_browser(false),
       match_edit_command(false) {
 }
+#else
+#include <QKeyEvent>
+#include "content/browser/renderer_host/event_util_qt.h"
+
+namespace {
+
+void CopyEventTo(const QKeyEvent* in, QKeyEvent** out) {
+
+}
+
+void FreeEvent(QKeyEvent* event) {
+
+}
+
+}  // namespace
+
+
+NativeWebKeyboardEvent::NativeWebKeyboardEvent()
+    : os_event(NULL),
+      skip_in_browser(false) {
+}
+
+NativeWebKeyboardEvent::NativeWebKeyboardEvent(const QKeyEvent* native_event)
+    : WebKeyboardEvent(EventUtilQt::ToWebKeyboardEvent(native_event)),
+      skip_in_browser(false) {
+  CopyEventTo(native_event, &os_event);
+}
+
+NativeWebKeyboardEvent::NativeWebKeyboardEvent(wchar_t character,
+                                               Qt::KeyboardModifier modifiers,
+                                               double time_stamp_seconds)
+    : WebKeyboardEvent(EventUtilQt::KeyboardEvent(character,
+                                                       modifiers,
+                                                       time_stamp_seconds)),
+      os_event(NULL),
+      skip_in_browser(false) {
+}
+
+#endif
 
 NativeWebKeyboardEvent::NativeWebKeyboardEvent(
     const NativeWebKeyboardEvent& other)

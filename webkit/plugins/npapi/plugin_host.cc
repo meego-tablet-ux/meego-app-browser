@@ -750,7 +750,7 @@ NPError NPN_GetValue(NPP id, NPNVariable variable, void* value) {
       rv = NPERR_NO_ERROR;
       break;
     }
-  #if defined(TOOLKIT_USES_GTK)
+#if defined(TOOLKIT_USES_GTK) | defined(TOOLKIT_MEEGOTOUCH)
     case NPNVToolkit:
       // Tell them we are GTK2.  (The alternative is GTK 1.2.)
       *reinterpret_cast<int*>(value) = NPNVGtk2;

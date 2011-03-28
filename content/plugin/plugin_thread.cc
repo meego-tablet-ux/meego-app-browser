@@ -31,7 +31,7 @@
 #include "webkit/plugins/npapi/plugin_lib.h"
 #include "webkit/plugins/npapi/webplugin_delegate_impl.h"
 
-#if defined(TOOLKIT_USES_GTK)
+#if defined(TOOLKIT_USES_GTK) || defined (TOOLKIT_MEEGOTOUCH)
 #include "ui/gfx/gtk_util.h"
 #endif
 

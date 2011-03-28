@@ -120,10 +120,16 @@ Font* PlatformFontGtk::default_font_ = NULL;
 
 PlatformFontGtk::PlatformFontGtk() {
   if (default_font_ == NULL) {
+    // TODO: This is hacking before QT platform_font get implemented.
+#ifdef TOOLKIT_MEEGOTOUCH
+    gchar* font_name = g_strdup("Sans 10");
+    LOG(INFO) << "Hard code font before QT platform_font get implemented";
+#else
     GtkSettings* settings = gtk_settings_get_default();
 
     gchar* font_name = NULL;
     g_object_get(settings, "gtk-font-name", &font_name, NULL);
+#endif
 
     // Temporary CHECK for helping track down
     // http://code.google.com/p/chromium/issues/detail?id=12530

@@ -5,7 +5,11 @@
 #include "content/browser/renderer_host/backing_store_x.h"
 
 #include <cairo-xlib.h>
+
+#if !defined(TOOLKIT_MEEGOTOUCH)
 #include <gtk/gtk.h>
+#endif
+
 #include <stdlib.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -437,6 +441,7 @@ void BackingStoreX::XShowRect(const gfx::Point &origin,
             rect.x() + origin.x(), rect.y() + origin.y());
 }
 
+#if !defined(TOOLKIT_MEEGOTOUCH)
 void BackingStoreX::CairoShowRect(const gfx::Rect& rect,
                                   GdkDrawable* drawable) {
   cairo_surface_t* surface = cairo_xlib_surface_create(
@@ -450,6 +455,19 @@ void BackingStoreX::CairoShowRect(const gfx::Rect& rect,
   cairo_destroy(cr);
   cairo_surface_destroy(surface);
 }
+#endif
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void BackingStoreX::QPainterShowRect(QPainter *painter, QRectF &paint_rect) {
+  painter->drawPixmap(paint_rect, QPixmap::fromX11Pixmap(pixmap_), paint_rect);
+}
+
+void BackingStoreX::QPainterShowRect(QPainter *painter, QRectF &paint_rect,
+				     QRectF &source) {
+  painter->drawPixmap(paint_rect, QPixmap::fromX11Pixmap(pixmap_), source);
+}
+
+#endif
 
 #if defined(TOOLKIT_GTK)
 void BackingStoreX::PaintToRect(const gfx::Rect& rect, GdkDrawable* target) {

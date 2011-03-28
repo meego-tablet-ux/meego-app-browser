@@ -19,6 +19,7 @@
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/tab_contents/tab_util.h"
 #include "content/browser/browser_thread.h"
+#include "content/browser/renderer_host/render_process_host.h"
 #include "content/browser/renderer_host/resource_dispatcher_host.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "googleurl/src/gurl.h"
@@ -38,6 +39,11 @@ DownloadManager* DownloadManagerForRenderViewHost(int render_process_id,
                                                        render_view_id);
   if (contents) {
     Profile* profile = contents->profile();
+    if (profile)
+      return profile->GetDownloadManager();
+  }else{
+    RenderProcessHost* process = RenderProcessHost::FromID(render_process_id);
+    Profile* profile = process->profile();
     if (profile)
       return profile->GetDownloadManager();
   }

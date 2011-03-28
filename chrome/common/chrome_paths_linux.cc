@@ -108,7 +108,11 @@ bool GetUserDownloadsDirectory(FilePath* result) {
 
 bool GetUserDesktop(FilePath* result) {
   scoped_ptr<base::Environment> env(base::Environment::Create());
+#if defined(TOOLKIT_MEEGOTOUCH)
+  *result = base::nix::GetXDGUserDirectory(env.get(), ".local", "/.local/share/applications");
+#else
   *result = base::nix::GetXDGUserDirectory(env.get(), "DESKTOP", "Desktop");
+#endif
   return true;
 }
 

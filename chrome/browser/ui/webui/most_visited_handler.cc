@@ -332,6 +332,7 @@ const std::vector<MostVisitedHandler::MostVisitedPage>&
   // http://crbug.com/17630
   static std::vector<MostVisitedPage> pages;
   if (pages.empty()) {
+#if !defined(TOOLKIT_MEEGOTOUCH)
     MostVisitedPage welcome_page = {
         l10n_util::GetStringUTF16(IDS_NEW_TAB_CHROME_WELCOME_PAGE_TITLE),
         GURL(l10n_util::GetStringUTF8(IDS_CHROME_WELCOME_URL)),
@@ -345,6 +346,7 @@ const std::vector<MostVisitedHandler::MostVisitedPage>&
         GURL("chrome://theme/IDR_NEWTAB_THEMES_GALLERY_THUMBNAIL"),
         GURL("chrome://theme/IDR_NEWTAB_THEMES_GALLERY_FAVICON")};
     pages.push_back(gallery_page);
+#endif
   }
 
   return pages;

@@ -57,6 +57,43 @@ void HandleOnResponseDialog(GtkWidget* widget,
 
 namespace platform_util {
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+
+//MEEGO: to implement
+gfx::NativeWindow GetTopLevel(gfx::NativeView view) {
+  NOTIMPLEMENTED();
+  return NULL;
+}
+
+bool IsWindowActive(gfx::NativeWindow window) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
+void ActivateWindow(gfx::NativeWindow window) {
+  NOTIMPLEMENTED();
+}
+
+bool IsVisible(gfx::NativeView view) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
+void SimpleErrorBox(gfx::NativeWindow parent,
+                    const string16& title,
+                    const string16& message) {
+  NOTIMPLEMENTED();
+}
+
+bool SimpleYesNoBox(gfx::NativeWindow parent,
+                    const string16& title,
+                    const string16& message) {
+  NOTIMPLEMENTED();
+  return true;
+}
+#endif
+
+#if defined(TOOLKIT_GTK)
 gfx::NativeWindow GetTopLevel(gfx::NativeView view) {
   // A detached widget won't have a toplevel window as an ancestor, so we can't
   // assume that the query for toplevel will return a window.
@@ -110,6 +147,12 @@ bool SimpleYesNoBox(gfx::NativeWindow parent,
   MessageLoop::current()->Run();
   return g_dialog_response == GTK_RESPONSE_YES;
 }
+#elif defined(TOOLKIT_MEEGOTOUCH)
+gfx::NativeView GetParent(gfx::NativeView view) {
+  DNOTIMPLEMENTED();
+  return NULL;
+}
+#endif // defined(TOOLKIT_GTK)
 
 // Warning: this may be either Linux or ChromeOS.
 std::string GetVersionStringModifier() {

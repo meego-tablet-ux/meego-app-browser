@@ -4,9 +4,7 @@
 
 #include "content/renderer/webplugin_delegate_proxy.h"
 
-#if defined(TOOLKIT_USES_GTK)
 #include <gtk/gtk.h>
-#endif
 
 #include <algorithm>
 

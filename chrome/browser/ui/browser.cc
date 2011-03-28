@@ -127,6 +127,9 @@
 #include "ui/gfx/point.h"
 #include "webkit/glue/webkit_glue.h"
 #include "webkit/glue/window_open_disposition.h"
+#include "chrome/browser/tabs/phantom_tab_manager.h"
+#include "base/string_number_conversions.h"
+#include "content/common/process_watcher.h"
 
 #if defined(OS_WIN)
 #include "app/win/shell.h"
@@ -146,6 +149,8 @@
 #include "chrome/browser/chromeos/boot_times_loader.h"
 #include "chrome/browser/extensions/file_manager_util.h"
 #endif
+
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 
 using base::TimeDelta;
 
@@ -459,6 +464,16 @@ void Browser::InitBrowserWindow() {
     // Reset the preference so we don't call it again for subsequent windows.
     local_state->ClearPref(prefs::kAutofillPersonalDataManagerFirstRun);
   }
+
+  const CommandLine& command_line = *CommandLine::ForCurrentProcess();
+  if (command_line.HasSwitch(switches::kMemoryThreshold)) {
+    std::string threshold_str = command_line.GetSwitchValueASCII(
+        switches::kMemoryThreshold);
+    int threshold = 0;
+    if (base::StringToInt(threshold_str, &threshold)) {
+      phantom_tab_manager_.reset(new PhantomTabManager(this, threshold));
+    }
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -476,6 +491,8 @@ void Browser::set_user_data_dir_profiles(
 FindBarController* Browser::GetFindBarController() {
   if (!find_bar_controller_.get()) {
     FindBar* find_bar = BrowserWindow::CreateFindBar(this);
+    if (NULL == find_bar)
+      find_bar = ((BrowserWindowQt*)window_)->GetFindBar();
     find_bar_controller_.reset(new FindBarController(find_bar));
     find_bar->SetFindBarController(find_bar_controller_.get());
     find_bar_controller_->ChangeTabContents(GetSelectedTabContentsWrapper());
@@ -1857,7 +1874,11 @@ void Browser::ToggleBookmarkBar() {
 
 void Browser::OpenBookmarkManager() {
   UserMetrics::RecordAction(UserMetricsAction("ShowBookmarkManager"), profile_);
-  ShowBookmarkManagerTab();
+//  ShowBookmarkManagerTab();
+  NotificationService::current()->Notify(
+    NotificationType::BOOKMARK_LIST_VISIBILITY_SHOW,
+    Source<Browser>(this),
+    NotificationService::NoDetails());
 }
 
 void Browser::ShowAppMenu() {
@@ -1882,7 +1903,7 @@ void Browser::ShowDownloadsTab() {
     if (shelf->IsShowing())
       shelf->Close();
   }
-  ShowSingletonTab(GURL(chrome::kChromeUIDownloadsURL));
+  window_->ShowDownloads();
 }
 
 void Browser::ShowExtensionsTab() {
@@ -1925,10 +1946,29 @@ void Browser::OpenClearBrowsingDataDialog() {
 
 void Browser::OpenOptionsDialog() {
   UserMetrics::RecordAction(UserMetricsAction("ShowOptions"), profile_);
+#if !defined(TOOLKIT_MEEGOTOUCH)
   GURL url(chrome::kChromeUISettingsURL);
   browser::NavigateParams params(GetSingletonTabNavigateParams(url));
   params.path_behavior = browser::NavigateParams::IGNORE_AND_STAY_PUT;
   browser::Navigate(&params);
+#else
+  std::vector<std::string> argv;
+  argv.push_back("meego-qml-launcher");
+  argv.push_back("--app");
+  argv.push_back("meego-ux-settings");
+  argv.push_back("--fullscreen");
+  argv.push_back("--opengl");
+  argv.push_back("--cmd");
+  argv.push_back("showPage");
+  argv.push_back("--cdata");
+  argv.push_back("Browser");
+
+  base::file_handle_mapping_vector no_files;
+  base::ProcessHandle handle;
+  base::environment_vector env;
+  if (base::LaunchApp(argv, env, no_files, false, &handle))
+    ProcessWatcher::EnsureProcessGetsReaped(handle);
+#endif
 }
 
 void Browser::OpenPasswordManager() {
@@ -2921,6 +2961,11 @@ void Browser::AddNewContents(TabContents* source,
     }
   }
 #endif
+#if defined(TOOLKIT_MEEGOTOUCH)
+    if (disposition == NEW_POPUP || disposition == NEW_WINDOW) {
+      disposition = NEW_FOREGROUND_TAB;
+    }
+#endif
 
   TabContentsWrapper* wrapper = new TabContentsWrapper(new_contents);
   browser::NavigateParams params(this, wrapper);
@@ -3178,8 +3223,12 @@ void Browser::OnStartDownload(DownloadItem* download, TabContents* tab) {
   // Open the Active Downloads ui for chromeos.
   ActiveDownloadsUI::OpenPopup(profile_);
 #else
-  // GetDownloadShelf creates the download shelf if it was not yet created.
-  window()->GetDownloadShelf()->AddDownload(new DownloadItemModel(download));
+  // On meegotouch, no download shelf
+  if(window()->GetDownloadShelf())
+    // GetDownloadShelf creates the download shelf if it was not yet created.
+    window()->GetDownloadShelf()->AddDownload(new DownloadItemModel(download));
+  else
+    ShowDownloadsTab();
 
   // Don't show the animation for "Save file" downloads.
   if (download->total_bytes() <= 0)

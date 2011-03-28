@@ -17,6 +17,7 @@
           'app/breakpad_win.h',
           'app/chrome_exe_main_gtk.cc',
           'app/chrome_exe_main_mac.mm',
+          'app/chrome_exe_main_qt.cc',
           'app/chrome_exe_main_win.cc',
           'app/chrome_exe_resource.h',
           'app/client_util.cc',
@@ -149,6 +150,13 @@
         'use_system_xdg_utils%': 0,
       },
       'conditions': [
+       ['meegotouch==1', {
+            'sources/': [
+              ['exclude', '_(chromeos|gtk)(_unittest)?\\.cc$'],
+              ['exclude', '/gtk/'],
+              ['exclude', '/(gtk)_[^/]*\\.cc$'],
+            ],
+        }],
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
           'actions': [
             {
@@ -193,6 +201,11 @@
                 ],
               },
             ],
+            ['disable_nacl!=1', {
+               'dependencies': [
+                 'nacl',
+               ],
+            }],
             ['use_system_xdg_utils==0', {
               'copies': [
                 {
@@ -216,6 +229,7 @@
             }],
           ],
           'dependencies': [
+            '../build/linux/system.gyp:meegotouch',
             # On Linux, link the dependencies (libraries) that make up actual
             # Chromium functionality directly into the executable.
             '<@(chromium_dependencies)',

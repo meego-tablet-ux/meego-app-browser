@@ -1,0 +1,12 @@
+Subfolders
+============
+  -- meego-app-browser (vertical specific QML files)
+  -- common (common QML files includes )
+  -- images 
+
+How to install
+============
+Run ./install.sh generate a QML folder under out/Debug and out/Release
+by linking files, this is useful for developer.
+
+If want to a QML folder with real files, run "./install.sh -i" instead.

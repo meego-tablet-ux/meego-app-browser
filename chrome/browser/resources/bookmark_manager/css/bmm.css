@@ -112,13 +112,13 @@ list [editing] .url input {
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
-  margin: 0;
-  -webkit-margin-start: -4px;
+  margin: 4px;
+  -webkit-margin-start: 4px;
   -webkit-margin-end: 4px;
   max-width: 40%;
-  padding: 0;
-  -webkit-padding-start: 1px;
-  -webkit-padding-end: 3px;
+  padding: 4px;
+  -webkit-padding-start: 4px;
+  -webkit-padding-end: 15px;
   text-decoration: none;
 }
 

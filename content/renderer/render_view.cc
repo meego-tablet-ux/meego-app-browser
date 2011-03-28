@@ -631,6 +631,14 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_StopFinding, OnStopFinding)
     IPC_MESSAGE_HANDLER(ViewMsg_FindReplyACK, OnFindReplyAck)
     IPC_MESSAGE_HANDLER(ViewMsg_Zoom, OnZoom)
+    IPC_MESSAGE_HANDLER(ViewMsg_ZoomFactor, OnZoomFactor)
+    IPC_MESSAGE_HANDLER(ViewMsg_QueryZoomFactor, OnQueryZoomFactor)
+    IPC_MESSAGE_HANDLER(ViewMsg_PaintContents, OnMsgPaintContents)
+    IPC_MESSAGE_HANDLER(ViewMsg_GetLayoutAlgorithm, OnGetLayoutAlgorithm)
+    IPC_MESSAGE_HANDLER(ViewMsg_SetLayoutAlgorithm, OnSetLayoutAlgorithm)
+    IPC_MESSAGE_HANDLER(ViewMsg_Zoom2TextPre, OnZoom2TextPre)
+    IPC_MESSAGE_HANDLER(ViewMsg_Zoom2TextPost, OnZoom2TextPost)
+    IPC_MESSAGE_HANDLER(ViewMsg_SetScrollPosition, OnSetScrollPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_SetZoomLevel, OnSetZoomLevel)
     IPC_MESSAGE_HANDLER(ViewMsg_SetZoomLevelForLoadingURL,
                         OnSetZoomLevelForLoadingURL)
@@ -695,6 +703,11 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_AsyncOpenFile_ACK, OnAsyncFileOpened)
     IPC_MESSAGE_HANDLER(ViewMsg_PpapiBrokerChannelCreated,
                         OnPpapiBrokerChannelCreated)
+#if defined(TOOLKIT_MEEGOTOUCH)
+    IPC_MESSAGE_HANDLER(ViewMsg_QueryScrollOffset, OnQueryScrollOffset)
+    IPC_MESSAGE_HANDLER(ViewMsg_SetSelectionRange, OnSetSelectionRange)
+    IPC_MESSAGE_HANDLER(ViewMsg_SelectItem, OnSelectItem)
+#endif
 #if defined(OS_MACOSX)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
 #endif
@@ -710,6 +723,34 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
   IPC_END_MESSAGE_MAP()
   return handled;
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void RenderView::OnQueryScrollOffset(gfx::Point* output) {
+  WebFrame* main_frame = webview()->mainFrame();
+  if (!main_frame)
+    return;
+  WebSize out = main_frame->scrollOffset();
+  output->SetPoint (out.width, out.height);
+}
+
+void RenderView::OnSetSelectionRange(gfx::Point start, gfx::Point end, bool set) {
+  WebView* view = webview();
+  if (view) {
+    view->setSelectionRange(start, end, set);
+  }
+}
+
+void RenderView::UpdateSelectionRange(WebKit::WebPoint& start, WebKit::WebPoint& end, bool set) {
+  Send(new ViewHostMsg_UpdateSelectionRange(routing_id_, start, end, set));
+}
+
+void RenderView::OnSelectItem(gfx::Point pos) {
+  WebView* view = webview();
+  if (view) {
+    view->selectItem(pos);
+  }
+}
+#endif
 
 void RenderView::OnNavigate(const ViewMsg_Navigate_Params& params) {
   if (!webview())
@@ -2100,6 +2141,77 @@ bool RenderView::canHandleRequest(
   return true;
 }
 
+void RenderView::OnMsgPaintContents(const TransportDIB::Handle& dib_handle,
+                                   const gfx::Rect& rect,
+                                   int* retval) {
+
+  *retval = -1;
+
+  if (!webwidget_ || dib_handle == TransportDIB::DefaultHandleValue())
+    return;
+
+  scoped_ptr<TransportDIB> paint_at_size_buffer(TransportDIB::Map(dib_handle));
+
+  DCHECK(paint_at_size_buffer.get());
+  if (!paint_at_size_buffer.get())
+    return;
+
+  gfx::Size canvas_size = rect.size();
+
+  scoped_ptr<skia::PlatformCanvas> canvas(
+      paint_at_size_buffer->GetPlatformCanvas(canvas_size.width(),
+                                              canvas_size.height()));
+  if (!canvas.get()) {
+    NOTREACHED();
+    return;
+  }
+
+  canvas->save();
+
+  WebFrame* main_frame = webview()->mainFrame();
+
+  *retval = main_frame->paintContent(canvas.get(),
+                                    WebRect(rect.x(), rect.y(),
+                                            rect.width(), rect.height()));
+  canvas->restore();
+
+}
+
+void RenderView::OnGetLayoutAlgorithm(int *retval) {
+
+  *retval = -1;
+
+  if (!webwidget_)
+    return;
+
+  WebSettings* settings = webview()->settings();
+  WebSettings::LayoutAlgorithm algo = settings->getLayoutAlgorithm();
+
+  *retval = (int)algo;
+}
+
+void RenderView::OnSetLayoutAlgorithm(int algo) {
+  if (!webwidget_)
+    return;
+
+  WebSettings* settings = webview()->settings();
+  settings->setLayoutAlgorithm((WebSettings::LayoutAlgorithm)algo);
+}
+
+void RenderView::OnZoom2TextPre(int x, int y) {
+  if (!webwidget_)
+    return;
+
+  webwidget_->zoom2TextPre(x, y);
+}
+
+void RenderView::OnZoom2TextPost() {
+  if (!webwidget_)
+    return;
+
+  webwidget_->zoom2TextPost();
+}
+
 WebURLError RenderView::cannotHandleRequestError(
     WebFrame* frame, const WebURLRequest& request) {
   NOTREACHED();  // Since we said we can handle all requests.
@@ -3264,6 +3376,33 @@ void RenderView::OnZoom(PageZoom::Function function) {
   zoomLevelChanged();
 }
 
+void RenderView::OnZoomFactor(double factor) {
+  if (!webview())  // Not sure if this can happen, but no harm in being safe.
+    return;
+
+  webview()->hidePopups();
+  if (factor <= 0)
+    factor = 0.01;
+  double zoom_level = webview()->zoomFactorToZoomLevel(factor);
+  webview()->setZoomLevel(false, zoom_level);
+}
+
+void RenderView::OnQueryZoomFactor(double* factor) {
+  if (!webview())  // Not sure if this can happen, but no harm in being safe.
+    return;
+
+  double zoom_level = webview()->zoomLevel();
+  *factor = webview()->zoomLevelToZoomFactor(zoom_level);
+}
+
+void RenderView::OnSetScrollPosition(int x, int y) {
+  if (!webview())
+    return;
+
+  WebFrame* frame = webview()->mainFrame();
+  frame->setScrollPosition(WebPoint(x, y));
+}
+
 void RenderView::OnSetZoomLevel(double zoom_level) {
   // Don't set zoom level for full-page plugin since they don't use the same
   // zoom settings.
@@ -3559,7 +3698,7 @@ void RenderView::OnDisableScrollbarsForSmallWindows(
 void RenderView::OnSetRendererPrefs(const RendererPreferences& renderer_prefs) {
   renderer_preferences_ = renderer_prefs;
   UpdateFontRenderingFromRendererPrefs();
-#if defined(TOOLKIT_USES_GTK)
+#if defined(TOOLKIT_USES_GTK) || defined(TOOLKIT_MEEGOTOUCH)
   WebColorName name = WebKit::WebColorWebkitFocusRingColor;
   WebKit::setNamedColors(&name, &renderer_prefs.focus_ring_color, 1);
   WebKit::setCaretBlinkInterval(renderer_prefs.caret_blink_interval);

@@ -11,6 +11,8 @@
 #if defined(TOOLKIT_USES_GTK)
 #include "chrome/browser/ui/gtk/gtk_theme_service.h"
 #include "chrome/browser/ui/gtk/gtk_util.h"
+#elif defined(TOOLKIT_MEEGOTOUCH)
+#include "chrome/browser/ui/meegotouch/qt_theme_provider.h"
 #endif
 
 namespace renderer_preferences_util {
@@ -21,6 +23,12 @@ void UpdateFromSystemSettings(RendererPreferences* prefs, Profile* profile) {
 
 #if !defined(OS_CHROMEOS)
   GtkThemeService* theme_service = GtkThemeService::GetFrom(profile);
+#endif  // !defined(TOOLKIT_VIEWS)
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  QtThemeProvider* provider = QtThemeProvider::GetFrom(profile);
+#endif
+
+#if (defined(TOOLKIT_USES_GTK) && !defined(TOOLKIT_VIEWS)) || defined(TOOLKIT_MEEGOTOUCH)
 
   prefs->focus_ring_color = theme_service->get_focus_ring_color();
   prefs->thumb_active_color = theme_service->get_thumb_active_color();
@@ -40,9 +48,7 @@ void UpdateFromSystemSettings(RendererPreferences* prefs, Profile* profile) {
   prefs->active_selection_fg_color = SK_ColorBLACK;
   prefs->inactive_selection_bg_color = SkColorSetRGB(0xF7, 0xF7, 0xF7);
   prefs->inactive_selection_fg_color = SK_ColorBLACK;
-#endif  // defined(OS_CHROMEOS)
-
-#endif  // defined(TOOLKIT_USES_GTK)
+#endif
 
   prefs->enable_referrers =
       profile->GetPrefs()->GetBoolean(prefs::kEnableReferrers);

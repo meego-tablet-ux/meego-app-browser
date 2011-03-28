@@ -273,6 +273,7 @@ const char Extension::kFileBrowserHandlerPermission[] = "fileBrowserHandler";
 const char Extension::kFileBrowserPrivatePermission[] = "fileBrowserPrivate";
 const char Extension::kGeolocationPermission[] = "geolocation";
 const char Extension::kHistoryPermission[] = "history";
+const char Extension::kDlDmPermission[] = "dldm";
 const char Extension::kIdlePermission[] = "idle";
 const char Extension::kManagementPermission[] = "management";
 const char Extension::kNotificationPermission[] = "notifications";
@@ -299,6 +300,7 @@ const Extension::Permission Extension::kPermissions[] = {
   { kIdlePermission,                 PermissionMessage::ID_NONE },
   { kHistoryPermission,              PermissionMessage::ID_BROWSING_HISTORY },
   { kManagementPermission,           PermissionMessage::ID_MANAGEMENT },
+  { kDlDmPermission,                 PermissionMessage::ID_NONE },
   { kNotificationPermission,         PermissionMessage::ID_NONE },
   { kProxyPermission,                PermissionMessage::ID_NONE },
   { kTabPermission,                  PermissionMessage::ID_TABS },

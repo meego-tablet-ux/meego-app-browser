@@ -8431,14 +8431,17 @@ Keep your key file in a safe place. You will need it to create new versions of y
 
       <!-- Bookmark manager -->
       <message name="IDS_BOOKMARK_MANAGER_TITLE" desc="Title of the bookmark manager window.">
-        Bookmark Manager
+        Bookmarks
       </message>
       <message name="IDS_BOOKMARK_MANAGER_SEARCH_BUTTON" desc="Title of the button in the bookmark manager that triggers a search">
         Search bookmarks
       </message>
+      <message name="IDS_BOOKMARK_MANAGER_MOVETO" desc="The label of the menu item that moves bookmark to another folder">
+        Move to '<ph name="FOLDER_NAME">$1<ex>another folder</ex></ph>'
+      </message>
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_BOOKMARK_MANAGER" desc="The label of the menu item that shows the bookmark manager">
-          &amp;Bookmark manager
+          &amp;Bookmarks
         </message>
         <message name="IDS_BOOKMARK_MANAGER_SHOW_IN_FOLDER" desc="The label of the menu item in the bookmark manager context menu that changes the selection in the tree to match the folder of the selected item in the table.">
           Show in folder
@@ -8476,7 +8479,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_BOOKMARK_MANAGER" desc="In Title Case: The label of the menu item that shows the bookmark manager">
-          &amp;Bookmark Manager
+          &amp;Bookmarks
         </message>
         <message name="IDS_BOOKMARK_MANAGER_SHOW_IN_FOLDER" desc="In Title Case: The label of the menu item in the bookmark manager context menu that changes the selection in the tree to match the folder of the selected item in the table.">
           Show in Folder

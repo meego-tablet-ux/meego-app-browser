@@ -200,7 +200,19 @@ xdg_user_dir_lookup (const char *type)
   
   if (home_dir == NULL)
     return strdup ("/tmp");
-  
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  if (strcmp (type, ".local") == 0)
+    {
+      user_dir = (char*) malloc (strlen (home_dir) + strlen ("/.local/share/applications") + 1);
+      if (user_dir == NULL)
+        return NULL;
+
+      strcpy (user_dir, home_dir);
+      strcat (user_dir, "/.local/share/applications");
+      return user_dir;
+    }
+#else
   /* Special case desktop for historical compatibility */
   if (strcmp (type, "DESKTOP") == 0)
     {
@@ -212,6 +224,7 @@ xdg_user_dir_lookup (const char *type)
       strcat (user_dir, "/Desktop");
       return user_dir;
     }
+#endif  
   
   return strdup (home_dir);
 }

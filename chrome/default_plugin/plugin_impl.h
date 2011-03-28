@@ -6,6 +6,6 @@
 #include "chrome/default_plugin/plugin_impl_win.h"
 #elif defined(OS_MACOSX)
 #include "chrome/default_plugin/plugin_impl_mac.h"
-#elif defined(TOOLKIT_USES_GTK)
+#elif defined(TOOLKIT_USES_GTK) | defined(TOOLKIT_MEEGOTOUCH)
 #include "chrome/default_plugin/plugin_impl_gtk.h"
 #endif

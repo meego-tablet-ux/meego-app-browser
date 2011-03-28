@@ -91,13 +91,28 @@ void MemoryDetails::CollectChildInfoOnIOThread() {
   for (BrowserChildProcessHost::Iterator iter; !iter.Done(); ++iter) {
     ProcessMemoryInformation info;
     info.pid = base::GetProcId(iter->handle());
-    if (!info.pid)
+    if (!info.pid || info.pid == getpid())
       continue;
 
     info.type = iter->type();
     info.renderer_type = iter->renderer_type();
     info.titles.push_back(WideToUTF16Hack(iter->name()));
     child_info.push_back(info);
+
+    DLOG(INFO) << "BrowserChildProcessHost " << info.pid;
+  }
+
+  // Render processes
+  for (RenderProcessHost::iterator iter(RenderProcessHost::AllHostsIterator());
+       !iter.IsAtEnd(); iter.Advance()) {
+    ProcessMemoryInformation info;
+    info.pid = base::GetProcId(iter.GetCurrentValue()->GetHandle());
+    if (!info.pid || info.pid == getpid())
+      continue;
+
+    child_info.push_back(info);
+
+    DLOG(INFO) << "RenderProcessHost " << info.pid;
   }
 
   // Now go do expensive memory lookups from the file thread.
@@ -244,6 +259,8 @@ void MemoryDetails::CollectChildInfoOnUIThread() {
 #endif
   }
 
+  // We'd like to get all processes of chrome
+#if 0
   // Get rid of other Chrome processes that are from a different profile.
   for (size_t index = 0; index < chrome_browser->processes.size();
       index++) {
@@ -254,6 +271,7 @@ void MemoryDetails::CollectChildInfoOnUIThread() {
       index--;
     }
   }
+#endif
 
   UpdateHistograms();
 
@@ -336,7 +354,8 @@ void MemoryDetails::UpdateHistograms() {
         other_count++;
         break;
       default:
-        NOTREACHED();
+        //NOTREACHED();
+        break;
     }
   }
   UMA_HISTOGRAM_MEMORY_KB("Memory.BackingStore",

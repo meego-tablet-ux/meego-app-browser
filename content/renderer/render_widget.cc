@@ -19,6 +19,8 @@
 #include "ipc/ipc_sync_message.h"
 #include "skia/ext/platform_canvas.h"
 #include "third_party/skia/include/core/SkShader.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebExternalPopupMenu.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebExternalPopupMenuClient.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebCursorInfo.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebPopupMenu.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebPopupMenuInfo.h"
@@ -42,6 +44,8 @@
 
 using WebKit::WebCompositionUnderline;
 using WebKit::WebCursorInfo;
+using WebKit::WebExternalPopupMenu;
+using WebKit::WebExternalPopupMenuClient;
 using WebKit::WebInputEvent;
 using WebKit::WebMouseEvent;
 using WebKit::WebNavigationPolicy;
@@ -81,6 +85,7 @@ RenderWidget::RenderWidget(RenderThreadBase* render_thread,
       animation_update_pending_(false),
       animation_task_posted_(false) {
   RenderProcess::current()->AddRefProcess();
+  WebKit::WebWidget::setUseExternalPopupMenus(true);
   DCHECK(render_thread_);
 }
 
@@ -177,6 +182,10 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_Repaint, OnMsgRepaint)
     IPC_MESSAGE_HANDLER(ViewMsg_SetTextDirection, OnSetTextDirection)
     IPC_MESSAGE_HANDLER(ViewMsg_Move_ACK, OnRequestMoveAck)
+#if defined (TOOLKIT_MEEGOTOUCH)
+    IPC_MESSAGE_HANDLER(ViewMsg_QueryNodeAtPosition, OnQueryNodeAtPosition)
+    IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
+#endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
   return handled;
@@ -392,6 +401,36 @@ void RenderWidget::OnSetFocus(bool enable) {
   if (webwidget_)
     webwidget_->setFocus(enable);
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void RenderWidget::OnQueryNodeAtPosition(int x, int y) {
+  bool is_embedded_object;
+  bool is_editable_text;
+  webwidget_->queryNodeTypeAtPoint(x, y, is_embedded_object, is_editable_text);
+  IPC::Message* response = new ViewHostMsg_QueryNodeAtPosition_ACK(routing_id_, is_embedded_object, is_editable_text);
+  Send(response);
+}
+
+void RenderWidget::OnSelectPopupMenuItem(int selected_index)
+{
+    if(external_popup_menu_.get() == NULL) {
+        NOTREACHED();
+        return;
+    }
+    external_popup_menu_->DidSelectItem(selected_index);
+    external_popup_menu_->close();
+    external_popup_menu_.reset();
+}
+
+WebExternalPopupMenu* RenderWidget::createExternalPopupMenu(
+        const WebPopupMenuInfo& popup_menu_info,
+        WebExternalPopupMenuClient* popup_menu_client)
+{
+    external_popup_menu_.reset(
+            new ExternalPopupMenu((RenderView *)this, popup_menu_info, popup_menu_client));
+    return external_popup_menu_.get();
+}
+#endif
 
 void RenderWidget::ClearFocus() {
   // We may have got the focus from the browser before this gets processed, in

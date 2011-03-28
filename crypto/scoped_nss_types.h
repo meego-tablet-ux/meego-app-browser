@@ -7,6 +7,7 @@
 #pragma once
 
 #include <nss.h>
+#undef slots
 #include <pk11pub.h>
 
 #include "base/memory/scoped_ptr.h"

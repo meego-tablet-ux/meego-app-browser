@@ -265,6 +265,10 @@ class ResourceBundle {
   DataHandle resources_data_;
   DataHandle locale_resources_data_;
 
+  // For meego-browser, we use this one to get srouce string
+  // from message id
+  DataHandle us_resources_data_;
+
   // References to extra data packs loaded via AddDataPackToSharedInstance.
   std::vector<LoadedDataPack*> data_packs_;
 

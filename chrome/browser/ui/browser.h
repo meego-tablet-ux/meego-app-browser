@@ -53,6 +53,7 @@ class SkBitmap;
 class StatusBubble;
 class TabNavigation;
 class TabStripModel;
+class PhantomTabManager;
 struct WebApplicationInfo;
 namespace gfx {
 class Point;
@@ -1046,6 +1047,9 @@ class Browser : public TabHandlerDelegate,
 
   // This Browser's window.
   BrowserWindow* window_;
+
+  // Phantom tab maanger
+  scoped_ptr<PhantomTabManager> phantom_tab_manager_;
 
   // This Browser's current TabHandler.
   scoped_ptr<TabHandler> tab_handler_;

@@ -74,7 +74,7 @@ void BlitContextToContext(NativeDrawingContext dst_context,
   base::mac::ScopedCFTypeRef<CGImageRef> src_sub_image(
       CGImageCreateWithImageInRect(src_image, src_rect.ToCGRect()));
   CGContextDrawImage(dst_context, dst_rect.ToCGRect(), src_sub_image);
-#else  // Linux, BSD, others
+#else// Linux, BSD, others
   // Only translations in the source context are supported; more complex
   // source context transforms will be ignored.
   cairo_save(dst_context);

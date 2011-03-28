@@ -12,6 +12,7 @@
 #include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/time.h"
+#include "content/renderer/external_popup_menu.h"
 #include "content/renderer/paint_aggregator.h"
 #include "ipc/ipc_channel.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebCompositionUnderline.h"
@@ -42,6 +43,8 @@ class PlatformCanvas;
 }
 
 namespace WebKit {
+class WebExternalPopupMenu;
+class WebExternalPopupMenuClient;
 class WebMouseEvent;
 class WebWidget;
 struct WebPopupMenuInfo;
@@ -203,6 +206,14 @@ class RenderWidget : public IPC::Channel::Listener,
                         const gfx::Size& desired_size);
   void OnMsgRepaint(const gfx::Size& size_to_paint);
   void OnSetTextDirection(WebKit::WebTextDirection direction);
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void OnQueryNodeAtPosition(int x, int y);
+  void OnSelectPopupMenuItem(int selected_index);
+  virtual WebKit::WebExternalPopupMenu* createExternalPopupMenu(
+          const WebKit::WebPopupMenuInfo& info,
+          WebKit::WebExternalPopupMenuClient* client);
+ #endif
 
   // Override point to notify derived classes that a paint has happened.
   // DidInitiatePaint happens when we've generated a new bitmap and sent it to
@@ -383,6 +394,9 @@ class RenderWidget : public IPC::Channel::Listener,
   base::Time animation_floor_time_;
   bool animation_update_pending_;
   bool animation_task_posted_;
+
+  // External popup menu for showing select html element
+  scoped_ptr<ExternalPopupMenu> external_popup_menu_;
 
   DISALLOW_COPY_AND_ASSIGN(RenderWidget);
 };

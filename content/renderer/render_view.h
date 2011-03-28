@@ -711,6 +711,15 @@ class RenderView : public RenderWidget,
   // The documentation for these functions should be in
   // render_messages_internal.h for the message that the function is handling.
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void OnQueryScrollOffset(gfx::Point* output);
+  void OnSetSelectionRange(gfx::Point start, gfx::Point end, bool set);
+  void OnSelectItem(gfx::Point pos);
+
+// reimplement from webviewclient
+  virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, bool set);
+#endif
+
   void OnAccessibilityDoDefaultAction(int acc_obj_id);
   void OnAccessibilityNotificationsAck();
   void OnAllowBindings(int enabled_bindings_flags);
@@ -820,6 +829,16 @@ class RenderView : public RenderWidget,
   void OnSelectPopupMenuItem(int selected_index);
 #endif
   void OnZoom(PageZoom::Function function);
+  void OnZoomFactor(double factor);
+  void OnQueryZoomFactor(double* factor);
+  void OnSetScrollPosition(int x, int y);
+  void OnMsgPaintContents(const TransportDIB::Handle& dib_id,
+                          const gfx::Rect& rect,
+                          int* retval);
+  void OnGetLayoutAlgorithm(int *retval);
+  void OnSetLayoutAlgorithm(int algorithm);
+  void OnZoom2TextPre(int x, int y);
+  void OnZoom2TextPost();
 
   // Adding a new message handler? Please add it in alphabetical order above
   // and put it in the same position in the .cc file.

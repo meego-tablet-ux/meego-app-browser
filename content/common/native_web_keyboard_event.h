@@ -19,7 +19,11 @@
 class NSEvent;
 #endif  // __OBJC__
 #elif defined(OS_POSIX)
+#if !defined(TOOLKIT_MEEGOTOUCH)
 typedef struct _GdkEventKey GdkEventKey;
+#else
+#include <QKeyEvent>
+#endif
 #endif
 
 #if defined(TOOLKIT_VIEWS)
@@ -49,6 +53,12 @@ struct NativeWebKeyboardEvent : public WebKit::WebKeyboardEvent {
   NativeWebKeyboardEvent(wchar_t character,
                          int state,
                          double time_stamp_seconds);
+#elif defined(TOOLKIT_MEEGOTOUCH)
+explicit NativeWebKeyboardEvent(const QKeyEvent* event);
+NativeWebKeyboardEvent(wchar_t character,
+                       Qt::KeyboardModifier modifiers,
+                       double time_stamp_seconds);
+
 #endif
 
 #if defined(TOOLKIT_VIEWS)
@@ -77,6 +87,9 @@ struct NativeWebKeyboardEvent : public WebKit::WebKeyboardEvent {
   NSEvent* os_event;
 #elif defined(TOOLKIT_USES_GTK)
   GdkEventKey* os_event;
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  // We might not need this
+  QKeyEvent* os_event;
 #endif
 
   // True if the browser should ignore this event if it's not handled by the

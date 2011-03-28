@@ -67,8 +67,11 @@ bool DockInfo::IsCloseToMonitorPoint(const gfx::Point& screen_loc,
       // the dock indicator when close to maximized browser.
 #if defined(TOOLKIT_VIEWS)
       hot_spot_delta_y = Tab::GetMinimumUnselectedSize().height() - 1;
-#else
+#elif defined(TOOLKIT_GTK)
       hot_spot_delta_y = TabGtk::GetMinimumUnselectedSize().height() - 1;
+#elif defined(TOOLKIT_MEEGOTOUCH)
+      NOTIMPLEMENTED();
+      hot_spot_delta_y = 0;
 #endif
       enable_delta_y = hot_spot_delta_y / 2;
       break;

@@ -4,6 +4,19 @@
 
 #include "chrome/app/chrome_main.h"
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include <QPluginLoader>
+#include <QInputContext>
+#include <QOrientationReading>
+#include <QOrientationSensor>
+#include <QOrientationFilter>
+#include <cstdlib>
+
+#include <launcherapp.h>
+#include <launcheratoms.h>
+#include <launcherwindow.h>
+#endif
+
 #include "app/app_paths.h"
 #include "base/at_exit.h"
 #include "base/command_line.h"
@@ -46,6 +59,7 @@
 #include "ui/base/ui_base_paths.h"
 #include "ui/base/ui_base_switches.h"
 
+
 #if defined(OS_WIN)
 #include <algorithm>
 #include <malloc.h>
@@ -76,6 +90,7 @@
 #include "chrome/browser/chromeos/boot_times_loader.h"
 #endif
 
+#undef signals
 #if defined(USE_X11)
 #include <gdk/gdk.h>
 #include <glib.h>
@@ -119,6 +134,29 @@ DLLEXPORT int __cdecl ChromeMain(HINSTANCE instance,
 extern "C" {
 __attribute__((visibility("default")))
 int ChromeMain(int argc, char** argv);
+
+LauncherWindow* g_main_window = NULL;
+
+#include <qapplication.h>
+  
+void gQtMessageOutput(QtMsgType type, const char *msg)
+{
+  switch (type) {
+    case QtDebugMsg:
+      fprintf(stderr, "Debug: %s\n", msg);
+      break;
+    case QtWarningMsg:
+      fprintf(stderr, "Warning: %s\n", msg);
+      break;
+    case QtCriticalMsg:
+      fprintf(stderr, "Critical: %s\n", msg);
+      break;
+    case QtFatalMsg:
+      fprintf(stderr, "Fatal: %s\n", msg);
+      abort();
+  }
+}
+
 }
 #endif
 
@@ -818,6 +856,80 @@ int ChromeMain(int argc, char** argv) {
   SetProcessTitleFromCommandLine(argv);
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  if (process_type.empty()) {
+    ui::SetDefaultX11ErrorHandlers();
+
+    bool fullscreen = false;
+    bool opengl = false;
+    bool noRaise = false;
+    bool setSource = false;
+    int width = 1280;
+    int height = 800;
+    QString cmd;
+    QString cdata;
+    QString app;
+
+    for (int i=1; i<argc; i++)
+    {
+      QString s(argv[i]);
+      if (s == "--opengl")
+      {
+        opengl = true;
+      }
+      else if (s == "--fullscreen")
+      {
+        fullscreen = true;
+      }
+      else if (s == "--cmd")
+      {
+        cmd = QString(argv[++i]);
+      }
+      else if (s == "--cdata")
+      {
+        cdata = QString(argv[++i]);
+      }
+      else if (s.startsWith("--app="))
+      {
+        app = s.split("=").at(1);
+      }
+      else if (s == "--noraise")
+      {
+        noRaise = true;
+      }
+      else if (s == "--width")
+      {
+        width = atoi (argv[++i]);
+      }
+      else if (s == "--height")
+      {
+        height = atoi (argv[++i]);
+      }
+    }
+
+    QString identifier = QString(app);
+    LauncherApp application(argc, argv, identifier, noRaise);
+
+    initAtoms ();
+
+    g_main_window = new LauncherWindow(fullscreen, width, height, opengl, noRaise, setSource);
+
+    //show main window to improve startup time
+    g_main_window->show();
+
+    foreach (QString path, QCoreApplication::libraryPaths())
+    {
+      QPluginLoader loader(path + "/libmultipointtouchplugin.so");
+                           loader.load();
+      if (loader.isLoaded())
+      {
+        loader.instance();
+        break;
+      }
+    }
+  }
+#endif
+
   int exit_code = RunNamedProcessTypeMain(process_type, main_params);
 
   if (SubprocessNeedsResourceBundle(process_type))
@@ -829,3 +941,4 @@ int ChromeMain(int argc, char** argv) {
 
   return exit_code;
 }
+    

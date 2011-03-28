@@ -6,6 +6,12 @@
 #define CONTENT_BROWSER_RENDERER_HOST_BACKING_STORE_X_H_
 #pragma once
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include <QPainter>
+#include <QPixmap>
+#include <QRectF>
+#endif
+
 #include "base/basictypes.h"
 #include "build/build_config.h"
 #include "content/browser/renderer_host/backing_store.h"
@@ -47,6 +53,12 @@ class BackingStoreX : public BackingStore {
 
   // As above, but use Cairo instead of Xlib.
   void CairoShowRect(const gfx::Rect& damage, GdkDrawable* drawable);
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void QPainterShowRect(QPainter *painter, QRectF &paint_rect);
+  void QPainterShowRect(QPainter *painter, QRectF &paint_rect,
+			QRectF &source);
+#endif
 
 #if defined(TOOLKIT_GTK)
   // Paint the backing store into the target's |dest_rect|.

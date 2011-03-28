@@ -21,6 +21,14 @@
 *.xcodeproj
 *~
 .*.sw?
+*.orig
+*.bak
+# moc files generate by qt moc
+moc_*
+# Lock files used by the Emacs editor.
+\#*
+cscope.out
+cscope.files
 .DS_Store
 .cproject
 .gdb_history

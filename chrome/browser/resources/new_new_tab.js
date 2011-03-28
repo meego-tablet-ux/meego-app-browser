@@ -361,7 +361,41 @@ function handleWindowResize() {
     updateAllMiniviewClippings();
   }
 
+  // Meego doesn't support common window resize operation like on desktop
+  // except the resize event happend switching the orientation which is also a kind
+  // of resize. So we add handling window orientation here.
+  handleWindowOrientation();
+
   layoutSections();
+}
+
+function handleOnload() {
+  if (window.innerWidth < 10) {
+    // We're probably a background tab, so don't do anything.
+    return;
+  }
+
+  var oldLayoutMode = layoutMode;
+  var b = useSmallGrid();
+  layoutMode = b ? LayoutMode.SMALL : LayoutMode.NORMAL
+
+  if (layoutMode != oldLayoutMode){
+    mostVisited.useSmallGrid = b;
+    mostVisited.layout();
+    renderRecentlyClosed();
+    updateAllMiniviewClippings();
+  }
+
+  layoutSections();
+}
+
+function handleWindowOrientation() {
+  //MostVisited section
+  mostVisited.setPortraitMode(getOrientation() == ORIENTATION.PORTRAIT);
+  mostVisited.layout();
+
+  //Adding layout change of other Sections here:
+
 }
 
 // Stores some information about each section necessary to layout. A new
@@ -952,7 +986,7 @@ function viewLog() {
 // We apply the size class here so that we don't trigger layout animations
 // onload.
 
-handleWindowResize();
+handleOnload();
 
 var localStrings = new LocalStrings();
 
@@ -1426,7 +1460,8 @@ var mostVisited = new MostVisited(
     document.querySelector('#most-visited .miniview'),
     $('most-visited-menu'),
     useSmallGrid(),
-    shownSections & Section.THUMB);
+    shownSections & Section.THUMB,
+    getOrientation() == ORIENTATION.PORTRAIT);
 
 function mostVisitedPages(data, firstRun, hasBlacklistedUrls) {
   logEvent('received most visited pages');

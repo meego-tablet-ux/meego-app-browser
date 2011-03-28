@@ -97,7 +97,8 @@ class BASE_API MessageLoop : public base::MessagePump::Delegate {
   enum Type {
     TYPE_DEFAULT,
     TYPE_UI,
-    TYPE_IO
+    TYPE_IO,
+    TYPE_UI_QT,
   };
 
   // Normally, it is not necessary to instantiate a MessageLoop.  Instead, it
@@ -226,6 +227,7 @@ class BASE_API MessageLoop : public base::MessagePump::Delegate {
 
   // Returns the type passed to the constructor.
   Type type() const { return type_; }
+  Type pump_type() const {return pump_type_;}
 
   // Optional call to connect the thread name with this loop.
   void set_thread_name(const std::string& thread_name) {
@@ -445,6 +447,9 @@ class BASE_API MessageLoop : public base::MessagePump::Delegate {
   virtual bool DoIdleWork();
 
   Type type_;
+
+  // To save the type of creation, used to distinguish between gtk and qt
+  Type pump_type_;
 
   // A list of tasks that need to be processed by this instance.  Note that
   // this queue is only accessed (push/pop) by our current thread.

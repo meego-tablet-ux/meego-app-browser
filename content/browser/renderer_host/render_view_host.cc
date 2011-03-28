@@ -760,6 +760,11 @@ bool RenderViewHost::OnMessageReceived(const IPC::Message& msg) {
   bool handled = true;
   bool msg_is_ok = true;
   IPC_BEGIN_MESSAGE_MAP_EX(RenderViewHost, msg, msg_is_ok)
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_UpdateSelectionRange, OnUpdateSelectionRange)
+#endif
+
     IPC_MESSAGE_HANDLER(ViewHostMsg_ShowView, OnMsgShowView)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ShowWidget, OnMsgShowWidget)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ShowFullscreenWidget,
@@ -869,6 +874,21 @@ void RenderViewHost::CreateNewFullscreenWidget(int route_id) {
   if (view)
     view->CreateNewFullscreenWidget(route_id);
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void RenderViewHost::OnUpdateSelectionRange(gfx::Point start, gfx::Point end, bool set) {
+  view()->UpdateSelectionRange(start, end, set);
+}
+
+void RenderViewHost::SetSelectionRange(gfx::Point start, gfx::Point end, bool set) {
+  Send(new ViewMsg_SetSelectionRange(routing_id(), start, end, set));
+}
+
+void RenderViewHost::SelectItem(gfx::Point pos) {
+  Send(new ViewMsg_SelectItem(routing_id(), pos));
+}
+
+#endif
 
 void RenderViewHost::OnMsgShowView(int route_id,
                                    WindowOpenDisposition disposition,

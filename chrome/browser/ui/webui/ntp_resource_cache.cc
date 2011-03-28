@@ -113,8 +113,12 @@ std::string GetNewTabBackgroundCSS(const ui::ThemeProvider* theme_provider,
   int offset = BookmarkBarView::kNewtabBarHeight;
 #elif defined(OS_MACOSX)
   int offset = bookmarks::kNTPBookmarkBarHeight;
-#elif defined(OS_POSIX)
+#elif defined(TOOLKIT_GTK)
   int offset = BookmarkBarGtk::kBookmarkBarNTPHeight;
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  //MEEGO: to implement
+  NOTIMPLEMENTED();
+  int offset = 0;
 #else
   int offset = 0;
 #endif

@@ -57,6 +57,7 @@
 #include "chrome/browser/net/sdch_dictionary_fetcher.h"
 #include "chrome/browser/net/websocket_experiment/websocket_experiment_runner.h"
 #include "chrome/browser/prefs/browser_prefs.h"
+#include "chrome/browser/prefs/gconf_setting_service.h"
 #include "chrome/browser/prefs/pref_service.h"
 #include "chrome/browser/prefs/pref_value_store.h"
 #include "chrome/browser/prerender/prerender_field_trial.h"
@@ -70,6 +71,7 @@
 #include "chrome/browser/service/service_process_control.h"
 #include "chrome/browser/service/service_process_control_manager.h"
 #include "chrome/browser/shell_integration.h"
+#include "chrome/browser/sync/profile_sync_service.h"
 #include "chrome/browser/translate/translate_manager.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_init.h"
@@ -121,7 +123,7 @@
 #include "chrome/app/breakpad_linux.h"
 #endif
 
-#if defined(OS_POSIX) && !defined(OS_MACOSX)
+#if defined(OS_POSIX) && !defined(OS_MACOSX) && !defined(TOOLKIT_MEEGOTOUCH)
 #include <dbus/dbus-glib.h>
 
 #include "chrome/browser/browser_main_gtk.h"
@@ -130,6 +132,10 @@
 
 #if defined(OS_LINUX) && !defined(OS_CHROMEOS)
 #include "chrome/browser/first_run/upgrade_util_linux.h"
+#endif
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "chrome/browser/browser_main_qt.h"
 #endif
 
 #if defined(OS_CHROMEOS)
@@ -513,7 +519,12 @@ void BrowserMainParts::ConnectBackupJobsFieldTrial() {
 void BrowserMainParts::MainMessageLoopStart() {
   PreMainMessageLoopStart();
 
-  main_message_loop_.reset(new MessageLoop(MessageLoop::TYPE_UI));
+  #if !defined(TOOLKIT_MEEGOTOUCH)
+   main_message_loop_.reset(new MessageLoop(MessageLoop::TYPE_UI));
+#else
+   main_message_loop_.reset(new MessageLoop(MessageLoop::TYPE_UI_QT));
+#endif
+
 
   // TODO(viettrungluu): should these really go before setting the thread name?
   system_monitor_.reset(new ui::SystemMonitor);
@@ -1295,6 +1306,8 @@ int BrowserMain(const MainFunctionParams& parameters) {
   }
 
   BrowserInit browser_init;
+  
+  GConfSettingService* gconf_service = new GConfSettingService();
 
   // On first run, we need to process the predictor preferences before the
   // browser's profile_manager object is created, but after ResourceBundle
@@ -1304,7 +1317,15 @@ int BrowserMain(const MainFunctionParams& parameters) {
   if (is_first_run) {
     first_run_ui_bypass =
         !FirstRun::ProcessMasterPreferences(user_data_dir, &master_prefs);
-    AddFirstRunNewTabs(&browser_init, master_prefs.new_tabs);
+
+		bool new_tab_is_homepage = false;
+		bool result = gconf_service->GetNewTabIsHomePage(&new_tab_is_homepage);
+
+		if(result && !new_tab_is_homepage) {
+				browser_init.AddFirstRunTab(gconf_service->GetHomePage());
+		}
+		else AddFirstRunNewTabs(&browser_init, master_prefs.new_tabs);
+
 
     // If we are running in App mode, we do not want to show the importer
     // (first run) UI.
@@ -1510,7 +1531,8 @@ int BrowserMain(const MainFunctionParams& parameters) {
   PrefService* user_prefs = profile->GetPrefs();
   DCHECK(user_prefs);
 
-  // Tests should be able to tune login manager before showing it.
+
+	// Tests should be able to tune login manager before showing it.
   // Thus only show login manager in normal (non-testing) mode.
   if (!parameters.ui_task) {
     OptionallyRunChromeOSLoginManager(parsed_command_line);
@@ -1586,6 +1608,9 @@ int BrowserMain(const MainFunctionParams& parameters) {
 
     Browser::SetNewHomePagePrefs(user_prefs);
   }
+
+	if(gconf_service)
+			gconf_service->Initialize(profile);
 
   // Sets things up so that if we crash from this point on, a dialog will
   // popup asking the user to restart chrome. It is done this late to avoid
@@ -1886,6 +1911,8 @@ int BrowserMain(const MainFunctionParams& parameters) {
     }
   }
 #endif
+
+	delete gconf_service;
 
   chrome_browser_net_websocket_experiment::WebSocketExperimentRunner::Stop();
 

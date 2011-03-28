@@ -16,7 +16,7 @@
 #include "base/message_loop_proxy.h"
 #include "ui/gfx/image.h"
 
-#if defined(TOOLKIT_USES_GTK)
+#if defined(TOOLKIT_USES_GTK) || defined(TOOLKIT_MEEGOTOUCH)
 #include "base/file_path.h"
 #endif
 
@@ -79,7 +79,7 @@ class IconLoader : public base::RefCountedThreadSafe<IconLoader> {
 
   Delegate* delegate_;
 
-#if defined(TOOLKIT_USES_GTK)
+#if defined(USE_X11)
   // On X11 we use gdk's pixbuf loader, which has to execute on the UI
   // thread, so we only read the file on the background thread and parse it
   // on the main thread.

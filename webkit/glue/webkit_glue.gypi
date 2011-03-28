@@ -139,6 +139,8 @@
         '../plugins/npapi/gtk_plugin_container.h',
         '../plugins/npapi/gtk_plugin_container_manager.cc',
         '../plugins/npapi/gtk_plugin_container_manager.h',
+        '../plugins/npapi/qt_plugin_container_manager.cc',
+        '../plugins/npapi/qt_plugin_container_manager.h',
         '../plugins/npapi/npapi_extension_thunk.cc',
         '../plugins/npapi/npapi_extension_thunk.h',
         '../plugins/npapi/plugin_constants_win.cc',
@@ -438,6 +440,14 @@
       # own hard dependencies.
       'hard_dependency': 1,
       'conditions': [
+        ['meegotouch==1', {
+	        'sources!': [
+            '../plugins/npapi/gtk_plugin_container.h',
+            '../plugins/npapi/gtk_plugin_container.cc',
+            '../plugins/npapi/gtk_plugin_container_manager.h',
+            '../plugins/npapi/gtk_plugin_container_manager.cc',
+          ],
+        }],
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
           'dependencies': [
             '<(DEPTH)/build/linux/system.gyp:gtk',

@@ -467,6 +467,7 @@ void RenderThread::EnableSpdy(bool enable) {
 
 void RenderThread::EstablishGpuChannel(
     content::CauseForGpuLaunch cause_for_gpu_launch) {
+#if 0
   if (gpu_channel_.get()) {
     // Do nothing if we already have a GPU channel or are already
     // establishing one.
@@ -484,6 +485,7 @@ void RenderThread::EstablishGpuChannel(
 
   // Ask the browser for the channel name.
   Send(new GpuHostMsg_EstablishGpuChannel(cause_for_gpu_launch));
+#endif
 }
 
 GpuChannelHost* RenderThread::EstablishGpuChannelSync(

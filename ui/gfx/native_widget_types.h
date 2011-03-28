@@ -54,6 +54,22 @@ class NSView;
 class NSWindow;
 class NSTextField;
 #endif  // __OBJC__
+#elif defined(TOOLKIT_MEEGOTOUCH)
+class QGraphicsWidget;
+class QWidget;
+class QPainter;
+class QCursor;
+class QRegion;
+class QImage;
+
+typedef struct _GdkPixbuf GdkPixbuf;
+typedef struct _GdkCursor GdkCursor;
+typedef struct _GdkRegion GdkRegion;
+typedef struct _GtkWidget GtkWidget;
+typedef struct _GtkWindow GtkWindow;
+typedef struct _cairo cairo_t;
+typedef struct _PangoFontDescription PangoFontDescription;
+
 #elif defined(TOOLKIT_USES_GTK)
 typedef struct _PangoFontDescription PangoFontDescription;
 typedef struct _GdkCursor GdkCursor;
@@ -84,7 +100,21 @@ typedef NSTextField* NativeEditView;
 typedef CGContext* NativeDrawingContext;
 typedef void* NativeCursor;
 typedef void* NativeMenu;
-#elif defined(USE_X11)
+#elif defined(TOOLKIT_MEEGOTOUCH)
+// host side
+typedef QGraphicsWidget* NativeView;
+typedef QWidget* NativeWindow;
+typedef QGraphicsWidget* NativeDialog;
+
+// render side
+typedef GtkWidget* NativeEditView;
+typedef cairo_t* NativeDrawingContext;
+typedef GdkCursor* NativeCursor;
+typedef GtkWidget* NativeMenu;
+typedef GdkRegion* NativeRegion;
+typedef PangoFontDescription* NativeFont;
+
+#elif defined(TOOLKIT_GTK)
 typedef PangoFontDescription* NativeFont;
 typedef GtkWidget* NativeView;
 typedef GtkWindow* NativeWindow;
@@ -141,9 +171,17 @@ static inline NativeView NativeViewFromIdInBrowser(NativeViewId id) {
 static inline NativeViewId IdFromNativeView(NativeView view) {
   return reinterpret_cast<NativeViewId>(view);
 }
-#elif defined(USE_X11)
+#elif defined(TOOLKIT_GTK)
 // Not inlined because it involves pulling too many headers.
 NativeViewId IdFromNativeView(NativeView view);
+#elif defined(TOOLKIT_MEEGOTOUCH)
+static inline NativeView NativeViewFromId(NativeViewId id) {
+  return reinterpret_cast<NativeView>(id);
+}
+
+static inline NativeViewId IdFromNativeView(NativeView view) {
+  return reinterpret_cast<NativeViewId>(view);
+}
 #endif  // defined(USE_X11)
 
 

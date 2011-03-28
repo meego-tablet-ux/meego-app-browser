@@ -21,6 +21,9 @@ namespace switches {
 // content/common/content_switches.cc or media/base/media_switches.cc instead.
 // -----------------------------------------------------------------------------
 
+extern const char kMemoryThreshold[];
+extern const char kTabsLimit[];
+
 // All switches in alphabetical order. The switches should be documented
 // alongside the definition of their values in the .cc file.
 extern const char kActivateOnLaunch[];

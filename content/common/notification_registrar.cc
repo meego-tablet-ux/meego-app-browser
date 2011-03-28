@@ -65,9 +65,11 @@ void NotificationRegistrar::Remove(NotificationObserver* observer,
                                    NotificationType type,
                                    const NotificationSource& source) {
   if (!IsRegistered(observer, type, source)) {
+#if 0
     NOTREACHED() << "Trying to remove unregistered observer of type " <<
         type.value << " from list of size " << registered_.size() << ".";
     return;
+#endif
   }
 
   Record record = { observer, type, source };

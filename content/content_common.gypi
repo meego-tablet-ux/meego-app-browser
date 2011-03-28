@@ -250,9 +250,14 @@
             ],
           },
         }],
-        ['OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
+        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" and meegotouch!=1', {
           'dependencies': [
             '../build/linux/system.gyp:gtk',
+          ],
+        }],
+        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" and meegotouch==1', {
+          'dependencies': [
+            '../build/linux/system.gyp:meegotouch',
           ],
         }],
         ['OS=="linux" and target_arch!="arm"', {

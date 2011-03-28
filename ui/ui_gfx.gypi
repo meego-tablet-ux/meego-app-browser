@@ -131,7 +131,7 @@
             '../third_party/wtl/include',
           ],
         }],
-        ['OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
+        ['(OS=="linux" or OS=="freebsd" or OS=="openbsd") and meegotouch!=1', {
           'dependencies': [
             # font_gtk.cc uses fontconfig.
             # TODO(evanm): I think this is wrong; it should just use GTK.
@@ -154,6 +154,19 @@
           'sources': [
             'gfx/native_theme_chromeos.cc',
             'gfx/native_theme_chromeos.h',
+          ],
+        }],
+        ['(OS=="linux" or OS=="freebsd" or OS=="openbsd") and meegotouch==1', {
+          'dependencies': [
+            # font_gtk.cc uses fontconfig.
+            # TODO(evanm): I think this is wrong; it should just use GTK.
+            '../build/linux/system.gyp:fontconfig',
+            '../build/linux/system.gyp:meegotouch',
+          ],
+          'sources': [
+            'gfx/qt_util.cc',
+            'gfx/native_theme_linux.cc',
+            'gfx/native_theme_linux.h',
           ],
         }],
       ],

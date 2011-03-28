@@ -54,7 +54,11 @@ const SessionStartupPref::Type kDefaultSessionStartupType =
 const int kMiniTabWidth = 56;
 const bool kRestorePopups = false;
 const bool kShowImportOnBookmarkBar = true;
+#if defined(TOOLKIT_MEEGOTOUCH)
+const bool kDownloadPageHasShowInFolder = false;
+#else
 const bool kDownloadPageHasShowInFolder = true;
+#endif
 #if defined(OS_MACOSX)
 const bool kShowExitMenuItem = false;
 #else

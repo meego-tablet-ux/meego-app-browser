@@ -79,12 +79,10 @@ std::string CreateShortcutIcon(
 
   FilePath temp_file_path = temp_dir.path().Append(
       shortcut_filename.ReplaceExtension("png"));
-
   std::vector<unsigned char> png_data;
   gfx::PNGCodec::EncodeBGRASkBitmap(shortcut_info.favicon, false, &png_data);
   int bytes_written = file_util::WriteFile(temp_file_path,
       reinterpret_cast<char*>(png_data.data()), png_data.size());
-
   if (bytes_written != static_cast<int>(png_data.size()))
     return std::string();
 
@@ -115,13 +113,17 @@ void CreateShortcutOnDesktop(const FilePath& shortcut_filename,
   DCHECK_EQ(shortcut_filename.BaseName().value(), shortcut_filename.value());
 
   FilePath desktop_path;
+
+//#if defined(TOOLKIT_MEEGOTOUCH)
+//  desktop_path = FilePath("/usr/share/applications");
+//  LOG(INFO)<<"Meegotouch";
+//#else
   if (!PathService::Get(chrome::DIR_USER_DESKTOP, &desktop_path))
     return;
-
+//#endif 
   int desktop_fd = open(desktop_path.value().c_str(), O_RDONLY | O_DIRECTORY);
   if (desktop_fd < 0)
     return;
-
   int fd = openat(desktop_fd, shortcut_filename.value().c_str(),
                   O_CREAT | O_EXCL | O_WRONLY,
                   S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
@@ -130,7 +132,6 @@ void CreateShortcutOnDesktop(const FilePath& shortcut_filename,
       PLOG(ERROR) << "close";
     return;
   }
-
   ssize_t bytes_written = file_util::WriteFileDescriptor(fd, contents.data(),
                                                          contents.length());
   if (HANDLE_EINTR(close(fd)) < 0)
@@ -320,7 +321,8 @@ bool ShellIntegration::GetDesktopShortcutTemplate(
   search_paths.push_back(FilePath("/usr/share/applications"));
   search_paths.push_back(FilePath("/usr/local/share/applications"));
 
-  std::string template_filename(GetDesktopName(env));
+//  std::string template_filename(GetDesktopName(env));
+  std::string template_filename = "meego-app-browser.desktop";
   for (std::vector<FilePath>::const_iterator i = search_paths.begin();
        i != search_paths.end(); ++i) {
     FilePath path = (*i).Append(template_filename);
@@ -420,7 +422,14 @@ std::string ShellIntegration::GetDesktopFileContents(
       // different one based on the app name below.
     } else if (tokenizer.token().substr(0, 5) == "Icon=" &&
                !icon_name.empty()) {
+#if defined(TOOLKIT_MEEGOTOUCH)
+      char* home_dir = getenv ("HOME");
+      std::string final_icon(home_dir);
+      final_icon += "/.local/share/icons/hicolor/16x16/apps/" + icon_name + ".png";
+      output_buffer += StringPrintf("Icon=%s\n", final_icon.c_str());
+#else
       output_buffer += StringPrintf("Icon=%s\n", icon_name.c_str());
+#endif
     } else {
       output_buffer += tokenizer.token() + "\n";
     }

@@ -4,13 +4,17 @@
 
 #include "chrome/browser/automation/ui_controls.h"
 
+#if defined(TOOLKIT_GTK)
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
+#endif
 
 #include "base/logging.h"
 #include "base/message_loop.h"
 #include "chrome/browser/automation/ui_controls_internal.h"
+#if defined(TOOLKIT_GTK)
 #include "chrome/browser/ui/gtk/gtk_util.h"
+#endif
 #include "chrome/common/automation_constants.h"
 #include "ui/base/gtk/event_synthesis_gtk.h"
 #include "ui/gfx/rect.h"
@@ -22,6 +26,7 @@
 
 namespace {
 
+#if defined(TOOLKIT_GTK)
 class EventWaiter : public MessageLoopForUI::Observer {
  public:
   EventWaiter(Task* task, GdkEventType type, int count)
@@ -90,7 +95,7 @@ void FakeAMouseMotionEvent(gint x, gint y) {
   gdk_event_put(event);
   gdk_event_free(event);
 }
-
+#endif
 }  // namespace
 
 namespace ui_controls {
@@ -101,6 +106,7 @@ bool SendKeyPress(gfx::NativeWindow window,
                   bool shift,
                   bool alt,
                   bool command) {
+#if defined(TOOLKIT_GTK)
   DCHECK(!command);  // No command key on Linux
   GdkWindow* event_window = NULL;
   GtkWidget* grab_widget = gtk_grab_get_current();
@@ -134,7 +140,7 @@ bool SendKeyPress(gfx::NativeWindow window,
     // gdk_event_put appends a copy of the event.
     gdk_event_free(*iter);
   }
-
+#endif
   return true;
 }
 
@@ -145,6 +151,7 @@ bool SendKeyPressNotifyWhenDone(gfx::NativeWindow window,
                                 bool alt,
                                 bool command,
                                 Task* task) {
+#if defined(TOOLKIT_GTK)
   DCHECK(!command);  // No command key on Linux
   int release_count = 1;
   if (control)
@@ -155,17 +162,19 @@ bool SendKeyPressNotifyWhenDone(gfx::NativeWindow window,
     release_count++;
   // This object will delete itself after running |task|.
   new EventWaiter(task, GDK_KEY_RELEASE, release_count);
+#endif
   return SendKeyPress(window, key, control, shift, alt, command);
 }
 
 bool SendMouseMove(long x, long y) {
+#if defined(TOOLKIT_GTK)
   gdk_display_warp_pointer(gdk_display_get_default(), gdk_screen_get_default(),
                            x, y);
   // Sometimes gdk_display_warp_pointer fails to send back any indication of
   // the move, even though it succesfully moves the server cursor. We fake it in
   // order to get drags to work.
   FakeAMouseMotionEvent(x, y);
-
+#endif
   return true;
 }
 
@@ -180,6 +189,7 @@ bool SendMouseMoveNotifyWhenDone(long x, long y, Task* task) {
 }
 
 bool SendMouseEvents(MouseButton type, int state) {
+#if defined(TOOLKIT_GTK)
   GdkEvent* event = gdk_event_new(GDK_BUTTON_PRESS);
 
   event->button.send_event = false;
@@ -224,12 +234,13 @@ bool SendMouseEvents(MouseButton type, int state) {
 
   gdk_event_free(event);
   gdk_event_free(release_event);
-
+#endif
   return false;
 }
 
 bool SendMouseEventsNotifyWhenDone(MouseButton type, int state, Task* task) {
   bool rv = SendMouseEvents(type, state);
+#if defined(TOOLKIT_GTK)
   GdkEventType wait_type;
   if (state & UP) {
     wait_type = GDK_BUTTON_RELEASE;
@@ -242,6 +253,7 @@ bool SendMouseEventsNotifyWhenDone(MouseButton type, int state, Task* task) {
       wait_type = GDK_3BUTTON_PRESS;
   }
   new EventWaiter(task, wait_type, 1);
+#endif
   return rv;
 }
 
@@ -262,10 +274,12 @@ void MoveMouseToCenterAndPress(GtkWidget* widget,
                                MouseButton button,
                                int state,
                                Task* task) {
+#if defined(TOOLKIT_GTK)
   gfx::Rect bounds = gtk_util::GetWidgetScreenBounds(widget);
   SendMouseMoveNotifyWhenDone(bounds.x() + bounds.width() / 2,
                               bounds.y() + bounds.height() / 2,
                               new ClickTask(button, state, task));
+#endif
 }
 #endif
 

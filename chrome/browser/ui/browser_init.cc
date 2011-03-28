@@ -871,10 +871,26 @@ void BrowserInit::LaunchWithProfile::ProcessLaunchURLs(
 
   Browser* browser = NULL;
   std::vector<GURL> adjust_urls = urls_to_open;
+#if !defined(TOOLKIT_MEEGOTOUCH)
   if (adjust_urls.empty())
     AddStartupURLs(&adjust_urls);
   else if (!command_line_.HasSwitch(switches::kOpenInNewWindow))
     browser = BrowserList::GetLastActiveWithProfile(profile_);
+#else
+  browser = BrowserList::GetLastActive();
+  
+  if (adjust_urls.empty())
+  {
+    if (browser)
+    {
+      //avoid to open new tab, just raise window
+      browser->window()->Show();
+      return;
+    }
+    else
+      AddStartupURLs(&adjust_urls);
+  }
+#endif
 
   browser = OpenURLsInBrowser(browser, process_startup, adjust_urls);
   if (process_startup)

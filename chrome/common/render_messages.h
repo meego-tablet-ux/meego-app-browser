@@ -275,6 +275,55 @@ IPC_MESSAGE_ROUTED2(ViewHostMsg_TranslateLanguageDetermined,
                     std::string  /* page ISO639_1 language code */,
                     bool         /* whether the page can be translated */)
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+IPC_MESSAGE_ROUTED2(ViewMsg_QueryNodeAtPosition,
+                    int /* x */,
+                    int /* y */)
+
+IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryScrollOffset,
+                           gfx::Point)
+
+IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryZoomFactor,
+                           double)
+
+IPC_MESSAGE_ROUTED2(ViewMsg_SetScrollPosition, int, int)
+
+IPC_MESSAGE_ROUTED3(ViewMsg_SetSelectionRange,
+                    gfx::Point, /* start pos */
+                    gfx::Point, /* end pos */
+                    bool /* if false, cancel selection */)
+
+IPC_MESSAGE_ROUTED1(ViewMsg_SelectItem,
+                    gfx::Point /* item's pos */)
+
+IPC_SYNC_MESSAGE_ROUTED2_1(ViewMsg_PaintContents,
+                           TransportDIB::Handle /* dib_handle */,
+                           gfx::Rect,
+                           int /* return value*/)
+
+IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_GetLayoutAlgorithm,
+                           int)
+
+IPC_SYNC_MESSAGE_ROUTED1_0(ViewMsg_SetLayoutAlgorithm,
+                           int)
+
+IPC_SYNC_MESSAGE_ROUTED2_0(ViewMsg_Zoom2TextPre,
+                           int, int)
+
+IPC_SYNC_MESSAGE_ROUTED0_0(ViewMsg_Zoom2TextPost)
+
+IPC_SYNC_MESSAGE_ROUTED1_0(ViewMsg_ZoomFactor, double)
+
+IPC_MESSAGE_ROUTED2(ViewHostMsg_QueryNodeAtPosition_ACK,
+                    bool /* is_embedded_object */,
+                    bool /* is_text_entry*/ )
+
+IPC_MESSAGE_ROUTED3(ViewHostMsg_UpdateSelectionRange,
+                    gfx::Point, /* start point */
+                    gfx::Point, /* end point */
+                    bool /* if false, cancel selection */)
+#endif
+
 IPC_MESSAGE_CONTROL1(ViewHostMsg_UpdatedCacheStats,
                      WebKit::WebCache::UsageStats /* stats */)
 

@@ -8,6 +8,11 @@
 
 #include "ui/base/x/x11_util.h"
 
+#include <QX11Info>
+#include <QDesktopWidget>
+#include <QApplication>
+#undef signals
+
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
@@ -92,15 +97,34 @@ bool GetProperty(XID window, const std::string& property_name, long max_length,
 }  // namespace
 
 bool XDisplayExists() {
-  return (gdk_display_get_default() != NULL);
+  if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI)
+  {
+    return (gdk_display_get_default() != NULL);
+  }
+  else
+  {
+    NOTIMPLEMENTED();
+    return true;
+  }
 }
 
 Display* GetXDisplay() {
   static Display* display = NULL;
 
   if (!display)
-    display = gdk_x11_get_default_xdisplay();
-
+  {
+    
+    if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI)
+    {
+      //gtk based message loop
+      display = gdk_x11_get_default_xdisplay();
+    }
+    else
+    {
+      // qt based message loop
+      display = (QApplication::desktop())->x11Info().display();
+    }
+  }
   return display;
 }
 
@@ -123,11 +147,20 @@ static SharedMemorySupport DoQuerySharedMemorySupport(Display* dpy) {
   memset(&shminfo, 0, sizeof(shminfo));
   shminfo.shmid = shmkey;
 
+// TODO: We need to find another way to trap the x error here
+#if !defined(TOOLKIT_MEEGOTOUCH)
   gdk_error_trap_push();
+#endif
+
   bool result = XShmAttach(dpy, &shminfo);
   XSync(dpy, False);
+
+// TODO: We need to find another way to trap the x error here
+#if !defined(TOOLKIT_MEEGOTOUCH)
   if (gdk_error_trap_pop())
     result = false;
+#endif
+
   shmdt(address);
   if (!result)
     return SHARED_MEMORY_NONE;
@@ -170,7 +203,15 @@ int GetDefaultScreen(Display* display) {
 }
 
 XID GetX11RootWindow() {
-  return GDK_WINDOW_XID(gdk_get_default_root_window());
+  if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI)
+  {  
+    return GDK_WINDOW_XID(gdk_get_default_root_window());
+  }
+  else
+  {
+    QX11Info info = (QApplication::desktop())->x11Info();
+    return info.appRootWindow(info.appScreen());
+  }
 }
 
 bool GetCurrentDesktop(int* desktop) {
@@ -255,50 +296,89 @@ bool PropertyExists(XID window, const std::string& property_name) {
 }
 
 bool GetIntProperty(XID window, const std::string& property_name, int* value) {
-  Atom type = None;
-  int format = 0;  // size in bits of each item in 'property'
-  long unsigned int num_items = 0;
-  unsigned char* property = NULL;
+  if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI) {
+    Atom property_atom = gdk_x11_get_xatom_by_name_for_display(
+        gdk_display_get_default(), property_name.c_str());
 
-  int result = GetProperty(window, property_name, 1,
-                           &type, &format, &num_items, &property);
-  if (result != Success)
-    return false;
+    Atom type = None;
+    int format = 0;  // size in bits of each item in 'property'
+    long unsigned int num_items = 0, remaining_bytes = 0;
+    unsigned char* property = NULL;
 
-  if (format != 32 || num_items != 1) {
+    int result = XGetWindowProperty(GetXDisplay(),
+                                    window,
+                                    property_atom,
+                                    0,      // offset into property data to read
+                                    1,      // max length to get
+                                    False,  // deleted
+                                    AnyPropertyType,
+                                    &type,
+                                    &format,
+                                    &num_items,
+                                    &remaining_bytes,
+                                    &property);
+    if (result != Success)
+      return false;
+
+    if (format != 32 || num_items != 1) {
+      XFree(property);
+      return false;
+    }
+
+    *value = *(reinterpret_cast<int*>(property));
     XFree(property);
+    return true;
+  }
+  else
+  {
+    NOTIMPLEMENTED();
     return false;
   }
-
-  *value = *(reinterpret_cast<int*>(property));
-  XFree(property);
-  return true;
 }
 
 bool GetIntArrayProperty(XID window,
                          const std::string& property_name,
                          std::vector<int>* value) {
-  Atom type = None;
-  int format = 0;  // size in bits of each item in 'property'
-  long unsigned int num_items = 0;
-  unsigned char* properties = NULL;
+  if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI) {
+    Atom property_atom = gdk_x11_get_xatom_by_name_for_display(
+        gdk_display_get_default(), property_name.c_str());
 
-  int result = GetProperty(window, property_name,
-                           (~0L), // (all of them)
-                           &type, &format, &num_items, &properties);
-  if (result != Success)
-    return false;
+    Atom type = None;
+    int format = 0;  // size in bits of each item in 'property'
+    long unsigned int num_items = 0, remaining_bytes = 0;
+    unsigned char* properties = NULL;
 
-  if (format != 32) {
+    int result = XGetWindowProperty(GetXDisplay(),
+                                    window,
+                                    property_atom,
+                                    0,      // offset into property data to read
+                                    (~0L),  // max length to get (all of them)
+                                    False,  // deleted
+                                    AnyPropertyType,
+                                    &type,
+                                    &format,
+                                    &num_items,
+                                    &remaining_bytes,
+                                    &properties);
+    if (result != Success)
+      return false;
+
+    if (format != 32) {
+      XFree(properties);
+      return false;
+    }
+
+    int* int_properties = reinterpret_cast<int*>(properties);
+    value->clear();
+    value->insert(value->begin(), int_properties, int_properties + num_items);
     XFree(properties);
+    return true;
+  }
+  else
+  {
+    NOTIMPLEMENTED();
     return false;
   }
-
-  int* int_properties = reinterpret_cast<int*>(properties);
-  value->clear();
-  value->insert(value->begin(), int_properties, int_properties + num_items);
-  XFree(properties);
-  return true;
 }
 
 bool GetAtomArrayProperty(XID window,
@@ -329,24 +409,44 @@ bool GetAtomArrayProperty(XID window,
 
 bool GetStringProperty(
     XID window, const std::string& property_name, std::string* value) {
-  Atom type = None;
-  int format = 0;  // size in bits of each item in 'property'
-  long unsigned int num_items = 0;
-  unsigned char* property = NULL;
+  if(MessageLoop::current()->pump_type() == MessageLoop::TYPE_UI) {
+    Atom property_atom = gdk_x11_get_xatom_by_name_for_display(
+        gdk_display_get_default(), property_name.c_str());
 
-  int result = GetProperty(window, property_name, 1024,
-                           &type, &format, &num_items, &property);
-  if (result != Success)
-    return false;
+    Atom type = None;
+    int format = 0;  // size in bits of each item in 'property'
+    long unsigned int num_items = 0, remaining_bytes = 0;
+    unsigned char* property = NULL;
 
-  if (format != 8) {
+    int result = XGetWindowProperty(GetXDisplay(),
+                                    window,
+                                    property_atom,
+                                    0,      // offset into property data to read
+                                    1024,   // max length to get
+                                    False,  // deleted
+                                    AnyPropertyType,
+                                    &type,
+                                    &format,
+                                    &num_items,
+                                    &remaining_bytes,
+                                    &property);
+    if (result != Success)
+      return false;
+
+    if (format != 8) {
+      XFree(property);
+      return false;
+    }
+
+    value->assign(reinterpret_cast<char*>(property), num_items);
     XFree(property);
+    return true;
+  }
+  else
+  {
+    NOTIMPLEMENTED();
     return false;
   }
-
-  value->assign(reinterpret_cast<char*>(property), num_items);
-  XFree(property);
-  return true;
 }
 
 XID GetParentWindow(XID window) {
@@ -372,7 +472,7 @@ XID GetHighestAncestorWindow(XID window, XID root) {
 }
 
 bool GetWindowDesktop(XID window, int* desktop) {
-  return GetIntProperty(window, "_NET_WM_DESKTOP", desktop);
+    return ui::GetIntProperty(window, "_NET_WM_DESKTOP", desktop);
 }
 
 // Returns true if |window| is a named window.
@@ -872,5 +972,9 @@ void LogErrorEventDescription(Display* dpy,
 // ----------------------------------------------------------------------------
 // End of x11_util_internal.h
 
+void GrabWindowSnapshot(QWidget* window,
+                        std::vector<unsigned char>* png_representation) {
+  NOTIMPLEMENTED();
+}
 
 }  // namespace ui

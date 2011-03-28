@@ -29,6 +29,28 @@
 
   'targets': [
     {
+      'target_name': 'meegotouch',
+      'type': 'settings',
+      'conditions': [
+        ['_toolset=="target"', {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(<(pkg-config) --cflags mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher)',
+              '-I/usr/include/QtMobility -I/usr/include/QtSensors',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(<(pkg-config) --libs-only-L --libs-only-other mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher)',
+            ],
+            'libraries': [
+              '<!@(<(pkg-config) --libs-only-l mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher)',
+              '-lQtSensors',
+            ],
+          },
+      }]]
+    },
+    {
       'target_name': 'gtk',
       'type': 'settings',
       'conditions': [

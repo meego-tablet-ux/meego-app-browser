@@ -345,22 +345,22 @@ std::string TemplateURLRef::ReplaceSearchTermsUsingTermsData(
        i != replacements_.rend(); ++i) {
     switch (i->type) {
       case ENCODING:
-        url.insert(i->index, input_encoding);
+        url.insert(i->index, input_encoding.c_str());
         break;
 
       case GOOGLE_ACCEPTED_SUGGESTION:
         if (accepted_suggestion == NO_SUGGESTION_CHOSEN)
           url.insert(i->index, "aq=f&");
         else if (accepted_suggestion != NO_SUGGESTIONS_AVAILABLE)
-          url.insert(i->index, StringPrintf("aq=%d&", accepted_suggestion));
+          url.insert(i->index, StringPrintf("aq=%d&", accepted_suggestion).c_str());
         break;
 
       case GOOGLE_BASE_URL:
-        url.insert(i->index, search_terms_data.GoogleBaseURLValue());
+        url.insert(i->index, search_terms_data.GoogleBaseURLValue().c_str());
         break;
 
       case GOOGLE_BASE_SUGGEST_URL:
-        url.insert(i->index, search_terms_data.GoogleBaseSuggestURLValue());
+        url.insert(i->index, search_terms_data.GoogleBaseSuggestURLValue().c_str());
         break;
 
       case GOOGLE_ORIGINAL_QUERY_FOR_SUGGESTION:
@@ -390,16 +390,16 @@ std::string TemplateURLRef::ReplaceSearchTermsUsingTermsData(
                               base::OnStringConversionError::SKIP,
                               &unescaped_terms);
         url.insert(i->index, std::string(unescaped_terms.begin(),
-                                         unescaped_terms.end()));
+                                         unescaped_terms.end()).c_str());
         break;
       }
 
       case LANGUAGE:
-        url.insert(i->index, search_terms_data.GetApplicationLocale());
+        url.insert(i->index, search_terms_data.GetApplicationLocale().c_str());
         break;
 
       case SEARCH_TERMS:
-        url.insert(i->index, UTF16ToUTF8(encoded_terms));
+        url.insert(i->index, UTF16ToUTF8(encoded_terms).c_str());
         break;
 
       default:

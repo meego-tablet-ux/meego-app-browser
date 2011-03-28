@@ -40,12 +40,13 @@ var MostVisited = (function() {
     return Array.prototype.indexOf.call(nodes, el);
   }
 
-  function MostVisited(el, miniview, menu, useSmallGrid, visible) {
+  function MostVisited(el, miniview, menu, useSmallGrid, visible, portrait) {
     this.element = el;
     this.miniview = miniview;
     this.menu = menu;
     this.useSmallGrid_ = useSmallGrid;
     this.visible_ = visible;
+    this.isPortrait_ = portrait;
 
     this.createThumbnails_();
     this.applyMostVisitedRects_();
@@ -224,6 +225,17 @@ var MostVisited = (function() {
       }
     },
 
+    isPortrait_: false,
+    get isPortraitMode() {
+      return this.isPortrait_;
+    },
+    setPortraitMode: function(b) {
+      if (this.isPortrait_ != b) {
+        this.isPortrait_ = b;
+        this.invalidate_();
+      }
+    },
+
     layout: function() {
       if (!this.dirty_)
         return;
@@ -262,6 +274,11 @@ var MostVisited = (function() {
 
       var cols = 4;
       var rows = 2;
+      if(this.isPortrait_) {
+        cols = 2;
+        rows = 4;
+      }
+
       var marginWidth = 10;
       var marginHeight = 7;
       var borderWidth = 4;

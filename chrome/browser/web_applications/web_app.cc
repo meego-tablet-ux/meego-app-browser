@@ -220,7 +220,6 @@ void CreateShortcutTask::Run() {
 
 bool CreateShortcutTask::CreateShortcut() {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::FILE));
-
 #if defined(OS_LINUX)
   scoped_ptr<base::Environment> env(base::Environment::Create());
 

@@ -12,6 +12,8 @@ namespace switches {
 // Can't find the switch you are looking for? try looking in
 // base/base_switches.cc instead.
 // -----------------------------------------------------------------------------
+const char kMemoryThreshold[]         = "memory-threshold";
+const char kTabsLimit[]                = "tabs-limit";
 
 // Activate (make foreground) myself on launch.  Helpful when Chrome
 // is launched on the command line (e.g. by Selenium).  Only needed on Mac.

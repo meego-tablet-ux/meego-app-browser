@@ -327,7 +327,7 @@ class UIJankObserver : public base::RefCountedThreadSafe<UIJankObserver>,
   virtual void DidProcessMessage(const MSG& msg) {
     helper_.EndProcessingTimers();
   }
-#elif defined(TOOLKIT_USES_GTK)
+#elif defined(OS_LINUX)
   virtual void WillProcessEvent(GdkEvent* event) {
     if (!helper_.MessageWillBeMeasured())
       return;

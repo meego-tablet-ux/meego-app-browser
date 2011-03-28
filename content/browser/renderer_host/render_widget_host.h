@@ -22,6 +22,7 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebInputEvent.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebTextDirection.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebTextInputType.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebSettings.h"
 #include "ui/gfx/native_widget_types.h"
 #include "ui/gfx/rect.h"
 #include "ui/gfx/size.h"
@@ -34,6 +35,7 @@ class Rect;
 namespace WebKit {
 class WebInputEvent;
 class WebMouseEvent;
+class WebTouchEvent;
 struct WebCompositionUnderline;
 struct WebScreenInfo;
 }
@@ -171,6 +173,8 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // Sends a message to the corresponding object in the renderer.
   virtual bool Send(IPC::Message* msg);
 
+  bool SendWithTimeout(IPC::Message* msg, int timeout_ms);
+
   // Called to notify the RenderWidget that it has been hidden or restored from
   // having been hidden.
   void WasHidden();
@@ -259,6 +263,9 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // Forwards the given message to the renderer. These are called by the view
   // when it has received a message.
   virtual void ForwardMouseEvent(const WebKit::WebMouseEvent& mouse_event);
+
+  void ForwardTouchEvent(const WebKit::WebTouchEvent& touch_event);
+
   // Called when a mouse click activates the renderer.
   virtual void OnMouseActivate();
   void ForwardWheelEvent(const WebKit::WebMouseWheelEvent& wheel_event);
@@ -382,6 +389,24 @@ class RenderWidgetHost : public IPC::Channel::Listener,
 
   // Sets the active state (i.e., control tints).
   virtual void SetActive(bool active);
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void QueryNodeAtPosition(int x, int y);
+  void QueryScrollOffset(gfx::Point& output);
+  void SetZoomFactor (double factor);
+  void QueryZoomFactor(double& factor);
+  void SetScrollPosition (int x, int y);
+  int PaintContents(TransportDIB::Handle dib_handle, const gfx::Rect& rect);
+  WebKit::WebSettings::LayoutAlgorithm GetLayoutAlgorithm();
+  void SetLayoutAlgorithm(WebKit::WebSettings::LayoutAlgorithm);
+  void Zoom2TextPre(int x, int y);
+  void Zoom2TextPost();
+
+  // Select an item from popup menu. -1 indicates to cancel selection
+  void DidSelectPopupMenuItem(int selected_index);
+  void DidCancelPopupMenu();
+
+#endif
 
   void set_ignore_input_events(bool ignore_input_events) {
     ignore_input_events_ = ignore_input_events;
@@ -511,6 +536,10 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void OnMsgDestroyPluginContainer(gfx::PluginWindowHandle id);
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void OnMsgQueryNodeAtPositionACK(bool is_embedded_object, bool is_content_editable);
+#endif
+
   // Paints the given bitmap to the current backing store at the given location.
   void PaintBackingStoreRect(TransportDIB::Id bitmap,
                              const gfx::Rect& bitmap_rect,
@@ -594,6 +623,14 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // The next mouse move event to send (only non-null while mouse_move_pending_
   // is true).
   scoped_ptr<WebKit::WebMouseEvent> next_mouse_move_;
+
+  // True if a touch move event was sent to the render view and we are waiting
+  // for a corresponding ViewHostMsg_HandleInputEvent_ACK message.
+  bool touch_move_pending_;
+
+  // The next touch move event to send (only non-null while mouse_move_pending_
+  // is true).
+  scoped_ptr<WebKit::WebTouchEvent> next_touch_move_;
 
   // (Similar to |mouse_move_pending_|.) True if a mouse wheel event was sent
   // and we are waiting for a corresponding ack.

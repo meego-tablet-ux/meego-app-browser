@@ -4,7 +4,7 @@
 
 #include "ui/base/l10n/l10n_util.h"
 
-#if defined(TOOLKIT_USES_GTK)
+#if defined(TOOLKIT_USES_GTK) || defined(TOOLKIT_MEEGOTOUCH)
 #include <glib/gutils.h>
 #endif
 
@@ -394,7 +394,7 @@ std::string GetApplicationLocale(const std::string& pref_locale) {
   if (!pref_locale.empty())
     candidates.push_back(pref_locale);
 
-#elif defined(OS_POSIX) && defined(TOOLKIT_USES_GTK)
+#elif defined(OS_POSIX) && (defined(TOOLKIT_USES_GTK) || defined(TOOLKIT_MEEGOTOUCH))
 
   // GLib implements correct environment variable parsing with
   // the precedence order: LANGUAGE, LC_ALL, LC_MESSAGES and LANG.
@@ -590,6 +590,8 @@ static string16 GetStringF(int message_id,
   ResourceBundle& rb = ResourceBundle::GetSharedInstance();
   const string16& format_string = rb.GetLocalizedString(message_id);
 
+  //Disable following check for debug version
+#if 0
 #ifndef NDEBUG
   // Make sure every replacement string is being used, so we don't just
   // silently fail to insert one. If |offsets| is non-NULL, then don't do this
@@ -615,6 +617,7 @@ static string16 GetStringF(int message_id,
       }
     }
   }
+#endif
 #endif
 
   string16 formatted = ReplaceStringPlaceholders(format_string, replacements,

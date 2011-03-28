@@ -470,11 +470,7 @@ const string16& TabContents::GetTitle() const {
     }
   }
 
-  // We use the title for the last committed entry rather than a pending
-  // navigation entry. For example, when the user types in a URL, we want to
-  // keep the old page's title until the new load has committed and we get a new
-  // title.
-  entry = controller_.GetLastCommittedEntry();
+  entry = controller_.GetActiveEntry();
   if (entry) {
     return entry->GetTitleForDisplay(profile()->GetPrefs()->
         GetString(prefs::kAcceptLanguages));
@@ -853,6 +849,7 @@ gfx::NativeView TabContents::GetContentNativeView() const {
 }
 
 gfx::NativeView TabContents::GetNativeView() const {
+  LOG(INFO) << "-------" << __PRETTY_FUNCTION__ << std::endl;
   return view_->GetNativeView();
 }
 
@@ -1129,6 +1126,31 @@ void TabContents::SystemDragEnded() {
     render_view_host()->DragSourceSystemDragEnded();
   if (delegate())
     delegate()->DragEnded();
+}
+
+TabContents* TabContents::CloneAndMakePhantom() {
+  TabNavigation tab_nav;
+
+  NavigationEntry* entry = controller().GetActiveEntry();
+  if (extension_app_)
+    tab_nav.set_virtual_url(extension_app_->GetFullLaunchURL());
+  else if (entry)
+    tab_nav.SetFromNavigationEntry(*entry);
+
+  std::vector<TabNavigation> navigations;
+  navigations.push_back(tab_nav);
+
+  TabContents* new_contents =
+      new TabContents(profile(),
+                      SiteInstance::CreateSiteInstance(profile()),
+                      MSG_ROUTING_NONE, this, NULL);
+  new_contents->SetExtensionApp(extension_app_);
+  new_contents->controller().CopyStateFrom(controller_);
+
+  if (!extension_app_ && entry)
+    new_contents->controller().GetActiveEntry()->favicon() = entry->favicon();
+
+  return new_contents;
 }
 
 void TabContents::UpdateHistoryForNavigation(

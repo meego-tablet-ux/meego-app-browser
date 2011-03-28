@@ -39,11 +39,24 @@ void BookmarkDropInfo::Update(const views::DropTargetEvent& event) {
   NOTIMPLEMENTED();
   bool scroll_down = false;
 #endif
+
+///\todo, Fixme  A dirty hack to not using views::kAutoscrollSize since we don't build src/views/ for TOOLKIT_MEEGOTOUCH
+#if !defined(TOOLKIT_MEEGOTOUCH)
   scroll_up_ = (last_y_ <= top_margin_ + views::kAutoscrollSize);
+#else
+  scroll_up_ = (last_y_ <= top_margin_ + 10);
+#endif
+
   if (scroll_up_ || scroll_down) {
     if (!scroll_timer_.IsRunning()) {
       scroll_timer_.Start(
+
+///\todo, Fixme A dirty hack to not using views::kAutoscrollRowTimerMS since we don't build src/views/ for TOOLKIT_MEEGOTOUCH
+#if !defined(TOOLKIT_MEEGOTOUCH)
           base::TimeDelta::FromMilliseconds(views::kAutoscrollRowTimerMS),
+#else
+          base::TimeDelta::FromMilliseconds(200),
+#endif
           this,
           &BookmarkDropInfo::Scroll);
     }

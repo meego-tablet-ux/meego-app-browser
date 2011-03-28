@@ -10,6 +10,22 @@
 <head>
 <meta charset="utf-8">
 <title i18n-content="title"></title>
+
+<script>
+var ORIENTATION = {
+    LANDSCAPE : 0,
+    PORTRAIT : 1
+};
+
+function getOrientation() {
+  return (window.innerWidth >= window.innerHeight)?ORIENTATION.LANDSCAPE:ORIENTATION.PORTRAIT;
+}
+
+function isPortraitMode() {
+  return getOrientation() == ORIENTATION.PORTRAIT;
+}
+</script>
+
 <script src="shared/js/util.js"></script>
 <script>
 // Logging info for benchmarking purposes.
@@ -91,7 +107,9 @@ document.write('<link id="themecss" rel="stylesheet" ' +
                Date.now() + '">');
 
 function useSmallGrid() {
-  return window.innerWidth <= 940;
+// Small grid only used in 800x480 screen.
+  return ( window.innerWidth <= 480 && isPortraitMode() ) || 
+						( window.innerWidth <= 800 && !isPortraitMode() );
 }
 
 function isRtl() {

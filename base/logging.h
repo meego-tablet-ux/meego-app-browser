@@ -943,4 +943,6 @@ BASE_API std::ostream& operator<<(std::ostream& o, const StringPiece& piece);
 
 }  // namespace base
 
+#define DNOTIMPLEMENTED() DLOG(ERROR) << NOTIMPLEMENTED_MSG
+
 #endif  // BASE_LOGGING_H_

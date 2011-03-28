@@ -26,6 +26,7 @@
 #include "content/common/view_messages.h"
 #include "gpu/common/gpu_trace_event.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebCompositionUnderline.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebSettings.h"
 #include "ui/base/keycodes/keyboard_codes.h"
 #include "webkit/glue/webcursor.h"
 #include "webkit/plugins/npapi/webplugin.h"
@@ -39,6 +40,8 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/mac/WebScreenInfoFactory.h"
 #endif
 
+#include <iostream>
+
 using base::Time;
 using base::TimeDelta;
 using base::TimeTicks;
@@ -46,6 +49,7 @@ using base::TimeTicks;
 using WebKit::WebInputEvent;
 using WebKit::WebKeyboardEvent;
 using WebKit::WebMouseEvent;
+using WebKit::WebTouchEvent;
 using WebKit::WebMouseWheelEvent;
 using WebKit::WebTextDirection;
 
@@ -204,6 +208,11 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
     IPC_MESSAGE_HANDLER(ViewHostMsg_DestroyPluginContainer,
                         OnMsgDestroyPluginContainer)
 #endif
+#if defined(TOOLKIT_MEEGOTOUCH)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_QueryNodeAtPosition_ACK,
+                        OnMsgQueryNodeAtPositionACK)
+#endif
+
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP_EX()
 
@@ -217,6 +226,10 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
 
 bool RenderWidgetHost::Send(IPC::Message* msg) {
   return process_->Send(msg);
+}
+
+bool RenderWidgetHost::SendWithTimeout(IPC::Message* msg, int timeout_ms) {
+  return process_->SendWithTimeout(msg, timeout_ms);
 }
 
 void RenderWidgetHost::WasHidden() {
@@ -506,6 +519,21 @@ void RenderWidgetHost::SystemThemeChanged() {
   Send(new ViewMsg_ThemeChanged(routing_id_));
 }
 
+void RenderWidgetHost::ForwardTouchEvent(const WebTouchEvent& touch_event) {
+  if (ignore_input_events_ || process_->ignore_input_events())
+    return;
+
+  if (touch_event.type == WebInputEvent::TouchMove) {
+    if (touch_move_pending_) {
+      next_touch_move_.reset(new WebTouchEvent(touch_event));
+      return;
+    }
+    touch_move_pending_ = true;
+  }
+
+  ForwardInputEvent(touch_event, sizeof(WebTouchEvent), false);
+}
+
 void RenderWidgetHost::ForwardMouseEvent(const WebMouseEvent& mouse_event) {
   if (ignore_input_events_ || process_->ignore_input_events())
     return;
@@ -551,8 +579,6 @@ void RenderWidgetHost::ForwardWheelEvent(
           &coalesced_mouse_wheel_events_.back();
       last_wheel_event->deltaX += wheel_event.deltaX;
       last_wheel_event->deltaY += wheel_event.deltaY;
-      DCHECK_GE(wheel_event.timeStampSeconds,
-                last_wheel_event->timeStampSeconds);
       last_wheel_event->timeStampSeconds = wheel_event.timeStampSeconds;
     }
     return;
@@ -758,6 +784,70 @@ void RenderWidgetHost::ImeCancelComposition() {
 void RenderWidgetHost::SetActive(bool active) {
   Send(new ViewMsg_SetActive(routing_id(), active));
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void RenderWidgetHost::QueryNodeAtPosition(int x, int y) {
+  Send(new ViewMsg_QueryNodeAtPosition(routing_id(), x, y));
+}
+
+void RenderWidgetHost::SetScrollPosition(int x, int y) {
+  Send(new ViewMsg_SetScrollPosition(routing_id(), x, y));
+}
+
+void RenderWidgetHost::QueryScrollOffset(gfx::Point& output) {
+  SendWithTimeout(new ViewMsg_QueryScrollOffset(routing_id(), &output),
+		  10000);
+}
+
+void RenderWidgetHost::SetZoomFactor(double factor) {
+  SendWithTimeout(new ViewMsg_ZoomFactor(routing_id(), factor),
+		  10000);
+}
+
+void RenderWidgetHost::QueryZoomFactor(double& factor) {
+  SendWithTimeout(new ViewMsg_QueryZoomFactor(routing_id(), &factor),
+		  10000);
+}
+
+int RenderWidgetHost::PaintContents(TransportDIB::Handle dib_handle,
+				     const gfx::Rect& rect) {
+  int retval = 0;
+  SendWithTimeout(new ViewMsg_PaintContents(routing_id_, dib_handle, rect, &retval),
+		  10000);
+  return retval;
+}
+
+WebKit::WebSettings::LayoutAlgorithm RenderWidgetHost::GetLayoutAlgorithm() {
+  int retval = -1;
+  SendWithTimeout(new ViewMsg_GetLayoutAlgorithm(routing_id_, &retval),
+		  10000);
+  return (WebKit::WebSettings::LayoutAlgorithm)retval;
+}
+
+void RenderWidgetHost::SetLayoutAlgorithm(WebKit::WebSettings::LayoutAlgorithm algo) {
+  SendWithTimeout(new ViewMsg_SetLayoutAlgorithm(routing_id_, (int)algo),
+		  10000);
+}
+
+void RenderWidgetHost::Zoom2TextPre(int x, int y) {
+  SendWithTimeout(new ViewMsg_Zoom2TextPre(routing_id_, x, y), 10000);
+}
+
+void RenderWidgetHost::Zoom2TextPost() {
+  SendWithTimeout(new ViewMsg_Zoom2TextPost(routing_id_), 10000);
+}
+
+void RenderWidgetHost::DidSelectPopupMenuItem(int selected_index)
+{
+    Send(new ViewMsg_SelectPopupMenuItem(routing_id(), selected_index));
+}
+
+void RenderWidgetHost::DidCancelPopupMenu()
+{
+    Send(new ViewMsg_SelectPopupMenuItem(routing_id(), -1));
+}
+
+#endif
 
 void RenderWidgetHost::Destroy() {
   NotificationService::current()->Notify(
@@ -975,6 +1065,14 @@ void RenderWidgetHost::OnMsgInputEventAck(const IPC::Message& message) {
       DCHECK(next_mouse_move_->type == WebInputEvent::MouseMove);
       ForwardMouseEvent(*next_mouse_move_);
     }
+  } else if (type == WebInputEvent::TouchMove) {
+    touch_move_pending_ = false;
+
+    // now, we can send the next touch move event
+    if (next_touch_move_.get()) {
+      DCHECK(next_touch_move_->type == WebInputEvent::TouchMove);
+      ForwardTouchEvent(*next_touch_move_);
+    }
   } else if (type == WebInputEvent::MouseWheel) {
     ProcessWheelAck();
   } else if (WebInputEvent::isKeyboardEventType(type)) {
@@ -1164,6 +1262,12 @@ void RenderWidgetHost::OnMsgDestroyPluginContainer(gfx::PluginWindowHandle id) {
       }
     }
   }
+}
+#endif
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void RenderWidgetHost::OnMsgQueryNodeAtPositionACK(bool is_embedded_object, bool is_content_editable) {
+  view_->UpdateWebKitNodeInfo(is_embedded_object, is_content_editable);
 }
 #endif
 

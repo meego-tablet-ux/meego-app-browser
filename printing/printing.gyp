@@ -152,6 +152,13 @@
             }],
           ],
         }],
+        ['meegotouch==1', {
+            'sources/': [
+              ['exclude', '_(chromeos|gtk)(_unittest)?\\.cc$'],
+              ['exclude', '/gtk/'],
+              ['exclude', '/(gtk)_[^/]*\\.cc$'],
+            ],
+        }],
       ],
     },
     {

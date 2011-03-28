@@ -74,15 +74,32 @@ bool WebPluginDelegateImpl::Initialize(
     webkit_glue::SetForcefullyTerminatePluginProcess(true);
 
   int argc = 0;
-  scoped_array<char*> argn(new char*[arg_names.size()]);
-  scoped_array<char*> argv(new char*[arg_names.size()]);
+  bool is_windowless = false;
+  scoped_array<char*> argn(new char*[arg_names.size() + 1]);
+  scoped_array<char*> argv(new char*[arg_names.size() + 1]);
   for (size_t i = 0; i < arg_names.size(); ++i) {
     if (quirks_ & PLUGIN_QUIRK_NO_WINDOWLESS &&
         LowerCaseEqualsASCII(arg_names[i], "windowlessvideo")) {
       continue;
     }
+
+    if (LowerCaseEqualsASCII(arg_names[i], "wmode") &&
+        ( LowerCaseEqualsASCII(arg_values[i], "opaque") ||
+          LowerCaseEqualsASCII(arg_values[i], "transparent"))) {
+      is_windowless = true;
+    }
+
     argn[argc] = const_cast<char*>(arg_names[i].c_str());
     argv[argc] = const_cast<char*>(arg_values[i].c_str());
+    argc++;
+  }
+
+  std::string wmode("wmode");
+  std::string value("opaque");
+  if (instance_->mime_type() == "application/x-shockwave-flash" &&
+      !is_windowless) {
+    argn[argc] = const_cast<char*>(wmode.c_str());
+    argv[argc] = const_cast<char*>(value.c_str());
     argc++;
   }
 

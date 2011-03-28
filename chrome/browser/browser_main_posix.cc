@@ -255,7 +255,7 @@ void BrowserMainPartsPosix::PostMainMessageLoopStart() {
     }
   }
 
-#if defined(OS_LINUX) && !defined(OS_CHROMEOS)
+#if defined(OS_LINUX) && !defined(OS_CHROMEOS) && !defined(TOOLKIT_MEEGOTOUCH)
   printing::PrintingContextCairo::SetCreatePrintDialogFunction(
       &PrintDialogGtk::CreatePrintDialog);
 #endif  // defined(OS_LINUX) && !defined(OS_CHROMEOS)

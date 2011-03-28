@@ -554,11 +554,14 @@ void NewTabUI::AddRecentlyClosedEntries(
          ValueHelper::TabToValue(
              *static_cast<TabRestoreService::Tab*>(entry),
              entry_dict.get()) &&
-         IsTabUnique(entry_dict.get(), &unique_items)) ||
-        (entry->type == TabRestoreService::WINDOW &&
+         IsTabUnique(entry_dict.get(), &unique_items))
+#if !defined(TOOLKIT_MEEGOTOUCH)
+         || (entry->type == TabRestoreService::WINDOW &&
          ValueHelper::WindowToValue(
              *static_cast<TabRestoreService::Window*>(entry),
-             entry_dict.get()))) {
+             entry_dict.get()))
+#endif
+        ) {
       entry_dict->SetInteger("sessionId", entry->id);
       entry_list_value->Append(entry_dict.release());
       added_count++;

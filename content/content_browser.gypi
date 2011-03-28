@@ -175,6 +175,8 @@
         'browser/renderer_host/accelerated_surface_container_mac.h',
         'browser/renderer_host/accelerated_surface_container_manager_mac.cc',
         'browser/renderer_host/accelerated_surface_container_manager_mac.h',
+        'browser/renderer_host/animation_utils.cc',
+        'browser/renderer_host/animation_utils.h',
         'browser/renderer_host/async_resource_handler.cc',
         'browser/renderer_host/async_resource_handler.h',
         'browser/renderer_host/audio_common.cc',
@@ -212,6 +214,10 @@
         'browser/renderer_host/cross_site_resource_handler.h',
         'browser/renderer_host/database_message_filter.cc',
         'browser/renderer_host/database_message_filter.h',
+        'browser/renderer_host/event_util_qt.cc',
+        'browser/renderer_host/event_util_qt.h',
+        'browser/renderer_host/event_util_qt_keyboard_event.cc',
+        'browser/renderer_host/event_util_qt_keyboard_event.h',
         'browser/renderer_host/file_utilities_message_filter.cc',
         'browser/renderer_host/file_utilities_message_filter.h',
         'browser/renderer_host/global_request_id.h',
@@ -238,6 +244,7 @@
         'browser/renderer_host/render_message_filter.cc',
         'browser/renderer_host/render_message_filter.h',
         'browser/renderer_host/render_message_filter_gtk.cc',
+        'browser/renderer_host/render_message_filter_qt.cc',
         'browser/renderer_host/render_message_filter_win.cc',
         'browser/renderer_host/render_process_host.cc',
         'browser/renderer_host/render_process_host.h',
@@ -271,6 +278,8 @@
         'browser/renderer_host/resource_queue.h',
         'browser/renderer_host/resource_request_details.cc',
         'browser/renderer_host/resource_request_details.h',
+        'browser/renderer_host/rwhv_qt_widget.cc',
+        'browser/renderer_host/rwhv_qt_widget.h',
         'browser/renderer_host/socket_stream_dispatcher_host.cc',
         'browser/renderer_host/socket_stream_dispatcher_host.h',
         'browser/renderer_host/socket_stream_host.cc',
@@ -356,6 +365,50 @@
             '../build/linux/system.gyp:gtk',
             # For XShm* in backing_store_x.cc
             '../build/linux/system.gyp:x11',
+          ],
+          'conditions': [
+            ['meegotouch==1', {
+              'sources/': [
+                ['exclude', '_(chromeos|gtk)(_unittest)?\\.cc$'],
+                ['exclude', '/gtk/'],
+                ['exclude', '/(gtk)_[^/]*\\.cc$'],
+              ],
+              'dependencies': [
+                '../build/linux/system.gyp:meegotouch',
+              ],
+              'actions': [
+                {
+                  'action_name': 'moc_rwhv_qt_widget.h',
+                  'inputs': [
+                    'browser/renderer_host/rwhv_qt_widget.h',
+                  ],
+                  'outputs': [
+                    'browser/renderer_host/moc_rwhv_qt_widget.cc',
+                  ],
+                  'action': [
+                    'mmoc',
+                    '<(_inputs)',
+                    '-o',
+                    '<(_outputs)',
+                  ],
+                },
+                {
+                  'action_name': 'mmoc_animation_utils.h',
+                  'inputs': [
+                    'browser/renderer_host/animation_utils.h',
+                  ],
+                  'outputs': [
+                    'browser/renderer_host/moc_animation_utils.cc',
+                  ],
+                  'action': [
+                    'mmoc',
+                    '<(_inputs)',
+                    '-o',
+                    '<(_outputs)',
+                  ],
+                }
+              ],
+            }],
           ],
         }, {  # OS != "linux"
           'sources!': [

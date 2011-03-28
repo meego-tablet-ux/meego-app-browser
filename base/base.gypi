@@ -414,6 +414,28 @@
               'base/files/file_path_watcher_stub.cc',
             ],
           }],
+          [ 'meegotouch == 1', {
+              'sources' : [
+                'moc_message_pump_qt.cc',
+                'message_pump_qt.cc',
+                'message_pump_qt.h',
+              ],
+              'actions': [{
+                'action_name': 'mmoc_message_pump_qt.h',
+                  'inputs': [
+                    'message_pump_qt.h',
+                  ],
+                  'outputs': [
+                    'moc_message_pump_qt.cc',
+                  ],
+                  'action': [
+                    'mmoc',
+                    '<(_inputs)',
+                    '-o',
+                    '<(_outputs)',
+                  ],
+               },],
+          },],
         ],
       }],
     ],
@@ -456,6 +478,12 @@
                 },
               },
             ],
+            [ 'meegotouch==1', {
+                'dependencies': [
+                  '../build/linux/system.gyp:meegotouch',
+                ],
+              },
+            ],
           ],
           'dependencies': [
             'symbolize',
@@ -472,6 +500,7 @@
           ],
           'export_dependent_settings': [
             '../build/linux/system.gyp:gtk',
+            '../build/linux/system.gyp:meegotouch',
             '../build/linux/system.gyp:x11',
           ],
         }, {  # OS != "linux" and OS != "freebsd" and OS != "openbsd" and OS != "solaris"

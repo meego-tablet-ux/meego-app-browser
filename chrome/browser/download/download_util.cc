@@ -599,11 +599,17 @@ void DragDownload(const DownloadItem* download,
                  ui::DragDropTypes::DRAG_COPY | ui::DragDropTypes::DRAG_LINK);
 #endif  // OS_WIN
 }
-#elif defined(USE_X11)
+#elif defined(TOOLKIT_USES_GTK)
 void DragDownload(const DownloadItem* download,
                   gfx::Image* icon,
                   gfx::NativeView view) {
   DownloadItemDrag::BeginDrag(download, icon);
+}
+#elif defined(TOOLKIT_MEEGOTOUCH)
+void DragDownload(const DownloadItem* download,
+                  gfx::Image* icon,
+                  gfx::NativeView view) {
+  NOTIMPLEMENTED();
 }
 #endif  // USE_X11
 

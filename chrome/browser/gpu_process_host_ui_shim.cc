@@ -24,6 +24,7 @@
 
 #if defined(OS_LINUX)
 // These two #includes need to come after gpu_messages.h.
+#undef signals
 #include <gdk/gdkwindow.h>  // NOLINT
 #include <gdk/gdkx.h>  // NOLINT
 #include "ui/base/x/x11_util.h"
@@ -227,7 +228,7 @@ bool GpuProcessHostUIShim::OnControlMessageReceived(
   IPC_BEGIN_MESSAGE_MAP(GpuProcessHostUIShim, message)
     IPC_MESSAGE_HANDLER(GpuHostMsg_OnLogMessage,
                         OnLogMessage)
-#if defined(OS_LINUX) && !defined(TOUCH_UI) || defined(OS_WIN)
+#if defined(OS_LINUX) && !defined(TOUCH_UI) && defined(TOOLKIT_USES_GTK) || defined(OS_WIN)
     IPC_MESSAGE_HANDLER(GpuHostMsg_ResizeView, OnResizeView)
 #elif defined(OS_MACOSX)
     IPC_MESSAGE_HANDLER(GpuHostMsg_AcceleratedSurfaceSetIOSurface,
@@ -254,7 +255,7 @@ void GpuProcessHostUIShim::OnLogMessage(
   GpuDataManager::GetInstance()->AddLogMessage(dict);
 }
 
-#if defined(OS_LINUX) && !defined(TOUCH_UI) || defined(OS_WIN)
+#if defined(OS_LINUX) && !defined(TOUCH_UI) && defined(TOOLKIT_USES_GTK) || defined(OS_WIN)
 
 void GpuProcessHostUIShim::OnResizeView(int32 renderer_id,
                                         int32 render_view_id,

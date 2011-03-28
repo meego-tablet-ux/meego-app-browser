@@ -475,8 +475,11 @@ class LoginDialogTask : public Task {
 LoginHandler* CreateLoginPrompt(net::AuthChallengeInfo* auth_info,
                                 net::URLRequest* request) {
   LoginHandler* handler = LoginHandler::Create(auth_info, request);
-  BrowserThread::PostTask(
-      BrowserThread::UI, FROM_HERE, new LoginDialogTask(
-          request->url(), auth_info, handler));
+  if (handler)
+  {
+    BrowserThread::PostTask(
+        BrowserThread::UI, FROM_HERE, new LoginDialogTask(
+            request->url(), auth_info, handler));
+  }
   return handler;
 }

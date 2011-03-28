@@ -26,6 +26,10 @@ typedef ConstrainedWindowMacDelegateSystemSheet ConstrainedDialogDelegate;
 class ConstrainedWindowGtkDelegate;
 typedef ConstrainedWindowGtkDelegate ConstrainedWindowDelegate;
 typedef ConstrainedWindowGtkDelegate ConstrainedDialogDelegate;
+#elif defined(TOOLKIT_MEEGOTOUCH)
+class ConstrainedWindowMeegotouchDelegate;
+typedef ConstrainedWindowMeegotouchDelegate ConstrainedWindowDelegate;
+typedef ConstrainedWindowMeegotouchDelegate ConstrainedDialogDelegate;
 #endif
 
 class TabContents;

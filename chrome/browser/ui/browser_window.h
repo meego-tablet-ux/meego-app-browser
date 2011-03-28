@@ -278,6 +278,9 @@ class BrowserWindow {
   // Shows the app menu (for accessibility).
   virtual void ShowAppMenu() = 0;
 
+  // Shows download manager
+  virtual void ShowDownloads() = 0;
+
   // Allows the BrowserWindow object to handle the specified keyboard event
   // before sending it to the renderer.
   // Returns true if the |event| was handled. Otherwise, if the |event| would

@@ -126,6 +126,8 @@ PrintingContext::Result PrintingContextCairo::UseDefaultSettings() {
   settings_.SetPrinterPrintableArea(physical_size_device_units,
                                     printable_area_device_units,
                                     dpi);
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  //TODO add meego support here
 #else
   if (!print_dialog_) {
     print_dialog_ = create_dialog_func_(this);
