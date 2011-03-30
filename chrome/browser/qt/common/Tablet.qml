@@ -95,6 +95,8 @@ BrowserWindowTablet {
           loader.item.state = "confirm"
       }else if(type == 2) {
     	  loader.item.state = "prompt"
+      }else if(type == 4) {
+    	  loader.item.state = "auth"
       }else{
     	  loader.item.state = "confirm"
       }
