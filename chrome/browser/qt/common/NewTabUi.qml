@@ -80,6 +80,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     itemWidth:(newtab.height < 650)? 210 : 231
     itemHeight:(newtab.height < 650)? 130 : 143
+    gridScrollable: false;
   }
 
   MaxViewFrame {
@@ -90,6 +91,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     itemWidth:(newtab.height < 650)? 210 : 231
     itemHeight:(newtab.height < 650)? 130 : 143
+    gridScrollable:newtab.height < 650
   }
 
   function updateModel(model, model2) {

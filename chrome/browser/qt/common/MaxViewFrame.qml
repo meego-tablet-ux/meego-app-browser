@@ -48,6 +48,7 @@ Item {
     property alias categoryTitle: title.text
     property alias categoryBottom: category.bottom
     property QtObject gridModel
+    property bool gridScrollable: false
     width: maxViewLoader.width
     height: maxViewLoader.height + category.height
 
@@ -221,7 +222,7 @@ Item {
 		snapMode: GridView.SnapToRow
 		model: sector.gridModel
 		//model: MaxViewModel { }
-		interactive: gridMouseArea.longPressId == -1
+		interactive: sector.gridScrollable
 
     		GestureArea {
         	    anchors.fill: parent
@@ -319,6 +320,7 @@ Item {
 		snapMode: GridView.SnapToRow
 		model: sector.gridModel
 		//model: MaxViewModel { }
+		interactive: sector.gridScrollable
 	    }
 /*
 	    ListView {
