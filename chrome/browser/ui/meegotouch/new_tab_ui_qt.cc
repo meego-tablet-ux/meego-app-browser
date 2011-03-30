@@ -254,7 +254,8 @@ NewTabUIQt::NewTabUIQt(Browser* browser, BrowserWindowQt* window)
     impl_ = new NewTabUIQtImpl();
     mostVisitedModel_ = new MaxViewModel(this, NULL, QString(MOST_VISITED));
     recentlyClosedModel_ = new MaxViewModel(this, NULL, QString(RECENTLY_CLOSED));
-    recentlyClosedModel_->setCollapsedState(true);
+    //Expand recently closed area defaully
+    //recentlyClosedModel_->setCollapsedState(true);
 
     QDeclarativeView* view = window_->DeclarativeView();
     QDeclarativeContext *context = view->rootContext();
