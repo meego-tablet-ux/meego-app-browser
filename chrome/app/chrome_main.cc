@@ -174,7 +174,6 @@ void InitQmlLauncher(const std::string process_type, int argc, char** argv)
   int height = 800;
   QString cmd;
   QString cdata;
-  QString app;
 
   for (int i=1; i<argc; i++)
   {
@@ -195,10 +194,6 @@ void InitQmlLauncher(const std::string process_type, int argc, char** argv)
     {
       cdata = QString(argv[++i]);
     }
-    else if (s.startsWith("--app="))
-    {
-      app = s.split("=").at(1);
-    }
     else if (s == "--noraise")
     {
       noRaise = true;
@@ -213,7 +208,7 @@ void InitQmlLauncher(const std::string process_type, int argc, char** argv)
     }
   }
 
-  QString identifier = QString(app);
+  QString identifier = QString("meego-app-browser");
   g_launcher_app = new LauncherApp(argc, argv, identifier, noRaise);
 
   initAtoms ();
