@@ -65,7 +65,7 @@ Item {
       width: scene.isLandscapeView() ? parent.width : toolbar.width * 0.9
       height: popupHeight
       anchors.top: parent.bottom
-      anchors.topMargin: -8
+      anchors.topMargin: 5
       anchors.horizontalCenter: parent.horizontalCenter
       z: 10
     }
