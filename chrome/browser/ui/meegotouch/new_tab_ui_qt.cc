@@ -269,9 +269,6 @@ NewTabUIQt::NewTabUIQt(Browser* browser, BrowserWindowQt* window)
     recentlyClosedImageProvider_ = new MaxViewImageProvider();
     context->engine()->addImageProvider(QLatin1String(RECENTLY_CLOSED), recentlyClosedImageProvider_);
 
-    RegisterGetRecentlyClosedTab();
-    StartQueryForMostVisited();
-    
 }
 
 NewTabUIQt:: ~NewTabUIQt() {
@@ -293,6 +290,8 @@ void NewTabUIQt::AboutToShow() {
     DLOG(INFO)<<__FUNCTION__;
     //impl_->show();
     isAboutToShow_ = true;
+
+    RegisterGetRecentlyClosedTab();
     //Call this function will trigger the show event after got the mostvisited data
     StartQueryForMostVisited();
 
