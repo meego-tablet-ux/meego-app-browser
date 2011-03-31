@@ -88,12 +88,7 @@ bool WebPluginDelegateImpl::Initialize(
           LowerCaseEqualsASCII(arg_values[i], "transparent"))) {
       is_windowless = true;
     }
-
-    if ((instance_->mime_type() == "application/x-shockwave-flash") &&
-        LowerCaseEqualsASCII(arg_names[i], "allowfullscreen")) {
-      continue;
-    }
-
+        
     argn[argc] = const_cast<char*>(arg_names[i].c_str());
     argv[argc] = const_cast<char*>(arg_values[i].c_str());
     argc++;
