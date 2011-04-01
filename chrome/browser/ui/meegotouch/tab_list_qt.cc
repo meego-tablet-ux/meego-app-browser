@@ -93,7 +93,7 @@ static QImage SkBitmap2Image(const SkBitmap& bitmap)
 }
 
 
-TabItem::TabItem(TabContents* tab_contents, TabListQt* tablist)
+TabItem::TabItem(TabContentsWrapper* tab_contents, TabListQt* tablist)
 {
   tab_contents_ = tab_contents;
   tablist_ = tablist;
@@ -111,22 +111,23 @@ TabItem::~TabItem()
 
 void TabItem::GetThumbnail()
 {
-  if (!tab_contents_->GetURL().SchemeIs("chrome") &&
-      !tab_contents_->GetURL().SchemeIs("chrome-extension"))
+  if (!tab_contents_->tab_contents()->GetURL().SchemeIs("chrome") &&
+      !tab_contents_->tab_contents()->GetURL().SchemeIs("chrome-extension"))
   {
     HistoryService* hs = tablist_->browser()->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
-    hs->GetPageThumbnail(tab_contents_->GetURL(), &consumer_,
+    hs->GetPageThumbnail(tab_contents_->tab_contents()->GetURL(), &consumer_,
 			 NewCallback(static_cast<TabItem*>(this),
 				     &TabItem::OnThumbnailDataAvailable));
   }
   else
   {
     QImage image;
-    if(tab_contents_->is_loading())
+    if(tab_contents_->tab_contents()->is_loading())
       thumbnail_ = image;
     ThumbnailGenerator* generator = g_browser_process->GetThumbnailGenerator();
     DCHECK(generator);
-    SkBitmap bitmap = generator->GetThumbnailForRenderer((RenderWidgetHost*)(tab_contents_->render_view_host()));
+    SkBitmap bitmap = generator->GetThumbnailForRenderer((RenderWidgetHost*)(\
+	 tab_contents_->tab_contents()->render_view_host()));
     thumbnail_ = SkBitmap2Image(bitmap);
     tablist_->tabUpdated(this);
   }
@@ -149,7 +150,7 @@ void TabItem::OnThumbnailDataAvailable(
 
 void TabItem::update()
 {
-  std::wstring title_str = UTF16ToWide(tab_contents_->GetTitle());
+  std::wstring title_str = UTF16ToWide(tab_contents_->tab_contents()->GetTitle());
   title_ = QString::fromStdWString(title_str);
 
   GetThumbnail();
@@ -272,10 +273,10 @@ void TabListQt::createContents()
 
   for (int i=0; i< tab_count; i++)
   {
-    TabContents* tab_contents = tabs->GetTabContentsAt(i)->tab_contents();
+    TabContentsWrapper* tab_contents = tabs->GetTabContentsAt(i);
     if (tab_contents)
     {
-      LOG(INFO) << "tab_contents = " << tab_contents->GetTitle();
+      LOG(INFO) << "tab_contents = " << tab_contents->tab_contents()->GetTitle();
       insertTab(tab_contents);
     }
   }
@@ -285,9 +286,9 @@ void TabListQt::createContents()
 
 }
 
-void TabListQt::insertTab(TabContents* tab_contents)
+void TabListQt::insertTab(TabContentsWrapper* tab_contents)
 {
-  if(tab_contents->GetURL().HostNoBrackets() != std::string("newtab"))
+  if(tab_contents->tab_contents()->GetURL().HostNoBrackets() != std::string("newtab"))
   {
     TabItem* item = new TabItem(tab_contents, this);
     tab_item_map_.insert(tab_contents, item);
@@ -302,7 +303,7 @@ void TabListQt::addTabItem(TabItem* item)
   endInsertRows();
 }
 
-void TabListQt::removeTab(TabContents* tab_contents)
+void TabListQt::removeTab(TabContentsWrapper* tab_contents)
 {
   TabItem* item = NULL;
   TabContentsToItemMap::iterator itr = tab_item_map_.find(tab_contents);
@@ -347,7 +348,7 @@ void TabListQt::Show()
 
   // set the selected tab
   TabItem* item = NULL;
-  TabContents* current = model->GetSelectedTabContents()->tab_contents();
+  TabContentsWrapper* current = model->GetSelectedTabContents();
   TabContentsToItemMap::iterator itr = tab_item_map_.find(current);
   if (itr != tab_item_map_.end())
     item = itr.value();
@@ -382,7 +383,7 @@ void TabListQt::go(int index)
   TabItem* item = tabs_[index];
 
   TabStripModel* model = browser_->tabstrip_model();
-  TabContentsWrapper *tab_contents = new TabContentsWrapper(item->GetTabContents());
+  TabContentsWrapper *tab_contents = item->GetTabContents();
   int index_ = model->GetIndexOfTabContents(tab_contents);
   LOG(INFO) << "TabListQt go " << index_;
   model->SelectTabContentsAt(index_, true);
@@ -397,7 +398,7 @@ void TabListQt::closeTab(int index)
   TabStripModel* model = browser_->tabstrip_model();
 
   TabItem* item = tabs_[index];
-  TabContentsWrapper *tab_contents = new TabContentsWrapper(item->GetTabContents());
+  TabContentsWrapper *tab_contents = item->GetTabContents();
   int index_ = model->GetIndexOfTabContents(tab_contents);
 
   if ( model->selected_index() != index_ ) _hide = false;
@@ -443,18 +444,18 @@ void TabListQt::tabUpdated(TabItem* item)
     }
 }
 
-void TabListQt::TabInsertedAt(TabContents* contents,
+void TabListQt::TabInsertedAt(TabContentsWrapper* contents,
                              int index,
                              bool foreground)
 {
   LOG(INFO)<<"TabInsertedAt " << contents << " " << index;
-  if(contents->GetURL().HostNoBrackets() != std::string("newtab"))
+  if(contents->tab_contents()->GetURL().HostNoBrackets() != std::string("newtab"))
     insertTab(contents);
 
   CheckTabsLimit();
 }
 
-void TabListQt::TabDetachedAt(TabContents* contents, int index)
+void TabListQt::TabDetachedAt(TabContentsWrapper* contents, int index)
 {
   LOG(INFO)<<"TabDetachedAt " << contents << " " << index;
   removeTab(contents);
@@ -462,8 +463,8 @@ void TabListQt::TabDetachedAt(TabContents* contents, int index)
   CheckTabsLimit();
 }
 
-void TabListQt::TabSelectedAt(TabContents* old_contents,
-                             TabContents* contents,
+void TabListQt::TabSelectedAt(TabContentsWrapper* old_contents,
+                             TabContentsWrapper* contents,
                              int index,
                              bool user_gesture)
 {
@@ -483,14 +484,14 @@ void TabListQt::TabSelectedAt(TabContents* old_contents,
   emit selectTab(tab_index);
 }
 
-void TabListQt::TabMoved(TabContents* contents,
+void TabListQt::TabMoved(TabContentsWrapper* contents,
                         int from_index,
                         int to_index)
 {
   LOG(INFO)<<"TabMoved " << contents << " " << to_index;
 }
 
-void TabListQt::TabChangedAt(TabContents* contents, int index,
+void TabListQt::TabChangedAt(TabContentsWrapper* contents, int index,
                             TabChangeType change_type)
 {
   DLOG(INFO)<<"TabChangedAt " << contents << " " << index << " " << change_type;
@@ -512,8 +513,8 @@ void TabListQt::TabChangedAt(TabContents* contents, int index,
  
 }
 
-void TabListQt::TabReplacedAt(TabContents* old_contents,
-                             TabContents* new_contents,
+void TabListQt::TabReplacedAt(TabContentsWrapper* old_contents,
+                             TabContentsWrapper* new_contents,
                              int index)
 {
   LOG(INFO)<<"TabReplacedAt " << new_contents << " " << index;
@@ -536,12 +537,12 @@ void TabListQt::TabReplacedAt(TabContents* old_contents,
 
 }
 
-void TabListQt::TabMiniStateChanged(TabContents* contents, int index)
+void TabListQt::TabMiniStateChanged(TabContentsWrapper* contents, int index)
 {
   LOG(INFO)<<"TabMiniStateChanged " << contents << " " << index;
 }
 
-void TabListQt::TabBlockedStateChanged(TabContents* contents,
+void TabListQt::TabBlockedStateChanged(TabContentsWrapper* contents,
                                       int index)
 {
   LOG(INFO)<<"TabBlockedStateChanged " << contents << " " << index;

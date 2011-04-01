@@ -41,7 +41,7 @@
 
 
 class TabListQt;
-class TabContents;
+class TabContentsWrapper;
 class Browser;
 class BrowserWindow;
 
@@ -49,11 +49,11 @@ class BrowserWindow;
 class TabItem
 {
  public:
-  TabItem(TabContents* tab_contents, TabListQt* tablist);
+  TabItem(TabContentsWrapper* tab_contents, TabListQt* tablist);
   ~TabItem();
 
  public:
-  TabContents* GetTabContents() {return tab_contents_;}
+  TabContentsWrapper* GetTabContents() {return tab_contents_;}
 
   QImage Thumbnail() {return thumbnail_;}
   QString Title() { return title_; }
@@ -65,10 +65,10 @@ class TabItem
 			      scoped_refptr<RefCountedBytes> jpeg_data);
   void update();  
 
-  void replaceTabContents(TabContents* new_tab_contents) { tab_contents_ = new_tab_contents;}
+  void replaceTabContents(TabContentsWrapper* new_tab_contents) { tab_contents_ = new_tab_contents;}
   
  private:
-  TabContents* tab_contents_;
+  TabContentsWrapper* tab_contents_;
   TabListQt* tablist_;
   QString title_;
   QImage thumbnail_;
@@ -124,24 +124,24 @@ class TabListQt :  public QAbstractListModel,
 
  protected:
   // TabStripModelObserver implementation:
-  virtual void TabInsertedAt(TabContents* contents,
+  virtual void TabInsertedAt(TabContentsWrapper* contents,
                              int index,
                              bool foreground);
-  virtual void TabDetachedAt(TabContents* contents, int index);
-  virtual void TabSelectedAt(TabContents* old_contents,
-                             TabContents* contents,
+  virtual void TabDetachedAt(TabContentsWrapper* contents, int index);
+  virtual void TabSelectedAt(TabContentsWrapper* old_contents,
+                             TabContentsWrapper* contents,
                              int index,
                              bool user_gesture);
-  virtual void TabMoved(TabContents* contents,
+  virtual void TabMoved(TabContentsWrapper* contents,
                         int from_index,
                         int to_index);
-  virtual void TabChangedAt(TabContents* contents, int index,
+  virtual void TabChangedAt(TabContentsWrapper* contents, int index,
                             TabChangeType change_type);
-  virtual void TabReplacedAt(TabContents* old_contents,
-                             TabContents* new_contents,
+  virtual void TabReplacedAt(TabContentsWrapper* old_contents,
+                             TabContentsWrapper* new_contents,
                              int index);
-  virtual void TabMiniStateChanged(TabContents* contents, int index);
-  virtual void TabBlockedStateChanged(TabContents* contents,
+  virtual void TabMiniStateChanged(TabContentsWrapper* contents, int index);
+  virtual void TabBlockedStateChanged(TabContentsWrapper* contents,
                                       int index);
  private:
   void CheckTabsLimit();
@@ -151,8 +151,8 @@ class TabListQt :  public QAbstractListModel,
   void addTabItem(TabItem* item);
   //  void removeTabItem(int index);
 
-  void insertTab(TabContents* tab_contents);
-  void removeTab(TabContents* tab_contents);
+  void insertTab(TabContentsWrapper* tab_contents);
+  void removeTab(TabContentsWrapper* tab_contents);
 
   
  private:
@@ -160,7 +160,7 @@ class TabListQt :  public QAbstractListModel,
   BrowserWindow* window_;
   bool is_shown_;
 
-  typedef QMap<TabContents*, TabItem*> TabContentsToItemMap;
+  typedef QMap<TabContentsWrapper*, TabItem*> TabContentsToItemMap;
   TabContentsToItemMap tab_item_map_;
   QList<TabItem*> tabs_;
 };
