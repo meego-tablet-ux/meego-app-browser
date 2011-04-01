@@ -23,6 +23,7 @@
 #include "chrome/browser/ui/webui/html_dialog_ui.h"
 #include "chrome/browser/ui/webui/net_internals_ui.h"
 #include "chrome/browser/ui/webui/new_tab_ui.h"
+#include "chrome/browser/ui/webui/blank_ui.h"
 #include "chrome/browser/ui/webui/options/options_ui.h"
 #include "chrome/browser/ui/webui/plugins_ui.h"
 #include "chrome/browser/ui/webui/print_preview_ui.h"
@@ -124,8 +125,13 @@ static WebUIFactoryFunction GetWebUIFactoryFunction(Profile* profile,
   // sessions or bookmarks, so we say any URL with that scheme triggers the new
   // tab page.
   if (url.host() == chrome::kChromeUINewTabHost ||
-      url.SchemeIs(chrome::kChromeInternalScheme))
+      url.SchemeIs(chrome::kChromeInternalScheme)){
+#if !defined(TOOLKIT_MEEGOTOUCH)
     return &NewWebUI<NewTabUI>;
+#else
+    return &NewWebUI<BlankUI>;
+#endif
+  }
 
   // Give about:about a generic Web UI so it can navigate to pages with Web UIs.
   if (url.spec() == chrome::kChromeUIAboutAboutURL)

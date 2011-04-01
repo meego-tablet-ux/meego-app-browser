@@ -324,22 +324,22 @@ bool NewTabUIQt::isShowing() {
     return isShowing_;
 }
 
-void NewTabUIQt::TabInsertedAt(TabContents* contents,
+void NewTabUIQt::TabInsertedAt(TabContentsWrapper* contents,
                              int index,
                              bool foreground) {
     handleTabStatusChanged();
 
 }
 
-void NewTabUIQt::TabSelectedAt(TabContents* old_contents,
-                             TabContents* contents,
+void NewTabUIQt::TabSelectedAt(TabContentsWrapper* old_contents,
+                             TabContentsWrapper* new_contents,
                              int index,
                              bool user_gesture) {
     handleTabStatusChanged();
 
 }
 
-void NewTabUIQt::TabChangedAt(TabContents* contents, int index,
+void NewTabUIQt::TabChangedAt(TabContentsWrapper* contents, int index,
                             TabChangeType change_type) {
     handleTabStatusChanged();
 
@@ -367,8 +367,25 @@ bool NewTabUIQt::shouldDisplay() {
 
 void NewTabUIQt::OnMostVisitedURLsAvailable(
     const history::MostVisitedURLList &data) {
-    DLOG(INFO)<<__FUNCTION__;
-    //TODO: Add handler here!
+    std::vector<PageUsageData*> pData;
+    int size = data.size();
+    for (size_t i = 0; i < size; i++) {
+	const history::MostVisitedURL& mvp = data[i];	
+	//TODO: Need to create an unique id for page.
+        PageUsageData* page = new PageUsageData(0);
+      	page->SetTitle(mvp.title);
+      	page->SetURL(mvp.url);
+        pData.push_back(page);
+    }
+
+    OnSegmentUsageAvailable(NULL, &pData);
+
+    int count = pData.size();
+    for(int i=0; i<count; i++) {
+        PageUsageData* page = pData[i];
+        delete page;
+    }
+    
 }
 
 void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handle,
@@ -386,7 +403,8 @@ void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handl
         data->push_back(page);
     }
 */
-    std::vector<PageUsageData*>* newData = syncWithPinnedPage(data);
+    std::vector<PageUsageData*>* newData = new std::vector<PageUsageData*>();
+    syncWithPinnedPage(data, newData);
 
     bool changed = false;
     int oldCount = mostVisitedModel_->rowCount();
@@ -410,6 +428,7 @@ void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handl
         impl_->show();
     }
 
+    //Debug usage
     //dump(newData);
 
     //updateDataModel();
@@ -424,9 +443,8 @@ void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handl
     delete newData;
 }
 
-std::vector<PageUsageData*>* NewTabUIQt::syncWithPinnedPage(std::vector<PageUsageData*>* data) {
-  std::vector<PageUsageData*>* newData = new std::vector<PageUsageData*>();
-
+void NewTabUIQt::syncWithPinnedPage(std::vector<PageUsageData*>* data,
+							    std::vector<PageUsageData*>* newData) {
   size_t data_index = 0;
   size_t output_index = 0;
 
@@ -438,7 +456,8 @@ std::vector<PageUsageData*>* NewTabUIQt::syncWithPinnedPage(std::vector<PageUsag
       if (!value->IsType(DictionaryValue::TYPE_DICTIONARY)) {
         // Moved on to TopSites and now going back.
         pinned_urls_->Clear();
-        return false;
+        DLOG(INFO)<<__FUNCTION__<<"Critical error!";
+        return;
       }
 
       DictionaryValue* dict = static_cast<DictionaryValue*>(value);
@@ -504,7 +523,6 @@ std::vector<PageUsageData*>* NewTabUIQt::syncWithPinnedPage(std::vector<PageUsag
     }
     output_index++;
   }
-  return newData;
 }
 
 void NewTabUIQt::HandleAddPinnedURL(PageUsageData* data, int index) {
@@ -656,12 +674,27 @@ void NewTabUIQt::TabRestoreServiceDestroyed(TabRestoreService* service) {
 
 //TODO: Call this function when new Tab is showed.
 void NewTabUIQt::StartQueryForMostVisited() {
+/*
   // Use TopSites.
   history::TopSites* ts = browser_->GetProfile()->GetTopSites();
   if (ts) {
     ts->GetMostVisitedURLs(
          &topsites_consumer_,
          NewCallback(this, &NewTabUIQt::OnMostVisitedURLsAvailable));
+    return;
+  }
+*/
+  Profile* profile = browser_->profile();
+  const int page_count = kMostVisitedPages;
+  const int result_count = page_count;
+  HistoryService* hs =
+      profile->GetHistoryService(Profile::EXPLICIT_ACCESS);
+  if (hs) {
+    hs->QuerySegmentUsageSince(
+        &cancelable_consumer_,
+        base::Time::Now() - base::TimeDelta::FromDays(kMostVisitedScope),
+        result_count,
+        NewCallback(this, &NewTabUIQt::OnSegmentUsageAvailable));
   }
 }
 

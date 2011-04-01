@@ -65,6 +65,7 @@ class MaxViewModel;
 class MaxViewImageProvider;
 class ThumbnailEntry;
 class FaviconEntry;
+class TabContentsWrapper;
 
 class NewTabUIQt : public TabStripModelObserver,
 		   public TabRestoreServiceObserver  {
@@ -105,16 +106,17 @@ class NewTabUIQt : public TabStripModelObserver,
     // Observer callback to notice when our associated TabRestoreService
     // is destroyed.
     virtual void TabRestoreServiceDestroyed(TabRestoreService* service);
- protected:
+
     // TabStripModelObserver implementation:
-    virtual void TabInsertedAt(TabContents* contents,
+    virtual void TabInsertedAt(TabContentsWrapper* contents,
                              int index,
                              bool foreground);
-    virtual void TabSelectedAt(TabContents* old_contents,
-                             TabContents* contents,
+    virtual void TabSelectedAt(TabContentsWrapper* old_contents,
+                             TabContentsWrapper* new_contents,
                              int index,
                              bool user_gesture);
-    virtual void TabChangedAt(TabContents* contents, int index,
+    virtual void TabChangedAt(TabContentsWrapper* contents,
+			     int index,
                             TabChangeType change_type);
   private:
     bool shouldDisplay();
@@ -137,7 +139,7 @@ class NewTabUIQt : public TabStripModelObserver,
     
     bool EnsureTabIsUnique(const PageUsageData* value, std::set<string16>* unique_items);
     
-    std::vector<PageUsageData*>* syncWithPinnedPage(std::vector<PageUsageData*>* data);
+    void syncWithPinnedPage(std::vector<PageUsageData*>* data, std::vector<PageUsageData*>* newData);
 
     void HandleAddPinnedURL(PageUsageData* data, int index);
 
