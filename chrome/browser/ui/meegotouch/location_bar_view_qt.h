@@ -96,7 +96,7 @@ class LocationBarViewQt : public AutocompleteEditController,
   virtual void OnInputInProgress(bool in_progress) OVERRIDE;
   virtual SkBitmap GetFavicon() const OVERRIDE;
   virtual string16 GetTitle() const OVERRIDE;
-  virtual InstantController* GetInstant() OVERRIDE {DNOTIMPLEMENTED();};
+  virtual InstantController* GetInstant() OVERRIDE {return NULL;};
   virtual TabContentsWrapper* GetTabContentsWrapper() OVERRIDE {DNOTIMPLEMENTED();};
 
   // Implement the LocationBar interface.
