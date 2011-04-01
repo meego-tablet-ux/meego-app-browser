@@ -168,7 +168,6 @@ void InitQmlLauncher(const std::string process_type, int argc, char** argv)
 
   bool fullscreen = false;
   bool opengl = false;
-  bool noRaise = false;
   bool setSource = false;
   int width = 1280;
   int height = 800;
@@ -194,10 +193,6 @@ void InitQmlLauncher(const std::string process_type, int argc, char** argv)
     {
       cdata = QString(argv[++i]);
     }
-    else if (s == "--noraise")
-    {
-      noRaise = true;
-    }
     else if (s == "--width")
     {
       width = atoi (argv[++i]);
@@ -208,12 +203,13 @@ void InitQmlLauncher(const std::string process_type, int argc, char** argv)
     }
   }
 
-  QString identifier = QString("meego-app-browser");
-  g_launcher_app = new LauncherApp(argc, argv, identifier, noRaise);
+  LauncherApp application(argc, argv);
+  application.setApplicationName(QString("meego-app-browser"));
+  application.dbusInit(argc, argv);
 
   initAtoms ();
 
-  g_main_window = new LauncherWindow(fullscreen, width, height, opengl, noRaise, setSource);
+  g_main_window = new LauncherWindow(fullscreen, width, height, opengl, setSource);
 
   //show main window to improve startup time
   g_main_window->show();
