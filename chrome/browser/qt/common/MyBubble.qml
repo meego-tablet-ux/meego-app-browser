@@ -216,7 +216,7 @@ Item {
                           width: parent.width
                           opacity: 0.5
                           font.pixelSize: itemHeight*0.5
-                          height: initHeight
+                          height: folderGroup.initHeight
                           MouseArea {
                             anchors.fill: parent
                             onClicked: {

@@ -178,22 +178,24 @@ Item {
         ]
       }
       MouseArea {
-        anchors.fill: parent
+        anchors.right: parent.right
+        width: parent.width*2
+        height: parent.height*2
         onClicked: {
-          var px = width /2;
+          var px = 3* width / 4;
           var py = height;
 
           if (popupDirection == 0) {
-            py = height
+            py = starButton.height
           } else if (popupDirection == 1) {
-            py = py + parent.height
+            py = py + starButton.height
           }
 
           var map = mapToItem(scene, px, py);
 
-         // var map = mapToItem(screenlayer, width / 2, height / 3 * 2);
            scene.lastMousePos.mouseX = map.x;
            scene.lastMousePos.mouseY = map.y;
+           console.log(map.x, map.y);
            browserToolbarModel.starButtonClicked();
         }
         onPressed: starIcon.pressed = true

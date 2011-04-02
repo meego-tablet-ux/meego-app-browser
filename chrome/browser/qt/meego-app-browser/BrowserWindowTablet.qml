@@ -143,7 +143,10 @@ Item {
 
     // This function returns if the view is in landscape or inverted landscape
     function isLandscapeView() {
+      if (screenHeight <= screenWidth)
         return orientation == 1 || orientation == 3;
+      else 
+        return orientation == 0 || orientation == 2;
     }
 
     function showModalDialog (source) {
