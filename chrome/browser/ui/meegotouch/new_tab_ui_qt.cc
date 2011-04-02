@@ -212,8 +212,8 @@ public:
   void OnFaviconDataAvailable(FaviconService::Handle handle,
                               history::FaviconData favicon) {
 
-/* TODO, need rework based on new API
     model_->beginReset();
+    scoped_refptr<RefCountedMemory> data = favicon.image_data;
     if (data.get() && data->size()) {
       //scoped_refptr<RefCountedBytes> data_s = static_cast<scoped_refptr<RefCountedBytes>>data;
       //DLOG(INFO) << "get image id: " << index_;
@@ -225,7 +225,7 @@ public:
       imageProvider_->addImage("favicon", QString::number(index_,16), image);
     }
     model_->endReset();
-*/
+
   }
 
 private:
@@ -377,8 +377,8 @@ void NewTabUIQt::OnMostVisitedURLsAvailable(
       	page->SetURL(mvp.url);
         pData.push_back(page);
     }
-
-    OnSegmentUsageAvailable(NULL, &pData);
+    //TODO: should open this if use topsite.
+    //OnSegmentUsageAvailable(NULL, &pData);
 
     int count = pData.size();
     for(int i=0; i<count; i++) {
@@ -402,7 +402,17 @@ void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handl
         page->SetTitle(UTF8ToUTF16(""));
         data->push_back(page);
     }
+
+    //Most Visited Area should not be null
+    int q_count = data->size();
+    if(q_count == 0) {
+        PageUsageData* page = new PageUsageData(0);
+        page->SetURL(GURL(EMPTY_PAGE));
+        page->SetTitle(UTF8ToUTF16("Example"));
+        data->push_back(page);
+    }
 */
+
     std::vector<PageUsageData*>* newData = new std::vector<PageUsageData*>();
     syncWithPinnedPage(data, newData);
 
@@ -535,9 +545,30 @@ void NewTabUIQt::HandleAddPinnedURL(PageUsageData* data, int index) {
 }
 
 void NewTabUIQt::AddPinnedURL(const MostVisitedPage& page, int index) {
-  history::TopSites* ts = browser_->GetProfile()->GetTopSites();
-  if (ts)
-    ts->AddPinnedURL(page.url, index);
+/*
+  if (history::TopSites::IsEnabled()) {
+    history::TopSites* ts = browser_->GetProfile()->GetTopSites();
+    if (ts)
+      ts->AddPinnedURL(page.url, index);
+    return;
+  }
+*/
+  // Remove any pinned URL at the given index.
+  MostVisitedPage old_page;
+  if (GetPinnedURLAtIndex(index, &old_page)) {
+    RemovePinnedURL(old_page.url);
+  }
+
+  DictionaryValue* new_value = new DictionaryValue();
+  new_value->SetInteger("id", page.id);
+  new_value->SetString("title", page.title);
+  new_value->SetString("url", page.url.spec());
+  new_value->SetInteger("index", index);
+  pinned_urls_->Set(GetDictionaryKeyForURL(page.url.spec()), new_value);
+
+  // TODO(arv): Notify observers?
+
+  // Don't call HandleGetMostVisited. Let the client call this as needed.
 }
 
 bool NewTabUIQt::GetPinnedURLAtIndex(int index,
@@ -579,9 +610,21 @@ bool NewTabUIQt::GetPinnedURLAtIndex(int index,
 }
 
 void NewTabUIQt::RemovePinnedURL(const GURL& url) {
-  history::TopSites* ts = browser_->GetProfile()->GetTopSites();
-  if (ts)
-    ts->RemovePinnedURL(url);
+/*
+  if (history::TopSites::IsEnabled()) {
+    history::TopSites* ts = browser_->GetProfile()->GetTopSites();
+    if (ts)
+      ts->RemovePinnedURL(url);
+    return;
+  }
+*/
+  const std::string key = GetDictionaryKeyForURL(url.spec());
+  if (pinned_urls_->HasKey(key))
+    pinned_urls_->Remove(key, NULL);
+
+  // TODO(arv): Notify observers?
+
+  // Don't call HandleGetMostVisited. Let the client call this as needed.
 }
 
 std::string NewTabUIQt::GetDictionaryKeyForURL(const std::string& url) {
