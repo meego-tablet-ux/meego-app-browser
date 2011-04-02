@@ -203,9 +203,9 @@ void InitQmlLauncher(const std::string process_type, int argc, char** argv)
     }
   }
 
-  LauncherApp application(argc, argv);
-  application.setApplicationName(QString("meego-app-browser"));
-  application.dbusInit(argc, argv);
+  g_launcher_app = new LauncherApp(argc, argv);
+  g_launcher_app->setApplicationName(QString("meego-app-browser"));
+  g_launcher_app->dbusInit(argc, argv);
 
   initAtoms ();
 
