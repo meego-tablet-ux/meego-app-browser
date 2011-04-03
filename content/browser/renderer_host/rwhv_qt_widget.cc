@@ -84,6 +84,7 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   setHostView(host_view);
   gesture_flags_ = 0;
   im_enabled_ = false;
+  im_cursor_pos_ = -1;
   cancel_next_mouse_release_event_ = false;
   mouse_press_event_delivered_ = false;
   pinch_image_ = false;
@@ -604,6 +605,11 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
   } else {
     setInputMethodHints(inputMethodHints() & ~(Qt::ImhHiddenText | Qt::ImhNoPredictiveText) );
   }
+
+  hostView()->host_->QueryEditorCursorPosition(im_cursor_pos_);
+  hostView()->host_->QueryEditorSelection(im_selection_);
+  hostView()->host_->QueryEditorSurroundingText(im_surrounding_);
+
   ic->update();
 }
 
@@ -989,23 +995,25 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
     std::endl;
 }
 
-QVariant RWHVQtWidget::inputMethodQuery(Qt::InputMethodQuery query)
+QVariant RWHVQtWidget::inputMethodQuery(Qt::InputMethodQuery query) const
 {
   ///\todo wait for implement, need to report correct MicroFocus
-  if (query == Qt::ImMicroFocus) {
-    return QVariant(cursor_rect_);
-  } else if (query == Qt::ImCurrentSelection) {
-    std::string str;
-    hostView()->host_->QueryEditorSelection(str);
-    return QVariant(QString::fromStdString(str));
-  } else if (query == Qt::ImSurroundingText) {
-    std::string str;
-    hostView()->host_->QueryEditorSurroundingText(str);
-    return QVariant(QString::fromStdString(str));
-  } else {
-    return QVariant();
-  }
+  switch ((int)query) {
+    case Qt::ImMicroFocus:
+      return QVariant(cursor_rect_);
 
+    case Qt::ImCursorPosition:
+      return QVariant(im_cursor_pos_);
+
+    case Qt::ImCurrentSelection:
+      return QVariant(QString::fromStdString(im_selection_));
+
+    case Qt::ImSurroundingText:
+      return QVariant(QString::fromStdString(im_surrounding_));
+
+    default:
+      return QVariant();
+  }
 }
 
 void RWHVQtWidget::zoom2TextAction(const QPointF& pos)

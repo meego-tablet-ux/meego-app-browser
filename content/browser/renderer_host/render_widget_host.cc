@@ -1411,6 +1411,11 @@ void RenderWidgetHost::StartUserGesture() {
   OnUserGesture();
 }
 
+void RenderWidgetHost::QueryEditorCursorPosition(int& cursor_position) {
+  SendWithTimeout(new ViewMsg_QueryEditorCursorPosition(routing_id(), &cursor_position),
+      10000);
+}
+
 void RenderWidgetHost::QueryEditorSelection(std::string& selection) {
   SendWithTimeout(new ViewMsg_QueryEditorSelection(routing_id(), &selection),
       10000);

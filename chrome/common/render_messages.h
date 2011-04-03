@@ -328,6 +328,9 @@ IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorSelection,
 
 IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorSurroundingText,
                            std::string /* result */)
+
+IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorCursorPosition,
+                           int /* result */)
 #endif
 
 IPC_MESSAGE_CONTROL1(ViewHostMsg_UpdatedCacheStats,

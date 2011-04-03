@@ -7,6 +7,7 @@
 
 #include <QGraphicsWidget>
 #include <QOrientationReading>
+#include <string>
 
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebTextInputType.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebInputEvent.h"
@@ -75,7 +76,7 @@ class RWHVQtWidget : public QGraphicsWidget
   virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
   virtual void resizeEvent(QGraphicsSceneResizeEvent* event);
 
-  virtual QVariant inputMethodQuery(Qt::InputMethodQuery query);
+  virtual QVariant inputMethodQuery(Qt::InputMethodQuery query) const;
 
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget * widget);
   virtual bool event(QEvent *event);
@@ -124,6 +125,10 @@ class RWHVQtWidget : public QGraphicsWidget
   // IME_DISABLE is received, and shall be set to true if control ==
   // IME_COMPLETE_COMPOSITION or IME_MOVE_WINDOWS.
   bool im_enabled_;
+
+  int im_cursor_pos_;
+  std::string im_selection_;
+  std::string im_surrounding_;
 
   RenderWidgetHostViewQt* host_view_;
   int gesture_flags_;

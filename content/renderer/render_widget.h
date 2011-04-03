@@ -210,6 +210,7 @@ class RenderWidget : public IPC::Channel::Listener,
 #if defined(TOOLKIT_MEEGOTOUCH)
   void OnQueryNodeAtPosition(int x, int y);
   void OnSelectPopupMenuItem(int selected_index);
+  void OnQueryEditorCursorPosition(int* cursor_position);
   void OnQueryEditorSelection(std::string* selection);
   void OnQueryEditorSurroundingText(std::string* surrounding_text);
   virtual WebKit::WebExternalPopupMenu* createExternalPopupMenu(

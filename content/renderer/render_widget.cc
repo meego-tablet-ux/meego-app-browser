@@ -186,6 +186,7 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
 #if defined (TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryNodeAtPosition, OnQueryNodeAtPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
+    IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorCursorPosition, OnQueryEditorCursorPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSelection, OnQueryEditorSelection)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSurroundingText, OnQueryEditorSurroundingText)
 #endif
@@ -423,6 +424,10 @@ void RenderWidget::OnSelectPopupMenuItem(int selected_index)
     external_popup_menu_->DidSelectItem(selected_index);
     external_popup_menu_->close();
     external_popup_menu_.reset();
+}
+
+void RenderWidget::OnQueryEditorCursorPosition(int* cursor_position) {
+  webwidget_->queryEditorCursorPosition(*cursor_position);
 }
 
 void RenderWidget::OnQueryEditorSelection(std::string* selection) {
