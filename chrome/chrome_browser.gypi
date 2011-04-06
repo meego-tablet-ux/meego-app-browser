@@ -4317,7 +4317,7 @@
                   'browser/renderer_host/moc_render_widget_host_view_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4377,7 +4377,7 @@
                   'browser/ui/meegotouch/moc_browser_toolbar_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4392,7 +4392,7 @@
                   'browser/ui/meegotouch/moc_bookmark_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4407,7 +4407,7 @@
                   'browser/ui/meegotouch/moc_bookmark_bubble_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4422,7 +4422,7 @@
                   'browser/ui/meegotouch/moc_downloads_handler_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4437,7 +4437,7 @@
                   'browser/autocomplete/moc_autocomplete_edit_view_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4452,7 +4452,7 @@
                   'browser/autocomplete/moc_autocomplete_popup_view_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4467,7 +4467,7 @@
                   'browser/ui/meegotouch/infobars/moc_infobar_container_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4497,7 +4497,7 @@
                   'browser/ui/meegotouch/moc_fullscreen_exit_bubble_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4512,7 +4512,7 @@
                   'browser/ui/meegotouch/moc_find_bar_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4527,7 +4527,7 @@
                   'browser/ui/meegotouch/moc_back_forward_button_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4542,7 +4542,7 @@
                   'browser/ui/meegotouch/moc_tab_list_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
@@ -4564,7 +4564,7 @@
                 ],
               },
               {
-                'action_name': 'mmoc_dialog_qt.h',
+                'action_name': 'moc_dialog_qt.h',
                 'inputs': [
                   'browser/ui/meegotouch/dialog_qt.h',
                 ],
@@ -4572,14 +4572,14 @@
                   'browser/ui/meegotouch/moc_dialog_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
                 ],
               },
               {
-                'action_name': 'mmoc_select_file_dialog_qt.h',
+                'action_name': 'moc_select_file_dialog_qt.h',
                 'inputs': [
                   'browser/ui/meegotouch/select_file_dialog_qt.h',
                 ],
@@ -4587,14 +4587,14 @@
                   'browser/ui/meegotouch/moc_select_file_dialog_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
                 ],
               },
               {
-                'action_name': 'mmoc_new_tab_ui_qt.h',
+                'action_name': 'moc_new_tab_ui_qt.h',
                 'inputs': [
                   'browser/ui/meegotouch/new_tab_ui_qt.h',
                 ],
@@ -4602,7 +4602,7 @@
                   'browser/ui/meegotouch/moc_new_tab_ui_qt.cc',
                 ],
                 'action': [
-                  'mmoc',
+                  'moc',
                   '<(_inputs)',
                   '-o',
                   '<(_outputs)',
