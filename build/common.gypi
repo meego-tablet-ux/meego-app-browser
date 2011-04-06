@@ -1094,7 +1094,6 @@
               # can be removed at link time with --gc-sections.
               '-fdata-sections',
               '-ffunction-sections',
-              '-g',
             ],
             'ldflags': [
               # Specifically tell the linker to perform optimizations.
