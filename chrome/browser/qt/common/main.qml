@@ -37,6 +37,16 @@ Item {
   id: entrance
   width: screenWidth
   height: screenHeight
+  Connections {
+    target: qApp
+    onOrientationChanged: {
+      // Since an application can lock it's orientation, various overlay windows
+      // like the task switcher and the status indicator menu observe the published
+      // orientation attribute on the top level window of the active application.
+      // This is accomplished from QML via the mainWindow.actualOrientation property
+      mainWindow.actualOrientation = qApp.orientation;
+    }
+  }
   Loader {
     id: holder
     source: {screenWidth*25.4/dpiX > 200 && screenHeight*25.4/dpiY > 100 ? "Tablet.qml":"Handset.qml"}
