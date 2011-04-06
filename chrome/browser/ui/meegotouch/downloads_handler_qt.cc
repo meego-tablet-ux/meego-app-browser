@@ -324,16 +324,6 @@ DownloadsQtHandler::DownloadsQtHandler(BrowserWindowQt* window,
   QString q_control_discard = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_DISCARD_DOWNLOAD).c_str());
   context->setContextProperty("downloadControlDiscard", q_control_discard);
    
-  // Create our fileicon data source.
-  // TODO need change to new API
-/*
-  BrowserThread::PostTask(
-      BrowserThread::IO, FROM_HERE,
-      NewRunnableMethod(
-          Singleton<ChromeURLDataManager>::get(),
-          &ChromeURLDataManager::AddDataSource,
-          make_scoped_refptr(new FileIconSource())));
-*/
 }
 
 DownloadsQtHandler::~DownloadsQtHandler() {
