@@ -159,7 +159,7 @@ void gQtMessageOutput(QtMsgType type, const char *msg)
   }
 }
 
-void InitQmlLauncher(const std::string process_type, int argc, char** argv)
+void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
 {
   if (process_type != "")
     return;
