@@ -184,8 +184,6 @@ Item {
     //  findBarModel.positionUpdated(container.x, container.y, container.width, container.height);
     onHide: container.showfindbar = false
     onSetX: {
-      console.log("........... ", x, " ", toolbar.x, " ", width, " ", toolbar.width, " ", container.x);
-//                                1265       0              640           1280              640
       container.x = (x + width > toolbar.x + toolbar.width) ? container.x : x
     }
   }
@@ -213,10 +211,17 @@ Item {
     Transition {
       from: "hide"
       to: "show"
-      reversible: true
       PropertyAnimation {
         properties: "opacity"
-        duration: 500
+        duration: 200
+      }
+    },
+    Transition {
+      from: "show"
+      to: "hide"
+      PropertyAnimation {
+        properties: "opacity"
+        duration: 250
       }
     }
   ]
