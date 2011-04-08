@@ -37,7 +37,7 @@ import Qt.labs.gestures 2.0
 Item {
   id: container
   anchors.fill: parent
-  property int start_y: tabSideBarLoader.start_y
+  property int start_y: up?tabSideBarLoader.start_y - 15:tabSideBarLoader.start_y
   property int start_x: tabSideBarLoader.start_x
   property bool up: tabSideBarLoader.up
   property int sidebarMargin: 5
