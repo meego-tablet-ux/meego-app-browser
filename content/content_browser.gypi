@@ -386,14 +386,14 @@
                     'browser/renderer_host/moc_rwhv_qt_widget.cc',
                   ],
                   'action': [
-                    'mmoc',
+                    'moc',
                     '<(_inputs)',
                     '-o',
                     '<(_outputs)',
                   ],
                 },
                 {
-                  'action_name': 'mmoc_animation_utils.h',
+                  'action_name': 'moc_animation_utils.h',
                   'inputs': [
                     'browser/renderer_host/animation_utils.h',
                   ],
@@ -401,7 +401,7 @@
                     'browser/renderer_host/moc_animation_utils.cc',
                   ],
                   'action': [
-                    'mmoc',
+                    'moc',
                     '<(_inputs)',
                     '-o',
                     '<(_outputs)',

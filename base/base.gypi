@@ -421,7 +421,7 @@
                 'message_pump_qt.h',
               ],
               'actions': [{
-                'action_name': 'mmoc_message_pump_qt.h',
+                'action_name': 'moc_message_pump_qt.h',
                   'inputs': [
                     'message_pump_qt.h',
                   ],
@@ -429,7 +429,7 @@
                     'moc_message_pump_qt.cc',
                   ],
                   'action': [
-                    'mmoc',
+                    'moc',
                     '<(_inputs)',
                     '-o',
                     '<(_outputs)',
