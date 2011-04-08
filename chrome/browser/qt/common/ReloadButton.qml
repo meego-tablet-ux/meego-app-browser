@@ -42,6 +42,7 @@ Item {
   
   Image {
     id: reloadIcon
+    height: parent.height
     anchors.centerIn: parent
     source: "image://theme/browser/icn_refresh_up"
     property bool pressed: false

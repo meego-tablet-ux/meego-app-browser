@@ -42,6 +42,7 @@ Item {
 
   Image {
     id: tabIcon
+    height: parent.height
     anchors.centerIn: parent
     source: "image://theme/browser/icn_toolbar_tabs_button_up"
     property bool pressed: false
