@@ -14,6 +14,7 @@
 #include "base/string_piece.h"
 #include "base/string16.h"
 #include "base/threading/thread.h"
+#include "base/threading/thread_restrictions.h"
 #include "base/utf_string_conversions.h"
 #include "base/string_number_conversions.h"
 #include "base/values.h"
@@ -323,7 +324,10 @@ DownloadsQtHandler::DownloadsQtHandler(BrowserWindowQt* window,
   context->setContextProperty("downloadControlSave", q_control_save);
   QString q_control_discard = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_DISCARD_DOWNLOAD).c_str());
   context->setContextProperty("downloadControlDiscard", q_control_discard);
-   
+
+  // Create our fileicon data source.
+  dlm->profile()->GetChromeURLDataManager()->AddDataSource(
+      new FileIconSource());
 }
 
 DownloadsQtHandler::~DownloadsQtHandler() {
@@ -350,8 +354,6 @@ void DownloadsQtHandler::OnDownloadUpdated(DownloadItem* download) {
     return;
   const int id = static_cast<int>(it - download_items_.begin());
 
-//ListValue results_value;
-//results_value.Append(download_util::CreateDownloadItemValue(download, id));
   UpdateCurrentDownload(download, id);
 }
 
@@ -499,7 +501,7 @@ DownloadViewItem* DownloadsQtHandler::CreateDownloadViewItem(DownloadItem* downl
       q_progress = q_status_paused;
     } else {
       i_status = 2; //("state", "IN_PROGRESS");
-      q_progress = QString::fromStdString(UTF16ToASCII(download_util::GetProgressStatusText(download)));
+      q_progress = QString::fromStdString(UTF16ToUTF8(download_util::GetProgressStatusText(download)));
     }
   } else if (download->state() == DownloadItem::CANCELLED) {
     i_status = 3; //("state", "CANCELLED");
@@ -534,6 +536,7 @@ int DownloadsQtHandler::FetchMimetypeIconID(const std::string& path) {
   // The correct encoding on Linux may not actually be UTF8.
   FilePath escaped_filepath(escaped_path);
 #endif
+  base::ThreadRestrictions::ScopedAllowIO allow_io;
   std::string type = mime_util::GetFileMimeType(escaped_filepath);
   int i_type;
   if (type.find("text") != std::string::npos) 
@@ -555,7 +558,6 @@ void DownloadsQtHandler::UpdateCurrentDownload(DownloadItem* download, const int
 }
 
 void DownloadsQtHandler::SendCurrentDownloads() {
-//  ListValue results_value;
   QList<DownloadViewItem> m_list;
   for (OrderedDownloads::iterator it = download_items_.begin();
       it != download_items_.end(); ++it) {
