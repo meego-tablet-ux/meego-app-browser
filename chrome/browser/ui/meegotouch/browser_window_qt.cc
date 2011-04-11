@@ -265,6 +265,9 @@ void BrowserWindowQt::InitWidget()
 
   BrowserServiceWrapper* service = BrowserServiceWrapper::GetInstance();
   service->Init(browser_.get());
+
+  //Init TopSitesCache
+  browser_->profile()->GetTopSites();
 }
 
 void BrowserWindowQt::Observe(NotificationType type,

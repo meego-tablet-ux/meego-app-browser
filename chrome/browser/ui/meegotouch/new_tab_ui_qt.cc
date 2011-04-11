@@ -150,6 +150,15 @@ public:
                  GURL url, Profile* profile, MaxViewModel* model)
                  : index_(index), imageProvider_(imageProvider), model_(model) {
     if(url != GURL(EMPTY_PAGE)) {
+      //DLOG(INFO)<<__FUNCTION__;
+      history::TopSites* ts = profile->GetTopSites();
+      if (ts) {
+         scoped_refptr<RefCountedBytes> thumbnail_data;
+         ts->GetPageThumbnail(url, &thumbnail_data);
+         handleThumbnailData(thumbnail_data);
+         return;
+      }
+
       HistoryService* hs = profile->GetHistoryService(Profile::EXPLICIT_ACCESS);
       hs->GetPageThumbnail(url, &consumer_,
                            NewCallback(static_cast<ThumbnailEntry*>(this),
@@ -166,6 +175,10 @@ public:
 
   void onThumbnailDataAvailable(HistoryService::Handle request_handle,
                                 scoped_refptr<RefCountedBytes> jpeg_data) {
+         handleThumbnailData(jpeg_data);
+  };
+
+  void handleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data) {
     model_->beginReset();
     if (jpeg_data.get()) {
       //DLOG(INFO) << "get image id: " << index_;
