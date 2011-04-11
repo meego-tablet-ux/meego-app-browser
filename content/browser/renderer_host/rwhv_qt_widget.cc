@@ -473,15 +473,6 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
       hold_paint_ = false;
     }else if (painter) {
       backing_store->QPainterShowRect(painter, paint_rect);
-
-      // Paint the video layer
-      // TODO no video_play now
-/*
-      VideoLayerX* video_layer = static_cast<VideoLayerX*>(
-        host->video_layer());
-      if (video_layer)
-        video_layer->QPainterShow(painter);
-*/
     }
   } else {
     DNOTIMPLEMENTED();
@@ -875,8 +866,6 @@ void RWHVQtWidget::finishPinch()
   DLOG(INFO) << __PRETTY_FUNCTION__ << "\n";
 
   clearDoingGesture(Qt::PinchGesture);
-  //TODO: no api set_painting_observer
-  //hostView()->host_->set_painting_observer (NULL);
   if (pinch_image_) {
 
     pinch_image_ = false;
