@@ -322,7 +322,7 @@ void AutocompleteEditViewQt::SetUserText(const string16& text,
     model_->SetUserText(text);
     // TODO(deanm): something about selection / focus change here.
     // avoid repeatedly emit textChanged signal
-    QString str = QString::fromStdString(UTF16ToASCII(display_text));
+    QString str = QString::fromStdString(UTF16ToUTF8(display_text));
     if (str != impl_->GetText())
     {
       SetWindowTextAndCaretPos(display_text, display_text.length());
@@ -568,7 +568,7 @@ void AutocompleteEditViewQt::SavePrimarySelection(
 void AutocompleteEditViewQt::SetTextAndSelectedRange(const string16& text,
                                                      const CharRange& range) {
   if (text != GetText()) {
-    impl_->SetText(QString::fromStdString(UTF16ToASCII(text)), false);
+    impl_->SetText(QString::fromStdString(UTF16ToUTF8(text)), false);
   }
   SetSelectedRange(range);
   AdjustTextJustification();

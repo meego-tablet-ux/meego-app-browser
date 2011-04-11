@@ -163,7 +163,7 @@ AutocompleteInput::Type AutocompleteInput::Parse(
       !LowerCaseEqualsASCII(parsed_scheme, chrome::kHttpScheme) &&
       !LowerCaseEqualsASCII(parsed_scheme, chrome::kHttpsScheme)) {
     // See if we know how to handle the URL internally.
-    if (net::URLRequest::IsHandledProtocol(UTF16ToASCII(parsed_scheme)))
+    if (net::URLRequest::IsHandledProtocol(UTF16ToUTF8(parsed_scheme)))
       return URL;
 
     // There are also some schemes that we convert to other things before they
