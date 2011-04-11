@@ -602,7 +602,7 @@ void GConfSettingService::SetSearchEngineList()
 	for(unsigned int i = 0; i < model_urls.size(); i++)
 	{
 		std::string utf8name;
-		utf8name = WideToUTF8(model_urls[i]->short_name());
+		utf8name = UTF16ToUTF8(model_urls[i]->short_name());
 		search_provider_list = g_slist_append(search_provider_list,
 				(gpointer)g_strdup(utf8name.c_str()));
 	}
@@ -890,7 +890,7 @@ void GConfSettingService::UpdateDefaultSearchEngine(Profile* profile)
 				for(i = 0; i < model_urls.size(); i++)
 				{
 						std::string utf8name;
-						utf8name = WideToUTF8(model_urls[i]->short_name());
+						utf8name = UTF16ToUTF8(model_urls[i]->short_name());
 
 						if(!g_strcmp0(utf8name.c_str(), gconf_shortname)){
 								template_url_model->SetDefaultSearchProvider(model_urls[i]);
