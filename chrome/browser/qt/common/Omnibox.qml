@@ -87,12 +87,13 @@ Item {
       anchors.right: starButton.left
       anchors.topMargin: 10
       anchors.rightMargin: 5
-      height: parent.height
-      //anchors.verticalCenter: parent.verticalCenter
+      //height: parent.height
+      anchors.verticalCenter: parent.verticalCenter
       horizontalAlignment: TextInput.AlignLeft
       selectByMouse: true
       color: "gray"
-      font.pixelSize: height * 0.7
+      //font.pixelSize: height * 0.7
+      font.pixelSize: fontPixelSizeNormal
       property bool isDelete: false
       property bool shouldSelectAll: false
       autoScroll: false
