@@ -93,7 +93,7 @@ Item {
       selectByMouse: true
       color: "gray"
       //font.pixelSize: height * 0.7
-      font.pixelSize: fontPixelSizeNormal
+      font.pixelSize: theme_fontPixelSizeNormal
       property bool isDelete: false
       property bool shouldSelectAll: false
       autoScroll: false
