@@ -73,13 +73,6 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void WillDestroyRenderWidget(RenderWidgetHost* rwh) {};
   virtual void SetTooltipText(const std::wstring& tooltip_text);
   virtual void SelectionChanged(const std::string& text);
-  virtual void ShowPopupWithItems(gfx::Rect bounds, 
-                                  int item_height,
-                                  double item_font_size,
-                                  int selected_item,
-                                  const std::vector<WebMenuItem>& items,
-                                  bool right_aligned);
-  virtual void selectPopupItem(int index);
   virtual void ShowingContextMenu(bool showing);
   virtual BackingStore* AllocBackingStore(const gfx::Size& size);
   virtual void SetBackground(const SkBitmap& background);

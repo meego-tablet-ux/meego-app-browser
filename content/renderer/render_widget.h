@@ -209,13 +209,9 @@ class RenderWidget : public IPC::Channel::Listener,
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   void OnQueryNodeAtPosition(int x, int y);
-  void OnSelectPopupMenuItem(int selected_index);
   void OnQueryEditorCursorPosition(int* cursor_position);
   void OnQueryEditorSelection(std::string* selection);
   void OnQueryEditorSurroundingText(std::string* surrounding_text);
-  virtual WebKit::WebExternalPopupMenu* createExternalPopupMenu(
-          const WebKit::WebPopupMenuInfo& info,
-          WebKit::WebExternalPopupMenuClient* client);
  #endif
 
   // Override point to notify derived classes that a paint has happened.
@@ -397,9 +393,6 @@ class RenderWidget : public IPC::Channel::Listener,
   base::Time animation_floor_time_;
   bool animation_update_pending_;
   bool animation_task_posted_;
-
-  // External popup menu for showing select html element
-  scoped_ptr<ExternalPopupMenu> external_popup_menu_;
 
   DISALLOW_COPY_AND_ASSIGN(RenderWidget);
 };

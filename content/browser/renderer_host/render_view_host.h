@@ -456,7 +456,7 @@ class RenderViewHost : public RenderWidgetHost {
   // in render_messages.h.
   void EnablePreferredSizeChangedMode(int flags);
 
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
   // Select popup menu related methods (for external popup menus).
   void DidSelectPopupMenuItem(int selected_index);
   void DidCancelPopupMenu();
@@ -607,7 +607,7 @@ class RenderViewHost : public RenderWidgetHost {
                              bool is_enabled,
                              int checked_state);
 
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX)|| defined(TOOLKIT_MEEGOTOUCH)
   void OnMsgShowPopup(const ViewHostMsg_ShowPopup_Params& params);
 #endif
 

@@ -837,16 +837,6 @@ void RenderWidgetHost::Zoom2TextPost() {
   SendWithTimeout(new ViewMsg_Zoom2TextPost(routing_id_), 10000);
 }
 
-void RenderWidgetHost::DidSelectPopupMenuItem(int selected_index)
-{
-    Send(new ViewMsg_SelectPopupMenuItem(routing_id(), selected_index));
-}
-
-void RenderWidgetHost::DidCancelPopupMenu()
-{
-    Send(new ViewMsg_SelectPopupMenuItem(routing_id(), -1));
-}
-
 #endif
 
 void RenderWidgetHost::Destroy() {

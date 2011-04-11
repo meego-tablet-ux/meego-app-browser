@@ -72,6 +72,8 @@ class TabContentsViewQt : public TabContentsView,
   virtual void GotFocus();
   virtual void TakeFocus(bool reverse);
 
+  void selectPopupItem(int index);
+
   // NotificationObserver implementation ---------------------------------------
 
   virtual void Observe(NotificationType type,

@@ -185,7 +185,6 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_Move_ACK, OnRequestMoveAck)
 #if defined (TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryNodeAtPosition, OnQueryNodeAtPosition)
-    IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorCursorPosition, OnQueryEditorCursorPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSelection, OnQueryEditorSelection)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSurroundingText, OnQueryEditorSurroundingText)
@@ -415,17 +414,6 @@ void RenderWidget::OnQueryNodeAtPosition(int x, int y) {
   Send(response);
 }
 
-void RenderWidget::OnSelectPopupMenuItem(int selected_index)
-{
-    if(external_popup_menu_.get() == NULL) {
-        NOTREACHED();
-        return;
-    }
-    external_popup_menu_->DidSelectItem(selected_index);
-    external_popup_menu_->close();
-    external_popup_menu_.reset();
-}
-
 void RenderWidget::OnQueryEditorCursorPosition(int* cursor_position) {
   webwidget_->queryEditorCursorPosition(*cursor_position);
 }
@@ -442,14 +430,6 @@ void RenderWidget::OnQueryEditorSurroundingText(std::string* surrounding_text) {
   *surrounding_text = wstr.utf8();
 }
 
-WebExternalPopupMenu* RenderWidget::createExternalPopupMenu(
-        const WebPopupMenuInfo& popup_menu_info,
-        WebExternalPopupMenuClient* popup_menu_client)
-{
-    external_popup_menu_.reset(
-            new ExternalPopupMenu((RenderView *)this, popup_menu_info, popup_menu_client));
-    return external_popup_menu_.get();
-}
 #endif
 
 void RenderWidget::ClearFocus() {

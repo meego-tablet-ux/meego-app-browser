@@ -26,8 +26,11 @@
 #undef signals
 #include "chrome/browser/tab_contents/render_view_context_menu_qt.h"
 #include "chrome/browser/renderer_host/render_widget_host_view_qt.h"
-
 #include "chrome/browser/ui/meegotouch/qt_util.h"
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "chrome/browser/ui/meegotouch/popup_list_qt.h"
+#include "webkit/glue/webmenuitem.h"
+#include "chrome/browser/browser_list.h"
 
 #include <QGraphicsSceneContextMenuEvent>
 #include <QOrientationReading>
@@ -230,10 +233,38 @@ void TabContentsViewQt::ShowPopupMenu(const gfx::Rect& bounds,
                                        int selected_item,
                                        const std::vector<WebMenuItem>& items,
                                        bool right_aligned) {
-  // We are not using external popup menus on Linux, they are rendered by
-  // WebKit.
-  NOTREACHED();
+  std::vector<WebMenuItem>::const_iterator iter;
+  
+  for(iter = items.begin(); iter != items.end(); ++iter)  {
+    DLOG(INFO) << ">> " << (*iter).label;
+  }
+
+  Browser* browser = BrowserList::GetLastActive();
+  BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+
+  PopupListQt* popup_list = browser_window->GetWebPopupList();
+  popup_list->PopulateMenuItemData(selected_item, items);
+  popup_list->SetHeaderBounds(bounds);
+  popup_list->setCurrentView(this);
+  popup_list->show();
+
 }
+
+
+void TabContentsViewQt::selectPopupItem(int index)
+{
+  RenderViewHost* host = tab_contents()->render_view_host();
+  if (host) {
+    if (index >= 0) {
+      host->DidSelectPopupMenuItem(index);
+    } else if (index == -1) {
+      host->DidCancelPopupMenu();
+    } else {
+      DLOG(ERROR) << "Invalid Index";
+    }
+  }
+}
+
 
 // Render view DnD -------------------------------------------------------------
 

@@ -819,7 +819,7 @@ bool RenderViewHost::OnMessageReceived(const IPC::Message& msg) {
     IPC_MESSAGE_HANDLER(ViewHostMsg_FocusedNodeChanged, OnMsgFocusedNodeChanged)
     IPC_MESSAGE_HANDLER(ViewHostMsg_UpdateZoomLimits, OnUpdateZoomLimits)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ScriptEvalResponse, OnScriptEvalResponse)
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX)|| defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ShowPopup, OnMsgShowPopup)
 #endif
     IPC_MESSAGE_HANDLER(ViewHostMsg_CommandStateChanged,
@@ -1457,7 +1457,7 @@ void RenderViewHost::EnablePreferredSizeChangedMode(int flags) {
   Send(new ViewMsg_EnablePreferredSizeChangedMode(routing_id(), flags));
 }
 
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
 void RenderViewHost::DidSelectPopupMenuItem(int selected_index) {
   Send(new ViewMsg_SelectPopupMenuItem(routing_id(), selected_index));
 }
@@ -1604,7 +1604,7 @@ void RenderViewHost::OnScriptEvalResponse(int id, const ListValue& result) {
       Details<std::pair<int, Value*> >(&details));
 }
 
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
 void RenderViewHost::OnMsgShowPopup(
     const ViewHostMsg_ShowPopup_Params& params) {
   RenderViewHostDelegate::View* view = delegate_->GetViewDelegate();
@@ -1617,6 +1617,7 @@ void RenderViewHost::OnMsgShowPopup(
                         params.right_aligned);
   }
 }
+
 #endif
 
 void RenderViewHost::OnCommandStateChanged(int command,

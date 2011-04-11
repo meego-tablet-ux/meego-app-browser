@@ -30,6 +30,7 @@
 #include "base/string_util.h"
 #include "base/task.h"
 #include "base/time.h"
+#include "base/utf_string_conversions.h"
 #include "content/browser/renderer_host/backing_store_x.h"
 #include "content/browser/renderer_host/render_widget_host.h"
 #include "content/browser/renderer_host/rwhv_qt_widget.h"
@@ -40,10 +41,6 @@
 #include "chrome/browser/renderer_host/render_widget_host_view_qt.h"
 #include "chrome/browser/ui/meegotouch/qt_util.h"
 #include "webkit/plugins/npapi/webplugin.h"
-#include "webkit/glue/webmenuitem.h"
-#include "chrome/browser/browser_list.h"
-#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
-#include "chrome/browser/ui/meegotouch/popup_list_qt.h"
 
 // static
 RenderWidgetHostView* RenderWidgetHostView::CreateViewForWidget(
@@ -326,41 +323,6 @@ void RenderWidgetHostViewQt::SelectionChanged(const std::string& text) {
 
 void RenderWidgetHostViewQt::ShowingContextMenu(bool showing) {
   is_showing_context_menu_ = showing;
-}
-
-void RenderWidgetHostViewQt::ShowPopupWithItems(gfx::Rect bounds, 
-                                            int item_height,
-                                            double item_font_size,
-                                            int selected_item,
-                                            const std::vector<WebMenuItem>& items,
-                                            bool right_aligned)
-{
-  std::vector<WebMenuItem>::const_iterator iter;
-  
-  for(iter = items.begin(); iter != items.end(); ++iter)  {
-    DLOG(INFO) << ">> " << (*iter).label;
-  }
-
-  Browser* browser = BrowserList::GetLastActive();
-  BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
-
-  PopupListQt* popup_list = browser_window->GetWebPopupList();
-  popup_list->PopulateMenuItemData(selected_item, items);
-  popup_list->SetHeaderBounds(bounds);
-  popup_list->setCurrentView(this);
-  popup_list->show();
-}
-
-void RenderWidgetHostViewQt::selectPopupItem(int index)
-{
-  if (index >= 0) {
-    host_->DidSelectPopupMenuItem(index);
-  } else if (index == -1) {
-    host_->DidCancelPopupMenu();
-  } else {
-    DLOG(ERROR) << "Invalid Index";
-  }
-
 }
 
 bool RenderWidgetHostViewQt::NeedsInputGrab() {

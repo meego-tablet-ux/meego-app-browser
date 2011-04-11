@@ -826,6 +826,8 @@ class RenderView : public RenderWidget,
 #if defined(OS_MACOSX)
   void OnWindowFrameChanged(const gfx::Rect& window_frame,
                             const gfx::Rect& view_frame);
+#endif
+#if defined(OS_MACOSX) || defined (TOOLKIT_MEEGOTOUCH)
   void OnSelectPopupMenuItem(int selected_index);
 #endif
   void OnZoom(PageZoom::Function function);

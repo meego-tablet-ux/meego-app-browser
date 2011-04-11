@@ -402,10 +402,6 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void Zoom2TextPre(int x, int y);
   void Zoom2TextPost();
 
-  // Select an item from popup menu. -1 indicates to cancel selection
-  void DidSelectPopupMenuItem(int selected_index);
-  void DidCancelPopupMenu();
-
   void QueryEditorCursorPosition(int& cursor_position);
   void QueryEditorSelection(std::string& selection);
   void QueryEditorSurroundingText(std::string& surrounding_text);

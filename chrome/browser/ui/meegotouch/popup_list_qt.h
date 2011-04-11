@@ -38,7 +38,7 @@
 class BrowserWindowQt;
 class WebMenuItem;
 class PopupListQtImpl;
-class RenderWidgerHostViewQt;
+class TabContentsViewQt;
 
 class PopupListQt {
  friend class PopupListQtImpl;
@@ -48,12 +48,12 @@ class PopupListQt {
   virtual ~PopupListQt();
   void PopulateMenuItemData(int selected_item, const std::vector<WebMenuItem>& items);
   void SetHeaderBounds(gfx::Rect bounds);
-  void setCurrentView(RenderWidgetHostViewQt* view) { view_ = view; }
-  RenderWidgetHostViewQt* currentView() { return view_; }
+  void setCurrentView(TabContentsViewQt* view) { view_ = view; }
+  TabContentsViewQt* currentView() { return view_; }
   void show();
 
  private:
-  RenderWidgetHostViewQt* view_;
+  TabContentsViewQt* view_;
   BrowserWindowQt* window_;
   PopupListQtImpl* impl_;
   QRect header_bounds_;

@@ -37,6 +37,7 @@
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "webkit/glue/webmenuitem.h"
 #include "chrome/browser/ui/meegotouch/popup_list_qt.h"
+#include "chrome/browser/tab_contents/tab_contents_view_qt.h"
 
 class PopupListItem {
  public:

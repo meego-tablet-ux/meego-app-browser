@@ -708,7 +708,7 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_SetSelectionRange, OnSetSelectionRange)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectItem, OnSelectItem)
 #endif
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
 #endif
     IPC_MESSAGE_HANDLER(ViewMsg_ContextMenuClosed, OnContextMenuClosed)
@@ -1362,7 +1362,7 @@ WebWidget* RenderView::createPopupMenu(const WebPopupMenuInfo& info) {
 WebExternalPopupMenu* RenderView::createExternalPopupMenu(
     const WebPopupMenuInfo& popup_menu_info,
     WebExternalPopupMenuClient* popup_menu_client) {
-  DCHECK(!external_popup_menu_.get());
+//  DCHECK(!external_popup_menu_.get());
   external_popup_menu_.reset(
       new ExternalPopupMenu(this, popup_menu_info, popup_menu_client));
   return external_popup_menu_.get();
@@ -4355,7 +4355,7 @@ void RenderView::OnPpapiBrokerChannelCreated(
                                                handle);
 }
 
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX) || defined (TOOLKIT_MEEGOTOUCH)
 void RenderView::OnSelectPopupMenuItem(int selected_index) {
   if (external_popup_menu_ == NULL) {
     // Crash reports from the field indicate that we can be notified with a
