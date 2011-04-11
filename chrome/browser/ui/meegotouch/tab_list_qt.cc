@@ -114,10 +114,19 @@ void TabItem::GetThumbnail()
   if (!tab_contents_->tab_contents()->GetURL().SchemeIs("chrome") &&
       !tab_contents_->tab_contents()->GetURL().SchemeIs("chrome-extension"))
   {
-    HistoryService* hs = tablist_->browser()->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
-    hs->GetPageThumbnail(tab_contents_->tab_contents()->GetURL(), &consumer_,
-			 NewCallback(static_cast<TabItem*>(this),
-				     &TabItem::OnThumbnailDataAvailable));
+    history::TopSites* ts = tablist_->browser()->profile()->GetTopSites();
+    if (ts) {
+      scoped_refptr<RefCountedBytes> jpeg_data;
+      ts->GetPageThumbnail(tab_contents_->tab_contents()->GetURL(), &jpeg_data);
+
+      if (jpeg_data.get()) {
+	std::vector<unsigned char> thumbnail_data;
+	std::copy(jpeg_data->data.begin(), jpeg_data->data.end(),
+		  std::back_inserter(thumbnail_data));
+	QImage image = QImage::fromData(thumbnail_data.data(), thumbnail_data.size());
+	thumbnail_ = image;
+      }
+    }
   }
   else
   {
@@ -129,8 +138,11 @@ void TabItem::GetThumbnail()
     SkBitmap bitmap = generator->GetThumbnailForRenderer((RenderWidgetHost*)(\
 	 tab_contents_->tab_contents()->render_view_host()));
     thumbnail_ = SkBitmap2Image(bitmap);
-    tablist_->tabUpdated(this);
+    //    tablist_->tabUpdated(this);
   }
+  id_ = qrand();
+  tablist_->tabUpdated(this);
+
 }
 
 void TabItem::OnThumbnailDataAvailable(
