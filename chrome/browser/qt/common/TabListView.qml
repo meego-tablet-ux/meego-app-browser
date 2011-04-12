@@ -121,7 +121,8 @@ Item {
         horizontalAlignment: Text.AlignHCenter
 
         //font.pixelSize: height * 0.6
-        font.bold: true
+        //font.bold: true
+	font.pixelSize: theme_fontPixelSizeNormal
         elide: Text.ElideRight
         text: title
         color: "white"

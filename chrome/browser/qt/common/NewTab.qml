@@ -74,8 +74,8 @@ Item {
         anchors.margins: 10
         anchors.verticalCenter: parent.verticalCenter
         verticalAlignment: Text.AlignVCenter
-        font.pixelSize: parent.height * 0.6
-        font.bold: true
+        font.pixelSize: theme_fontPixelSizeNormal
+	//font.bold: true
         color: "white"
         text: newtabtitle 
       }
