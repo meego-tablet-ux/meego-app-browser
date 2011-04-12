@@ -465,6 +465,11 @@ Item {
                 angle: 0
                 transformX: 0
             }
+            PropertyChanges {
+                target: findbar
+                width: scene.width / 2
+                x: scene.width / 2
+            }
         },
 
         State {
@@ -485,6 +490,11 @@ Item {
                 transformX: scene.width
                 transformY: scene.height
             }
+            PropertyChanges {
+                target: findbar
+                width: scene.width / 2
+                x: scene.width / 2
+            }
         },
 
         State {
@@ -503,6 +513,11 @@ Item {
                 target: privateData
                 angle: 90
                 transformX: scene.width
+            }
+            PropertyChanges {
+                target: findbar
+                width: scene.height / 2
+                x: scene.height / 2
             }
         },
 
@@ -523,47 +538,12 @@ Item {
                 angle: -90
                 transformY: scene.height
             }
-        },
-
-      State {
-          name: "findbarlandscape"
-          when: scene.orientation == 1 && hasfindbar
-          PropertyChanges {
-              target: findbar
-              width: scene.width / 2
-              x: scene.width / 2
-          }
-      },
-
-      State {
-          name: "findbarinvertedlandscape"
-          when:scene.orientation == 3 && hasfindbar
-          PropertyChanges {
-              target: findbar
-              width: scene.width / 2
-              x: scene.width / 2
-          }
-      },
-
-      State {
-          name: "findbarportrait"
-          when: scene.orientation == 0 && hasfindbar
-          PropertyChanges {
-              target: findbar
-              width: scene.height / 2
-              x: scene.height / 2
-          }
-      },
-
-      State {
-          name: "findbarinvertedportrait"
-          when:scene.orientation == 2 && hasfindbar
-          PropertyChanges {
-              target: findbar
-              width: scene.height / 2
-              x: scene.height / 2
-          }
-      }
+            PropertyChanges {
+                target: findbar
+                width: scene.height / 2
+                x: scene.height / 2
+            }
+        }
     ]
     transitions: [
         Transition {

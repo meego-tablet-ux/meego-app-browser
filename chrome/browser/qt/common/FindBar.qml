@@ -39,10 +39,10 @@ Item {
   id: container
   property bool showfindbar: false
 //  anchors.top: innerContent.top
-  parent: innerContent
+//  parent: innerContent
 //  anchors.right: parent.right
-  width: parent.width/2
-  x: parent.width/2
+//  width: innerContent.width/2
+//  x: innerContent.width/2
   GestureArea {
     anchors.fill: parent
     Tap {}
@@ -77,7 +77,8 @@ Item {
         id: matchesText
         objectName: "matchesText"
         anchors.centerIn: parent
-        color: "black"
+//        color: "black"
+        color: theme_fontColorHighlight
         font.pixelSize: 24
       }
       Connections {
