@@ -949,7 +949,7 @@ int ChromeMain(int argc, char** argv) {
   chrome_main::LowLevelShutdown();
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  FiniQmlLauncher(process_type);
+  //FiniQmlLauncher(process_type);
 #endif
   return exit_code;
 }
