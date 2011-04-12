@@ -97,7 +97,7 @@ void JSModalDialogQt::HandleDialogResponse(int response_id, QString input, bool 
         break;
 
     case DialogQt::Rejected:
-        jsDialog_->OnCancel(true);
+        jsDialog_->OnCancel(isSuppress);
         break;
 
     default:
