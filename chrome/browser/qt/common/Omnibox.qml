@@ -105,12 +105,18 @@ Item {
       Keys.onPressed: {
         if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete)
           isDelete = true;
+	if(activeFocus == true)
+	  urlTextInput.autoScroll = true;
       }
       onTextChanged: {
+	if(activeFocus == true)
+	   urlTextInput.autoScroll = true ;
         autocompleteEditViewModel.textChanged(text, isDelete);
         isDelete = false;
       }
-      onSelectedTextChanged: {                                                                       
+      onSelectedTextChanged: { 
+	if (activeFocus == true)
+	    urlTextInput.autoScroll = true ;                                                                      
         selectByMouse = !shouldSelectAll;
         if (shouldSelectAll == true) {
           selectAll();
@@ -122,7 +128,7 @@ Item {
           autocompleteEditViewModel.focusGained();
           starButton.width = 0;
           starIcon.width = 0;
-          urlTextInput.autoScroll = true;
+          urlTextInput.autoScroll = false;
         }
         else {
           autocompleteEditViewModel.focusLost();
