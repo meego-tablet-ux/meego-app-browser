@@ -201,46 +201,7 @@ GConfSettingService::~GConfSettingService()
 		gconf_client_remove_dir(client_, kSyncSettingDir, NULL);
 	}
 
-	// Remove observers on Profile
-  PrefService* prefs = profile()->GetPrefs();
-  PrefChangeRegistrar registrar;
-  registrar.Init(prefs);
-
 	ProfileSyncService* sync_service = profile()->GetProfileSyncService();
-
-	HostContentSettingsMap* content_setting =
-		profile()->GetHostContentSettingsMap();
-
-	registrar.Remove(prefs::kRestoreOnStartup, this);
-
-	registrar.Remove(prefs::kURLsToRestoreOnStartup, this);
-
-	registrar.Remove(prefs::kHomePageIsNewTabPage, this);
-
-	registrar.Remove(prefs::kHomePage, this);
-
-	registrar.Remove(prefs::kShowBookmarkBar, this);
-
-	registrar.Remove(prefs::kDefaultSearchProviderName, this);
-
-	registrar.Remove(prefs::kSyncHasSetupCompleted, this);
-
-//  registrar.Remove(prefs::kDeleteBrowsingHistory, this);
-//
-//  registrar.Remove(prefs::kDeletePasswords, this);
-//
-//  registrar.Remove(prefs::kDeleteCookies, this);
-//
-//  registrar.Remove(prefs::kDeleteCache, this);
-//
-//  registrar.Remove(prefs::kDeleteFormData, this);
-//
-//  registrar.Remove(prefs::kDeleteDownloadHistory, this);
-//
-	registrar.Remove(prefs::kPasswordManagerEnabled, this);
-
-	registrar_.Remove(this, NotificationType::CONTENT_SETTINGS_CHANGED,
-			Source<const HostContentSettingsMap>(content_setting));
 
 	// Remove observer on ProfileSyncService
 	if(sync_service)
