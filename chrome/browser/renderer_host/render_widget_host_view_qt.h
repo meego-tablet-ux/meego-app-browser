@@ -51,6 +51,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void DidBecomeSelected();
   virtual void WasHidden();
   virtual void SetSize(const gfx::Size& size);
+  virtual void SetPreferredSize(const gfx::Size& size);
   virtual void SetBounds(const gfx::Rect& rect) {DNOTIMPLEMENTED();};
   virtual gfx::NativeView GetNativeView();
   virtual void MovePluginWindows(
@@ -62,6 +63,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void Hide();
   virtual bool IsShowing();
   virtual gfx::Rect GetViewBounds() const;
+  virtual void ScrollRectToVisible(const gfx::Rect& rect);
   virtual void UpdateCursor(const WebCursor& cursor);
   virtual void SetIsLoading(bool is_loading);
   virtual void DidUpdateBackingStore(
@@ -89,6 +91,18 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
 #if defined(TOOLKIT_MEEGOTOUCH)
   virtual void UpdateWebKitNodeInfo(bool is_embedded_object, bool is_content_editable);
   virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set);
+
+  ////////////////////////////////////////////////////////////
+  // for tiled backing store
+  virtual void UpdateContentsSize(const gfx::Size& size);
+  virtual gfx::Size GetContentsSize();
+  virtual gfx::Rect GetVisibleRect();
+
+  virtual void DidBackingStoreScale();
+  virtual void DidBackingStorePaint(const gfx::Rect& rect);
+
+  virtual void PaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect);
+  ////////////////////////////////////////////////////////////
 #endif
 
   gfx::NativeView native_view() const {return view_;}
@@ -174,6 +188,8 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   // The size that we want the renderer to be.  We keep this in a separate
   // variable because resizing in GTK+ is async.
   gfx::Size requested_size_;
+
+  gfx::Size contents_size_;
 
   webkit::npapi::QtPluginContainerManager plugin_container_manager_;
 

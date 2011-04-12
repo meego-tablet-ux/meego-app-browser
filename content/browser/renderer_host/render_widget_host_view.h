@@ -20,6 +20,7 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebTextInputType.h"
 #include "ui/gfx/native_widget_types.h"
 #include "ui/gfx/rect.h"
+#include "ui/gfx/size.h"
 #include "ui/gfx/surface/transport_dib.h"
 
 namespace gfx {
@@ -87,6 +88,18 @@ class RenderWidgetHostView {
 #if defined(TOOLKIT_MEEGOTOUCH)
   virtual void UpdateWebKitNodeInfo(bool is_embedded_object, bool is_content_editable) { }
   virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set) {}
+
+  ///////////////////////////////////////////
+  // for tiled backing store
+  virtual void UpdateContentsSize(const gfx::Size& size) {}
+  virtual gfx::Size GetContentsSize()  { return gfx::Size(); }
+  virtual gfx::Rect GetVisibleRect() { return gfx::Rect(); }
+  
+  virtual void DidBackingStoreScale() {}
+  virtual void DidBackingStorePaint(const gfx::Rect& rect) {}
+  
+  virtual void PaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect) {}
+  ////////////////////////////////////////////
 #endif
 
   // Returns the associated RenderWidgetHost.
@@ -105,6 +118,9 @@ class RenderWidgetHostView {
   // screen space.
   virtual void SetBounds(const gfx::Rect& rect) = 0;
 
+  // Set PreferredSize
+  virtual void SetPreferredSize(const gfx::Size& size) = 0;
+  
   // Retrieves the native view used to contain plugins and identify the
   // renderer in IPC messages.
   virtual gfx::NativeView GetNativeView() = 0;
@@ -131,6 +147,8 @@ class RenderWidgetHostView {
   // Retrieve the bounds of the View, in screen coordinates.
   virtual gfx::Rect GetViewBounds() const = 0;
 
+  virtual void ScrollRectToVisible(const gfx::Rect& rect) = 0;
+  
   // Sets the cursor to the one associated with the specified cursor_type
   virtual void UpdateCursor(const WebCursor& cursor) = 0;
 

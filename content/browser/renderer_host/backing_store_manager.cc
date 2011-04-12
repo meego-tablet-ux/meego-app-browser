@@ -9,6 +9,7 @@
 #include "chrome/common/chrome_constants.h"
 #include "chrome/common/chrome_switches.h"
 #include "content/browser/renderer_host/backing_store.h"
+#include "content/browser/renderer_host/backing_store_x.h"
 #include "content/browser/renderer_host/render_widget_host.h"
 #include "content/common/mru_cache.h"
 #include "content/common/notification_service.h"
@@ -48,6 +49,8 @@ static size_t MaxNumberOfBackingStores() {
   static bool unlimited = false;
   const CommandLine& command = *CommandLine::ForCurrentProcess();
   unlimited = command.HasSwitch(switches::kDisableBackingStoreLimit);
+
+  unlimited = true;
 
 
   if (unlimited) {
@@ -191,11 +194,13 @@ void BackingStoreManager::PrepareBackingStore(
     TransportDIB::Id bitmap,
     const gfx::Rect& bitmap_rect,
     const std::vector<gfx::Rect>& copy_rects,
-    bool* needs_full_paint) {
+    bool* needs_full_paint,
+    unsigned int seq) {
   BackingStore* backing_store = GetBackingStore(host, backing_store_size);
   if (!backing_store) {
     // We need to get Webkit to generate a new paint here, as we
     // don't have a previous snapshot.
+#if !defined(TILED_BACKING_STORE)
     if (bitmap_rect.size() != backing_store_size ||
         bitmap_rect.x() != 0 || bitmap_rect.y() != 0 ||
         ComputeTotalArea(copy_rects) != backing_store_size.GetArea() ||
@@ -206,10 +211,17 @@ void BackingStoreManager::PrepareBackingStore(
       // to request a full paint.
       return;
     }
+#else
+    backing_store = CreateBackingStore(host, backing_store_size);
+
+    if (!backing_store)
+      return;       
+#endif
+    
   }
 
   backing_store->PaintToBackingStore(host->process(), bitmap,
-                                     bitmap_rect, copy_rects);
+                                     bitmap_rect, copy_rects, seq);
 }
 
 // static

@@ -331,6 +331,37 @@ IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorSurroundingText,
 
 IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorCursorPosition,
                            int /* result */)
+
+IPC_MESSAGE_ROUTED1(ViewMsg_SetPreferredSize,
+                    gfx::Size /* new_size */)
+
+IPC_MESSAGE_ROUTED5(ViewMsg_PaintTile,
+                    TransportDIB::Handle /* dib_handle */,
+                    unsigned int /* seq */,
+                    unsigned int /* tag */,
+                    gfx::Rect /* tiles rect*/,
+                    gfx::Rect /* pixmap rect, top left point is not scaled */)
+
+IPC_MESSAGE_ROUTED2(ViewMsg_InvalidateRect,
+                    gfx::Rect,
+                    unsigned int /* seq */)
+
+IPC_MESSAGE_ROUTED1(ViewMsg_SetVisibleRect,
+                    gfx::Rect)
+
+IPC_MESSAGE_ROUTED1(ViewMsg_SetScaleFactor,
+                    double)
+
+IPC_MESSAGE_ROUTED1(ViewHostMsg_DidContentsSizeChanged,
+                    gfx::Size)
+
+IPC_MESSAGE_ROUTED4(ViewHostMsg_PaintTile_ACK,
+                    unsigned int /* seq */,
+                    unsigned int /* tag */,
+                    gfx::Rect /* painted rect */,
+                    gfx::Rect /* pixmap rect */)
+
+IPC_MESSAGE_ROUTED1(ViewHostMsg_ScrollRectToVisible, gfx::Rect)
 #endif
 
 IPC_MESSAGE_CONTROL1(ViewHostMsg_UpdatedCacheStats,

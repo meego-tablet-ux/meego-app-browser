@@ -15,6 +15,7 @@
 #include "chrome/common/spellcheck_messages.h"
 #include "content/browser/gpu_process_host.h"
 #include "content/browser/renderer_host/backing_store.h"
+#include "content/browser/renderer_host/backing_store_x.h"
 #include "content/browser/renderer_host/backing_store_manager.h"
 #include "content/browser/renderer_host/render_process_host.h"
 #include "content/browser/renderer_host/render_widget_helper.h"
@@ -173,11 +174,13 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
     IPC_MESSAGE_HANDLER(ViewHostMsg_Close, OnMsgClose)
     IPC_MESSAGE_HANDLER(ViewHostMsg_RequestMove, OnMsgRequestMove)
     IPC_MESSAGE_HANDLER(ViewHostMsg_PaintAtSize_ACK, OnMsgPaintAtSizeAck)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_PaintTile_ACK, OnMsgPaintTileAck)
     IPC_MESSAGE_HANDLER(ViewHostMsg_UpdateRect, OnMsgUpdateRect)
     IPC_MESSAGE_HANDLER(ViewHostMsg_HandleInputEvent_ACK, OnMsgInputEventAck)
     IPC_MESSAGE_HANDLER(ViewHostMsg_Focus, OnMsgFocus)
     IPC_MESSAGE_HANDLER(ViewHostMsg_Blur, OnMsgBlur)
     IPC_MESSAGE_HANDLER(ViewHostMsg_SetCursor, OnMsgSetCursor)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_ScrollRectToVisible, OnScrollRectToVisible)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ImeUpdateTextInputState,
                         OnMsgImeUpdateTextInputState)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ImeCancelComposition,
@@ -211,6 +214,8 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
 #if defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewHostMsg_QueryNodeAtPosition_ACK,
                         OnMsgQueryNodeAtPositionACK)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_DidContentsSizeChanged,
+                        OnMsgDidContentsSizeChanged)
 #endif
 
     IPC_MESSAGE_UNHANDLED(handled = false)
@@ -363,6 +368,13 @@ void RenderWidgetHost::WasResized() {
   }
 }
 
+void RenderWidgetHost::SetPreferredSize(const gfx::Size& size)
+{
+  if (size != gfx::Size(0, 0))
+    preferred_size_ = size;
+  LOG(INFO) << "------- " << __PRETTY_FUNCTION__ << ": " << preferred_size_;
+  Send(new ViewMsg_SetPreferredSize(routing_id_, preferred_size_));
+}
 void RenderWidgetHost::GotFocus() {
   Focus();
 }
@@ -403,6 +415,14 @@ void RenderWidgetHost::PaintAtSize(TransportDIB::Handle dib_handle,
                                page_size, desired_size));
 }
 
+void RenderWidgetHost::PaintTile(TransportDIB::Handle dib_handle,
+                                 unsigned int seq,
+                                 unsigned int tag,
+                                 const gfx::Rect& rect,
+                                 const gfx::Rect& pixmap_rect) {
+  Send(new ViewMsg_PaintTile(routing_id_, dib_handle, seq, tag, rect, pixmap_rect));
+}
+
 BackingStore* RenderWidgetHost::GetBackingStore(bool force_create) {
   // We should not be asked to paint while we are hidden.  If we are hidden,
   // then it means that our consumer failed to call WasRestored. If we're not
@@ -424,12 +444,14 @@ BackingStore* RenderWidgetHost::GetBackingStore(bool force_create) {
 
   // If we fail to find a backing store in the cache, send out a request
   // to the renderer to paint the view if required.
+#if !defined(TILED_BACKING_STORE)
   if (!backing_store && !repaint_ack_pending_ && !resize_ack_pending_ &&
       !view_being_painted_) {
     repaint_start_time_ = TimeTicks::Now();
     repaint_ack_pending_ = true;
     Send(new ViewMsg_Repaint(routing_id_, current_size_));
   }
+#endif
 
   // When we have asked the RenderWidget to resize, and we are still waiting on
   // a response, block for a little while to see if we can't get a response
@@ -786,6 +808,21 @@ void RenderWidgetHost::SetActive(bool active) {
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+void RenderWidgetHost::SetVisibleRect(const gfx::Rect& rect)
+{
+  Send(new ViewMsg_SetVisibleRect(routing_id(), rect));
+}
+
+void RenderWidgetHost::SetScaleFactor(double factor)
+{
+  Send(new ViewMsg_SetScaleFactor(routing_id(), factor));
+}
+
+void RenderWidgetHost::InvalidateRect(const gfx::Rect& rect, unsigned int seq)
+{
+  Send(new ViewMsg_InvalidateRect(routing_id(), rect, seq));
+}
+
 void RenderWidgetHost::QueryNodeAtPosition(int x, int y) {
   Send(new ViewMsg_QueryNodeAtPosition(routing_id(), x, y));
 }
@@ -915,7 +952,14 @@ void RenderWidgetHost::OnMsgPaintAtSizeAck(int tag, const gfx::Size& size) {
       Details<PaintAtSizeAckDetails>(&details));
 }
 
+void RenderWidgetHost::OnMsgPaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect) {
+  if (view_) {
+    view_->PaintTileAck(seq, tag, rect, pixmap_rect);
+  }
+}
+
 void RenderWidgetHost::OnMsgUpdateRect(
+    unsigned int seq,
     const ViewHostMsg_UpdateRect_Params& params) {
   GPU_TRACE_EVENT0("renderer_host", "RenderWidgetHost::OnMsgUpdateRect");
   TimeTicks paint_start = TimeTicks::Now();
@@ -958,7 +1002,10 @@ void RenderWidgetHost::OnMsgUpdateRect(
   }
 
   DCHECK(!params.bitmap_rect.IsEmpty());
+  // In tiled backing store mode, view size is not used
+#if !defined(TILED_BACKING_STORE)
   DCHECK(!params.view_size.IsEmpty());
+#endif
 
   if (!is_accelerated_compositing_active_) {
     const size_t size = params.bitmap_rect.height() *
@@ -985,7 +1032,8 @@ void RenderWidgetHost::OnMsgUpdateRect(
         // renderer-supplied bits. The view will read out of the backing store
         // later to actually draw to the screen.
         PaintBackingStoreRect(params.bitmap, params.bitmap_rect,
-                              params.copy_rects, params.view_size);
+                              params.copy_rects, params.view_size,
+                              seq);
       }
     }
   }
@@ -1103,6 +1151,13 @@ void RenderWidgetHost::OnMsgBlur() {
   // Only RenderViewHost can deal with that message.
   UserMetrics::RecordAction(UserMetricsAction("BadMessageTerminate_RWH5"));
   process()->ReceivedBadMessage();
+}
+
+void RenderWidgetHost::OnScrollRectToVisible(const gfx::Rect& rect) {
+  if (!view_) {
+    return;
+  }
+  view_->ScrollRectToVisible(rect);
 }
 
 void RenderWidgetHost::OnMsgSetCursor(const WebCursor& cursor) {
@@ -1259,13 +1314,20 @@ void RenderWidgetHost::OnMsgDestroyPluginContainer(gfx::PluginWindowHandle id) {
 void RenderWidgetHost::OnMsgQueryNodeAtPositionACK(bool is_embedded_object, bool is_content_editable) {
   view_->UpdateWebKitNodeInfo(is_embedded_object, is_content_editable);
 }
+
+void RenderWidgetHost::OnMsgDidContentsSizeChanged(const gfx::Size& size)
+{
+  if(!view_)return;
+  view_->UpdateContentsSize(size);
+}
 #endif
 
 void RenderWidgetHost::PaintBackingStoreRect(
     TransportDIB::Id bitmap,
     const gfx::Rect& bitmap_rect,
     const std::vector<gfx::Rect>& copy_rects,
-    const gfx::Size& view_size) {
+    const gfx::Size& view_size,
+    unsigned int seq) {
   // The view may be destroyed already.
   if (!view_)
     return;
@@ -1279,13 +1341,18 @@ void RenderWidgetHost::PaintBackingStoreRect(
   }
 
   bool needs_full_paint = false;
+  DLOG(INFO) << "so bitmap rect is " << bitmap_rect.x() << " " << bitmap_rect.y() << " " << bitmap_rect.width() << " " << bitmap_rect.height();
   BackingStoreManager::PrepareBackingStore(this, view_size, bitmap, bitmap_rect,
-                                           copy_rects, &needs_full_paint);
+                                           copy_rects, &needs_full_paint,
+                                           seq);
+
+#if !defined(TILED_BACKING_STORE)
   if (needs_full_paint) {
     repaint_start_time_ = TimeTicks::Now();
     repaint_ack_pending_ = true;
     Send(new ViewMsg_Repaint(routing_id_, view_size));
   }
+#endif
 }
 
 void RenderWidgetHost::ScrollBackingStoreRect(int dx, int dy,

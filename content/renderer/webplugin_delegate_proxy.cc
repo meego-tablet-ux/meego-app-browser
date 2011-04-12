@@ -857,6 +857,8 @@ bool WebPluginDelegateProxy::BackgroundChanged(
   int page_stride = cairo_image_surface_get_stride(page_surface);
   int page_start_x = static_cast<int>(page_x_double);
   int page_start_y = static_cast<int>(page_y_double);
+  page_start_x = page_start_x >= 0 ? page_start_x : 0;
+  page_start_y = page_start_y >= 0 ? page_start_y : 0;
 
   skia::PlatformDevice& device =
       background_store_canvas_->getTopPlatformDevice();

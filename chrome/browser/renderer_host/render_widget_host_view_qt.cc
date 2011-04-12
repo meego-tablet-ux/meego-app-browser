@@ -15,7 +15,8 @@
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QX11Info>
 #include <QGraphicsLinearLayout>
-
+#include <QGraphicsView>
+#include <QScrollBar>
 #include <QtCore/QEvent>
 #include <QtCore/QVariant>
 
@@ -109,11 +110,15 @@ void RenderWidgetHostViewQt::InitAsPopup(
 void RenderWidgetHostViewQt::DidBecomeSelected() {
   if (!is_hidden_)
     return;
+  
+  is_hidden_ = false;
 
   if (tab_switch_paint_time_.is_null())
     tab_switch_paint_time_ = base::TimeTicks::Now();
-  is_hidden_ = false;
   host_->WasRestored();
+
+  RWHVQtWidget* widget = reinterpret_cast<RWHVQtWidget*>(view_);
+  if(widget) widget->DidBecomeSelected();
 }
 
 void RenderWidgetHostViewQt::WasHidden() {
@@ -125,13 +130,18 @@ void RenderWidgetHostViewQt::WasHidden() {
   // everything again when we become selected again.
   is_hidden_ = true;
 
+  RWHVQtWidget* widget = reinterpret_cast<RWHVQtWidget*>(view_);
+  if(widget) widget->WasHidden();
+
   // If we have a renderer, then inform it that we are being hidden so it can
   // reduce its resource utilization.
   GetRenderWidgetHost()->WasHidden();
 }
 
 void RenderWidgetHostViewQt::SetSize(const gfx::Size& size) {
-
+  // in tiled backing store, the view size is determined by
+  // content size * scale
+#if !defined(TILED_BACKING_STORE)
   // This is called when webkit has sent us a Move message.
   int width = std::min(size.width(), kMaxWindowWidth);
   int height = std::min(size.height(), kMaxWindowHeight);
@@ -153,6 +163,13 @@ void RenderWidgetHostViewQt::SetSize(const gfx::Size& size) {
     host_->WasResized();
   }
   view_->setGeometry(0, 0, width, height);
+#endif
+}
+
+void RenderWidgetHostViewQt::SetPreferredSize(const gfx::Size& size)
+{
+  if(host_)
+    host_->SetPreferredSize(size);
 }
 
 gfx::NativeView RenderWidgetHostViewQt::GetNativeView() {
@@ -178,7 +195,8 @@ void RenderWidgetHostViewQt::Focus() {
 }
 
 void RenderWidgetHostViewQt::Blur() {
-  host_->Blur();
+  if (host_)
+    host_->Blur();
 }
 
 bool RenderWidgetHostViewQt::HasFocus() {
@@ -211,6 +229,14 @@ gfx::Rect RenderWidgetHostViewQt::GetViewBounds() const {
                    requested_size_.height());
 }
 
+void RenderWidgetHostViewQt::ScrollRectToVisible(const gfx::Rect& rect)
+{
+  if(view_)
+  {
+    reinterpret_cast<RWHVQtWidget*>(view_)->ScrollRectToVisible(rect);
+  }
+}
+
 void RenderWidgetHostViewQt::UpdateCursor(const WebCursor& cursor) {
   ///\todo Fixme
 }
@@ -237,6 +263,8 @@ void RenderWidgetHostViewQt::DidUpdateBackingStore(
   if (is_hidden_)
     return;
 
+  // Let tiled backing store to schedule update
+#if !defined(TILED_BACKING_STORE)
   // TODO(darin): Implement the equivalent of Win32's ScrollWindowEX.  Can that
   // be done using XCopyArea?  Perhaps similar to
   // BackingStore::ScrollBackingStore?
@@ -257,6 +285,7 @@ void RenderWidgetHostViewQt::DidUpdateBackingStore(
     else
       Paint(rect);
   }
+#endif
 }
 
 void RenderWidgetHostViewQt::RenderViewGone(base::TerminationStatus status,
@@ -335,6 +364,8 @@ bool RenderWidgetHostViewQt::IsPopup() {
 
 BackingStore* RenderWidgetHostViewQt::AllocBackingStore(
     const gfx::Size& size) {
+  DLOG(INFO) << "AllocBackingStore size " << size.width() << " " << size.height();
+
   return new BackingStoreX(host_, size,
                            QApplication::desktop()->x11Info().visual(),
                            QApplication::desktop()->x11Info().depth());
@@ -407,6 +438,72 @@ RenderWidgetHostView*
     RenderWidgetHostView::GetRenderWidgetHostViewFromNativeView(
         gfx::NativeView widget) {
   return reinterpret_cast<RWHVQtWidget*>(widget)->hostView();
+}
+
+void RenderWidgetHostViewQt::UpdateContentsSize(const gfx::Size& size)
+ {
+  if (contents_size_ != size)
+   {
+    contents_size_ = size;
+    if (view_)
+      reinterpret_cast<RWHVQtWidget*>(view_)->AdjustSize();
+    BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+      host_->GetBackingStore(false));
+    if (backing_store)
+    {
+      backing_store->AdjustTiles();
+    }
+  }
+}
+
+void RenderWidgetHostViewQt::PaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect)
+ {
+  QRect qrect(rect.x(), rect.y(), rect.width(), rect.height());
+  QRect qpixmap_rect(pixmap_rect.x(), pixmap_rect.y(), pixmap_rect.width(), pixmap_rect.height());
+  BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+      host_->GetBackingStore(false));
+  if (backing_store)
+  {
+    backing_store->PaintTilesAck(seq, tag, qrect, qpixmap_rect);
+  }
+}
+
+gfx::Size RenderWidgetHostViewQt::GetContentsSize()
+{
+  return contents_size_;
+}
+
+gfx::Rect RenderWidgetHostViewQt::GetVisibleRect()
+{
+  QRect qrect;
+  if (view_)
+    qrect = reinterpret_cast<RWHVQtWidget*>(view_)->GetVisibleRect();
+ 
+  gfx::Rect rect(qrect.x(), qrect.y(), qrect.width(), qrect.height());
+  DLOG(INFO) << "RenderWidgetHostViewQt::GetVisibleRect"
+             << " " << rect.x()
+             << " " << rect.y()
+             << " " << rect.width()
+             << " " << rect.height();
+   
+  return rect;
+}
+
+void RenderWidgetHostViewQt::DidBackingStoreScale()
+{
+  if (view_)
+  {
+    view_->setScale(1.0);
+    reinterpret_cast<RWHVQtWidget*>(view_)->DidBackingStoreScale();
+  }
+}
+
+void RenderWidgetHostViewQt::DidBackingStorePaint(const gfx::Rect& rect)
+{
+  if (view_)
+  {
+    view_->update(rect.x(), rect.y(), rect.width(), rect.height());
+  }
 }
 
 #include "moc_render_widget_host_view_qt.cc"

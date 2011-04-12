@@ -832,6 +832,7 @@ class RenderView : public RenderWidget,
 #endif
   void OnZoom(PageZoom::Function function);
   void OnZoomFactor(double factor);
+  void OnSetScaleFactor(double factor);
   void OnQueryZoomFactor(double* factor);
   void OnSetScrollPosition(int x, int y);
   void OnMsgPaintContents(const TransportDIB::Handle& dib_id,
@@ -841,6 +842,9 @@ class RenderView : public RenderWidget,
   void OnSetLayoutAlgorithm(int algorithm);
   void OnZoom2TextPre(int x, int y);
   void OnZoom2TextPost();
+
+  void OnInvalidateRect(const gfx::Rect& rect, unsigned int seq);
+  void OnSetVisibleRect(const gfx::Rect& rect);
 
   // Adding a new message handler? Please add it in alphabetical order above
   // and put it in the same position in the .cc file.
@@ -1179,6 +1183,7 @@ class RenderView : public RenderWidget,
   // is fine.
   ObserverList<RenderViewObserver> observers_;
 
+  float accum_scale_;
   // ---------------------------------------------------------------------------
   // ADDING NEW DATA? Please see if it fits appropriately in one of the above
   // sections rather than throwing it randomly at the end. If you're adding a

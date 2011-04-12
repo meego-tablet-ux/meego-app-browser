@@ -202,7 +202,7 @@ BrowserWindowTablet {
     onPopupAt: {
       if (x != 0 || y != 0)
       {			
-        var map = content.mapToItem(scene, x, y);
+        var map = webview.mapToItem(scene, x, y);
         contextLoader.source = "BrowserContextMenu.qml"
         scene.openContextMenu(contextLoader,
                               map.x, map.y, undefined, browserMenuModel);

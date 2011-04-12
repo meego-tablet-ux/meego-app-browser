@@ -10,10 +10,14 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QRectF>
+#include <QHash>
+#include <QPair>
 #endif
 
 #include "base/basictypes.h"
 #include "build/build_config.h"
+#include "base/ref_counted.h"
+#include "base/scoped_ptr.h"
 #include "content/browser/renderer_host/backing_store.h"
 #include "ui/base/x/x11_util.h"
 
@@ -24,6 +28,8 @@ class Rect;
 
 typedef struct _GdkDrawable GdkDrawable;
 class SkBitmap;
+
+#define TILED_BACKING_STORE
 
 class BackingStoreX : public BackingStore {
  public:
@@ -65,13 +71,33 @@ class BackingStoreX : public BackingStore {
   void PaintToRect(const gfx::Rect& dest_rect, GdkDrawable* target);
 #endif
 
+#if defined(TILED_BACKING_STORE)
+  // Tiled backing store public APIs
+  
+  // Adjust tiles according to visible rect, contents size or scale change
+  void AdjustTiles();
+
+  // Handle tiles painting tiles ack from render
+  void PaintTilesAck(unsigned int seq, unsigned int tag, const QRect& rect, const QRect& pixmap_rect);
+
+  // Set content scale
+  void SetContentsScale(float);
+
+  // Set frozen
+  void SetFrozen(bool);
+
+  // Mapped contents rect
+  QRect ContentsRect();
+#endif
+  
   // BackingStore implementation.
   virtual size_t MemorySize();
   virtual void PaintToBackingStore(
       RenderProcessHost* process,
       TransportDIB::Id bitmap,
       const gfx::Rect& bitmap_rect,
-      const std::vector<gfx::Rect>& copy_rects);
+      const std::vector<gfx::Rect>& copy_rects,
+      unsigned int seq);
   virtual bool CopyFromBackingStore(const gfx::Rect& rect,
                                     skia::PlatformCanvas* output);
   virtual void ScrollBackingStore(int dx, int dy,
@@ -106,6 +132,88 @@ class BackingStoreX : public BackingStore {
   XID picture_;
   // This is a default graphic context, used in XCopyArea
   void* pixmap_gc_;
+
+#if defined(TILED_BACKING_STORE)
+private:
+  class TileIndex : public QPair<int, int>
+  {
+   public:
+    TileIndex(int x, int y) : QPair<int, int>(x, y) {}
+    int x() const { return first; }
+    int y() const { return second; }
+  };
+  
+  class Tile : public base::RefCounted<Tile>
+  {
+   public:
+    Tile(const TileIndex& index, const QRect& rect);
+    ~Tile();
+
+    // service Qt paint request
+    void QPainterShowRect(QPainter* painter,
+                          const QRect& rect);
+    
+    // update tile from shared bitmap
+    void PaintToBackingStore(QPixmap& bitmap,
+                             const QRect& bitmap_rect,
+                             const QRect& rect);
+
+    TileIndex Index() { return index_; }
+    
+    QRect Rect() { return rect_; }
+
+    bool IsReady() { return ready_; }
+    
+   private:
+    friend class base::RefCounted<Tile>;
+
+    TileIndex index_;
+    QRect rect_;
+    QPixmap* pixmap_;
+    bool ready_;
+  };
+
+private:
+  typedef QHash<TileIndex, scoped_refptr<Tile> > TilesMap;
+  TilesMap tiles_map_;
+  TilesMap scaling_tiles_map_;
+  unsigned int tiles_map_seq_;
+  
+  struct TilePaintRequest {
+    TransportDIB* dib;
+    QVector<scoped_refptr<Tile> > tiles;
+  };
+  typedef QHash<unsigned int, TilePaintRequest > TilePaintMap;
+  TilePaintMap tiles_paint_map_;
+  unsigned int tiles_paint_tag_;
+
+  float contents_scale_;
+
+  QRect cached_tiles_rect_;
+
+  bool pending_scaling_;
+
+  bool frozen_;
+  
+private:
+  friend class Tile;
+  
+  // Send tile painting request to render
+  void PaintTilesRequest(QVector<scoped_refptr<Tile> >& tiles);
+
+  TilesMap& GetWorkingTilesMap();
+  scoped_refptr<Tile> GetTileAt(const TileIndex& pos);
+  scoped_refptr<Tile> CreateTileAt(const TileIndex& pos);
+  void DeleteTileAt(const TileIndex& pos);
+
+  QRect MapToContents(const QRect&);
+  QRect MapFromContents(const QRect&);
+
+  QRect GetTileRectAt(const TileIndex& index);
+  TileIndex GetTileIndexFrom(const QPoint& point);
+
+  QRect GetCachedRect();
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(BackingStoreX);
 };

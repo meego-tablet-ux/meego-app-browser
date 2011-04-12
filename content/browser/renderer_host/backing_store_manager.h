@@ -49,7 +49,8 @@ class BackingStoreManager {
       TransportDIB::Id bitmap,
       const gfx::Rect& bitmap_rect,
       const std::vector<gfx::Rect>& copy_rects,
-      bool* needs_full_paint);
+      bool* needs_full_paint,
+      unsigned int seq);
 
   // Returns a matching backing store for the host.
   // Returns NULL if we fail to find one.

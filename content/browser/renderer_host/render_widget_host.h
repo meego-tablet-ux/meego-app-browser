@@ -183,6 +183,8 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // Called to notify the RenderWidget that it has been resized.
   void WasResized();
 
+  void SetPreferredSize(const gfx::Size& size);
+  
   // Called to notify the RenderWidget that its associated native window got
   // focused.
   virtual void GotFocus();
@@ -216,7 +218,7 @@ class RenderWidgetHost : public IPC::Channel::Listener,
                    int tag,
                    const gfx::Size& page_size,
                    const gfx::Size& desired_size);
-
+  
   // Get access to the widget's backing store.  If a resize is in progress,
   // then the current size of the backing store may be less than the size of
   // the widget's view.  If you pass |force_create| as true, then the backing
@@ -393,7 +395,10 @@ class RenderWidgetHost : public IPC::Channel::Listener,
 #if defined(TOOLKIT_MEEGOTOUCH)
   void QueryNodeAtPosition(int x, int y);
   void QueryScrollOffset(gfx::Point& output);
+  // relayout for zoom
   void SetZoomFactor (double factor);
+  // paint scale
+  void SetScaleFactor (double factor);
   void QueryZoomFactor(double& factor);
   void SetScrollPosition (int x, int y);
   int PaintContents(TransportDIB::Handle dib_handle, const gfx::Rect& rect);
@@ -406,6 +411,18 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void QueryEditorSelection(std::string& selection);
   void QueryEditorSurroundingText(std::string& surrounding_text);
 
+  void InvalidateRect(const gfx::Rect& rect, unsigned int req);
+
+  /////////////////////////////////////////////////
+  // for tiled backing store
+  void PaintTile(TransportDIB::Handle dib_handle,
+                 unsigned int seq,
+                 unsigned int tag,
+                 const gfx::Rect& rect,
+                 const gfx::Rect& pixmap_rect);
+
+  void SetVisibleRect(const gfx::Rect& rect);
+  ////////////////////////////////////////////////
 #endif
 
   void set_ignore_input_events(bool ignore_input_events) {
@@ -498,11 +515,16 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void OnMsgClose();
   void OnMsgRequestMove(const gfx::Rect& pos);
   void OnMsgPaintAtSizeAck(int tag, const gfx::Size& size);
-  void OnMsgUpdateRect(const ViewHostMsg_UpdateRect_Params& params);
+  void OnMsgUpdateRect(unsigned int seq, const ViewHostMsg_UpdateRect_Params& params);
   void OnMsgInputEventAck(const IPC::Message& message);
   virtual void OnMsgFocus();
   virtual void OnMsgBlur();
 
+  // for tiled backing store
+  void OnMsgPaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect);
+  void OnMsgDidContentsSizeChanged(const gfx::Size& size);
+  void OnScrollRectToVisible(const gfx::Rect& rect);
+  
   void OnMsgSetCursor(const WebCursor& cursor);
   void OnMsgImeUpdateTextInputState(WebKit::WebTextInputType type,
                                     const gfx::Rect& caret_rect);
@@ -544,7 +566,8 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void PaintBackingStoreRect(TransportDIB::Id bitmap,
                              const gfx::Rect& bitmap_rect,
                              const std::vector<gfx::Rect>& copy_rects,
-                             const gfx::Size& view_size);
+                             const gfx::Size& view_size,
+                             unsigned int seq);
 
   // Scrolls the given |clip_rect| in the backing by the given dx/dy amount. The
   // |dib| and its corresponding location |bitmap_rect| in the backing store
@@ -604,6 +627,9 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // rendered to draw the resize corner, sidebar mini tabs etc.
   gfx::Rect current_reserved_rect_;
 
+  // Preferred size;
+  gfx::Size preferred_size_;
+  
   // The size we last sent as requested size to the renderer. |current_size_|
   // is only updated once the resize message has been ack'd. This on the other
   // hand is updated when the resize message is sent. This is very similar to

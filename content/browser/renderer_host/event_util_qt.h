@@ -26,14 +26,14 @@ class EventUtilQt {
   /*!
    * \brief Convert QGraphicsSceneMouseEvent to WebKit::WebMouseEvent
    */
-  static WebKit::WebMouseEvent ToWebMouseEvent(const QGraphicsSceneMouseEvent*);
+  static WebKit::WebMouseEvent ToWebMouseEvent(const QGraphicsSceneMouseEvent*, double scale = 1.0);
 
   /*!
    * \brief Convert input values into a WebKit::WebMouseEvent
    */
   static WebKit::WebMouseEvent ToWebMouseEvent(QEvent::Type type,
     Qt::MouseButton button, Qt::KeyboardModifiers modifiers,
-    int x, int y, int globalX, int globalY);
+    int x, int y, int globalX, int globalY, double scale = 1.0);
 
   /*!
    * \brief Convert QKeyEvent to WebKit::WebKeyboardEvent
@@ -57,7 +57,7 @@ class EventUtilQt {
   static WebKit::WebMouseWheelEvent ToMouseWheelEvent(int x, int y, int gx, int gy, int dx, int dy,
       QtMobility::QOrientationReading::Orientation angle = QtMobility::QOrientationReading::TopUp);
 
-  static WebKit::WebTouchEvent ToWebTouchEvent(const QGraphicsSceneMouseEvent *qevent);
+  static WebKit::WebTouchEvent ToWebTouchEvent(const QGraphicsSceneMouseEvent *qevent, double scale = 1.0);
 };
 
 #endif  // CHROME_BROWSER_RENDERER_HOST_EVENT_UTIL_QT_H_

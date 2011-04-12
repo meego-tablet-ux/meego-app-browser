@@ -62,6 +62,11 @@ class PepperWidget : public WebWidget {
   virtual void animate() {
   }
 
+  virtual void setPreferredContentsSize(const WebSize&) {}
+  virtual WebSize preferredContentsSize() { return size_; }
+  virtual void setViewportSize(const WebSize&) {}
+  virtual WebSize viewportSize() { return size_; }
+  
   virtual void layout() {
   }
 

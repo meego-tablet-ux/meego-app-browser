@@ -47,8 +47,6 @@ TabContentsViewQt::TabContentsViewQt(TabContents* tab_contents)
     : TabContentsView(tab_contents),
       container_(new QGraphicsWidget),
       rwhv_view_(NULL) {
-    //
-//    connect(container_, SIGNAL(sizeChanged()), this, SLOT(OnSizeChanged()));
 }
 
 void TabContentsViewQt::OnResize()
@@ -278,4 +276,3 @@ void TabContentsViewQt::StartDragging(const WebDropData& drop_data,
   if (tab_contents()->render_view_host())
       tab_contents()->render_view_host()->DragSourceSystemDragEnded();
 }
-

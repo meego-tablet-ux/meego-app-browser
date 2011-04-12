@@ -64,6 +64,7 @@ class Size {
     return (width_ == 0) || (height_ == 0);
   }
 
+  void Scale(double rx, double ry) { width_ *= rx; height_ *= ry;}
 #if defined(OS_WIN)
   SIZE ToSIZE() const;
 #elif defined(OS_MACOSX)

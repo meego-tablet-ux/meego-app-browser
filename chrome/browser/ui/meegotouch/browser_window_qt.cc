@@ -385,6 +385,9 @@ void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
   UpdateTitleBar();
   //  UpdateUIForContents(new_contents->tab_contents());
 
+  if(old_contents) 
+    old_contents->tab_contents()->WasHidden();
+
   new_contents->tab_contents()->DidBecomeSelected();
 
   contents_container_->SetTabContents(new_contents->tab_contents());

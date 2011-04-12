@@ -139,6 +139,7 @@
 #include "webkit/plugins/npapi/webplugin_impl.h"
 #include "webkit/plugins/npapi/webview_plugin.h"
 #include "webkit/plugins/ppapi/ppapi_webplugin_impl.h"
+#include "chrome/common/render_tiling.h"
 
 #if defined(OS_WIN)
 // TODO(port): these files are currently Windows only because they concern:
@@ -376,7 +377,9 @@ RenderView::RenderView(RenderThreadBase* render_thread,
       device_orientation_dispatcher_(NULL),
       accessibility_ack_pending_(false),
       p2p_socket_dispatcher_(NULL),
-      session_storage_namespace_id_(session_storage_namespace_id) {
+      session_storage_namespace_id_(session_storage_namespace_id),
+      accum_scale_(1.0)
+{
   routing_id_ = routing_id;
   if (opener_id != MSG_ROUTING_NONE)
     opener_id_ = opener_id;
@@ -430,6 +433,11 @@ RenderView::RenderView(RenderThreadBase* render_thread,
     p2p_socket_dispatcher_ = new P2PSocketDispatcher(this);
 
   content::GetContentClient()->renderer()->RenderViewCreated(this);
+
+
+  // In tiling mode, set frame flattening as true
+  WebSettings* settings = webview()->settings();
+  settings->setFrameFlatteningEnabled(true);
 }
 
 RenderView::~RenderView() {
@@ -632,12 +640,15 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_FindReplyACK, OnFindReplyAck)
     IPC_MESSAGE_HANDLER(ViewMsg_Zoom, OnZoom)
     IPC_MESSAGE_HANDLER(ViewMsg_ZoomFactor, OnZoomFactor)
+    IPC_MESSAGE_HANDLER(ViewMsg_SetScaleFactor, OnSetScaleFactor)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryZoomFactor, OnQueryZoomFactor)
     IPC_MESSAGE_HANDLER(ViewMsg_PaintContents, OnMsgPaintContents)
     IPC_MESSAGE_HANDLER(ViewMsg_GetLayoutAlgorithm, OnGetLayoutAlgorithm)
     IPC_MESSAGE_HANDLER(ViewMsg_SetLayoutAlgorithm, OnSetLayoutAlgorithm)
     IPC_MESSAGE_HANDLER(ViewMsg_Zoom2TextPre, OnZoom2TextPre)
     IPC_MESSAGE_HANDLER(ViewMsg_Zoom2TextPost, OnZoom2TextPost)
+    IPC_MESSAGE_HANDLER(ViewMsg_InvalidateRect, OnInvalidateRect)
+    IPC_MESSAGE_HANDLER(ViewMsg_SetVisibleRect, OnSetVisibleRect)
     IPC_MESSAGE_HANDLER(ViewMsg_SetScrollPosition, OnSetScrollPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_SetZoomLevel, OnSetZoomLevel)
     IPC_MESSAGE_HANDLER(ViewMsg_SetZoomLevelForLoadingURL,
@@ -1653,6 +1664,11 @@ void RenderView::showContextMenu(
   // in the context menu.
   // TODO(jcivelli): http://crbug.com/45160 This prevents us from saving large
   //                 data encoded images.  We should have a way to save them.
+  // the point should be scaled with scale
+  params.x *= scale();
+  params.x += 1;
+  params.y *= scale();
+  params.y += 1;
   if (params.src_url.spec().size() > content::kMaxURLChars)
     params.src_url = GURL();
   context_menu_node_ = data.node;
@@ -2141,6 +2157,22 @@ bool RenderView::canHandleRequest(
   return true;
 }
 
+void RenderView::OnInvalidateRect(const gfx::Rect& rect, unsigned int seq)
+{
+  if (seq >= seq_)
+    seq_ = seq;
+  didInvalidateRect(WebRect(rect.x(), rect.y(),
+                            rect.width(), rect.height()));
+}
+
+void RenderView::OnSetVisibleRect(const gfx::Rect& rect)
+{
+  if (visible_rect_ != rect)
+  {
+    visible_rect_ = rect;
+  }
+}
+
 void RenderView::OnMsgPaintContents(const TransportDIB::Handle& dib_handle,
                                    const gfx::Rect& rect,
                                    int* retval) {
@@ -2497,6 +2529,8 @@ void RenderView::didReceiveDocumentData(
 
 void RenderView::didCommitProvisionalLoad(WebFrame* frame,
                                           bool is_new_navigation) {
+  webwidget_->setPreferredContentsSize(preferred_contents_size_);
+    
   NavigationState* navigation_state =
       NavigationState::FromDataSource(frame->dataSource());
 
@@ -2902,6 +2936,21 @@ void RenderView::logCrossFramePropertyAccess(WebFrame* frame,
 
 void RenderView::didChangeContentsSize(WebFrame* frame, const WebSize& size) {
   CheckPreferredSize();
+
+  DLOG(INFO) << "RenderView::didChangeContentsSize " << size.width << " " << size.height
+             << " " << frame << " " << webview()->mainFrame();
+  DLOG(INFO) << "ContentsSize "<< webview()->mainFrame()->contentsSize().width
+             << " " << webview()->mainFrame()->contentsSize().height;
+  if (resize_to_contents_ && frame == webview()->mainFrame())
+  {
+    contents_size_ = size;
+    Send(new ViewHostMsg_DidContentsSizeChanged(routing_id_,
+                                                size));
+    size_ = size;
+    size_.Scale(scale_, scale_);
+    webwidget_->setViewportSize(size);
+    webwidget_->resize(size);
+  }
 }
 
 void RenderView::CheckPreferredSize() {
@@ -3349,6 +3398,8 @@ void RenderView::OnZoom(PageZoom::Function function) {
   if (!webview())  // Not sure if this can happen, but no harm in being safe.
     return;
 
+  webwidget_->setPreferredContentsSize(preferred_contents_size_);
+  
   webview()->hidePopups();
 
   double old_zoom_level = webview()->zoomLevel();
@@ -3376,13 +3427,29 @@ void RenderView::OnZoom(PageZoom::Function function) {
   zoomLevelChanged();
 }
 
-void RenderView::OnZoomFactor(double factor) {
+void RenderView::OnSetScaleFactor(double factor) {
   if (!webview())  // Not sure if this can happen, but no harm in being safe.
     return;
 
+  DLOG(INFO) << "OnSetScaleFactor " << factor;
+  
+//  accum_scale_ = accum_scale_ * factor;
+//  scale_ = flatScaleByStep(accum_scale_);
+//  size_.Scale(factor, factor);
+  scale_ = flatScaleByStep(factor);
+  size_.Scale(factor/accum_scale_, factor/accum_scale_);
+  accum_scale_ = factor;
+
+  paint_aggregator_.ClearPendingUpdate();
+}
+
+void RenderView::OnZoomFactor(double factor) {
   webview()->hidePopups();
   if (factor <= 0)
     factor = 0.01;
+  
+  webwidget_->setPreferredContentsSize(preferred_contents_size_);
+  
   double zoom_level = webview()->zoomFactorToZoomLevel(factor);
   webview()->setZoomLevel(false, zoom_level);
 }

@@ -1413,7 +1413,8 @@ IPC_MESSAGE_ROUTED2(ViewHostMsg_PaintAtSize_ACK,
 
 // Sent to update part of the view.  In response to this message, the host
 // generates a ViewMsg_UpdateRect_ACK message.
-IPC_MESSAGE_ROUTED1(ViewHostMsg_UpdateRect,
+IPC_MESSAGE_ROUTED2(ViewHostMsg_UpdateRect,
+                    unsigned int /* seq */,
                     ViewHostMsg_UpdateRect_Params)
 
 // Sent by the renderer when accelerated compositing is enabled or disabled to

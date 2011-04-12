@@ -33,15 +33,16 @@ static int qtModifiersToWebEventModifiers(Qt::KeyboardModifiers qt_modifiers)
   return modifiers;
 }
 
-WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(const QGraphicsSceneMouseEvent *qevent)
+WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(const QGraphicsSceneMouseEvent *qevent, double scale)
 {
   WebKit::WebMouseEvent result;
 
   result.timeStampSeconds = base::Time::Now().ToInternalValue() / 1000;
   result.modifiers = qtModifiersToWebEventModifiers(qevent->modifiers());
 
-  result.x = static_cast<int>(qevent->pos().x());
-  result.y = static_cast<int>(qevent->pos().y());
+  result.x = static_cast<int>(qevent->pos().x() / scale);
+  result.y = static_cast<int>(qevent->pos().y() / scale);
+
   result.windowX = result.x;
   result.windowY = result.y;
   result.globalX = static_cast<int>(qevent->screenPos().x());
@@ -78,15 +79,15 @@ WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(const QGraphicsSceneMouseEven
 
 WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(QEvent::Type type,
     Qt::MouseButton button, Qt::KeyboardModifiers modifiers,
-    int x, int y, int globalX, int globalY)
+                                                    int x, int y, int globalX, int globalY, double scale)
 {
   WebKit::WebMouseEvent result;
 
   result.timeStampSeconds = base::Time::Now().ToInternalValue() / 1000;
   result.modifiers = modifiers;
 
-  result.x = x;
-  result.y = y;
+  result.x = static_cast<int>(x / scale);
+  result.y = static_cast<int>(y / scale);
   result.windowX = result.x;
   result.windowY = result.y;
   result.globalX = globalX;
@@ -265,7 +266,7 @@ WebKit::WebMouseWheelEvent EventUtilQt::ToMouseWheelEvent(int x, int y,
   return result;
 }
 
-WebKit::WebTouchEvent EventUtilQt::ToWebTouchEvent(const QGraphicsSceneMouseEvent *qevent)
+WebKit::WebTouchEvent EventUtilQt::ToWebTouchEvent(const QGraphicsSceneMouseEvent *qevent, double scale)
 {
   WebKit::WebTouchEvent result;
 
@@ -275,8 +276,8 @@ WebKit::WebTouchEvent EventUtilQt::ToWebTouchEvent(const QGraphicsSceneMouseEven
   result.touchPointsLength = 1;
 
   result.touchPoints[0].id = 1;
-  result.touchPoints[0].position.x = static_cast<int>(qevent->pos().x());
-  result.touchPoints[0].position.y = static_cast<int>(qevent->pos().y());
+  result.touchPoints[0].position.x = static_cast<int>(qevent->pos().x() / scale);
+  result.touchPoints[0].position.y = static_cast<int>(qevent->pos().y() / scale);
   result.touchPoints[0].screenPosition.x = static_cast<int>(qevent->screenPos().x());
   result.touchPoints[0].screenPosition.y = static_cast<int>(qevent->screenPos().y());
 

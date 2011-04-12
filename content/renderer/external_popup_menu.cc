@@ -20,7 +20,14 @@ ExternalPopupMenu::ExternalPopupMenu(
 
 void ExternalPopupMenu::show(const WebKit::WebRect& bounds) {
   ViewHostMsg_ShowPopup_Params popup_params;
-  popup_params.bounds = bounds;
+
+  //transform it to scaled coordinate system
+  WebKit::WebRect scaled = bounds;
+  scaled.x *= render_view_->scale();
+  scaled.y *= render_view_->scale();
+  scaled.width *= render_view_->scale();
+  scaled.height *= render_view_->scale();
+  popup_params.bounds = scaled;
   popup_params.item_height = popup_menu_info_.itemHeight;
   popup_params.item_font_size = popup_menu_info_.itemFontSize;
   popup_params.selected_item = popup_menu_info_.selectedIndex;

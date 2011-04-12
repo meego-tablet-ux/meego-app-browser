@@ -105,6 +105,7 @@ class RenderWidget : public IPC::Channel::Listener,
 
   // WebKit::WebWidgetClient
   virtual void didInvalidateRect(const WebKit::WebRect&);
+  virtual void scrollRectToVisible(const WebKit::WebRect&);
   virtual void didScrollRect(int dx, int dy, const WebKit::WebRect& clipRect);
   virtual void didActivateAcceleratedCompositing(bool active);
   virtual void scheduleComposite();
@@ -132,6 +133,9 @@ class RenderWidget : public IPC::Channel::Listener,
 
   // Close the underlying WebWidget.
   virtual void Close();
+
+  // return current scale factor 
+  double scale() { return scale_; }
 
  protected:
   // Friend RefCounted so that the dtor can be non-public. Using this class
@@ -212,6 +216,12 @@ class RenderWidget : public IPC::Channel::Listener,
   void OnQueryEditorCursorPosition(int* cursor_position);
   void OnQueryEditorSelection(std::string* selection);
   void OnQueryEditorSurroundingText(std::string* surrounding_text);
+  void OnMsgPaintTile(const TransportDIB::Handle& dib_handle,
+                      unsigned int seq,
+                      unsigned int tag,
+                      const gfx::Rect& rect,
+                      const gfx::Rect& pixmap_rect);
+  void OnSetPreferredSize(const gfx::Size& size);
  #endif
 
   // Override point to notify derived classes that a paint has happened.
@@ -315,6 +325,13 @@ class RenderWidget : public IPC::Channel::Listener,
   // The size of the RenderWidget.
   gfx::Size size_;
 
+  // Resize to contents
+  bool resize_to_contents_;
+  gfx::Size preferred_contents_size_;
+  gfx::Size contents_size_;
+  double scale_;
+  unsigned int seq_;
+
   // The TransportDIB that is being used to transfer an image to the browser.
   TransportDIB* current_paint_buf_;
 
@@ -394,6 +411,8 @@ class RenderWidget : public IPC::Channel::Listener,
   bool animation_update_pending_;
   bool animation_task_posted_;
 
+  gfx::Rect visible_rect_;
+  
   DISALLOW_COPY_AND_ASSIGN(RenderWidget);
 };
 

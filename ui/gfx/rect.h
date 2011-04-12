@@ -172,6 +172,7 @@ class Rect {
   // same height) with the given rectangle, and the rectangles do not overlap.
   bool SharesEdgeWith(const gfx::Rect& rect) const;
 
+  void Scale(double rx, double ry) { size_.Scale(rx, ry);}
  private:
   gfx::Point origin_;
   gfx::Size size_;

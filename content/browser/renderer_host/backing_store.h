@@ -44,7 +44,8 @@ class BackingStore {
       RenderProcessHost* process,
       TransportDIB::Id bitmap,
       const gfx::Rect& bitmap_rect,
-      const std::vector<gfx::Rect>& copy_rects) = 0;
+      const std::vector<gfx::Rect>& copy_rects,
+      unsigned int seq = 0) = 0;
 
   // Extracts the gives subset of the backing store and copies it to the given
   // PlatformCanvas. The PlatformCanvas should not be initialized. This function
@@ -62,10 +63,10 @@ class BackingStore {
   // Can only be constructed via subclasses.
   BackingStore(RenderWidgetHost* widget, const gfx::Size& size);
 
- private:
   // The owner of this backing store.
   RenderWidgetHost* render_widget_host_;
 
+ private:
   // The size of the backing store.
   gfx::Size size_;
 

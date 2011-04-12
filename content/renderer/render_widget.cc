@@ -41,6 +41,13 @@
 #endif  // defined(OS_POSIX)
 
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebWidget.h"
+#include "chrome/common/render_tiling.h"
+
+#if defined(TILED_BACKING_STORE_DEBUG)
+#include <QString>
+#include <QImage>
+#include <QPainter>
+#endif
 
 using WebKit::WebCompositionUnderline;
 using WebKit::WebCursorInfo;
@@ -84,7 +91,11 @@ RenderWidget::RenderWidget(RenderThreadBase* render_thread,
       suppress_next_char_events_(false),
       is_accelerated_compositing_active_(false),
       animation_update_pending_(false),
-      animation_task_posted_(false) {
+      animation_task_posted_(false),
+      resize_to_contents_(true),
+      scale_(1.0),
+      seq_(0)
+{
   RenderProcess::current()->AddRefProcess();
   WebKit::WebWidget::setUseExternalPopupMenus(true);
   DCHECK(render_thread_);
@@ -188,6 +199,8 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorCursorPosition, OnQueryEditorCursorPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSelection, OnQueryEditorSelection)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSurroundingText, OnQueryEditorSurroundingText)
+    IPC_MESSAGE_HANDLER(ViewMsg_SetPreferredSize, OnSetPreferredSize)
+    IPC_MESSAGE_HANDLER(ViewMsg_PaintTile, OnMsgPaintTile)
 #endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
@@ -239,11 +252,28 @@ void RenderWidget::OnClose() {
   Release();
 }
 
+void RenderWidget::OnSetPreferredSize(const gfx::Size& new_size)
+{
+  if (!webwidget_)
+    return;
+  
+  if (!resize_to_contents_)
+    return;
+  
+  preferred_contents_size_ = new_size;
+  webwidget_->setPreferredContentsSize(new_size);
+}
+
+
 void RenderWidget::OnResize(const gfx::Size& new_size,
                             const gfx::Rect& resizer_rect) {
   // During shutdown we can just ignore this message.
   if (!webwidget_)
     return;
+
+  if (resize_to_contents_)
+    return;
+    
 
   // We shouldn't be asked to resize to our current size.
   DCHECK(size_ != new_size || resizer_rect_ != resizer_rect);
@@ -439,11 +469,27 @@ void RenderWidget::ClearFocus() {
     webwidget_->setFocus(false);
 }
 
-void RenderWidget::PaintRect(const gfx::Rect& rect,
+void RenderWidget::PaintRect(const gfx::Rect& update_rect,
                              const gfx::Point& canvas_origin,
                              skia::PlatformCanvas* canvas) {
+  gfx::Rect rect(update_rect.x() - 1, update_rect.y() - 1,
+                 update_rect.width() + 2, update_rect.height() + 2);
+
+  DLOG(INFO) << "RenderWidget::PaintRect scale " << scale_
+             << " " << rect.x()
+             << " " << rect.y()
+             << " " << rect.width()
+             << " " << rect.height();
+
+  DLOG(INFO) << "RenderWidget::PaintRect canvas_origin "
+             << canvas_origin.x()
+             << " "
+             << canvas_origin.y();
 
   canvas->save();
+
+  canvas->scale(scale_, scale_);
+
 
   // Bring the canvas into the coordinate system of the paint rect.
   canvas->translate(static_cast<SkScalar>(-canvas_origin.x()),
@@ -589,6 +635,32 @@ void RenderWidget::CallDoDeferredUpdate() {
     Send(pending_input_event_ack_.release());
 }
 
+#if defined(TILED_BACKING_STORE_DEBUG)
+static QImage SkBitmap2Image(const SkBitmap& bitmap)
+{
+  QImage image;
+  
+  QImage::Format format;
+  switch (bitmap.getConfig()) {
+    case SkBitmap::kARGB_8888_Config:
+      format = QImage::Format_ARGB32_Premultiplied;
+      break;
+    default:
+      format = QImage::Format_Invalid;
+  }
+  if (format != QImage::Format_Invalid) {
+    bitmap.lockPixels();
+    QImage img((const uchar*)bitmap.getPixels(),
+               bitmap.width(), bitmap.height(),
+               bitmap.rowBytes(), format);
+    bitmap.unlockPixels();
+    return img;
+  }
+  else
+    return image;
+}
+#endif
+
 void RenderWidget::DoDeferredUpdate() {
   GPU_TRACE_EVENT0("renderer", "RenderWidget::DoDeferredUpdate");
 
@@ -620,7 +692,20 @@ void RenderWidget::DoDeferredUpdate() {
   paint_aggregator_.PopPendingUpdate(&update);
 
   gfx::Rect scroll_damage = update.GetScrollDamage();
-  gfx::Rect bounds = update.GetPaintBounds().Union(scroll_damage);
+  gfx::Rect update_bounds = update.GetPaintBounds().Union(scroll_damage);
+  gfx::Rect canvas_bounds = update_bounds;
+
+  DLOG(INFO) << "canvas bounds before floor " << canvas_bounds.x() << " " << canvas_bounds.y() << " " << canvas_bounds.width() << " " << canvas_bounds.height();
+  int floorX = floorByStep(canvas_bounds.x());
+  int floorY = floorByStep(canvas_bounds.y());
+  int incX = canvas_bounds.x() - floorX;
+  int incY = canvas_bounds.y() - floorY;
+  canvas_bounds.set_x(floorX);
+  canvas_bounds.set_y(floorY);
+  canvas_bounds.set_width(canvas_bounds.width() + incX );
+  canvas_bounds.set_height(canvas_bounds.height() + incY );
+  canvas_bounds.Scale(scale_, scale_);
+  DLOG(INFO) << "bounds after scale " << canvas_bounds.x() << " " << canvas_bounds.y() << " " << canvas_bounds.width() << " " << canvas_bounds.height();
 
   // Compositing the page may disable accelerated compositing.
   bool accelerated_compositing_was_active = is_accelerated_compositing_active_;
@@ -642,18 +727,18 @@ void RenderWidget::DoDeferredUpdate() {
   gfx::Rect optimized_copy_rect, optimized_copy_location;
   if (update.scroll_rect.IsEmpty() &&
       !is_accelerated_compositing_active_ &&
-      GetBitmapForOptimizedPluginPaint(bounds, &dib, &optimized_copy_location,
+      GetBitmapForOptimizedPluginPaint(update_bounds, &dib, &optimized_copy_location,
                                        &optimized_copy_rect)) {
     // Only update the part of the plugin that actually changed.
-    optimized_copy_rect = optimized_copy_rect.Intersect(bounds);
-    bounds = optimized_copy_location;
+    optimized_copy_rect = optimized_copy_rect.Intersect(update_bounds);
+    update_bounds = optimized_copy_location;
     copy_rects.push_back(optimized_copy_rect);
     dib_id = dib->id();
   } else if (!is_accelerated_compositing_active_) {
     // Compute a buffer for painting and cache it.
     scoped_ptr<skia::PlatformCanvas> canvas(
         RenderProcess::current()->GetDrawingCanvas(&current_paint_buf_,
-                                                   bounds));
+                                                   canvas_bounds));
     if (!canvas.get()) {
       NOTREACHED();
       return;
@@ -661,10 +746,12 @@ void RenderWidget::DoDeferredUpdate() {
 
     // We may get back a smaller canvas than we asked for.
     // TODO(darin): This seems like it could cause painting problems!
-    DCHECK_EQ(bounds.width(), canvas->getDevice()->width());
-    DCHECK_EQ(bounds.height(), canvas->getDevice()->height());
-    bounds.set_width(canvas->getDevice()->width());
-    bounds.set_height(canvas->getDevice()->height());
+    //DCHECK_EQ(bounds.width(), canvas->getDevice()->width());
+    //DCHECK_EQ(bounds.height(), canvas->getDevice()->height());
+    DLOG(INFO) << "canvas size " << canvas->getDevice()->width() << " "
+               << canvas->getDevice()->height();
+    canvas_bounds.set_width(canvas->getDevice()->width());
+    canvas_bounds.set_height(canvas->getDevice()->height());
 
     HISTOGRAM_COUNTS_100("MPArch.RW_PaintRectCount", update.paint_rects.size());
 
@@ -674,18 +761,46 @@ void RenderWidget::DoDeferredUpdate() {
       copy_rects.push_back(scroll_damage);
 
     for (size_t i = 0; i < copy_rects.size(); ++i)
-      PaintRect(copy_rects[i], bounds.origin(), canvas.get());
+    {
+      PaintRect(copy_rects[i], canvas_bounds.origin(), canvas.get());
+    }
 
+#if defined(TILED_BACKING_STORE_DEBUG)
+    static int counter = 0;
+    QString file_name = QString("/home/meego/tmp/render_update_")
+                        + QString::number(counter)
+                        + QString("_")
+                        + QString::number(canvas_bounds.x())
+                        + QString("_")
+                        + QString::number(canvas_bounds.y())
+                        + QString(".png");
+    SkBitmap bitmap = canvas->getTopPlatformDevice().accessBitmap(true);
+    QImage image = SkBitmap2Image(bitmap);
+    DLOG(INFO) << "canvas bounds [x, y, w, h] = " << canvas_bounds.x() << " " << canvas_bounds.y() << " " << canvas_bounds.width() << " " << canvas_bounds.height();
+    DLOG(INFO) << "scale is: " << scale_;
+    DLOG(INFO) << "canvas image size [w, h] = " << image.width() << ", " << image.height();
+
+    image.save(file_name);
+
+    if (counter >= 100)
+      counter = 0;
+    else
+      counter++;
+#endif
+    
     dib_id = current_paint_buf_->id();
   } else {  // Accelerated compositing path
     // Begin painting.
     webwidget_->composite(false);
   }
 
+  gfx::Rect scaled_bounds = canvas_bounds;
+  scaled_bounds.set_x(canvas_bounds.x() * scale_);
+  scaled_bounds.set_y(canvas_bounds.y() * scale_);
   // sending an ack to browser process that the paint is complete...
   ViewHostMsg_UpdateRect_Params params;
   params.bitmap = dib_id;
-  params.bitmap_rect = bounds;
+  params.bitmap_rect = scaled_bounds;
   params.dx = update.scroll_delta.x();
   params.dy = update.scroll_delta.y();
   if (accelerated_compositing_was_active) {
@@ -697,14 +812,17 @@ void RenderWidget::DoDeferredUpdate() {
     params.scroll_rect = update.scroll_rect;
     params.copy_rects.swap(copy_rects);  // TODO(darin): clip to bounds?
   }
-  params.view_size = size_;
+
+  // In tiled backing store mode, view size is not used
+  params.view_size = gfx::Size();
+  
   params.resizer_rect = resizer_rect_;
   params.plugin_window_moves.swap(plugin_window_moves_);
   params.flags = next_paint_flags_;
   params.scroll_offset = GetScrollOffset();
 
   update_reply_pending_ = true;
-  Send(new ViewHostMsg_UpdateRect(routing_id_, params));
+  Send(new ViewHostMsg_UpdateRect(routing_id_, seq_, params));
   next_paint_flags_ = 0;
 
   UpdateInputMethod();
@@ -716,13 +834,31 @@ void RenderWidget::DoDeferredUpdate() {
 ///////////////////////////////////////////////////////////////////////////////
 // WebWidgetClient
 
+void RenderWidget::scrollRectToVisible(const WebRect& rect)
+{
+  gfx::Rect gfx_rect(rect);
+  Send(new ViewHostMsg_ScrollRectToVisible(routing_id_, gfx_rect));  
+}
+
 void RenderWidget::didInvalidateRect(const WebRect& rect) {
   // We only want one pending DoDeferredUpdate call at any time...
   bool update_pending = paint_aggregator_.HasPendingUpdate();
 
   // The invalidated rect might be outside the bounds of the view.
-  gfx::Rect view_rect(size_);
-  gfx::Rect damaged_rect = view_rect.Intersect(rect);
+  //gfx::Rect view_rect(size_);
+  //gfx::Rect damaged_rect = view_rect.Intersect(rect);
+  DLOG(INFO) << "visible_rect " << visible_rect_.x()
+             << " " << visible_rect_.y()
+             << " " << visible_rect_.width()
+             << " " << visible_rect_.height();
+  gfx::Rect viewport_rect = visible_rect_;
+  if (viewport_rect.width() == 0 && viewport_rect.height() == 0)
+    viewport_rect = gfx::Rect(preferred_contents_size_);
+  gfx::Rect damaged_rect = viewport_rect.Intersect(rect);
+  DLOG(INFO) << "didInvalidateRect damaged_rect " << damaged_rect.x()
+             << " " << damaged_rect.y()
+             << " " << damaged_rect.width()
+             << " " << damaged_rect.height();
   if (damaged_rect.IsEmpty())
     return;
 
@@ -940,6 +1076,81 @@ void RenderWidget::OnImeConfirmComposition(const string16& text) {
     webwidget_->confirmComposition(text);
 }
 
+void RenderWidget::OnMsgPaintTile(const TransportDIB::Handle& dib_handle,
+                                  unsigned int seq,
+                                  unsigned int tag,
+                                  const gfx::Rect& rect,
+                                  const gfx::Rect& pixmap_rect) {
+  DLOG(INFO) << "RenderWidget::OnMsgPaintTile " << tag
+             << " " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height();
+  
+  if (seq >= seq_)
+    seq_ = seq;
+
+  if (!webwidget_ || dib_handle == TransportDIB::DefaultHandleValue())
+    return;
+
+  // Map the given DIB ID into this process, and unmap it at the end
+  // of this function.
+  scoped_ptr<TransportDIB> paint_tile_buffer(TransportDIB::Map(dib_handle));
+
+  //DCHECK(paint_tile_buffer.get());
+  if (!paint_tile_buffer.get())
+    return;
+
+  gfx::Rect origin_bounds(rect);
+  gfx::Rect update(rect.x() / scale_, rect.y() / scale_,
+                   rect.width() / scale_ + 2, rect.height() / scale_ + 2);
+  gfx::Rect bounds = pixmap_rect;
+
+  scoped_ptr<skia::PlatformCanvas> canvas(
+      paint_tile_buffer->GetPlatformCanvas(bounds.width(),
+                                           bounds.height()));
+  if (!canvas.get()) {
+    NOTREACHED();
+    return;
+  }
+
+  // Reset bounds to what we actually received, but they should be the
+  // same.
+  DCHECK_EQ(bounds.width(), canvas->getDevice()->width());
+  DCHECK_EQ(bounds.height(), canvas->getDevice()->height());
+  bounds.set_width(canvas->getDevice()->width());
+  bounds.set_height(canvas->getDevice()->height());
+  origin_bounds.set_width(canvas->getDevice()->width());
+  origin_bounds.set_height(canvas->getDevice()->height());
+
+
+  webwidget_->layout();
+
+  // Paint Tile
+  PaintRect(update, bounds.origin(), canvas.get());
+
+#if defined(TILED_BACKING_STORE_DEBUG)
+    static int counter = 0;
+    QString file_name = QString("/home/meego/tmp/render_update_")
+                        + QString::number(counter)
+                        + QString("_")
+                        + QString::number(rect.x())
+                        + QString("_")
+                        + QString::number(rect.y())
+                        + QString(".png");
+    SkBitmap bitmap = canvas->getTopPlatformDevice().accessBitmap(true);
+    QImage image = SkBitmap2Image(bitmap);
+    image.save(file_name);
+
+    if (counter >= 100)
+      counter = 0;
+    else
+      counter++;  
+#endif
+
+    gfx::Rect scaled_bounds = bounds;
+    scaled_bounds.set_x(bounds.x() * scale_);
+    scaled_bounds.set_y(bounds.y() * scale_);
+    Send(new ViewHostMsg_PaintTile_ACK(routing_id_, seq_, tag, origin_bounds, scaled_bounds));
+}
+
 // This message causes the renderer to render an image of the
 // desired_size, regardless of whether the tab is hidden or not.
 void RenderWidget::OnMsgPaintAtSize(const TransportDIB::Handle& dib_handle,
@@ -1025,7 +1236,8 @@ void RenderWidget::OnMsgRepaint(const gfx::Size& size_to_paint) {
   if (is_accelerated_compositing_active_) {
     scheduleComposite();
   } else {
-    gfx::Rect repaint_rect(size_to_paint.width(), size_to_paint.height());
+    gfx::Rect repaint_rect(visible_rect_.x(), visible_rect_.y(),
+                           size_to_paint.width(), size_to_paint.height());
     didInvalidateRect(repaint_rect);
   }
 }

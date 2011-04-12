@@ -75,6 +75,8 @@
           'common/time_format.h',
           'common/win_safe_util.cc',
           'common/win_safe_util.h',
+          'common/render_tiling.cc',
+          'common/render_tiling.h',
         ],
       }],
     ],

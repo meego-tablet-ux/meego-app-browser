@@ -16,6 +16,11 @@
 #include <QtGui/QGraphicsSceneWheelEvent>
 #include <QImage>
 #include <QEvent>
+#include <QDesktopWidget>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QPropertyAnimation>
+#include <QEasingCurve>
 
 #include <algorithm>
 #include <string>
@@ -47,6 +52,13 @@
 namespace {
 static const int kSnapshotWebPageWidth = 1500;
 static const int kSnapshotWebPageHeight = 2000;
+
+static const qreal kMaxContentsScale = 5.0;
+static const qreal kMinContentsScale = 1.0;
+static const qreal kMaxPinchScale = 10;
+static const qreal kMinPinchScale = 0.5;
+static const qreal kNormalContentsScale = 1.0;
+static const int kRebouceDuration = 200;
 
 static const int SelectionHandlerRadius = 30;
 static const int SelectionHandlerRadiusSquare = (SelectionHandlerRadius * SelectionHandlerRadius);
@@ -87,26 +99,29 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   im_cursor_pos_ = -1;
   cancel_next_mouse_release_event_ = false;
   mouse_press_event_delivered_ = false;
-  pinch_image_ = false;
   hold_paint_ = false;
+  
+  // Create animation for rebounce effect 
+  rebounce_animation_ = new QPropertyAnimation(this, "scale", this);
+  connect(rebounce_animation_, SIGNAL(finished()), 
+      this, SLOT(onAnimationFinished()));
+
+  QEasingCurve curve(QEasingCurve::Linear);
+  rebounce_animation_->setEasingCurve(curve);
+  rebounce_animation_->setDuration(kRebouceDuration);
+  rebounce_animation_->setEndValue(1.f);
+  rebounce_animation_->setStartValue(1.f);
 
   selection_start_pos_ = gfx::Point(0, 0);
   selection_end_pos_ = gfx::Point(0, 0);
   in_selection_mode_ = false;
+  is_modifing_selection_ = false;
   current_selection_handler_ = SELECTION_HANDLER_NONE;
 
   m_dbclkHackTimeStamp = 0;
   m_dbclkHackPos = QPointF(0, 0);
 
-  pinch_release_timer_ = new QTimer (this);
-  connect(pinch_release_timer_, SIGNAL(timeout()),
-          this, SLOT(pinchFinishTimeout()));
-  pinch_release_timer_->setSingleShot (true);
-  pinch_backing_store_ = (BackingStoreX*)host_view->AllocBackingStore(gfx::Size(kSnapshotWebPageWidth, kSnapshotWebPageHeight));
-
-  auto_pan_ = new PanAnimation;
   cursor_rect_ = QRect();
-  connect(auto_pan_, SIGNAL(panTriggered(int, int)), SLOT(autoPanCallback(int, int)));
 
   LauncherApp* app = reinterpret_cast<LauncherApp*>(qApp);
   connect(app, SIGNAL(orientationChanged()), this, SLOT(onOrientationAngleChanged()));
@@ -116,7 +131,8 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
     // we must not grab focus when we are running in a popup mode
     setFocusPolicy(Qt::StrongFocus);
 
-    grabGesture(Qt::PanGesture);
+    // use flickable to handle pan and flicking
+    //grabGesture(Qt::PanGesture);
     grabGesture(Qt::TapAndHoldGesture);
     grabGesture(Qt::PinchGesture);
     setAcceptTouchEvents(true);
@@ -125,14 +141,19 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
     grabGesture(Qt::PanGesture);
     setAcceptTouchEvents(true);
   }
+
+  installed_filter_ = false;
+
+  connect(this, SIGNAL(geometryChanged()), this, SLOT(onGeometryChanged()));
+  
+  pinchEmulationEnabled = false;
+  pinch_completing_ = false;
+  scale_ = pending_scale_ = kNormalContentsScale;
 }
 
 RWHVQtWidget::~RWHVQtWidget()
 {
-  if (auto_pan_)
-    delete auto_pan_;
-  if (pinch_backing_store_)
-    delete pinch_backing_store_;
+  delete rebounce_animation_;
 }
 
 
@@ -140,6 +161,147 @@ RenderWidgetHostViewQt* RWHVQtWidget::hostView()
 {
   return host_view_;
 }
+
+bool RWHVQtWidget::eventFilter ( QObject * obj, QEvent * event )
+{
+  if (eventEmulatePinch(event)) {
+    return true;
+  }
+  else
+  {
+    return QObject::eventFilter(obj, event);
+  }
+}
+
+void RWHVQtWidget::touchPointCopyPosToLastPos(QTouchEvent::TouchPoint &point)
+{
+  point.setLastPos(point.pos());
+  point.setLastScenePos(point.scenePos());
+  point.setLastScreenPos(point.screenPos());
+}
+
+void RWHVQtWidget::touchPointCopyMousePosToPointPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event)
+{
+  point.setPos(event->pos());
+  point.setScenePos(event->scenePos());
+  point.setScreenPos(event->screenPos());
+}
+
+void RWHVQtWidget::touchPointCopyMousePosToPointStartPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event)
+{
+  point.setStartPos(event->pos());
+  point.setStartScenePos(event->scenePos());
+  point.setStartScreenPos(event->screenPos());
+}
+
+void RWHVQtWidget::touchPointMirrorMousePosToPointPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event)
+{
+  if (scene()->views().size() > 0) {
+    QPointF windowPos(scene()->views().at(0)->pos());
+    QSize resolution = qApp->desktop()->size();
+    QPointF centerPoint(resolution.width() / 2, resolution.height() / 2);
+
+    QPointF mirrorPoint = centerPoint + (centerPoint - event->screenPos() + windowPos);
+
+    point.setPos(mirrorPoint);
+    point.setScenePos(mirrorPoint);
+    point.setScreenPos(mirrorPoint + windowPos);
+  }
+}
+
+void RWHVQtWidget::touchPointMirrorMousePosToPointStartPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event)
+{
+  if (scene()->views().size() > 0) {
+    QPointF windowPos(scene()->views().at(0)->pos());
+    QSize resolution = qApp->desktop()->size();
+    QPointF centerPoint(resolution.width() / 2, resolution.height() / 2);
+
+    QPointF mirrorPoint = centerPoint + (centerPoint - event->screenPos() + windowPos);
+
+    DLOG(INFO) << "mirrorPoint " << mirrorPoint.x() << " " << mirrorPoint.y();
+
+    point.setStartPos(mirrorPoint);
+    point.setStartScenePos(mirrorPoint);
+    point.setStartScreenPos(mirrorPoint + windowPos);
+  }
+}
+
+bool RWHVQtWidget::eventEmulatePinch(QEvent *event)
+{
+#if !defined(NDEBUG)
+  bool sendTouchEvent = false;
+  QGraphicsSceneMouseEvent *e = static_cast<QGraphicsSceneMouseEvent*>(event);
+
+  QEvent::Type touchEventType;
+  Qt::TouchPointState touchPointState;
+
+  if (QEvent::GraphicsSceneMousePress == event->type()) {
+    if (Qt::LeftButton == e->button() && e->modifiers().testFlag(Qt::ControlModifier)) {
+      pinchEmulationEnabled = true;
+
+      touchPointMirrorMousePosToPointPos(emuPoint1,e);
+      touchPointMirrorMousePosToPointStartPos(emuPoint1,e);
+      emuPoint1.setState(Qt::TouchPointPressed);
+
+      touchPointCopyMousePosToPointPos(emuPoint2,e);
+      touchPointCopyMousePosToPointStartPos(emuPoint2,e);
+      emuPoint2.setState(Qt::TouchPointPressed);
+
+      touchEventType = QEvent::TouchBegin;
+      touchPointState = Qt::TouchPointPressed;
+      sendTouchEvent = true;
+    }
+  }
+
+  if (pinchEmulationEnabled && QEvent::GraphicsSceneMouseMove == event->type()) {
+
+    touchPointCopyPosToLastPos(emuPoint1);
+    touchPointMirrorMousePosToPointPos(emuPoint1,e);
+    emuPoint1.setState(Qt::TouchPointMoved);
+
+    touchPointCopyPosToLastPos(emuPoint2);
+    touchPointCopyMousePosToPointPos(emuPoint2,e);
+    emuPoint2.setState(Qt::TouchPointMoved);
+
+    touchEventType = QEvent::TouchUpdate;
+    touchPointState = Qt::TouchPointMoved;
+    sendTouchEvent = true;
+  }
+
+  if (pinchEmulationEnabled && QEvent::GraphicsSceneMouseRelease == event->type()) {
+    if (Qt::LeftButton == e->button()) {
+
+      touchPointCopyPosToLastPos(emuPoint1);
+      emuPoint1.setState(Qt::TouchPointReleased);
+
+      touchPointCopyPosToLastPos(emuPoint2);
+      touchPointCopyMousePosToPointPos(emuPoint2,e);
+      emuPoint2.setState(Qt::TouchPointReleased);
+
+      touchEventType = QEvent::TouchEnd;
+      touchPointState = Qt::TouchPointReleased;
+      pinchEmulationEnabled = false;
+      sendTouchEvent = true;
+    }
+  }
+
+  if (sendTouchEvent) {
+    QList<QTouchEvent::TouchPoint> touchList;
+    touchList.append(emuPoint1);
+    touchList.append(emuPoint2);
+
+    QTouchEvent touchEvent(touchEventType, QTouchEvent::TouchPad, Qt::NoModifier, touchPointState, touchList);
+    if (scene()->views().size()>0)
+    {
+      QApplication::sendEvent(scene()->views().at(0)->viewport(), &touchEvent);
+      DLOG(INFO) << "QApplication::sendEvent touch event";
+    }
+    scene()->update();
+    return true;
+  }
+#endif
+  return false;
+ }
 
 void RWHVQtWidget::setHostView(RenderWidgetHostViewQt* host_view)
 {
@@ -333,93 +495,12 @@ void RWHVQtWidget::inputMethodEvent(QInputMethodEvent *event)
 
 }
 
-void RWHVQtWidget::setPinchImage()
-{
-  pinch_image_ = true;
-}
-
-#ifdef PINCH_FINI_DEBUG
-void RWHVQtWidget::update ( qreal x, qreal y, qreal width, qreal height )
-{
-  QGraphicsWidget::update (x, y, width, height);
-  DLOG(INFO) << __PRETTY_FUNCTION__ << " " << x << " " << y <<
-    " " << width << " " << height;
-}
-#endif
-
 void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget * widget)
 {
   RenderWidgetHost *host;
-#ifdef PINCH_FINI_DEBUG
-  static int counter = 0;
-  static int non_pinch_cnt = 0;
-  static int rec_cnt = 3;
-
-  counter++;
-  DLOG(INFO) << __PRETTY_FUNCTION__ << " counter: " << counter;
-#endif
 
   if (!hostView())
     return;
-
-  if (pinch_image_) {
-    QRectF exposed_rect = option->exposedRect;
-
-    double left =  pinch_view_pos_.x() + exposed_rect.x() +
-      pinch_center_.x() * (scale_factor_ - 1) / scale_factor_;
-
-    double right = pinch_view_pos_.x() + exposed_rect.right() -
-      (exposed_rect.width() - pinch_center_.x()) * (scale_factor_ - 1) / scale_factor_;
-
-    double top = pinch_view_pos_.y() + exposed_rect.y() +
-      pinch_center_.y() * (scale_factor_ - 1) / scale_factor_;
-
-    double bottom = pinch_view_pos_.y() + exposed_rect.bottom() -
-      (exposed_rect.height() - pinch_center_.y()) * (scale_factor_ - 1) / scale_factor_;
-
-
-    QRectF source(left, top, abs(right - left), bottom - top);
-    if (left < 0) source.moveLeft (0);
-    if (top < 0) source.moveTop (0);
-
-    int pinch_width = pinch_backing_store_->size().width();
-    int pinch_height = pinch_backing_store_->size().height();
-
-    if (source.right() > pinch_width) {
-      double scale_down = (source.right() - pinch_width) / source.width();
-      double vert_shrink = scale_down * source.height();
-      source.setRight (pinch_width);
-      source.setHeight (source.height() - vert_shrink);
-    }
-    if (source.bottom() > pinch_height) {
-      double scale_down = (source.bottom() - pinch_height) / source.height();
-      double horz_shrink = scale_down * source.width();
-      source.setBottom (pinch_height);
-      source.setWidth (source.width() - horz_shrink);
-    }
-
-    scale_factor_ = exposed_rect.width() / source.width();
-
-    DLOG(INFO) << " scale factor: " << scale_factor_ << " pinch rects: \n" <<
-      exposed_rect.x() << " " << exposed_rect.y() << " " <<
-      exposed_rect.width() << " " << exposed_rect.height() << "\n" <<
-      source.x() << " " << source.y() << " " <<
-      source.width() << " " << source.height() << "\n";
-
-    pinch_backing_store_->QPainterShowRect(painter, exposed_rect, source);
-    QRectF* saved_rect = (QRectF*)&pinch_src_rect_;
-    *saved_rect = source;
-#ifdef PINCH_DEBUG
-    QImage dbg_bmp(exposed_rect.width(), exposed_rect.height(),
-                   QImage::Format_ARGB32_Premultiplied);
-    {
-      QPainter p(&dbg_bmp);
-      p.drawPixmap (exposed_rect, *pinch_image_, source);
-    }
-    dbg_bmp.save ("/tmp/pinchstep.png");
-#endif
-    return;
-  }
 
   host = hostView()->host_;
   BackingStoreX* backing_store = static_cast<BackingStoreX*>(
@@ -441,8 +522,12 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 
   QRectF exposed_rect = option->exposedRect;
 
-  QRectF paint_rect(0.0, 0.0, kMaxWindowWidth, kMaxWindowHeight);
-  paint_rect &= exposed_rect;
+#if defined(TILED_BACKING_STORE)
+  if (backing_store)
+    backing_store->AdjustTiles();
+#endif
+
+  QRectF paint_rect = exposed_rect;
   paint_rect |= invalid_rect;
 
   // Calling GetBackingStore maybe have changed |invalid_rect_|...
@@ -452,22 +537,6 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     // Only render the widget if it is attached to a window; there's a short
     // period where this object isn't attached to a window but hasn't been
     // Destroy()ed yet and it receives paint messages...
-#ifdef PINCH_FINI_DEBUG
-    if (counter - non_pinch_cnt > 20) {
-      if (--rec_cnt == 0) {
-        non_pinch_cnt = counter;
-        rec_cnt = 3;
-      }
-      QImage dbg_bmp(900, 500,
-                     QImage::Format_ARGB32_Premultiplied);
-      {
-        QPainter p(&dbg_bmp);
-        backing_store->QPainterShowRect(&p, paint_rect);
-      }
-      dbg_bmp.save (QString("/tmp/paint%1.bmp").arg(counter));
-    }
-    non_pinch_cnt++;
-#endif
 
     if (hold_paint_) {
       hold_paint_ = false;
@@ -476,6 +545,12 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     }
   } else {
     DNOTIMPLEMENTED();
+  }
+
+  if (pinchEmulationEnabled)
+  {
+    painter->drawEllipse(emuPoint1.scenePos(), 50.0, 50.0);
+    painter->drawEllipse(emuPoint2.scenePos(), 50.0, 50.0);
   }
 }
 
@@ -517,6 +592,11 @@ void RWHVQtWidget::gestureEvent(QGestureEvent *event)
 
 bool RWHVQtWidget::event(QEvent *event)
 {
+  if (!installed_filter_ && scene()) {
+      scene()->installEventFilter(this);
+      installed_filter_ = true;
+  }
+  
   switch (event->type()) {
   // case QEvent::GraphicsSceneMouseDoubleClick:
   //   // DLOG(INFO) << "==>" << __PRETTY_FUNCTION__ <<
@@ -623,7 +703,7 @@ void RWHVQtWidget::resizeEvent(QGraphicsSceneResizeEvent* event)
   ///\todo We should not use this resize event to resize RWHV
   /// Instead Tab contents should call RWHV->setSize directly.
   /// to remove;
-  hostView()->SetSize(gfx::Size(event->newSize().width(), event->newSize().height()));
+  //hostView()->SetSize(gfx::Size(event->newSize().width(), event->newSize().height()));
 }
 
 void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
@@ -634,7 +714,7 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 #if 0
   // Anyone need the touch move event?
-  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event);
+  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
   hostView()->host_->ForwardTouchEvent(touchEvent);
 #endif
 
@@ -648,7 +728,7 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     // send out mouse press event, if it hadn't been sent out.
     deliverMousePressEvent();
 
-    WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event);
+    WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
     hostView()->host_->ForwardMouseEvent(mouseEvent);
   }
 
@@ -669,27 +749,13 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
   }
 
-  if (!hostView()->IsPopup()) {
-    qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
-    if (timestamp - m_dbclkHackTimeStamp < 350) {
-      // we may hit a double tap
-      qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
-      if (length < 40) {
-        DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
-        zoom2TextAction(event->pos());
-
-        return;
-      }
-    }
-
-    m_dbclkHackTimeStamp = timestamp;
-    m_dbclkHackPos       = event->pos();
-  }
-
-  auto_pan_->stop();
   WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event);
 
   if (in_selection_mode_) {
+    // clear double tap information
+    m_dbclkHackTimeStamp = 0;
+    m_dbclkHackPos = QPointF(0, 0);
+
     current_selection_handler_ = findSelectionHandler(static_cast<int>(event->pos().x()), static_cast<int>(event->pos().y()));
     if (current_selection_handler_ != SELECTION_HANDLER_NONE) {
       is_modifing_selection_ = true;
@@ -702,11 +768,11 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
   hostView()->host_->ForwardTouchEvent(touchEvent);
 
 // Then query the node under current pos
-  hostView()->host_->QueryNodeAtPosition(static_cast<int>(event->pos().x()),
-      static_cast<int>(event->pos().y()));
+  hostView()->host_->QueryNodeAtPosition(static_cast<int>(event->pos().x() / scale()),
+                                         static_cast<int>(event->pos().y() / scale()));
 
 // Finally, save the mouse press event for later usage
-  mouse_press_event_ = EventUtilQt::ToWebMouseEvent(event);
+  mouse_press_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
   mouse_press_event_delivered_ = false;
   cancel_next_mouse_release_event_ = false;
 
@@ -727,7 +793,24 @@ done:
 
 void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event);
+  if (!hostView()->IsPopup()) {
+    qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
+    if (timestamp - m_dbclkHackTimeStamp < 350) {
+      // we may hit a double tap
+      qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
+      if (length < 40) {
+        DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
+        zoom2TextAction(event->pos());
+
+        return;
+      }
+    }
+
+    m_dbclkHackTimeStamp = timestamp;
+    m_dbclkHackPos       = event->pos();
+  }
+
+  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
 // we don't do normal mouse release event when modifing selection
   if (is_modifing_selection_) {
     is_modifing_selection_ = false;
@@ -750,7 +833,7 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     // send out mouse press event, if it hadn't been sent out.
     deliverMousePressEvent();
     // send out mouse release event
-    WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event);
+    WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
     hostView()->host_->ForwardMouseEvent(mouseEvent);
   } else {
     ///\bug If we are doing gesture on a button in the page
@@ -760,16 +843,6 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 done:
   event->accept();
-}
-
-void RWHVQtWidget::autoPanCallback(int dx, int dy)
-{
-  WebKit::WebMouseWheelEvent wheelEvent = EventUtilQt::ToMouseWheelEvent(
-      last_pan_wheel_event_.x, last_pan_wheel_event_.y,
-      last_pan_wheel_event_.globalX, last_pan_wheel_event_.globalY,
-      dx, dy);
-
-  hostView()->host_->ForwardWheelEvent(wheelEvent);
 }
 
 void RWHVQtWidget::tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGesture* gesture)
@@ -839,12 +912,10 @@ void RWHVQtWidget::panGestureEvent(QGestureEvent* event, QPanGesture* gesture)
       break;
     case Qt::GestureUpdated:
       setDoingGesture(Qt::PanGesture);
-      auto_pan_->feedMotion(wheelEvent.deltaX, wheelEvent.deltaY);
       break;
     case Qt::GestureFinished:
       if (isDoingGesture(Qt::PanGesture)) {
         cancel_next_mouse_release_event_ = true;
-        auto_pan_->start();
       }
       clearDoingGesture(Qt::PanGesture);
       // resetting the double click timer
@@ -861,46 +932,58 @@ void RWHVQtWidget::panGestureEvent(QGestureEvent* event, QPanGesture* gesture)
   event->accept();
 }
 
-void RWHVQtWidget::finishPinch()
+void RWHVQtWidget::onAnimationFinished()
 {
-  DLOG(INFO) << __PRETTY_FUNCTION__ << "\n";
-
-  clearDoingGesture(Qt::PinchGesture);
-  if (pinch_image_) {
-
-    pinch_image_ = false;
-    double current_factor;
-    gfx::Point offset;
-    hostView()->host_->QueryScrollOffset (offset);
-    DLOG(INFO) << " current offset: " << offset.x() << " " << offset.y();
-    hostView()->host_->QueryZoomFactor (current_factor);
-    DLOG(INFO) << " current zoom factor: " << current_factor;
-
-    hold_paint_ = true;
-    offset = gfx::Point(pinch_src_rect_.x(), pinch_src_rect_.y());
-    DLOG(INFO) << "new offset: " << offset.x() << " " << offset.y();
-    hostView()->host_->SetScrollPosition (offset.x(), offset.y());
-
-    current_factor = current_factor * scale_factor_;
-    hostView()->host_->SetZoomFactor (current_factor);
-    DLOG(INFO) << " new factor: " << current_factor;
-    update (0.0, 0.0, 1000.0, 1000.0);
-
+  QGraphicsObject* viewport_item = GetViewportItem();
+  if (!viewport_item)
+    return;
+ 
+  //viewport_item->setProperty("interactive", QVariant(false));
+   
+  if((scale_ == kNormalContentsScale 
+      && pending_scale_ < kNormalContentsScale) 
+     || (scale_ == kMaxContentsScale 
+         && pending_scale_ > kMaxContentsScale)) {
+    pinch_completing_ = false;
+  }
+ 
+  if(pending_scale_ < kNormalContentsScale)
+  {
+    host_view_->host_->SetScaleFactor(kNormalContentsScale);
+    pinch_scale_factor_ = kNormalContentsScale/scale_;
+    pending_scale_ = kNormalContentsScale;
+  } else if(pending_scale_ > kMaxContentsScale) {
+    host_view_->host_->SetScaleFactor(kMaxContentsScale);
+    pinch_scale_factor_ = kMaxContentsScale/scale_;
+    pending_scale_ = kMaxContentsScale;
+  } else {
+    host_view_->host_->SetScaleFactor(pending_scale_);
+  }
+ 
+  this->SetScaleFactor(pending_scale_);
+ 
+  if (viewport_item)
+  {
+    QPointF topLeft(-viewport_item->property("contentX").toInt(),
+                    -viewport_item->property("contentY").toInt());
+    DLOG(INFO) << "Web view top left " << topLeft.x()
+               << " " << topLeft.y();
+    DLOG(INFO) << "Web view pinch start top left" << pinch_start_pos_.x()
+               << " " << pinch_start_pos_.y();
+    QPointF center = viewport_item->mapFromScene(pinch_center_);
+    DLOG(INFO) << "Web view pinch center " << center.x() << " " << center.y();
+    QPointF distance = pinch_start_pos_ - center;
+    pending_webview_rect_ = QRectF(
+        QPointF(distance * pinch_scale_factor_ + center + (topLeft - pinch_start_pos_)),
+        size() * pinch_scale_factor_);
   }
 
-  if (pinch_release_timer_)
-    pinch_release_timer_->stop ();
-
-  cancel_next_mouse_release_event_ = true;
-}
-
-void RWHVQtWidget::pinchFinishTimeout()
-{
-  finishPinch();
+  UnFrozen();
 }
 
 void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture)
 {
+  QPointF pos;
   if (is_modifing_selection_)
     return;
 
@@ -909,68 +992,100 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
       return;
   }
 
+  RenderWidgetHost *host = hostView()->host_;
+  BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+      host->GetBackingStore(false));
+  
+  QGraphicsObject* viewport_item = GetViewportItem();
+
   switch (gesture->state())
   {
     case Qt::GestureStarted:
-      gesture->setGestureCancelPolicy(QGesture::CancelAllInContext);
-      setDoingGesture(Qt::PinchGesture);
       {
-        static int sequence_num = 0;
-        sequence_num++;
-        gfx::Size size = gfx::Size(kSnapshotWebPageWidth,
-                                   kSnapshotWebPageHeight);
-        TransportDIB* dib =
-          TransportDIB::Create(size.width() * 4 * size.height(),
-                               sequence_num);
+        pinch_scale_factor_ = kNormalContentsScale;
+        pending_scale_ = scale_;
 
-        int ret = hostView()->host_->PaintContents(dib->handle(),
-                                                   gfx::Rect(0, 0, kSnapshotWebPageWidth,
-                                                             kSnapshotWebPageHeight));
-        if (!ret) {
-          std::vector<gfx::Rect> copy_rects;
-          copy_rects.push_back(gfx::Rect(0, 0, kSnapshotWebPageWidth,
-                                         kSnapshotWebPageHeight));
+        gesture->setGestureCancelPolicy(QGesture::CancelAllInContext);
+        setDoingGesture(Qt::PinchGesture);
+        
+        if (backing_store)
+          backing_store->SetFrozen(true);
 
-          pinch_backing_store_->PaintToBackingStore(hostView()->host_->process(),
-                                                    dib->handle(),
-                                                    gfx::Rect(0, 0, kSnapshotWebPageWidth,
-                                                              kSnapshotWebPageHeight),
-                                                    copy_rects);
-          setPinchImage ();
-        }
-        delete dib;
+        pinch_center_ = gesture->centerPoint();
+        QPointF center = mapFromScene(pinch_center_);
+        setTransformOriginPoint(center);
+        
+        cancel_next_mouse_release_event_ = true;
+        if (viewport_item)
+        {
+          pinch_start_pos_ = QPointF(-viewport_item->property("contentX").toInt(),
+                                     -viewport_item->property("contentY").toInt());
+         }
+        //TODO: enable interactive when doing pinch
+        //Currently we disable it for we're confused by native rwhv gestures and Flickable gestures.
+        //Flickable element will cause pinch jump when the pinch finger is firstly pressed first released
+        if (viewport_item)
+          viewport_item->setProperty("interactive", QVariant(false));
       }
-
-      scale_factor_ = 1.0;
-      pinch_center_ = gesture->centerPoint();
-      hostView()->host_->QueryScrollOffset (pinch_view_pos_);
-
-      if (pinch_release_timer_) {
-        pinch_release_timer_->start (1000);
-      }
-
-      cancel_next_mouse_release_event_ = true;
       break;
     case Qt::GestureUpdated:
-      setDoingGesture(Qt::PinchGesture);
+      {
+        setDoingGesture(Qt::PinchGesture);
+        
+        pinch_scale_factor_ = gesture->totalScaleFactor();
+        if(pinch_scale_factor_ * scale_ > kMaxPinchScale)
+          pinch_scale_factor_ = kMaxPinchScale / scale_;
 
-      if (pinch_release_timer_)
-        pinch_release_timer_->start (1000);
+        if(pinch_scale_factor_ * scale_ < kMinPinchScale) 
+          pinch_scale_factor_ = kMinPinchScale / scale_;;
 
-#if QT_VERSION >= 0x040701
-      scale_factor_ = gesture->totalScaleFactor();
-#else
-      scale_factor_ = gesture->scaleFactor();
-#endif
-      update (0.0, 0.0, 1000.0, 1000.0);
-      LOG(INFO) << __PRETTY_FUNCTION__ << " Updated: " << scale_factor_;
-      cancel_next_mouse_release_event_ = true;
+        // adjust pending scale
+        pending_scale_ = flatScaleByStep(scale_ * pinch_scale_factor_);
+        // re-set pinch_scale_factor after adjusting pending_scale for 
+        // we guarantee pending_scale_ is flatten
+        pinch_scale_factor_ = pending_scale_ / scale_;
+        setScale(pinch_scale_factor_);
+
+        if(pending_scale_ < kNormalContentsScale 
+            || pending_scale_ > kMaxContentsScale) {
+          rebounce_animation_->setStartValue(pinch_scale_factor_);
+        } 
+
+        cancel_next_mouse_release_event_ = true;
+      }
       break;
     case Qt::GestureFinished:
-      finishPinch();
+      {
+        pinch_completing_ = true;
+        cancel_next_mouse_release_event_ = true;
+        clearDoingGesture(Qt::PinchGesture);
+
+        if(pending_scale_ < kNormalContentsScale) 
+        {
+          rebounce_animation_->setStartValue(pinch_scale_factor_);
+          rebounce_animation_->setEndValue(kNormalContentsScale/scale_);
+          rebounce_animation_->start();
+        } else if(pending_scale_ > kMaxContentsScale) {
+          rebounce_animation_->setStartValue(pinch_scale_factor_);
+          rebounce_animation_->setEndValue(kMaxContentsScale/scale_);
+          rebounce_animation_->start();
+        } else {
+          onAnimationFinished();
+        }
+      }
       break;
     case Qt::GestureCanceled:
-      clearDoingGesture(Qt::PinchGesture);
+      {
+        clearDoingGesture(Qt::PinchGesture);
+        
+        if (backing_store)
+          backing_store->SetFrozen(false);
+        
+        QGraphicsObject* viewport_item = GetViewportItem();
+        if (viewport_item)
+          viewport_item->setProperty("interactive", QVariant(true));
+      }
+
       break;
     default:
       break;
@@ -982,6 +1097,23 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
     ", centerPoint x-y:" << gesture->centerPoint().x() << "-" << gesture->centerPoint().y() <<
     ", rotationAngle: " << gesture->rotationAngle() <<
     std::endl;
+}
+
+void RWHVQtWidget::SetScaleFactor(double scale)
+{
+  if(scale_ == scale) return;
+
+  scale_ = scale;
+
+  RenderWidgetHost *host = hostView()->host_;
+
+  if(host) {
+    host->SetScaleFactor(scale);
+    BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+        host->GetBackingStore(false));
+    if (backing_store)
+      backing_store->SetContentsScale(scale_);
+  }
 }
 
 QVariant RWHVQtWidget::inputMethodQuery(Qt::InputMethodQuery query) const
@@ -1015,15 +1147,17 @@ void RWHVQtWidget::zoom2TextAction(const QPointF& pos)
   host->QueryZoomFactor (factor);
 
   if (algo == WebKit::WebSettings::kLayoutNormal) {
-    host->Zoom2TextPre(pos.x(), pos.y());
+    host->Zoom2TextPre(static_cast<int>(pos.x() / scale_), static_cast<int>(pos.y() / scale_));
     factor = 2;
     host->SetLayoutAlgorithm(WebKit::WebSettings::kLayoutFitColumnToScreen);
     host->SetZoomFactor(factor);
     host->Zoom2TextPost();
   } else {
     factor = 1;
+    host->Zoom2TextPre(static_cast<int>(pos.x() / scale_), static_cast<int>(pos.y() / scale_));
     host->SetLayoutAlgorithm(WebKit::WebSettings::kLayoutNormal);
     host->SetZoomFactor(factor);
+    host->Zoom2TextPost();
   }
 }
 
@@ -1069,13 +1203,13 @@ void RWHVQtWidget::fakeMouseRightButtonClick(QGestureEvent* event, QTapAndHoldGe
   WebKit::WebMouseEvent rightButtonPressEvent = EventUtilQt::ToWebMouseEvent(
       QEvent::GraphicsSceneMousePress,
       Qt::RightButton, Qt::NoModifier,
-      x, y, globalX, globalY);
+      x, y, globalX, globalY, scale());
   hostView()->host_->ForwardMouseEvent(rightButtonPressEvent);
 
   WebKit::WebMouseEvent rightButtonReleaseEvent = EventUtilQt::ToWebMouseEvent(
       QEvent::GraphicsSceneMouseRelease,
       Qt::RightButton, Qt::NoModifier,
-      x, y, globalX, globalY);
+      x, y, globalX, globalY, scale());
   hostView()->host_->ForwardMouseEvent(rightButtonReleaseEvent);
 }
 
@@ -1169,8 +1303,15 @@ void RWHVQtWidget::UpdateSelectionRange(gfx::Point start,
   if (!set) {
     in_selection_mode_ = false;
     current_selection_handler_ = SELECTION_HANDLER_NONE;
+    QGraphicsObject* viewport_item = GetViewportItem();
+    if (viewport_item)
+      viewport_item->setProperty("interactive", QVariant(true));
     return;
   }
+
+  QGraphicsObject* viewport_item = GetViewportItem();
+  if (viewport_item)
+    viewport_item->setProperty("interactive", QVariant(false));
 
   in_selection_mode_ = true;
   selection_start_pos_ = start;
@@ -1185,7 +1326,7 @@ void RWHVQtWidget::InvokeSelection(QTapAndHoldGesture* gesture) {
   QPointF pos = hostView()->native_view()->mapFromScene(gesture->position());
   int x = static_cast<int>(pos.x());
   int y = static_cast<int>(pos.y());
-  rvh->SelectItem(gfx::Point(x, y));
+  rvh->SelectItem(gfx::Point(x / scale(), y / scale()));
 }
 
 void RWHVQtWidget::ModifySelection(SelectionHandlerID handler, gfx::Point new_pos) {
@@ -1197,6 +1338,196 @@ void RWHVQtWidget::ModifySelection(SelectionHandlerID handler, gfx::Point new_po
     rvh->SetSelectionRange(new_pos, selection_end_pos_, true);
   } else if (handler == SELECTION_HANDLER_END) {
     rvh->SetSelectionRange(selection_start_pos_, new_pos, true);
+  }
+}
+
+
+void RWHVQtWidget::onGeometryChanged()
+{
+  DLOG(INFO) << "onGeometryChanged " << this << " "
+             << geometry().x() << " "
+             << geometry().y() << " "
+             << geometry().width() << " "
+             << geometry().height();
+  QSizeF size(geometry().width(), geometry().height());
+  QGraphicsObject* viewport_item = GetViewportItem();
+
+  if (viewport_item)
+  {
+    viewport_item->setProperty("interactive", QVariant(true));
+  }
+  
+  if (previous_size_ != size)
+  {
+    previous_size_ = size;
+
+    if (pinch_completing_)
+    {
+      QPointF pos;
+      pinch_completing_ = false;
+
+      if (viewport_item)
+      {
+        viewport_item->setProperty("contentX", QVariant(-pending_webview_rect_.x()));
+        viewport_item->setProperty("contentY", QVariant(-pending_webview_rect_.y()));
+        DLOG(INFO) << "set Web View pos " << pending_webview_rect_.x() << " "
+                   << pending_webview_rect_.y();
+
+      }
+    }
+    SetWebViewSize();
+  }
+}
+
+QGraphicsObject* RWHVQtWidget::GetWebViewItem()
+{
+  QGraphicsObject* parent = parentObject();
+  if(parent)
+  {
+    return parent->parentObject();
+  }
+}
+
+QGraphicsObject* RWHVQtWidget::GetViewportItem()
+{
+  QGraphicsObject* webview_item = GetWebViewItem();
+  if (webview_item)
+  {
+    QGraphicsObject* parent;
+    parent = webview_item->parentObject();
+    while (parent)
+    {
+      if (parent->objectName() == "innerContent")
+      {
+        return parent;
+      }
+
+      parent = parent->parentObject();
+    }
+  }
+  return NULL;
+}
+
+void RWHVQtWidget::SetWebViewSize()
+{
+  QGraphicsObject* webview = GetWebViewItem();
+  if (!webview)
+    return;
+  
+  webview->setProperty("width", QVariant(size().width()));
+  webview->setProperty("height", QVariant(size().height()));
+  DLOG(INFO) << "set Web View size " << size().width() << " "
+             << size().height();
+}
+
+void RWHVQtWidget::UnFrozen()
+{
+  RenderWidgetHost *host = hostView()->host_;
+  BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+      host->GetBackingStore(false));
+  if (backing_store)
+  {
+    backing_store->SetFrozen(false);
+    backing_store->AdjustTiles();
+  }
+}
+
+void RWHVQtWidget::WasHidden()
+{
+  QGraphicsObject* viewport_item = GetViewportItem();
+  if (viewport_item)
+  {
+    QVariant contentX = viewport_item->property("contentX");
+    QVariant contentY = viewport_item->property("contentY");
+
+    flickable_content_pos_.setX(contentX.toInt());
+    flickable_content_pos_.setY(contentY.toInt());
+  }
+}
+
+void RWHVQtWidget::DidBecomeSelected()
+{
+  SetWebViewSize();
+  QGraphicsObject* viewport = GetViewportItem();
+  if(viewport) {
+    viewport->setProperty("contentX", QVariant(flickable_content_pos_.x()));
+    viewport->setProperty("contentY", QVariant(flickable_content_pos_.y()));
+  }
+}
+
+QRect RWHVQtWidget::GetVisibleRect()
+{
+  QGraphicsObject* webview_item = GetWebViewItem();
+  QGraphicsObject* viewprot_item = GetViewportItem();
+
+  if (webview_item == NULL || viewprot_item == NULL)
+    return QRect();
+
+  QRectF itemRect = webview_item->boundingRect();
+
+  if (pinch_completing_)
+  {
+    DLOG(INFO) << "RWHVQtWidget::GetVisibleRect in pending_webview_rect_";
+    itemRect = pending_webview_rect_;
+  }
+  else
+  {
+    itemRect = webview_item->mapToItem(viewprot_item, itemRect).boundingRect();
+  }
+
+
+  //DLOG(INFO) << "RWHVQtWidget::GetVisibleRect "
+  //           << itemRect.x()
+  //           << " " << itemRect.y()
+  //           << " " << itemRect.width()
+  //           << " " << itemRect.height();
+  
+  itemRect = itemRect.intersected(viewprot_item->boundingRect());
+
+  if (pinch_completing_)
+  {
+    itemRect = QRectF(-pending_webview_rect_.x(), -pending_webview_rect_.y(), itemRect.width(), itemRect.height());
+  }
+  else
+  {
+    itemRect = webview_item->mapFromItem(viewprot_item, itemRect).boundingRect();
+  }
+  
+  return itemRect.toAlignedRect();
+}
+
+void RWHVQtWidget::DidBackingStoreScale()
+{
+  if (pending_webview_rect_ != QRectF())
+  {
+    DLOG(INFO) << "RWHVQtWidget::DidBackingStoreScale pending webview rect"
+               << " " << pending_webview_rect_.width()
+               << " " << pending_webview_rect_.height();
+    RenderWidgetHost *host = hostView()->host_;
+    BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+        host->GetBackingStore(false));
+    if (backing_store)
+    {
+      QRect rect = backing_store->ContentsRect();
+      setGeometry(QRectF(geometry().topLeft(),
+                         QSizeF(rect.width(), rect.height())));
+    }
+  }
+}
+
+void RWHVQtWidget::AdjustSize()
+{
+  setGeometry(QRectF(geometry().topLeft(),
+                     QSizeF(host_view_->contents_size_.width() * scale(),
+                            host_view_->contents_size_.height() * scale())));
+}
+
+void RWHVQtWidget::ScrollRectToVisible(const gfx::Rect& rect)
+{
+  QGraphicsObject* viewport = GetViewportItem();
+  if(viewport) {
+    viewport->setProperty("contentX", QVariant(rect.x() * scale_));
+    viewport->setProperty("contentY", QVariant(rect.y() * scale_));
   }
 }
 

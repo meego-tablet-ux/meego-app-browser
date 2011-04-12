@@ -14,7 +14,9 @@
 #include "third_party/skia/include/core/SkBitmap.h"
 
 #include "content/browser/renderer_host/backing_store_x.h"
+#include "chrome/common/render_tiling.h"
 
+class QGraphicsObject;
 class QGraphicsItem;
 class RenderWidgetHost;
 class RenderWidgetHostViewQt;
@@ -22,6 +24,7 @@ class QTapGesture;
 class QTapAndHoldGesture;
 class QPanGesture;
 class QPinchGesture;
+class QPropertyAnimation;
 class PanAnimation;
 struct NativeWebKeyboardEvent;
 
@@ -54,11 +57,27 @@ class RWHVQtWidget : public QGraphicsWidget
   QtMobility::QOrientationReading::Orientation orientationAngle();
   void setOrientationAngle(QtMobility::QOrientationReading::Orientation angle);
   void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set);
-#ifdef PINCH_FINI_DEBUG
-  virtual void update ( qreal x, qreal y, qreal width, qreal height );
-#endif
- protected:
 
+  // for pinch emulation
+  void touchPointCopyPosToLastPos(QTouchEvent::TouchPoint &point);
+  void touchPointCopyMousePosToPointPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event);
+  void touchPointCopyMousePosToPointStartPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event);
+  void touchPointMirrorMousePosToPointPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event);
+  void touchPointMirrorMousePosToPointStartPos(QTouchEvent::TouchPoint &point, const QGraphicsSceneMouseEvent *event);
+
+  bool eventEmulatePinch(QEvent *event);
+  void UnFrozen();
+  QRect GetVisibleRect();
+  void WasHidden();
+  void DidBecomeSelected();
+  void DidBackingStoreScale();
+  void AdjustSize();
+  void ScrollRectToVisible(const gfx::Rect& rect);
+  qreal scale() { return flatScaleByStep(scale_); }
+  void SetScaleFactor(double scale);
+  
+ protected:
+  virtual bool eventFilter ( QObject * watched, QEvent * event );
   //! \reimp
   virtual void focusInEvent(QFocusEvent* event);
   virtual void focusOutEvent(QFocusEvent* event);
@@ -80,13 +99,17 @@ class RWHVQtWidget : public QGraphicsWidget
 
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget * widget);
   virtual bool event(QEvent *event);
-  //! \reimp end
-  virtual void setPinchImage();
 
- protected Q_SLOTS:
-  void autoPanCallback(int dx, int dy);
+  //! \reimp end
+Q_SIGNALS:
+  void updatePinchState(int pinchState);
+  void setViewPos(QPointF& pos);
+  void setViewSize(QSizeF& size);
+
+protected Q_SLOTS:
   void onOrientationAngleChanged();
-  void pinchFinishTimeout();
+  void onGeometryChanged();
+  void onAnimationFinished();
 
  private:
 
@@ -95,7 +118,12 @@ class RWHVQtWidget : public QGraphicsWidget
     SELECTION_HANDLER_START,
     SELECTION_HANDLER_END,
   } SelectionHandlerID;
+  
+  void SetWebViewSize();
 
+  QGraphicsObject* GetWebViewItem();
+  QGraphicsObject* GetViewportItem();
+  
   bool shouldDeliverMouseMove();
   void deliverMousePressEvent();
   bool setDoingGesture(Qt::GestureType);
@@ -107,7 +135,6 @@ class RWHVQtWidget : public QGraphicsWidget
 
   void onKeyPressReleaseEvent(QKeyEvent* event);
 
-  void finishPinch();
   //gestureEvent
   void gestureEvent(QGestureEvent* event);
   void tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGesture* gesture);
@@ -135,16 +162,12 @@ class RWHVQtWidget : public QGraphicsWidget
   bool cancel_next_mouse_release_event_;
   WebKit::WebMouseEvent mouse_press_event_;
   bool mouse_press_event_delivered_;
-  PanAnimation *auto_pan_;
   WebKit::WebMouseWheelEvent last_pan_wheel_event_;
   QRect cursor_rect_;
 
-  BackingStoreX* pinch_backing_store_;
-  bool pinch_image_;
-  qreal scale_factor_;
   QPointF pinch_center_;
-  QRectF pinch_src_rect_;
-  QTimer* pinch_release_timer_;
+  QPointF pinch_start_pos_;
+  
   gfx::Point pinch_view_pos_;
   QtMobility::QOrientationReading::Orientation orientation_angle_;
   bool hold_paint_;
@@ -158,6 +181,29 @@ class RWHVQtWidget : public QGraphicsWidget
   bool in_selection_mode_;
   bool is_modifing_selection_;
   SelectionHandlerID current_selection_handler_;
+
+  //Two finger gestures emulation variables
+  QTouchEvent::TouchPoint emuPoint1, emuPoint2;
+  bool pinchEmulationEnabled;
+
+  bool installed_filter_;
+  QPointF distance_;
+
+  // Svae th flickable contentX and contentY
+  QPoint flickable_content_pos_;
+
+  bool pinch_completing_;
+  QSizeF previous_size_;
+
+  QRectF pending_webview_rect_;
+
+  // Animation for rebounce effect
+  QPropertyAnimation* rebounce_animation_;
+
+  // Current scale factor
+  qreal scale_;
+  qreal pending_scale_;
+  qreal pinch_scale_factor_;
 };
 
 #endif  // CHROME_BROWSER_RWHV_QT_WIDGET_H_

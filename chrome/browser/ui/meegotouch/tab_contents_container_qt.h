@@ -13,6 +13,7 @@ class RenderViewHost;
 class TabContents;
 class BrowserWindowQt;
 class QGraphicsItem;
+class QDeclarativeItem;
 class TabContentsContainerQtImpl;
 
 class TabContentsContainerQt : public NotificationObserver
@@ -36,14 +37,16 @@ class TabContentsContainerQt : public NotificationObserver
                        const NotificationSource& source,
                        const NotificationDetails& details);
 
-  QGraphicsItem* widget() {return widget_;}
+  QDeclarativeItem* widget() {return webview_item_;}
 
-  void ContainerSizeChanged();
+  void ViewportSizeChanged();
+  
  private:
   // Add or remove observers for events that we care about.
   void AddObservers();
   void RemoveObservers();
 
+  void RestoreViewportProperty();
   // Called when the RenderViewHost of the hosted TabContents has changed, e.g.
   // to show an interstitial page.
   void RenderViewHostChanged(RenderViewHost* old_host,
@@ -61,7 +64,8 @@ class TabContentsContainerQt : public NotificationObserver
   // The currently visible TabContents.
   TabContents* tab_contents_;
 
-  QGraphicsItem* widget_;
+  QDeclarativeItem* webview_item_;
+  QDeclarativeItem* viewport_item_;
 
   BrowserWindowQt* window_;
 
