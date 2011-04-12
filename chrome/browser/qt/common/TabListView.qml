@@ -118,7 +118,7 @@ Item {
         anchors.rightMargin: 4*commonMargin
 
         verticalAlignment: Text.AlignVCenter
-        horizontalAlignment: Text.AlignHCenter
+        horizontalAlignment: Text.AlignLeft
 
         //font.pixelSize: height * 0.6
         //font.bold: true
@@ -134,6 +134,7 @@ Item {
         height: 60
         width: height
         anchors.right: parent.right
+	anchors.bottom: parent.bottom
         Image {
           id: closeIcon
           anchors.centerIn: parent
