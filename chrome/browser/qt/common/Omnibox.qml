@@ -52,6 +52,19 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     source: "image://theme/browser/urlinputbar_left"
   }
+/*
+  Rectangle{
+        id: hlight
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: parent.height
+        //border.color: "#def1f9"
+        border.color: "green"
+        border.width:3
+        radius:5
+        visible:false
+    }
+*/
   BorderImage {
     id: omniBox
     width: parent.width - 10
@@ -78,6 +91,16 @@ Item {
       onHide: {
           autocompletePopupLoader.item.opacity = 0
       }
+    }
+    Rectangle{
+        id: hlight
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: parent.height
+        border.color: "#2CACE3"
+        border.width:3
+        radius:5
+        visible:false
     }
     TextInput {
       id: urlTextInput
@@ -128,6 +151,10 @@ Item {
           starButton.width = 0;
           starIcon.width = 0;
           urlTextInput.autoScroll = false;
+	  hlight.visible = true;
+	  left.visible = false;
+	  right.visible = false;
+	  urlTextInput.anchors.leftMargin = 5
         }
         else {
           autocompleteEditViewModel.focusLost();
@@ -140,6 +167,9 @@ Item {
           urlTextInput.autoScroll = false;
           // close VKB
           urlTextInput.closeSoftwareInputPanel();
+	  hlight.visible = false;
+	  left.visible = true;
+	  right.visible = true;
         }
         container.activeFocusChanged(activeFocus);
       }
