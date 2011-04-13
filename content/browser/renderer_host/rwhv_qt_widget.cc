@@ -370,7 +370,6 @@ void RWHVQtWidget::focusInEvent(QFocusEvent* event)
       QEvent sip_request(QEvent::RequestSoftwareInputPanel);
       ic->setFocusWidget(qApp->focusWidget());
       ic->filterEvent(&sip_request);
-      qCritical("focus in");
   }
   hostView()->ShowCurrentCursor();
   hostView()->GetRenderWidgetHost()->GotFocus();
@@ -394,7 +393,6 @@ void RWHVQtWidget::focusOutEvent(QFocusEvent* event)
   ic->reset();
   QEvent sip_request(QEvent::CloseSoftwareInputPanel);
   ic->filterEvent(&sip_request);
-  qCritical("focus out");
   hostView()->GetRenderWidgetHost()->SetInputMethodActive(false);
   event->accept();
   return;
@@ -751,6 +749,23 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
   WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event);
 
+  if (!hostView()->IsPopup()) {
+    qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
+    if (timestamp - m_dbclkHackTimeStamp < 350) {
+      // we may hit a double tap
+      qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
+      if (length < 40) {
+        DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
+        zoom2TextAction(event->pos());
+
+        return;
+      }
+    }
+
+    m_dbclkHackTimeStamp = timestamp;
+    m_dbclkHackPos       = event->pos();
+  }
+
   if (in_selection_mode_) {
     // clear double tap information
     m_dbclkHackTimeStamp = 0;
@@ -793,7 +808,7 @@ done:
 
 void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (!hostView()->IsPopup()) {
+/*  if (!hostView()->IsPopup()) {
     qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
     if (timestamp - m_dbclkHackTimeStamp < 350) {
       // we may hit a double tap
@@ -809,7 +824,7 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     m_dbclkHackTimeStamp = timestamp;
     m_dbclkHackPos       = event->pos();
   }
-
+*/
   WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
 // we don't do normal mouse release event when modifing selection
   if (is_modifing_selection_) {
