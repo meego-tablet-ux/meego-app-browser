@@ -756,7 +756,8 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
       qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
       if (length < 40) {
         DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
-        zoom2TextAction(event->pos());
+        if (!isDoingGesture())
+          zoom2TextAction(event->pos());
 
         return;
       }
