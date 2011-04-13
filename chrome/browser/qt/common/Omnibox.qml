@@ -79,7 +79,6 @@ Item {
           autocompletePopupLoader.item.opacity = 0
       }
     }
-
     TextInput {
       id: urlTextInput
       objectName: "urlTextInput"
@@ -239,7 +238,7 @@ Item {
      anchors.verticalCenter: parent.verticalCenter
   }
   }
-
+/*
   transitions: [
     Transition {
       reversible: true
@@ -249,4 +248,5 @@ Item {
       }
     }
   ]
+*/
 }
