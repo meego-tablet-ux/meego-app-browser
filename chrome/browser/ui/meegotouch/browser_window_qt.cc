@@ -247,8 +247,8 @@ void BrowserWindowQt::InitWidget()
   // any item object binding code should be after set source
   contents_container_->Init();
   toolbar_->Init(browser_->profile());
-  bookmark_bar_->Init(browser_->profile());
   bookmark_others_->Init(browser_->profile());
+  bookmark_bar_->Init(browser_->profile(), bookmark_others_.get());
   window_->show();
   download_handler_->Init();
   //QGestureRecognizer::unregisterRecognizer(Qt::PanGesture);

@@ -67,14 +67,26 @@ const int kInstructionsPadding = 6;
 
 void BookmarkListItem::RequestImg(int index) {
   index_=index;
-  GURL u(WideToUTF8(url_.toStdWString()));
-  HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
-  hs->GetPageThumbnail(u, &consumer_, NewCallback(static_cast<BookmarkListItem*>(this),
+  GURL url(WideToUTF8(url_.toStdWString()));
+  history::TopSites* ts = browser_->profile()->GetTopSites();
+  if (ts) {
+    scoped_refptr<RefCountedBytes> jpeg_data;
+    ts->GetPageThumbnail(url, &jpeg_data);
+    HandleThumbnailData(jpeg_data);
+  }
+  else {
+    HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
+    hs->GetPageThumbnail(url, &consumer_, NewCallback(static_cast<BookmarkListItem*>(this),
                                                  &BookmarkListItem::OnThumbnailDataAvailable));
+  }
 }
 
 void BookmarkListItem::OnThumbnailDataAvailable(HistoryService::Handle request_handle, 
                                                 scoped_refptr<RefCountedBytes> jpeg_data) {
+  HandleThumbnailData(jpeg_data);
+}
+
+void BookmarkListItem::HandleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data) {
 //  model_->beginReset();
   if (jpeg_data.get()) {
     std::vector<unsigned char> thumbnail_data;
@@ -122,8 +134,8 @@ BookmarkQt::~BookmarkQt() {
 //}
 //
 void BookmarkQt::Loaded(BookmarkModel* model) {
-  RemoveAllBookmarkListItems();
-  CreateAllBookmarkListItems();
+//  RemoveAllBookmarkListItems();
+//  CreateAllBookmarkListItems();
 }
 
 void BookmarkQt::GetBookmarkProperties(const BookmarkNode* node, QString& title, QString &url, QString &id)
@@ -322,11 +334,8 @@ void BookmarkQt::urlChanged(QString id, QString url) {
   model_->SetURL(model_->GetNodeByID(id.toInt()), GURL(WideToUTF8(url.toStdWString())));
 }
 
-void BookmarkQt::ShowBookmarkManager(const bool show) {
-  if (show) 
-    filter_->OpenBookmarkManager();
-  else 
-    filter_->CloseBookmarkManager();
+void BookmarkQt::HideBookmarkManager() {
+  filter_->CloseBookmarkManager();
 }
 
 // Note that this function cannot get items in sub-folders
@@ -473,7 +482,7 @@ BookmarkListItem* BookmarkBarQt::CreateBookmarkListItem(const BookmarkNode* node
 }
 
 void BookmarkBarQt::CreateAllBookmarkButtons() {
-  BookmarkQt::CreateAllBookmarkListItems();
+//  BookmarkQt::CreateAllBookmarkListItems();
   const BookmarkNode* bar = model_->GetBookmarkBarNode();
   DCHECK(bar);
   
@@ -529,6 +538,15 @@ bool BookmarkBarQt::IsAlwaysShown() {
   return profile_->GetPrefs()->GetBoolean(prefs::kShowBookmarkBar);
 }
 
+void BookmarkBarQt::ShowBookmarkManager() {
+  static bool first = true;
+  filter_->OpenBookmarkManager();
+  if (first) {
+    this->CreateAllBookmarkListItems();
+    others_->CreateAllBookmarkListItems();
+    first = false;
+  }
+}
 
 void BookmarkBarQt::Observe(NotificationType type,
                             const NotificationSource& source,
@@ -545,7 +563,7 @@ void BookmarkBarQt::Observe(NotificationType type,
     }
 
   } else if (type == NotificationType::BOOKMARK_LIST_VISIBILITY_SHOW) {
-    ShowBookmarkManager(true);
+    ShowBookmarkManager();
   } else {
     NOTREACHED();
   }
@@ -600,9 +618,10 @@ void BookmarkBarQt::NotifyToMayShowBookmarkBar(const bool show) {
   }
 }
 
-void BookmarkBarQt::Init(Profile* profile) {
+void BookmarkBarQt::Init(Profile* profile, BookmarkOthersQt* others) {
   bookmark_menu_->Build(another_folder_name_);
   BookmarkQt::Init(profile);
+  others_ = others;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -759,7 +778,7 @@ void BookmarkQtImpl::openBookmarkItem(const int index) {
 }
 
 void BookmarkQtImpl::backButtonTapped() {
-  bookmark_qt_->ShowBookmarkManager(false);
+  bookmark_qt_->HideBookmarkManager();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -862,7 +881,7 @@ void BookmarkQtListImpl::urlChanged(QString id, QString url) {
 }
 
 void BookmarkQtListImpl::openBookmarkItem(const int index) {
-  bookmark_qt_->ShowBookmarkManager(false);
+  bookmark_qt_->HideBookmarkManager();
   BookmarkQtImpl::openBookmarkItem(index);
 }
 

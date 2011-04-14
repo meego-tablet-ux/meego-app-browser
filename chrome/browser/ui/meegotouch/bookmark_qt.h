@@ -145,6 +145,7 @@ public:
   ~BookmarkListItem() {}
 
   void RequestImg(int index);
+  void HandleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data);
   void OnThumbnailDataAvailable(HistoryService::Handle request_handle, scoped_refptr<RefCountedBytes> jpeg_data);
 
 protected:
@@ -232,10 +233,12 @@ public:
   void moveBookmarkInModel(int from, int to);
   void MoveToAnotherFolder(const int index);
 
-  // Display or hide Bookmark Manager.
-  void ShowBookmarkManager(const bool show);
+  void HideBookmarkManager();
 
   void PopupMenu(gfx::Point p); 
+
+  void CreateAllBookmarkListItems();
+  void RemoveAllBookmarkListItems();
 
 protected:
   Profile* profile_;
@@ -253,13 +256,24 @@ protected:
   BookmarkQtListImpl* list_impl_;
   BookmarkQtFilterProxyModel* filter_;
 
-  void CreateAllBookmarkListItems();
-  void RemoveAllBookmarkListItems();
-
   QString another_folder_name_;
   BookmarkListMenuModel* bookmark_menu_;
 
   DISALLOW_COPY_AND_ASSIGN(BookmarkQt);
+};
+
+class BookmarkOthersQt : public BookmarkQt
+{
+public:
+  explicit BookmarkOthersQt(BrowserWindowQt* window,
+                            Profile* profile, Browser* browser);
+  virtual ~BookmarkOthersQt();
+  virtual const BookmarkNode* GetParent();
+  virtual BookmarkListItem* CreateBookmarkListItem(const BookmarkNode* node);
+
+  void Init(Profile* profile);
+
+  DISALLOW_COPY_AND_ASSIGN(BookmarkOthersQt);
 };
 
 class BookmarkBarQt : public BookmarkQt,
@@ -285,7 +299,7 @@ public:
   //notify to show or hide bookmarkbar
   void NotifyToMayShowBookmarkBar(const bool always_show);
 
-  void Init(Profile* profile);
+  void Init(Profile* profile, BookmarkOthersQt* others);
 
 private:
   void ShowInstruction();
@@ -302,6 +316,7 @@ private:
   // bookmark bar model has.
   int GetBookmarkButtonCount();
 
+  void ShowBookmarkManager();
 
   // Set the appearance of the overflow button appropriately (either chromium
   // style or GTK style).
@@ -340,25 +355,14 @@ private:
   // to display bookmarks bar in toolbar
   BookmarkBarQtImpl* toolbar_impl_;
 
+  // Using this to tell "others folder" to display on show
+  BookmarkOthersQt* others_;
+
   // A pointer to the ProfileSyncService instance if one exists.
   //ProfileSyncService* sync_service_;
 
   NotificationRegistrar registrar_;
   DISALLOW_COPY_AND_ASSIGN(BookmarkBarQt);
-};
-
-class BookmarkOthersQt : public BookmarkQt
-{
-public:
-  explicit BookmarkOthersQt(BrowserWindowQt* window,
-                            Profile* profile, Browser* browser);
-  virtual ~BookmarkOthersQt();
-  virtual const BookmarkNode* GetParent();
-  virtual BookmarkListItem* CreateBookmarkListItem(const BookmarkNode* node);
-
-  void Init(Profile* profile);
-
-  DISALLOW_COPY_AND_ASSIGN(BookmarkOthersQt);
 };
 
 class BookmarkQtImpl : public QAbstractListModel
