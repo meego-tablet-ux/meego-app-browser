@@ -1567,7 +1567,7 @@ void RWHVQtWidget::AdjustSize()
 void RWHVQtWidget::ScrollRectToVisible(const gfx::Rect& rect)
 {
   QGraphicsObject* viewport = GetViewportItem();
-  if(viewport) {
+  if(viewport && !rect.IsEmpty()) {
     viewport->setProperty("contentX", QVariant(rect.x() * scale_));
     viewport->setProperty("contentY", QVariant(rect.y() * scale_));
   }
