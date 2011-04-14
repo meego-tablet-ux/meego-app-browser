@@ -48,6 +48,9 @@ Item {
   property int maxHeight: maxPopupHeight
   //width: parent.width
 
+  // Space left for autocomplete popup view when taking vkb's area into account
+  property int spaceOutOfVkb: maxHeight
+
   Image {
 	id: finger
 	source: "image://theme/popupbox_arrow_top"
@@ -58,8 +61,8 @@ Item {
   Item {
     id: menu
     width: parent.width
-    height: {(view.count * container.itemHeight > container.maxHeight ? 
-       	      container.maxHeight : view.count * container.itemHeight) }
+    height: Math.min (container.maxHeight, view.count * container.itemHeight, 
+                        spaceOutOfVkb - spaceOutOfVkb % container.itemHeight)
     anchors.top: finger.bottom
     clip: true
 
@@ -150,4 +153,11 @@ Item {
     onHide: container.opacity = 0
   }*/
 
+  Connections {
+    target: mainWindow
+    onVkbHeight: {
+      var map = menu.mapToItem(scene, 0, 0)
+      spaceOutOfVkb = screenHeight - map.y - height
+    }
+  }
 }
