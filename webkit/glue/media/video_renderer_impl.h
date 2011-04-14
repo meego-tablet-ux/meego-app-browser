@@ -61,6 +61,11 @@ class VideoRendererImpl : public WebVideoRenderer {
                  SkCanvas* canvas,
                  const gfx::Rect& dest_rect);
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+  /*_DEV2_H264_*/
+  void H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::VideoFrame* video_frame, int dst_w, int dst_h, uint8 * pDst, int stride);
+#endif
+
   void TransformToSkIRect(const SkMatrix& matrix, const gfx::Rect& src_rect,
                           SkIRect* dest_rect);
 

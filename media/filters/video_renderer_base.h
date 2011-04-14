@@ -203,6 +203,9 @@ class VideoRendererBase : public VideoRenderer,
   // renderer provides buffer, |pending_reads_| is always non-negative.
   int pending_reads_;
   bool pending_paint_;
+#if defined (TOOLKIT_MEEGOTOUCH)
+  unsigned int seek_avupdate_;
+#endif
   bool pending_paint_with_last_available_;
 
   float playback_rate_;

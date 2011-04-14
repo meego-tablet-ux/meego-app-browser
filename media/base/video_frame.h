@@ -107,6 +107,18 @@ class VideoFrame : public StreamSample {
 
   int32 stride(size_t plane) const { return strides_[plane]; }
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+  /*_DEV2_H264_*/
+  // Array of strides for each plane, typically greater or equal to the width
+  // of the surface divided by the horizontal sampling period.  Note that
+  // strides can be negative.
+  int32 strides_[kMaxPlanes];
+
+  // Array of data pointers to each plane.
+  uint8* data_[kMaxPlanes];
+  size_t idx_ ;
+#endif
+
   // Returns pointer to the buffer for a given plane. The memory is owned by
   // VideoFrame object and must not be freed by the caller.
   // TODO(hclam): Use union together with |gl_texture| and |d3d_texture|.
@@ -147,6 +159,8 @@ class VideoFrame : public StreamSample {
   // YUV formats.
   size_t planes_;
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+#if 0
   // Array of strides for each plane, typically greater or equal to the width
   // of the surface divided by the horizontal sampling period.  Note that
   // strides can be negative.
@@ -154,6 +168,18 @@ class VideoFrame : public StreamSample {
 
   // Array of data pointers to each plane.
   uint8* data_[kMaxPlanes];
+#endif
+#else
+
+  // Array of strides for each plane, typically greater or equal to the width
+  // of the surface divided by the horizontal sampling period.  Note that
+  // strides can be negative.
+  int32 strides_[kMaxPlanes];
+
+  // Array of data pointers to each plane.
+  uint8* data_[kMaxPlanes];
+
+#endif
 
   // Array fo GL textures.
   GlTexture gl_textures_[kMaxPlanes];

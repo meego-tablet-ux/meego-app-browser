@@ -11,6 +11,51 @@
 #include "media/ffmpeg/ffmpeg_common.h"
 #include "media/video/video_decode_engine.h"
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+//#define DEV2_TRACE()  LOG(ERROR) << "FUNCTION: <" << __FUNCTION__ << ">. LINE:  [" << __LINE__ << "]\n"
+#define DEV2_TRACE()  
+
+/*Enable VAAPI H264 Supporting for FFMPEG.*/
+#define _DEV2_H264_
+/*used for debuginfo*/
+//#define _DEV2_DEBUG_
+
+// _DEV2_H264_
+#include <va/va.h>
+#include <va/va_x11.h>
+
+/* VA-API Formats */
+#define VAAPI_H264                 (0x00000264)
+/* Numbers of video surfaces */
+/*MPEG2/4/VC1: 3 */
+#define NUM_VIDEO_SURFACES_H264  21 /* 1 decode frame, up to 20 references */
+
+/*free all memory allocated by calloc for global using*/
+#define DEV2FreeCalloc(p)   \
+{   			\
+    if(p){		\
+	free(p);	\
+	p = NULL;	\
+    }			\
+}
+
+struct VaapiSurface {
+    VASurfaceID id;
+    VAImage     image;
+    int         is_bound; /* Flag: image bound to the surface? */
+    int         used;     /* is used by codec*/
+};
+
+/*define hw context*/
+struct hw_context{
+    void *display;
+    uint32_t config_id;
+    uint32_t context_id;
+    uint32_t res[12];
+};
+
+#endif
+
 // FFmpeg types.
 struct AVCodecContext;
 struct AVFrame;
@@ -37,6 +82,28 @@ class FFmpegVideoDecodeEngine : public VideoDecodeEngine {
 
   VideoFrame::Format GetSurfaceFormat() const;
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+// _DEV2_H264_
+
+  /*callback of ffmpeg codec*/
+  static int GetBufferAndSurface(AVCodecContext * ctx, AVFrame * pic);
+  static void ReleaseBufferAndSurface(AVCodecContext * ctx, AVFrame * pic);
+  static enum PixelFormat GetFormatAndConfig(struct AVCodecContext *avctx, const enum PixelFormat *pix_fmt);
+
+/* Numbers of video surfaces */
+/*MPEG2/4/VC1: 3 */
+#define NUM_VIDEO_SURFACES_H264  21 /* 1 decode frame, up to 20 references */
+
+  /*Public Variables*/
+  struct hw_context    *hw_context_;
+  VASurfaceID             hw_surface_ids_[NUM_VIDEO_SURFACES_H264 + 1]; /*last element is used for status checking*/                   
+  struct VaapiSurface     *hw_free_surfaces_[NUM_VIDEO_SURFACES_H264 + 1];  /*last element is used for status checking*/               
+  int                     hw_num_surfaces_;    
+  int                     hw_free_surfaces_head_index_;   
+  int                     hw_accel_;   
+
+#endif
+
  private:
   void DecodeFrame(scoped_refptr<Buffer> buffer);
   void ReadInput();
@@ -46,6 +113,15 @@ class FFmpegVideoDecodeEngine : public VideoDecodeEngine {
   scoped_ptr_malloc<AVFrame, ScopedPtrAVFree> av_frame_;
   VideoDecodeEngine::EventHandler* event_handler_;
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+// _DEV2_H264_
+  int InitializeHwEngine(void);
+  int ConfigHwEngine(uint32_t width, uint32_t height, uint32_t format);
+  int CheckStatus(VAStatus status, const char *msg);
+  int CopyBufferFrmSurface(scoped_refptr<VideoFrame> video_frame,
+                      const AVFrame* frame);
+  void UnInitializeHwEngine(void);
+#endif
   // Frame rate of the video.
   int frame_rate_numerator_;
   int frame_rate_denominator_;

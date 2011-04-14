@@ -3977,7 +3977,7 @@ void RenderView::DidFlushPaint() {
 
     // TODO(jar): The following code should all be inside a method, probably in
     // NavigatorState.
-    Time now = Time::Now();
+    base::Time now = Time::Now();
     if (navigation_state->first_paint_time().is_null()) {
       navigation_state->set_first_paint_time(now);
     }

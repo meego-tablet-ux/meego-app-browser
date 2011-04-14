@@ -6,6 +6,7 @@
   'variables': {
     'chromium_code': 1,
     'player_x11_renderer%': 'x11',
+    'pkg-config': 'pkg-config'
   },
   'targets': [
     {
@@ -17,10 +18,9 @@
         '../third_party/ffmpeg/ffmpeg.gyp:ffmpeg',
         '../build/temp_gyp/googleurl.gyp:googleurl',
       ],
-      'include_dirs': [
-        '..',
-      ],
-      'msvs_guid': '6AE76406-B03B-11DD-94B1-80B556D89593',
+      #'include_dirs': [
+      #],
+     'msvs_guid': '6AE76406-B03B-11DD-94B1-80B556D89593',
       'sources': [
         'audio/audio_buffers_state.cc',
         'audio/audio_buffers_state.h',
@@ -229,6 +229,19 @@
             ],
           },
         }],
+
+        ['meegotouch == 1', {
+          'include_dirs': [
+          '../ui/base/x/',
+          '<!@(<(pkg-config) --cflags-only-I libva)',
+          #'<!@(<(pkg-config) --cflags libva)',
+          ],
+          'libraries': [
+          #'-lva',  #FIXME libva #'-lva-x11',  #FIXME libva 
+          '<!@(<(pkg-config) --libs-only-l libva libva-x11)',
+          ],
+        }],
+
       ],
     },
     {
@@ -697,6 +710,7 @@
             'video/omx_video_decode_engine.cc',
             'video/omx_video_decode_engine.cc',
           ],
+
           'hard_dependency': 1,
           'export_dependent_settings': [
             '../third_party/openmax/openmax.gyp:il',
@@ -755,6 +769,19 @@
                 'RENDERER_GL',
               ],
             }],
+
+            ['meegotouch == 1', {
+              'include_dirs': [
+              '<!@(<(pkg-config) --cflags-only-I libva)',
+              '../third_party/ffmpeg/patched-ffmpeg-mt/'
+              #'<!@(<(pkg-config) --cflags libva)',
+              ],
+              'libraries': [
+              #'-lva',  #FIXME libva #'-lva-x11',  #FIXME libva 
+              '<!@(<(pkg-config) --libs-only-l libva libva-x11)',
+              ],
+            }],
+
           ],
         },
       ],

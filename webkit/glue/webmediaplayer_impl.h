@@ -66,6 +66,12 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebMediaPlayer.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebMediaPlayerClient.h"
 #include "ui/gfx/rect.h"
+#if defined (TOOLKIT_MEEGOTOUCH)
+#define _FULLSCREEN_
+//#ifdef _FULLSCREEN_
+#include <X11/X.h>
+#endif
+
 #include "ui/gfx/size.h"
 #include "webkit/glue/media/web_data_source.h"
 
@@ -107,6 +113,25 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
     void Detach();
     void GetCurrentFrame(scoped_refptr<media::VideoFrame>* frame_out);
     void PutCurrentFrame(scoped_refptr<media::VideoFrame> frame);
+#if defined (TOOLKIT_MEEGOTOUCH)
+// _FULLSCREEN_
+/*_DEV2_H264_*/
+    void PaintPlayButton(int play);
+    void PaintFlush();
+    void PaintControlBar();
+    bool Paused() {return webmediaplayer_->paused();}
+    Window CreateSubWindow();
+    void H264PaintFullScreen(void) ;
+    WebMediaPlayerImpl* GetMediaPlayer() { return webmediaplayer_;}
+
+#define WIDTH 1280
+#define HEIGHT 800
+    long long curTime_ ; /*in s*/
+    long long duration_; /*in s*/
+    bool menu_on_;
+    bool last_frame_;
+/*_DEV2_H264_*/
+#endif
     bool HasSingleOrigin();
     void AbortDataSources();
 

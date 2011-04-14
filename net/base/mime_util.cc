@@ -215,6 +215,15 @@ static const char* const supported_media_types[] = {
   "audio/wav",
   "audio/x-wav",
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+  /*_DEV2_H264_*/
+  // MPEG-4.
+  "video/mp4",
+  "video/x-m4v",
+  "audio/mp4",
+  "audio/x-m4a",
+#endif
+
 #if defined(GOOGLE_CHROME_BUILD) || defined(USE_PROPRIETARY_CODECS)
   // MPEG-4.
   "video/mp4",
@@ -234,6 +243,11 @@ static const char* const supported_media_types[] = {
 // Refer to http://wiki.whatwg.org/wiki/Video_type_parameters#Browser_Support
 // for more information.
 static const char* const supported_media_codecs[] = {
+#if defined (TOOLKIT_MEEGOTOUCH)
+  /*_DEV2_H264_*/
+  "avc1", /*enable H264 and mp4a for HTML5*/
+  "mp4a",
+#endif
 #if defined(GOOGLE_CHROME_BUILD) || defined(USE_PROPRIETARY_CODECS)
   "avc1",
   "mp4a",

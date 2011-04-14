@@ -11,6 +11,7 @@
         'webkit_src_dir': '../../third_party/WebKit',
       }],
     ],
+    'pkg-config': 'pkg-config'
   },
   'targets': [
     {
@@ -446,6 +447,12 @@
             '../plugins/npapi/gtk_plugin_container.cc',
             '../plugins/npapi/gtk_plugin_container_manager.h',
             '../plugins/npapi/gtk_plugin_container_manager.cc',
+          ],
+
+              'include_dirs': [
+            '<!@(<(pkg-config) --cflags-only-I libva)',
+            '<(DEPTH)/third_party/ffmpeg/patched-ffmpeg-mt',
+            #add by _DEV2_H264_
           ],
         }],
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {

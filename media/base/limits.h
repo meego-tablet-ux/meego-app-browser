@@ -19,6 +19,11 @@ struct Limits {
   // Total number of video frames which are populating in the pipeline.
   static const size_t kMaxVideoFrames = 4;
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+  // Max Video Timestamp sync with Audio retry times after Seek Active. @_@ Should Sync more than one times.
+  static const unsigned int kMaxSeekSyncRTimes = 3;
+#endif
+
   // Following limits are used by AudioParameters::IsValid().
   // The 192 Khz constant is the frequency of quicktime lossless audio codec.
   // MP4 is limited to 96 Khz, and mp3 is limited to 48 Khz.

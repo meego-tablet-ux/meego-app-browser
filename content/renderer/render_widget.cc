@@ -68,6 +68,12 @@ using WebKit::WebTextInputType;
 using WebKit::WebVector;
 using WebKit::WebWidget;
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+/*_DEV2_OPT*/
+#include <X11/X.h>
+extern Window subwin;
+#endif
+
 RenderWidget::RenderWidget(RenderThreadBase* render_thread,
                            WebKit::WebPopupType popup_type)
     : routing_id_(MSG_ROUTING_NONE),
@@ -822,6 +828,11 @@ void RenderWidget::DoDeferredUpdate() {
   params.flags = next_paint_flags_;
   params.scroll_offset = GetScrollOffset();
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+  if((subwin == 0))
+  {
+#endif
+  /*Normal Case*/
   update_reply_pending_ = true;
   Send(new ViewHostMsg_UpdateRect(routing_id_, seq_, params));
   next_paint_flags_ = 0;
@@ -830,6 +841,18 @@ void RenderWidget::DoDeferredUpdate() {
 
   // Let derived classes know we've painted.
   DidInitiatePaint();
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+  }else{
+  /*H264 Full Screen Mode*/
+  UpdateInputMethod();
+  // Let derived classes know we've painted.
+  DidInitiatePaint();
+
+  /*Release DIB*/
+  OnUpdateRectAck();
+  }
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

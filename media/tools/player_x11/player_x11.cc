@@ -7,6 +7,11 @@
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+/*XA_WINDOW*/
+#include <X11/Xatom.h>
+#endif
+
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "base/file_path.h"
@@ -53,6 +58,21 @@ Display* g_display = NULL;
 Window g_window = 0;
 bool g_running = false;
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+
+#define _MENU_
+
+#ifdef _MENU_
+unsigned int g_menu_do = 0;
+unsigned int g_play_do = 0;
+long long g_pos = 0;
+long long g_pos_total = 1;
+
+extern void PaintPlayButton(Display *dpy, Window win, int play);
+#endif
+
+#endif
+
 class MessageLoopQuitter {
  public:
   explicit MessageLoopQuitter(MessageLoop* loop) : loop_(loop) {}
@@ -82,6 +102,28 @@ bool InitX11() {
   g_window = XCreateSimpleWindow(g_display, root_window, 1, 1, 100, 50, 0,
                                  BlackPixel(g_display, screen),
                                  BlackPixel(g_display, screen));
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+       /*FIXME*/
+       /*work around to Xorg/Mcompositor */
+       /*resize to full screen*/
+       XWindowAttributes attr;
+       XGetWindowAttributes(g_display, g_window, &attr);
+       XGetWindowAttributes(g_display, root_window, &attr);
+       XResizeWindow(g_display, g_window, attr.width, attr.height);
+  {
+
+      long data[2] ;
+      Atom property;
+      data[0] = XInternAtom(g_display, "_KDE_NET_WM_WINDOW_TYPE_OVERRIDE", false);
+      data[1] = XInternAtom(g_display, "_NET_WM_WINDOW_TYPE_NORMAL", false);
+      property = XInternAtom(g_display, "_NET_WM_WINDOW_TYPE", false);
+      XChangeProperty(g_display, g_window, property, XA_ATOM, 32, PropModeReplace, (unsigned char*)data, 2);
+     
+  }
+
+#endif
+
   XStoreName(g_display, g_window, "X11 Media Player");
 
   XSelectInput(g_display, g_window,
@@ -171,6 +213,131 @@ void PeriodicalUpdate(
     return;
   }
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+#ifdef _MENU_
+  while (XPending(g_display)) {
+    XEvent e;
+    XNextEvent(g_display, &e);
+    //    ("\n  KeyCode:%d  Type:%d ",e.xkey.keycode, e.type);
+    switch (e.type) {
+      case Expose:
+        if (!audio_only) {
+          // Tell the renderer to paint.
+          DCHECK(Renderer::instance());
+          Renderer::instance()->Paint();
+        }
+        break;
+
+    case MotionNotify:
+
+      //(" <EXM:x y %d,%d> ", e.xmotion.x, e.xmotion.y);
+      //g_curpos_x = e.xmotion.x; /// Qing
+      //g_curpos_y = e.xmotion.y; /// Qing
+
+      break;
+
+      case ButtonPress:
+        {
+          Window window;
+          int x, y;
+          unsigned int width, height, border_width, depth;
+          XGetGeometry(g_display,
+                       g_window,
+                       &window,
+                       &x,
+                       &y,
+                       &width,
+                       &height,
+                       &border_width,
+                       &depth);
+
+          /*get playback status*/
+      if (pipeline->GetPlaybackRate() < 0.01f){ // Check Paused
+             g_play_do = 0;
+      }else{
+           /*playing*/
+             g_play_do = 1;
+      }
+          
+#define Button_W 80
+#define Button_H 80
+          /*check moving label position*/
+      base::TimeDelta time5 = pipeline->GetMediaDuration();
+      base::TimeDelta time6 = pipeline->GetCurrentTime();
+          //("%lld.%lld\n", time5.ToInternalValue(), time6.ToInternalValue());
+          g_pos = time6.InSeconds();
+          g_pos_total = time5.InSeconds();
+
+      if(g_menu_do && (e.xmotion.x > Button_W) && (e.xmotion.x < 1200) && e.xmotion.y > height - Button_H){
+        //# Seek
+        base::TimeDelta time = pipeline->GetMediaDuration();
+       // base::TimeDelta time1 = pipeline->GetBufferedTime();
+       // base::TimeDelta time2 = pipeline->GetCurrentTime();
+        //pipeline->Seek(time*e.xbutton.x/width, NULL);
+        pipeline->Seek(time*(e.xbutton.x-Button_W)/(width-Button_W), NULL);
+            
+           // ("buffer: %lld, current: %lld , duration: %lld,\n", time1, time2, time);
+
+      }else if(g_menu_do && e.xmotion.x > 0 && e.xmotion.x <= Button_W && e.xmotion.y > height- Button_H){
+            /*Play or Pause*/
+        if (g_play_do == 0){ // Check Paused
+              /*update button icon*/
+              pipeline->SetPlaybackRate(1.0f); //# Set Play
+          g_play_do = 1;
+        }
+            else{ //# Set Pause
+              /*update button icon*/
+              pipeline->SetPlaybackRate(0.0f);
+          g_play_do = 0;
+        }
+            PaintPlayButton(g_display, g_window, g_play_do);
+      }else if(g_menu_do && e.xmotion.x > 1200 && e.xmotion.y > 720){
+        /*force quit*/
+            exit(0);
+      }else{
+        g_menu_do = (g_menu_do + 1) & 0x1;
+          }
+
+        }
+    //("\n <ButtonPre: %d [%d/%d]> ", e.xbutton.button,e.xmotion.x, e.xmotion.y);
+    //g_curpos_x = e.xmotion.x; /// Qing
+    //g_curpos_y = e.xmotion.y; /// Qing
+
+    break;
+
+      case ButtonRelease:
+
+    //(" <ButtonRel: %d> ", e.xbutton.button);
+
+    break;
+
+      case KeyPress:
+        {
+          KeySym key = XKeycodeToKeysym(g_display, e.xkey.keycode, 0);
+          if (key == XK_Escape) {
+            g_running = false;
+            // Quit message_loop only when pipeline is fully stopped.
+            MessageLoopQuitter* quitter = new MessageLoopQuitter(message_loop);
+            pipeline->Stop(NewCallback(quitter, &MessageLoopQuitter::Quit));
+            return;
+          } else if (key == XK_space) {
+        g_menu_do = (++g_menu_do%2);
+
+        /*
+            if (pipeline->GetPlaybackRate() < 0.01f) // paused
+              pipeline->SetPlaybackRate(1.0f);
+            else
+              pipeline->SetPlaybackRate(0.0f);
+        */
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+#else
   // Consume all the X events
   while (XPending(g_display)) {
     XEvent e;
@@ -222,6 +389,9 @@ void PeriodicalUpdate(
         break;
     }
   }
+
+#endif
+#endif
 
   message_loop->PostDelayedTask(FROM_HERE,
       NewRunnableFunction(PeriodicalUpdate, make_scoped_refptr(pipeline),

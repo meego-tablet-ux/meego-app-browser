@@ -8,6 +8,27 @@
 #include "media/base/yuv_convert.h"
 #include "webkit/glue/webmediaplayer_impl.h"
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+/*_DEV2_H264_*/
+#include <sys/syscall.h>
+/*optimize render of LIBVA H264*/
+/*_DEV2_H264_*/
+#define _DEV2_H264_
+
+#include <va/va.h>
+#include <va/va_x11.h>
+/*XA_WINDOW*/
+#include <X11/Xatom.h>
+#include <sys/shm.h>
+#include <X11/extensions/XShm.h>
+
+#include <X11/X.h>
+extern Window subwin;
+//extern double GetTick(void);
+extern int shmkey;
+/*_DEV2_H264_*/
+#endif
+
 namespace webkit_glue {
 
 VideoRendererImpl::VideoRendererImpl(bool pts_logging)
@@ -198,6 +219,178 @@ void VideoRendererImpl::SlowPaint(media::VideoFrame* video_frame,
   canvas->drawBitmapMatrix(bitmap_, matrix, &paint);
 }
 
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+/*_DEV2_H264_*/
+/*
+  Paint VAAPI H264 to Subwin or Share memory.
+  it adopts automatically on context.
+*/
+
+void VideoRendererImpl::H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::VideoFrame* video_frame, int dst_w, int dst_h, uint8 * pDst, int stride)
+{
+
+    int w = video_frame->width();
+    int h = video_frame->height();
+  
+    int w_ = dst_w;
+   int h_ = dst_h;
+    WebMediaPlayerImpl * wp = proxy->GetMediaPlayer();
+    
+    void *hw_ctx_display = (void*)video_frame->data_[2];
+    VASurfaceID surface_id = (VASurfaceID)video_frame->idx_;
+   VAStatus status;
+    Display *dpy = (Display*) video_frame->data_[0];
+
+    if(wp->paused() && subwin){
+        //("skip paint for chromium default render\n");
+       //("paint %d \n", syscall(__NR_gettid));
+       return;
+    }
+   /*if paused, but no subwin, it means preload*/
+    //("h264 p in, surface id :%d, win: %d, last frm: %d\n", surface_id, subwin, proxy->last_frame_);
+
+
+if(/*(wp->paused() == 0) ||*/ subwin){
+    /*if not paused , just render directly in full screen mode.*/
+    //base::TimeDelta time = video_frame->GetDuration();
+    return;
+
+#if 0
+    int w_ = WIDTH, h_ = HEIGHT ;
+    /*resize of not while menu is enabled*/
+    if(proxy->menu_on_){
+        /*moving label*/
+        h_ -= 84;
+    }
+   status = vaPutSurface(hw_ctx_display, surface_id, subwin,
+                              0, 0, w, h, /*src*/
+                              0, 0, w_, h_, /*dst*/
+                              NULL, 0,
+                              VA_FRAME_PICTURE | VA_SRC_BT601);
+    if(proxy->menu_on_ && subwin){
+        proxy->PaintControlBar();
+    }
+#endif
+
+#if 0
+}else{
+    /*if paused , just copy to shm, and .*/
+    //("render default\n");
+
+    Display *dTmp = (Display *)video_frame->data_[0];
+
+    int screen = DefaultScreen(dTmp);
+    int root_window = RootWindow(dTmp, screen);
+    Window wTmp = root_window;
+
+    XWindowAttributes attr;
+   XGetWindowAttributes (dTmp, wTmp, &attr);
+    // Creates a pixmap and uploads from the XImage.
+    unsigned long pixmap = XCreatePixmap(dTmp,
+                                         wTmp,
+                                         w,
+                                         h,
+                                         attr.depth);
+    
+    /*CC and Resize*/
+    status = vaPutSurface(hw_ctx_display, surface_id, pixmap,
+                             0, 0, w, h, /*src*/
+                              0, 0, w_, h_, /*dst*/
+                              NULL, 0,
+                              VA_FRAME_PICTURE | VA_SRC_BT601);
+    if(proxy->menu_on_ && subwin){
+        proxy->PaintControlBar();
+    }
+#endif
+
+}else{
+    /*if paused , just copy to shm, and .*/
+    //("render default\n");
+
+    Display *dTmp = (Display *)video_frame->data_[0];
+
+    int screen = DefaultScreen(dTmp);
+    int root_window = RootWindow(dTmp, screen);
+    Window wTmp = root_window;
+
+   XWindowAttributes attr;
+    XGetWindowAttributes (dTmp, wTmp, &attr);
+    // Creates a pixmap and uploads from the XImage.
+    unsigned long pixmap = XCreatePixmap(dTmp,
+                                         wTmp,
+                                         w,
+                                        h,
+                                         attr.depth);
+    
+    /*CC and Resize*/
+    status = vaPutSurface(hw_ctx_display, surface_id, pixmap,
+                              0, 0, w, h, /*src*/
+                              0, 0, w_, h_, /*dst*/
+                              NULL, 0,
+                              VA_FRAME_PICTURE );
+
+   XImage * mXImage;
+
+//#define _Shared_
+#ifdef _Shared_
+    static int shared = 0;
+    static char* pbuffer = NULL;
+    /*if w_, h_ is changed, shm has to be reallocated.*/
+    if(!shared){
+       shared = 1;
+       shmkey = shmget(IPC_PRIVATE, 1280*720*4, 0666);
+      pbuffer = (char*)shmat(shmkey, NULL /* desired address */, 0 /* flags */);
+    }
+        
+    XShmSegmentInfo shminfo = {0};
+
+    mXImage = XShmCreateImage(dTmp, DefaultVisual(dTmp, DefaultScreen(dTmp)), 24, ZPixmap, NULL, &shminfo, w_, h_);
+ // ("mXImage->bytes_per_line: %d, mXImage->height: %d\n", mXImage->bytes_per_line, mXImage->height);
+
+    shminfo.shmaddr = mXImage->data = pbuffer;
+   shminfo.shmid = shmkey;
+
+    if(!XShmAttach(dTmp, &shminfo)){
+       LOG(ERROR) << "XShmAttach Error" ;
+    };
+
+    if(! XShmGetImage(dTmp, pixmap, mXImage, 0, 0, AllPlanes) ){
+        LOG(ERROR) << "XShmGetImage Error" ;
+    } ;
+
+#else
+    mXImage = XGetImage(dTmp, pixmap, 0, 0, w_, h_, AllPlanes, ZPixmap);
+#endif
+    //("mXImage: %x, %x, %x, %x, %x\n", mXImage->data, mXImage->bytes_per_line, mXImage->width, mXImage->height, mXImage->depth);
+
+    if(proxy->last_frame_){
+        memset(mXImage->data, 0, w_*h_*4);
+        proxy->last_frame_ = 0;
+    }
+    
+    int k = 0;
+   char *pSrc = mXImage->data;
+    //("stride : %d, w.h: %d.%d\n", mXImage->bytes_per_line, w_, h_);
+
+    /*No Memory Share between two process, only Copy*/
+   for( k = 0; k < mXImage->height; k ++){
+       memcpy(pDst, pSrc, mXImage->bytes_per_line);
+        //memset(pDst, 0, mXImage->bytes_per_line);
+       pDst += stride;
+       pSrc += mXImage->bytes_per_line;
+    }
+
+    XFreePixmap(dTmp, pixmap);
+}/*not full screen ?*/
+
+    return;
+}
+
+#endif
+
+
+
 void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
                                   SkCanvas* canvas,
                                   const gfx::Rect& dest_rect) {
@@ -280,6 +473,27 @@ void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
     uint8* frame_clip_v =
         video_frame->data(media::VideoFrame::kVPlane) + uv_offset;
     bitmap.lockPixels();
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+// _DEV2_H264_
+
+/*
+    ("src: %d.%d, dst: %d.%d, row: %d. left: %d, top: %d\n", video_frame->width(),video_frame->height(),local_dest_irect.width(),
+                       local_dest_irect.height(), bitmap.rowBytes(), 
+                      local_dest_irect.fLeft , local_dest_irect.fTop);
+*/
+
+  //("Painting\n");
+ if(video_frame->data_[1] == (uint8_t*)0x264){
+
+     /*H264 Paint, Directly or not*/
+     H264Paint(proxy_, video_frame, local_dest_irect.width(), local_dest_irect.height(),dest_rect_pointer,bitmap.rowBytes());
+
+    return ;
+
+  }/*H.264 Painting*/
+
+#endif
 
     // TODO(hclam): do rotation and mirroring here.
     // TODO(fbarchard): switch filtering based on performance.

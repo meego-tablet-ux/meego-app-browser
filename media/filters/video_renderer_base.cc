@@ -36,6 +36,9 @@ VideoRendererBase::VideoRendererBase()
       thread_(base::kNullThreadHandle),
       pending_reads_(0),
       pending_paint_(false),
+#if defined (TOOLKIT_MEEGOTOUCH)
+      seek_avupdate_(0),
+#endif
       pending_paint_with_last_available_(false),
       playback_rate_(0) {
 }
@@ -290,6 +293,13 @@ void VideoRendererBase::ThreadMain() {
       continue;
     }
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+    if(seek_avupdate_){
+       host()->SetTime(next_frame->GetTimestamp());
+       seek_avupdate_--;
+    }
+#endif
+
     if (next_frame->GetTimestamp() <= host()->GetTime() + kIdleTimeDelta ||
         current_frame_.get() == NULL ||
         current_frame_->GetTimestamp() > host()->GetDuration()) {
@@ -458,6 +468,9 @@ void VideoRendererBase::ConsumeVideoFrame(scoped_refptr<VideoFrame> frame) {
       if ((seek_callback_.get())) {
         seek_callback_->Run();
         seek_callback_.reset();
+#if defined (TOOLKIT_MEEGOTOUCH)
+        seek_avupdate_ = Limits::kMaxSeekSyncRTimes;
+#endif
       }
     }
   } else if (state_ == kFlushing && pending_reads_ == 0 && !pending_paint_) {
