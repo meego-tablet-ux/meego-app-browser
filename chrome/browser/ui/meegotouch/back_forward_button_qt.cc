@@ -135,12 +135,7 @@ public:
         : index_(index), hiProvider_(hiProvider), entry_(entry), model_(model)
     {
         // get image
-        HistoryService* hs = controller->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
-        hs->GetPageThumbnail(entry->url(), 
-                             &consumer_,
-                             NewCallback(static_cast<HistoryEntry*>(this),
-                                         &HistoryEntry::onThumbnailDataAvailable));
-    
+        getThumbnailData(controller);
         std::wstring title_str = UTF16ToWide(entry->title());
         title_ = QString::fromStdWString(title_str);
     }
@@ -151,9 +146,7 @@ public:
         imageSrc_ = prefix + QString::number(index_) + "_" + QString::number(reloadNumber_);
     }
 
-    // callback to get the image data from browser
-    void onThumbnailDataAvailable(HistoryService::Handle request_handle,
-                                  scoped_refptr<RefCountedBytes> jpeg_data); 
+    void getThumbnailData(NavigationController *controller);
 
     NavigationEntry* entry() { return entry_; }
     QString image() { return imageSrc_; }
@@ -216,33 +209,6 @@ public:
         endResetModel();
     }
 
-    // wrapper to check whether browser returns all images of history
-    // so we can reset model to avoid resetting model many times
-    void beginReset()
-    {
-        // begin reset if necessary
-        returnedImages_++;
-        if (returnedImages_ == rowCount()) {
-            DLOG(INFO) << "begin reset history stack model";
-            // generate new number to create new image url
-            HistoryEntry::incReloadNumber();
-            for(int i = 0; i < entryList_.count(); i++) {
-                HistoryEntry* entry = entryList_[i];
-                entry->imgURLGen();
-            }
-            beginResetModel();
-        }
-    }
-
-    void endReset()
-    {
-        // end reset if necessary
-        if (returnedImages_ == rowCount()) {
-            DLOG(INFO) << "end reset history stack model";
-            endResetModel();
-        }
-    }
-
     int rowCount(const QModelIndex& parent = QModelIndex()) const
     {
         return entryList_.count();
@@ -272,6 +238,7 @@ public:
                                                    entry, 
                                                    controller,
                                                    this);
+        historyEntry->imgURLGen();
         beginInsertRows(QModelIndex(), rowCount(), rowCount());
         entryList_.push_back(historyEntry);
         endInsertRows();
@@ -422,6 +389,7 @@ public:
         model_.clear();
         int count = currentController()->entry_count();
         int curr = -1;
+        HistoryEntry::incReloadNumber();
         for(int i = count - 1; i >= 0; i--)
         {
             DLOG(INFO) << "page index: ---" << i << "---\n";
@@ -479,19 +447,22 @@ void BackForwardButtonQt::updateStatus()
   impl_->updateStatus();
 }
 
-void HistoryEntry::onThumbnailDataAvailable(HistoryService::Handle request_handle,
-                                            scoped_refptr<RefCountedBytes> jpeg_data) 
+void HistoryEntry::getThumbnailData(NavigationController *controller)
 {
-    model_->beginReset();
-    if (jpeg_data.get()) {
-        DLOG(INFO) << "get image id: " << index_;
-        std::vector<unsigned char> thumbnail_data;
-        std::copy(jpeg_data->data.begin(), jpeg_data->data.end(),
-                std::back_inserter(thumbnail_data));
-        QImage image = QImage::fromData(thumbnail_data.data(), thumbnail_data.size());
-        hiProvider_.addImage(QString::number(index_), image);
+  history::TopSites* ts = controller->profile()->GetTopSites();
+  if (ts) {
+    scoped_refptr<RefCountedBytes> thumbnail_data;
+    ts->GetPageThumbnail(entry_->url(), &thumbnail_data);
+    if (thumbnail_data.get()) {
+      std::vector <unsigned char> jpeg;
+      std::copy(thumbnail_data->data.begin(), 
+                thumbnail_data->data.end(),
+                std::back_inserter(jpeg));
+      QImage image = QImage::fromData(jpeg.data(), jpeg.size());
+      DLOG(INFO) << "image size ===== " << jpeg.size();
+      hiProvider_.addImage(QString::number(index_), image);
     }
-    model_->endReset();
+  }
 }
 
 void HistoryStackModel::openPage(const int index)
