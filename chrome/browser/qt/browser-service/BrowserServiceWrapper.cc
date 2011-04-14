@@ -229,13 +229,12 @@ void BrowserServiceWrapper::OnFaviconDataAvailable(
   GURL* url =
       consumer_.GetClientData(
           browser_->profile()->GetFaviconService(Profile::EXPLICIT_ACCESS), handle);
-/* TODO: need rework on new API
-  SkBitmap fav_icon;
-  if (know_favicon && png_data.get() && png_data->size()) {
+  bool known_favicon = favicon.known_icon;
+  scoped_refptr<RefCountedMemory> image_data = favicon.image_data.get(); 
+  if (known_favicon && image_data.get() && image_data->size()) {
     BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
-        backend_, &BrowserServiceBackend::AddFavIconItemImpl, *url, png_data));    
+        backend_, &BrowserServiceBackend::AddFavIconItemImpl, *url, image_data));    
   }
-*/
   delete url;
 }
 
