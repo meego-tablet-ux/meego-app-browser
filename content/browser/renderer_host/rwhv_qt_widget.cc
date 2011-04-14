@@ -21,7 +21,7 @@
 #include <QGraphicsView>
 #include <QPropertyAnimation>
 #include <QEasingCurve>
-
+#include <QtDebug>
 #include <algorithm>
 #include <string>
 
@@ -149,6 +149,9 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   pinchEmulationEnabled = false;
   pinch_completing_ = false;
   scale_ = pending_scale_ = kNormalContentsScale;
+
+  delay_for_click_timer_ = new QTimer(this);
+  connect(delay_for_click_timer_, SIGNAL(timeout()), this, SLOT(onClicked()));
 }
 
 RWHVQtWidget::~RWHVQtWidget()
@@ -756,9 +759,12 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
       qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
       if (length < 40) {
         DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
-        if (!isDoingGesture())
+        if (!isDoingGesture()) {
           zoom2TextAction(event->pos());
-
+          if (delay_for_click_timer_->isActive()) {
+            delay_for_click_timer_->stop();
+          }
+        }
         return;
       }
     }
@@ -846,11 +852,15 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 // If no gesture is going on, it means that we are doing a short click
   if (!cancel_next_mouse_release_event_) {
+    if (!delay_for_click_timer_->isActive()) {
     // send out mouse press event, if it hadn't been sent out.
     deliverMousePressEvent();
     // send out mouse release event
-    WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
-    hostView()->host_->ForwardMouseEvent(mouseEvent);
+    mouse_release_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
+    delay_for_click_timer_->start(350); 
+    }  else {
+      delay_for_click_timer_->stop();
+    }
   } else {
     ///\bug If we are doing gesture on a button in the page
     ///the bug will keep press down status since we cancel the mouse release event.
@@ -859,6 +869,12 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 done:
   event->accept();
+}
+
+void RWHVQtWidget::onClicked()
+{
+  hostView()->host_->ForwardMouseEvent(mouse_release_event_);
+  delay_for_click_timer_->stop();
 }
 
 void RWHVQtWidget::tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGesture* gesture)
@@ -1023,7 +1039,11 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
 
         gesture->setGestureCancelPolicy(QGesture::CancelAllInContext);
         setDoingGesture(Qt::PinchGesture);
-        
+        if (delay_for_click_timer_->isActive()) {
+            delay_for_click_timer_->stop();
+        }
+       
+  
         if (backing_store)
           backing_store->SetFrozen(true);
 
@@ -1047,6 +1067,9 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
     case Qt::GestureUpdated:
       {
         setDoingGesture(Qt::PinchGesture);
+        if (delay_for_click_timer_->isActive()) {
+            delay_for_click_timer_->stop();
+         }
         
         pinch_scale_factor_ = gesture->totalScaleFactor();
         if(pinch_scale_factor_ * scale_ > kMaxPinchScale)
@@ -1075,6 +1098,9 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         pinch_completing_ = true;
         cancel_next_mouse_release_event_ = true;
         clearDoingGesture(Qt::PinchGesture);
+        if (delay_for_click_timer_->isActive()) {
+            delay_for_click_timer_->stop();
+        }
 
         if(pending_scale_ < kNormalContentsScale) 
         {

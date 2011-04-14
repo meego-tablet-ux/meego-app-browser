@@ -8,7 +8,7 @@
 #include <QGraphicsWidget>
 #include <QOrientationReading>
 #include <string>
-
+#include <QTimer>
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebTextInputType.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebInputEvent.h"
 #include "third_party/skia/include/core/SkBitmap.h"
@@ -110,7 +110,7 @@ protected Q_SLOTS:
   void onOrientationAngleChanged();
   void onGeometryChanged();
   void onAnimationFinished();
-
+  void onClicked();
  private:
 
   typedef enum {
@@ -181,6 +181,10 @@ protected Q_SLOTS:
   bool in_selection_mode_;
   bool is_modifing_selection_;
   SelectionHandlerID current_selection_handler_;
+
+  //Timer for lower the priority of click event
+  QTimer *delay_for_click_timer_;
+  WebKit::WebMouseEvent mouse_release_event_;
 
   //Two finger gestures emulation variables
   QTouchEvent::TouchPoint emuPoint1, emuPoint2;
