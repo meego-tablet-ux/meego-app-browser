@@ -877,7 +877,8 @@ void RenderViewHost::CreateNewFullscreenWidget(int route_id) {
 
 #if defined(TOOLKIT_MEEGOTOUCH)
 void RenderViewHost::OnUpdateSelectionRange(gfx::Point start, gfx::Point end, bool set) {
-  view()->UpdateSelectionRange(start, end, set);
+  if(view())
+    view()->UpdateSelectionRange(start, end, set);
 }
 
 void RenderViewHost::SetSelectionRange(gfx::Point start, gfx::Point end, bool set) {
