@@ -47,6 +47,8 @@ ProfileKeyedService* ThemeServiceFactory::BuildServiceInstanceFor(
   ThemeService* provider = NULL;
 #if defined(TOOLKIT_USES_GTK)
   provider = new GtkThemeService;
+#elif defined(TOOLKIT_MEEGOTOUCH)
+  provider = new QtThemeProvider;
 #else
   provider = new ThemeService;
 #endif

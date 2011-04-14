@@ -355,6 +355,10 @@ std::string ThemeService::GetThemeID() const {
   return profile_->GetPrefs()->GetString(prefs::kCurrentThemeID);
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "chrome/browser/ui/meegotouch/qt_theme_provider.h"
+#endif
+
 // static
 std::string ThemeService::AlignmentToString(int alignment) {
   // Convert from an AlignmentProperty back into a string.
