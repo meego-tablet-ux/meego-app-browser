@@ -472,7 +472,8 @@ void RenderWidget::ClearFocus() {
 void RenderWidget::PaintRect(const gfx::Rect& update_rect,
                              const gfx::Point& canvas_origin,
                              skia::PlatformCanvas* canvas) {
-  gfx::Rect rect(update_rect.x() - 1, update_rect.y() - 1,
+  gfx::Rect rect(update_rect.x() == 0 ? 0 : update_rect.x() - 1, 
+                 update_rect.y() == 0 ? 0 : update_rect.y() - 1,
                  update_rect.width() + 2, update_rect.height() + 2);
 
   DLOG(INFO) << "RenderWidget::PaintRect scale " << scale_
