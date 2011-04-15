@@ -175,6 +175,12 @@ Item {
         onSetReadOnly: {urlTextInput.readOnly = readonly;}
       }
     }
+    MouseArea {
+      anchors.fill: parent
+      anchors.topMargin: -5
+      anchors.bottomMargin: -5
+      onClicked: urlTextInput.forceActiveFocus();
+    }
     Item {
       id: starButton
       objectName: "starButton"
