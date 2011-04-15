@@ -388,6 +388,10 @@ void TabListQt::Hide()
   emit hide();
 }
 
+void TabListQt::hideSideBar()
+{
+  Hide();
+}
 void TabListQt::go(int index)
 {
   if ((index < 0) || (index >= tabs_.size())) return;
@@ -406,14 +410,12 @@ void TabListQt::closeTab(int index)
 {
   if ((index < 0) || (index >= tabs_.size())) return;
 
-  bool _hide = true;
   TabStripModel* model = browser_->tabstrip_model();
 
   TabItem* item = tabs_[index];
   TabContentsWrapper *tab_contents = item->GetTabContents();
   int index_ = model->GetIndexOfTabContents(tab_contents);
 
-  if ( model->selected_index() != index_ ) _hide = false;
 
   if (model->count() == 1) {
     // the last one
@@ -421,8 +423,6 @@ void TabListQt::closeTab(int index)
   }
 
   model->CloseTabContentsAt(index_, TabStripModel::CLOSE_CREATE_HISTORICAL_TAB);
-
-  if (_hide) Hide();
 }
 
 void TabListQt::newTab()

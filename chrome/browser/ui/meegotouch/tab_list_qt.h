@@ -115,6 +115,7 @@ class TabListQt :  public QAbstractListModel,
   void newTab();
   void closeTab(int index);
   void go(int index);
+  void hideSideBar();
 
  Q_SIGNALS:
   void show();

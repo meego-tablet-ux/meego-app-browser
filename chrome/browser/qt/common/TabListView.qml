@@ -68,6 +68,7 @@ Item {
       border.color: "grey"
       width: parent.width
       height: width/1.5
+      property bool isCurrentTab: false
 
       anchors {
          leftMargin: commonMargin
@@ -154,7 +155,12 @@ Item {
 
         MouseArea {
           anchors.fill: parent
-          onClicked: tabSideBarModel.closeTab(index)
+          onClicked: { 
+            if (index == tabSideBarListView.currentIndex ) {
+              isCurrentTab = true;
+            }
+            tabSideBarModel.closeTab(index);
+          }
           onPressed: closeIcon.pressed = true
           onReleased: closeIcon.pressed = false
         }
@@ -181,6 +187,8 @@ Item {
       ListView.onRemove: SequentialAnimation {
          PropertyAction { target: tabContainer; property: "ListView.delayRemove"; value: true }
          NumberAnimation { target: tabContainer; property: "height"; to: 0; duration: 500; easing.type: Easing.InOutQuad }
+         PauseAnimation { duration: 500 }
+         ScriptAction { script: if(isCurrentTab) { tabSideBarModel.hideSideBar(); isCurrentTab = false;} }
 
          // Make sure delayRemove is set back to false so that the item can be destroyed
          PropertyAction { target: tabContainer; property: "ListView.delayRemove"; value: false }
