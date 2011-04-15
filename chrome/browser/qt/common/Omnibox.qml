@@ -52,19 +52,6 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     source: "image://theme/browser/urlinputbar_left"
   }
-/*
-  Rectangle{
-        id: hlight
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: parent.height
-        //border.color: "#def1f9"
-        border.color: "green"
-        border.width:3
-        radius:5
-        visible:false
-    }
-*/
   BorderImage {
     id: omniBox
     width: parent.width - 10
@@ -75,7 +62,8 @@ Item {
 
     Loader {
       id: autocompletePopupLoader
-      width: scene.isLandscapeView() ? parent.width : toolbar.width * 0.9
+//      width: scene.isLandscapeView() ? parent.width : toolbar.width * 0.9
+      width: parent.width
       height: popupHeight
       anchors.top: parent.bottom
       anchors.topMargin: -8
