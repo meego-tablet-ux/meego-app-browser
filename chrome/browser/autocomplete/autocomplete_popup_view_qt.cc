@@ -243,8 +243,8 @@ void AutocompletePopupViewQt::Show(size_t num_results) {
   for (int line = 0; line < result.size() && line < kMaxSuggestionItems; line++) {
     const AutocompleteMatch& match = result.match_at(line);
     
-    QString content = QString::fromStdString(UTF16ToUTF8(match.contents));
-    QString desr = QString::fromStdString(UTF16ToUTF8(match.description));
+    QString content = QString::fromStdWString(UTF16ToWide(match.contents));
+    QString desr = QString::fromStdWString(UTF16ToWide(match.description));
           
     DLOG(INFO) << "line : " << line;
     DLOG(INFO) << "content : " << match.contents;
