@@ -39,7 +39,7 @@ Item {
 
   // hardcoded property, should be replaced by property from themedata
   property color suggestionColor: "#4e4e4e"
-  property int suggestionItemHeight: 43
+  property int suggestionItemHeight: 57
   property int maxPopupHeight: suggestionItemHeight*10  // at most 10 items
   // 
 
@@ -51,6 +51,9 @@ Item {
   // Space left for autocomplete popup view when taking vkb's area into account
   property int spaceOutOfVkb: maxHeight
 
+  //The margin size of menu items
+  property int textMargin: 16
+ 
   Image {
 	id: finger
 	source: "image://theme/popupbox_arrow_top"
@@ -68,10 +71,10 @@ Item {
 
 	BorderImage {
     	id: borderImage1
-	    source: "image://theme/dropdown_white_pressed_1"
-		border.left: 20
-		border.right: 20
-		border.top: 5
+	    source: "image://theme/popupbox_1"
+		border.left: 10
+		border.right: 10
+		//border.top: 5
 		width: parent.width
 		anchors.top: parent.top
 	}
@@ -79,54 +82,50 @@ Item {
     BorderImage {
 		anchors.top: borderImage1.bottom
 		anchors.bottom: borderImage2.top
-		source: "image://theme/dropdown_white_pressed_2"
+		source: "image://theme/popupbox_2"
 		verticalTileMode: BorderImage.Repeat
 		width: parent.width
 		clip: true
 		height: parent.height - borderImage1.height - borderImage2.height
-		border.left: 20
-		border.right: 20
+		border.left: 10
+		border.right: 10
 	}
 	
 	BorderImage {
 		id: borderImage2
 		anchors.bottom: parent.bottom
-		source: "image://theme/dropdown_white_pressed_3"
+		source: "image://theme/popupbox_3"
 		width: parent.width
-		border.left: 20
-		border.right: 20
-		border.bottom: 34
+		border.left: 10
+		border.right: 10
+		//border.bottom: 34
 	}
 
     Component {
       id: suggestionDelegate
       Item {
         width: parent.width;
-        height: container.itemHeight
+        height: urltext.paintedHeight + textMargin*2
         opacity: 1
           Text {
             id: urltext
-            color: container.suggestionColor
-			anchors.fill: parent
-    		anchors.margins: 10
-            elide: Text.ElideRight
+	    x: textMargin
+            width: parent.width-textMargin*2
+            height: parent.height - 1
+            color: theme_contextMenuFontColor
+	    elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
-            font.pixelSize: container.itemHeight * 0.6
+            font.pixelSize: theme_contextMenuFontPixelSize
             text: url
           }
-/*          Image {
+	  Image {
             id: divider
-            source: "image://theme/contacts/contact_divider"
             anchors.top : urltext.bottom
-          }*/
-          Rectangle {
-			anchors.fill: parent
-			radius: 4
-			//color: container.color
-			opacity: 0.3
-			border.width: 2
-		  }
-
+            width: parent.width
+            height: 1
+            source: "image://theme/menu_item_separator"
+            visible: index < view.count -1
+          }
         MouseArea {
           anchors.fill: parent
           onClicked: {
