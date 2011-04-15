@@ -305,6 +305,9 @@ class TopSites
   void OnTopSitesAvailableFromHistory(CancelableRequestProvider::Handle handle,
                                       MostVisitedURLList data);
 
+  bool GetTemporaryThumbnailByURL(const GURL& url, 
+                                  scoped_refptr<RefCountedBytes>* bytes); 
+
   scoped_refptr<TopSitesBackend> backend_;
 
   // The top sites data.

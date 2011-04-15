@@ -43,7 +43,7 @@ static const size_t kTopSitesNumber = 20;
 
 // Max number of temporary images we'll cache. See comment above
 // temp_images_ for details.
-static const size_t kMaxTempTopImages = 8;
+static const size_t kMaxTempTopImages = 20;
 
 static const size_t kTopSitesShown = 8;
 static const int kDaysOfHistory = 90;
@@ -247,7 +247,11 @@ bool TopSites::GetPageThumbnail(const GURL& url,
                                 scoped_refptr<RefCountedBytes>* bytes) {
   // WARNING: this may be invoked on any thread.
   base::AutoLock lock(lock_);
-  return thread_safe_cache_->GetPageThumbnail(url, bytes);
+  bool ret = thread_safe_cache_->GetPageThumbnail(url, bytes);
+  if (!ret) {
+    return GetTemporaryThumbnailByURL(url, bytes);
+  }
+  return ret;
 }
 
 bool TopSites::GetPageThumbnailScore(const GURL& url,
@@ -595,6 +599,19 @@ void TopSites::RemoveTemporaryThumbnailByURL(const GURL& url) {
     }
   }
 }
+
+bool TopSites::GetTemporaryThumbnailByURL(const GURL& url, 
+                                          scoped_refptr<RefCountedBytes>* bytes) {
+  for (TempImages::iterator i = temp_images_.begin(); i != temp_images_.end();
+       ++i) {
+    if (i->first == url) {
+      *bytes = i->second.thumbnail.get();
+      return true;
+    }
+  }
+  return false;
+}
+
 
 void TopSites::AddTemporaryThumbnail(const GURL& url,
                                      const RefCountedBytes* thumbnail,
