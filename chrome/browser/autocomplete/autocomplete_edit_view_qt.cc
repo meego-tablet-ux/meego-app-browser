@@ -568,7 +568,7 @@ void AutocompleteEditViewQt::SavePrimarySelection(
 void AutocompleteEditViewQt::SetTextAndSelectedRange(const string16& text,
                                                      const CharRange& range) {
   if (text != GetText()) {
-    impl_->SetText(QString::fromStdString(UTF16ToUTF8(text)), false);
+    impl_->SetText(QString::fromStdWString(UTF16ToWide(text)), false);
   }
   SetSelectedRange(range);
   AdjustTextJustification();
