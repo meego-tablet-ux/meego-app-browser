@@ -66,22 +66,16 @@ class MaxViewImageProvider;
 class ThumbnailEntry;
 class FaviconEntry;
 class TabContentsWrapper;
+class MostVisitedPage;
 
 class NewTabUIQt : public TabStripModelObserver,
 		   public TabRestoreServiceObserver  {
 
   public:
-   friend class MaxViewModel;
- 
-   struct MostVisitedPage {
-      int id;
-      string16 title;
-      GURL url;
-      GURL thumbnail_url;
-      GURL favicon_url;
-   };
+    friend class MaxViewModel;
 
-   NewTabUIQt(Browser* browser, BrowserWindowQt* window);
+
+    NewTabUIQt(Browser* browser, BrowserWindowQt* window);
 
     ~NewTabUIQt();
 
@@ -128,20 +122,20 @@ class NewTabUIQt : public TabStripModelObserver,
     void StartQueryForMostVisited();
   // Callback for TopSites.
     void OnMostVisitedURLsAvailable(const history::MostVisitedURLList &data);
-  // Callback from the history system when the most visited list is available.
-    void OnSegmentUsageAvailable(CancelableRequestProvider::Handle handle,
-                                    std::vector<PageUsageData*>* data);
-    void dump(std::vector<PageUsageData*>* data); 
+
+    void handleMostVisitedPageData(std::vector<MostVisitedPage*>* data);
+
+    void dump(std::vector<MostVisitedPage*>* data); 
 
     void RegisterGetRecentlyClosedTab();
 
-    bool TabToValue(const TabRestoreService::Tab& tab, PageUsageData* value);
+    bool TabToValue(const TabRestoreService::Tab& tab, MostVisitedPage* value);
     
-    bool EnsureTabIsUnique(const PageUsageData* value, std::set<string16>* unique_items);
+    bool EnsureTabIsUnique(const MostVisitedPage* value, std::set<string16>* unique_items);
     
-    void syncWithPinnedPage(std::vector<PageUsageData*>* data, std::vector<PageUsageData*>* newData);
+    void syncWithPinnedPage(std::vector<MostVisitedPage*>* data, std::vector<MostVisitedPage*>* newData);
 
-    void HandleAddPinnedURL(PageUsageData* data, int index);
+    void HandleAddPinnedURL(MostVisitedPage* data, int index);
 
     void AddPinnedURL(const MostVisitedPage& page, int index);
 
@@ -177,7 +171,7 @@ class NewTabUIQt : public TabStripModelObserver,
     DictionaryValue* pinned_urls_;
 
     // Our consumer for the history service.
-    CancelableRequestConsumerTSimple<PageUsageData*> cancelable_consumer_;
+    CancelableRequestConsumerTSimple<MostVisitedPage*> cancelable_consumer_;
 
     CancelableRequestConsumer topsites_consumer_;
 
@@ -230,12 +224,12 @@ class MaxViewModel : public QAbstractListModel {
   	IndexRule
     };
 
-    MaxViewModel(NewTabUIQt* tab, std::vector<PageUsageData*>* data, QString name);
+    MaxViewModel(NewTabUIQt* tab, std::vector<MostVisitedPage*>* data, QString name);
     virtual ~MaxViewModel();
 
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-    void updateContent(std::vector<PageUsageData*>* data);
+    void updateContent(std::vector<MostVisitedPage*>* data);
     void beginReset();
     void endReset();
     void clear();
@@ -248,10 +242,10 @@ class MaxViewModel : public QAbstractListModel {
     QString GetCategoryName();
     void swap(int from, int to);
     void bringToFront(int i);
-    int getId(int index);
+    QString getId(int index);
 
   private:
-    QList<PageUsageData*> siteInfoList_;
+    QList<MostVisitedPage*> siteInfoList_;
     // list to hold entries
     QList<ThumbnailEntry*> thumbnailList_;
     QList<FaviconEntry*> faviconList_;

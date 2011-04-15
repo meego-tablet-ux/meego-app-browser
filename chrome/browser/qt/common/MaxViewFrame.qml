@@ -226,56 +226,68 @@ Item {
 
     		GestureArea {
         	    anchors.fill: parent
+        	    Tap {}
         	    TapAndHold {}
         	    Pan {}
         	    Pinch {}
+    		    Swipe {}
     		}
 
 		MouseArea {
 		    anchors.fill: parent
-		    property int longPressId: -1
+		    property string longPressId: ""
 		    property int newIndex:-1
 		    property int oldIndex:-1
 		    property int index:-1
-		    property int pressId: -1
+		    property string pressId: ""
 		    property bool draging: false
-		    property int dragOverId: -1
+		    property string dragOverId: ""
 		    id: gridMouseArea
 		    onClicked: {
 			index = grid.indexAt(mouseX, mouseY);
-	    		scene.openWebPage(index, gridModel);
+			if(index != -1) {
+	    		  scene.openWebPage(index, gridModel);
+			}
 		    }
 		    onPressed: { 
 		        sector.focus = true;
 			index = grid.indexAt(mouseX, mouseY);
-		        pressId = grid.model.getId(index);
+			if(index != -1) {
+		          pressId = grid.model.getId(index);
+			}
 		    }
 		    onPressAndHold: { 
 			if(sector.enableDrag) {
 			    index = grid.indexAt(mouseX, mouseY);
-			    oldIndex = newIndex = index;
-			    longPressId = grid.model.getId(oldIndex);
-			    //console.log("press and hold: " + longPressId);
-			    draging = true;
-			    grid.model.bringToFront(index);
+			    if(index != -1) {
+			      oldIndex = newIndex = index;
+			      longPressId = grid.model.getId(oldIndex);
+			      //console.log("press and hold: " + longPressId);
+			      draging = true;
+			      grid.model.bringToFront(index);
+			    }
 			}
 		    }
 		    onReleased: {
 			index = grid.indexAt(mouseX, mouseY);
-			grid.model.swap(oldIndex, index);
-			longPressId = -1;
-			dragOverId = -1;
+			if(oldIndex != -1 && index != -1) {
+			  grid.model.swap(oldIndex, index);
+			}
+			longPressId = "";
+			dragOverId = "";
 			newIndex = -1;
 			oldIndex = -1;
 			index = -1;
-			pressId = -1;
+			pressId = "";
 		    }
 		    onMousePositionChanged: {
 			//console.log("mouseX:" + mouseX + " mouseY:" + mouseY );
 			index = grid.indexAt(mouseX, mouseY);
+			if(index != -1) {
 			//console.log("index:" + index + "longPressId:" + longPressId + "newIndex: " + newIndex);
-			if (draging && longPressId != -1 && index != -1 && index != newIndex)
+			  if (draging && longPressId != "" && index != -1 && index != newIndex)
 			    dragOverId = grid.model.getId(newIndex = index);			
+			}
 		    }
 		}
 	    }

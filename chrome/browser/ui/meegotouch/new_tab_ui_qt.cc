@@ -75,6 +75,17 @@ static QImage SkBitmap2Image(const SkBitmap& bitmap)
     return image;
 }
 
+class MostVisitedPage {
+public:
+  string16 title;
+
+  GURL url;
+
+  GURL thumbnail_url;
+
+  GURL favicon_url;
+};
+
 class MaxViewImageProvider : public QDeclarativeImageProvider 
 {
 public:
@@ -98,10 +109,11 @@ public:
                               QSize* size,
                               const QSize& requestedSize)
   {
+    bool isGetThumbnail = id.startsWith("thumbnail");
     int finded = id.indexOf("_");
-    int index = id.size() - finded - 1;
-    if(id.contains("thumbnail")) {
+    if(isGetThumbnail) {
       if (finded != -1) {
+        int index = id.size() - finded - 1;
         //DLOG(INFO) <<"thumbnail query map id: " << id.right(index).toStdString();
         QImage& image = imageList_[id.right(index)];
         if (!image.isNull()) {
@@ -113,6 +125,7 @@ public:
       return blankImage_;
     } else {
       if (finded != -1) {
+        int index = id.size() - finded - 1;
         //DLOG(INFO) <<"favicon query map id: " << id.right(index).toStdString();
         QImage& image = favList_[id.right(index)];
         if (!image.isNull()) {
@@ -137,8 +150,8 @@ public:
   }
 
 private:
-  QMap<QString, QImage> imageList_;
-  QMap<QString, QImage> favList_;
+  QHash<QString, QImage> imageList_;
+  QHash<QString, QImage> favList_;
   QImage blankImage_;
 };
 
@@ -146,9 +159,9 @@ class ThumbnailEntry
 {
 public:
 
-  ThumbnailEntry(const int64 index, MaxViewImageProvider* imageProvider,
+  ThumbnailEntry(MaxViewImageProvider* imageProvider,
                  GURL url, Profile* profile, MaxViewModel* model)
-                 : index_(index), imageProvider_(imageProvider), model_(model) {
+                 : url_(url), imageProvider_(imageProvider), model_(model) {
     if(url != GURL(EMPTY_PAGE)) {
       //DLOG(INFO)<<__FUNCTION__;
       history::TopSites* ts = profile->GetTopSites();
@@ -166,7 +179,7 @@ public:
     } else {
       //QImage image = QImage::fromColor();
       model_->beginReset();
-      imageProvider_->addImage("thumbnail", QString::number(index_, 16), QImage());
+      imageProvider_->addImage("thumbnail", QString::fromStdString(url_.spec()), QImage());
       model_->endReset();
     }
 
@@ -181,18 +194,18 @@ public:
   void handleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data) {
     model_->beginReset();
     if (jpeg_data.get()) {
-      //DLOG(INFO) << "get image id: " << index_;
       std::vector<unsigned char> thumbnail_data;
       std::copy(jpeg_data->data.begin(), jpeg_data->data.end(),
       std::back_inserter(thumbnail_data));
       QImage image = QImage::fromData(thumbnail_data.data(), thumbnail_data.size());
       //DLOG(INFO) <<"thumbnail:";
-      imageProvider_->addImage("thumbnail", QString::number(index_, 16), image);
+      imageProvider_->addImage("thumbnail", QString::fromStdString(url_.spec()), image);
     }
     model_->endReset();
   }; 
 private:
-  int64 index_;
+
+  GURL url_;
 
   MaxViewImageProvider* imageProvider_;
 
@@ -204,9 +217,9 @@ private:
 class FaviconEntry 
 {
 public: 
-  FaviconEntry(const int64 index, MaxViewImageProvider* imageProvider,
+  FaviconEntry(MaxViewImageProvider* imageProvider,
                GURL url, Profile* profile, MaxViewModel* model)
-               : index_(index), imageProvider_(imageProvider), model_(model) {
+               : url_(url), imageProvider_(imageProvider), model_(model) {
 
     FaviconService* favicon_service = profile->GetFaviconService(Profile::EXPLICIT_ACCESS);
     if(favicon_service) {
@@ -216,7 +229,7 @@ public:
                  NewCallback(this, &FaviconEntry::OnFaviconDataAvailable));
       } else {
         model_->beginReset();
-        imageProvider_->addImage("favicon", QString::number(index_,16), QImage());
+        imageProvider_->addImage("favicon", QString::fromStdString(url_.spec()), QImage());
         model_->endReset();
       }
     }
@@ -229,20 +242,19 @@ public:
     scoped_refptr<RefCountedMemory> data = favicon.image_data;
     if (data.get() && data->size()) {
       //scoped_refptr<RefCountedBytes> data_s = static_cast<scoped_refptr<RefCountedBytes>>data;
-      //DLOG(INFO) << "get image id: " << index_;
       std::vector<unsigned char> fav_data;
       std::copy(data->front(), data->front()+data->size(),
       std::back_inserter(fav_data));
       QImage image = QImage::fromData(fav_data.data(), fav_data.size());
       //DLOG(INFO) <<"favicon:";
-      imageProvider_->addImage("favicon", QString::number(index_,16), image);
+      imageProvider_->addImage("favicon", QString::fromStdString(url_.spec()), image);
     }
     model_->endReset();
 
   }
 
 private:
-  int64 index_;
+  GURL url_;
 
   MaxViewImageProvider* imageProvider_;
 
@@ -380,32 +392,34 @@ bool NewTabUIQt::shouldDisplay() {
 
 void NewTabUIQt::OnMostVisitedURLsAvailable(
     const history::MostVisitedURLList &data) {
-    std::vector<PageUsageData*> pData;
+    //DLOG(INFO)<<__FUNCTION__;
+    std::vector<MostVisitedPage*> pData;
     int size = data.size();
+    //DLOG(INFO)<<__FUNCTION__<<size;
     for (size_t i = 0; i < size; i++) {
 	const history::MostVisitedURL& mvp = data[i];	
-	//TODO: Need to create an unique id for page.
-        PageUsageData* page = new PageUsageData(0);
-      	page->SetTitle(mvp.title);
-      	page->SetURL(mvp.url);
+        MostVisitedPage* page = new MostVisitedPage();
+      	page->title = mvp.title;
+      	page->url = mvp.url;
         pData.push_back(page);
+    	//DLOG(INFO)<<__FUNCTION__<<page->title;
     }
-    //TODO: should open this if use topsite.
-    //OnSegmentUsageAvailable(NULL, &pData);
+
+    handleMostVisitedPageData(&pData);
 
     int count = pData.size();
     for(int i=0; i<count; i++) {
-        PageUsageData* page = pData[i];
-        delete page;
+	MostVisitedPage* item = pData[i];
+	delete item;
     }
+    pData.clear();
     
 }
 
-void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handle,
-                               std::vector<PageUsageData*>* data) {
+void NewTabUIQt::handleMostVisitedPageData(std::vector<MostVisitedPage*>* data) {
     if(data==NULL)
         return;
-    //Make Sure we have 8 item for Most Visited Area.
+    //DLOG(INFO)<<__FUNCTION__<<data->size();
 /*
     int count = data->size();
     for(int i=count; i<8; i++) {
@@ -417,8 +431,7 @@ void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handl
     }
 
     //Most Visited Area should not be null
-    int q_count = data->size();
-    if(q_count == 0) {
+    int q_count = data->size(); if(q_count == 0) {
         PageUsageData* page = new PageUsageData(0);
         page->SetURL(GURL(EMPTY_PAGE));
         page->SetTitle(UTF8ToUTF16("Example"));
@@ -426,50 +439,47 @@ void NewTabUIQt::OnSegmentUsageAvailable(CancelableRequestProvider::Handle handl
     }
 */
 
-    std::vector<PageUsageData*>* newData = new std::vector<PageUsageData*>();
-    syncWithPinnedPage(data, newData);
-
+    std::vector<MostVisitedPage*> newData;
+    syncWithPinnedPage(data, &newData);
+/*
     bool changed = false;
     int oldCount = mostVisitedModel_->rowCount();
     if(oldCount == 8) {
         for(int j=0; j<8; j++) {
-            GURL new_url = (*newData)[j]->GetURL();
+            GURL new_url = newData[j]->url;
             GURL old_url = mostVisitedModel_->getItemURL(j);
             if(new_url != old_url) {
                 changed = true;
                 break;
             }
         }
-    }else if( oldCount == 1 || oldCount != newData->size() ) {
+    }else if( oldCount == 1 || oldCount != newData.size() ) {
         changed = true;
     }
 
     if(changed)
-        mostVisitedModel_->updateContent(newData);
+*/
+        mostVisitedModel_->updateContent(&newData);
 
     if(isAboutToShow_) {
         impl_->show();
     }
 
-    //Debug usage
-    //dump(newData);
-
     //updateDataModel();
 
     //TODO: delete *data here!!!
-    int count = newData->size();
+    int count = newData.size();
     for(int i=0; i<count; i++) {
-        PageUsageData* page = (*newData)[i];
+        MostVisitedPage* page = newData[i];
         delete page;
     }
-    newData->clear();
-    delete newData;
+    newData.clear();
 }
 
-void NewTabUIQt::syncWithPinnedPage(std::vector<PageUsageData*>* data,
-							    std::vector<PageUsageData*>* newData) {
-  size_t data_index = 0;
-  size_t output_index = 0;
+void NewTabUIQt::syncWithPinnedPage(std::vector<MostVisitedPage*>* data,
+							    std::vector<MostVisitedPage*>* newData) {
+  int data_index = 0;
+  int output_index = 0;
 
   //Clean old data from pined list.
   for (DictionaryValue::key_iterator it = pinned_urls_->begin_keys();
@@ -492,10 +502,10 @@ void NewTabUIQt::syncWithPinnedPage(std::vector<PageUsageData*>* data,
       int find = false;
       int count = data->size();
       for(int i=0; i<count; i++) {
-        const PageUsageData& page = *(*data)[i];
-        if( pinnedUrl == page.GetURL() ) {
-        find = true;
-        break;
+        const MostVisitedPage& page = *(*data)[i];
+        if( pinnedUrl == page.url ) {
+          find = true;
+          break;
         }
       }
       if(!find) {
@@ -509,27 +519,26 @@ void NewTabUIQt::syncWithPinnedPage(std::vector<PageUsageData*>* data,
   //sync the query data with pinned list.
   while (output_index < kMostVisitedPages) {
     bool found = false;
-    MostVisitedPage mvp;
+    MostVisitedPage *mvp = new MostVisitedPage();
     
     //Find data from pinned list firstly
-    if (GetPinnedURLAtIndex(output_index, &mvp)) {
-      DLOG(INFO)<<"got "<< mvp.title<<"from pinned list";
+    if (GetPinnedURLAtIndex(output_index, mvp)) {
+      DLOG(INFO)<<"got "<< mvp->title<<"from pinned list";
       found = true;
     }
 
     //Find data from query data secondly
     while (!found && data_index < data->size()) {
-      const PageUsageData& page = *(*data)[data_index];
+      const MostVisitedPage& page = *(*data)[data_index];
       data_index++;
-      mvp.id = (int)page.GetID();
-      mvp.url = page.GetURL();
-
       // filt out pinned URLs which will be check in first step
-      std::string key = GetDictionaryKeyForURL(mvp.url.spec());
+      std::string key = GetDictionaryKeyForURL(page.url.spec());
       if (pinned_urls_->HasKey(key))
         continue;
 
-      mvp.title = page.GetTitle();
+      mvp->url = page.url;
+      mvp->title = page.title;
+      //DLOG(INFO)<<"got "<< mvp->title<<"from top sites list";
       found = true;
     }
 
@@ -538,34 +547,29 @@ void NewTabUIQt::syncWithPinnedPage(std::vector<PageUsageData*>* data,
       //if(pinned)
       //    newData.push_back(new PageUsageData((*data)[data_index]));
       //else {
-      PageUsageData* page = new PageUsageData(mvp.id);
-      page->SetTitle(mvp.title);
-      page->SetURL(mvp.url);
-      newData->push_back(page);
+      newData->push_back(mvp);
       //}
     }
     output_index++;
   }
 }
 
-void NewTabUIQt::HandleAddPinnedURL(PageUsageData* data, int index) {
-  MostVisitedPage mvp;
-  mvp.id = (int)data->GetID();
-  mvp.title = data->GetTitle();
-  mvp.url = data->GetURL();
+void NewTabUIQt::HandleAddPinnedURL(MostVisitedPage* data, int index) {
 
-  AddPinnedURL(mvp, index);
+  AddPinnedURL(*data, index);
 }
 
 void NewTabUIQt::AddPinnedURL(const MostVisitedPage& page, int index) {
+//Still use old way to save pinned url.
+
 /*
-  if (history::TopSites::IsEnabled()) {
-    history::TopSites* ts = browser_->GetProfile()->GetTopSites();
-    if (ts)
-      ts->AddPinnedURL(page.url, index);
+  history::TopSites* ts = browser_->GetProfile()->GetTopSites();
+  if (ts){
+    ts->AddPinnedURL(page.url, index);
     return;
   }
 */
+
   // Remove any pinned URL at the given index.
   MostVisitedPage old_page;
   if (GetPinnedURLAtIndex(index, &old_page)) {
@@ -573,7 +577,6 @@ void NewTabUIQt::AddPinnedURL(const MostVisitedPage& page, int index) {
   }
 
   DictionaryValue* new_value = new DictionaryValue();
-  new_value->SetInteger("id", page.id);
   new_value->SetString("title", page.title);
   new_value->SetString("url", page.url.spec());
   new_value->SetInteger("index", index);
@@ -611,8 +614,6 @@ bool NewTabUIQt::GetPinnedURLAtIndex(int index,
         page->url = GURL(tmp_string);
         dict->GetString("title", &tmp_string16);
         page->title = tmp_string16;
-        dict->GetInteger("id", &id);
-        page->id = id;
         return true;
       }
     } else {
@@ -623,14 +624,16 @@ bool NewTabUIQt::GetPinnedURLAtIndex(int index,
 }
 
 void NewTabUIQt::RemovePinnedURL(const GURL& url) {
+//Still use old way to save pinned url.
+
 /*
-  if (history::TopSites::IsEnabled()) {
-    history::TopSites* ts = browser_->GetProfile()->GetTopSites();
-    if (ts)
-      ts->RemovePinnedURL(url);
+  history::TopSites* ts = browser_->GetProfile()->GetTopSites();
+  if (ts) {
+    ts->RemovePinnedURL(url);
     return;
   }
 */
+
   const std::string key = GetDictionaryKeyForURL(url.spec());
   if (pinned_urls_->HasKey(key))
     pinned_urls_->Remove(key, NULL);
@@ -660,7 +663,7 @@ void NewTabUIQt::RegisterGetRecentlyClosedTab() {
 
 bool NewTabUIQt::TabToValue(
     const TabRestoreService::Tab& tab,
-    PageUsageData* value) {
+    MostVisitedPage* value) {
   if (tab.navigations.empty())
     return false;
 
@@ -669,24 +672,24 @@ bool NewTabUIQt::TabToValue(
   GURL gurl = current_navigation.virtual_url();
   if (gurl == GURL(chrome::kChromeUINewTabURL))
     return false;
-  value->SetURL(gurl);
+  value->url = gurl;
   bool using_url_as_the_title = false;
   string16 title_to_set = current_navigation.title();
   if (title_to_set.empty()) {
     using_url_as_the_title = true;
     title_to_set = UTF8ToUTF16(gurl.spec());
   }
-  value->SetTitle(title_to_set);
+  value->title = title_to_set;
 
   return true;
 }
 
 bool NewTabUIQt::EnsureTabIsUnique(
-    const PageUsageData* value,
+    const MostVisitedPage* value,
     std::set<string16>* unique_items) {
     DCHECK(unique_items);
-    string16 title = value->GetTitle();
-    string16 url = UTF8ToUTF16(value->GetURL().spec());
+    string16 title = value->title;
+    string16 url = UTF8ToUTF16(value->url.spec());
     string16 unique_key = title + url;
     if (unique_items->find(unique_key) != unique_items->end())
       return false;
@@ -698,14 +701,14 @@ bool NewTabUIQt::EnsureTabIsUnique(
 
 void NewTabUIQt::TabRestoreServiceChanged(TabRestoreService* service) {
   const TabRestoreService::Entries& entries = service->entries();
-  std::vector<PageUsageData*> list_value;
+  std::vector<MostVisitedPage*> list_value;
   std::set<string16> unique_items;
   int added_count = 0;
   const int max_count = 8;
   for (TabRestoreService::Entries::const_iterator it = entries.begin();
        it != entries.end() && added_count < max_count; ++it) {
     TabRestoreService::Entry* entry = *it;
-    PageUsageData* value = new PageUsageData(added_count);
+    MostVisitedPage* value = new MostVisitedPage();
     if ((entry->type == TabRestoreService::TAB &&
          TabToValue(*static_cast<TabRestoreService::Tab*>(entry), value) &&
          EnsureTabIsUnique(value, &unique_items))) {
@@ -730,27 +733,12 @@ void NewTabUIQt::TabRestoreServiceDestroyed(TabRestoreService* service) {
 
 //TODO: Call this function when new Tab is showed.
 void NewTabUIQt::StartQueryForMostVisited() {
-/*
-  // Use TopSites.
   history::TopSites* ts = browser_->GetProfile()->GetTopSites();
   if (ts) {
     ts->GetMostVisitedURLs(
          &topsites_consumer_,
          NewCallback(this, &NewTabUIQt::OnMostVisitedURLsAvailable));
     return;
-  }
-*/
-  Profile* profile = browser_->profile();
-  const int page_count = kMostVisitedPages;
-  const int result_count = page_count;
-  HistoryService* hs =
-      profile->GetHistoryService(Profile::EXPLICIT_ACCESS);
-  if (hs) {
-    hs->QuerySegmentUsageSince(
-        &cancelable_consumer_,
-        base::Time::Now() - base::TimeDelta::FromDays(kMostVisitedScope),
-        result_count,
-        NewCallback(this, &NewTabUIQt::OnSegmentUsageAvailable));
   }
 }
 
@@ -761,40 +749,8 @@ MaxViewImageProvider* NewTabUIQt::getImageProviderByName(QString name) {
         return recentlyClosedImageProvider_;
 
 }
-void NewTabUIQt::dump(std::vector<PageUsageData*>* data) {
-    int count = data->size();
-    for(int i=0; i<count; i++) {
-        const PageUsageData& page = *(*data)[i];
-        DLOG(INFO)<<page.GetURL();
-        DLOG(INFO)<<page.GetTitle();
 
-/*
-        DLOG(INFO)<<page.thumbnail_pending();
-        DLOG(INFO)<<page.HasThumbnail();
-        DLOG(INFO)<<page.favicon_pending();
-        DLOG(INFO)<<page.HasFavIcon();
-        DLOG(INFO)<< page.GetURL().spec().c_str();
-        //std::wstring imageUrl = UTF8ToWide(page.GetURL().spec());
-        char url[] = "chrome://thumb/";
-        strcat(url, page.GetURL().spec().c_str());
-        DLOG(INFO)<< url;
-        QImage image = QImage(url);
-        DLOG(INFO)<<"add map id: " << QString::number(i, 10).toStdString();
-        imageProvider_->addImage(QString::number(i, 10), image);
-        DLOG(INFO)<<"width = "<<image.width();
-        DLOG(INFO)<<"height = "<<image.height();
-
-        if(page.GetThumbnail()) {
-        QImage image = SkBitmap2Image(*(page.GetThumbnail()));
-        }
-        else
-        DLOG(INFO)<<"error";
-*/
-    }
-
-}
-
-MaxViewModel::MaxViewModel(NewTabUIQt* tab, std::vector<PageUsageData*>* data, QString name)
+MaxViewModel::MaxViewModel(NewTabUIQt* tab, std::vector<MostVisitedPage*>* data, QString name)
         : returnedImages_(0),
         new_tab_(tab),
         updateTimes_(0),
@@ -814,12 +770,12 @@ MaxViewModel::MaxViewModel(NewTabUIQt* tab, std::vector<PageUsageData*>* data, Q
     provider->clear();
     int count = data->size();
     for(int i=0; i<count; i++) {
-      const PageUsageData& page = *(*data)[i];
-      siteInfoList_.push_back(new PageUsageData(page));
-      ThumbnailEntry *thumbnail = new ThumbnailEntry((int64)page.GetID(), provider, page.GetURL(), 
+      const MostVisitedPage& page = *(*data)[i];
+      siteInfoList_.push_back(new MostVisitedPage(page));
+      ThumbnailEntry *thumbnail = new ThumbnailEntry(provider, page.url, 
           new_tab_->getProfile(), this);
       thumbnailList_.push_back(thumbnail);
-      FaviconEntry *favicon = new FaviconEntry((int64)page.GetID(), provider, page.GetURL(), 
+      FaviconEntry *favicon = new FaviconEntry(provider, page.url, 
           new_tab_->getProfile(), this);
       faviconList_.push_back(favicon);
     }
@@ -830,19 +786,19 @@ MaxViewModel::~MaxViewModel() {
     clear();
 }
 
-void MaxViewModel::updateContent(std::vector<PageUsageData*>* data) {
+void MaxViewModel::updateContent(std::vector<MostVisitedPage*>* data) {
     if(data) {
         clear();
         MaxViewImageProvider* provider = new_tab_->getImageProviderByName(name_);
         provider->clear();
         int count = data->size();
         for(int i=0; i<count; i++) {
-            const PageUsageData& page = *(*data)[i];
-            siteInfoList_.push_back(new PageUsageData(page));
-            ThumbnailEntry *thumbnail = new ThumbnailEntry((int64)page.GetID(), provider, page.GetURL(), 
+            const MostVisitedPage& page = *(*data)[i];
+            siteInfoList_.push_back(new MostVisitedPage(page));
+            ThumbnailEntry *thumbnail = new ThumbnailEntry(provider, page.url, 
               new_tab_->getProfile(), this);
             thumbnailList_.push_back(thumbnail);
-            FaviconEntry *favicon = new FaviconEntry((int64)page.GetID(), provider, page.GetURL(), 
+            FaviconEntry *favicon = new FaviconEntry(provider, page.url, 
               new_tab_->getProfile(), this);
             faviconList_.push_back(favicon);
         }
@@ -889,7 +845,7 @@ void MaxViewModel::clear() {
 
 GURL MaxViewModel::getItemURL(int index) {
     if(index >= 0 && index < rowCount())
-        return siteInfoList_[index]->GetURL();
+        return siteInfoList_[index]->url;
     else
         return GURL(EMPTY_PAGE);
 }
@@ -906,22 +862,23 @@ QVariant MaxViewModel::data(const QModelIndex & index, int role) const
   if (index.row() < 0 || index.row() > siteInfoList_.count())
     return QVariant();
 
-  PageUsageData* siteInfoItem = siteInfoList_[(index.row()+1)*(index.column()+1) - 1];
+  MostVisitedPage* siteInfoItem = siteInfoList_[(index.row()+1)*(index.column()+1) - 1];
   if (role == UrlRule) {
     //TODO: handle GURL here. return QUrl(siteInfoItem->GetURL());
     return QVariant();
   } else if (role == TitleRule) {
-    std::wstring title_str = UTF16ToWide(siteInfoItem->GetTitle());
+    std::wstring title_str = UTF16ToWide(siteInfoItem->title);
     return QString::fromStdWString(title_str);
   } else if (role == ThumbnailRule) {
     //DLOG(INFO)<<"query "<<(QString("image://") + name_ + QString("/thumbnail") + QString::number(updateTimes_) + QString("_") + QString::number((int64)siteInfoItem->GetID(), 16)).toStdString();
-    return QString("image://") + name_ + QString("/thumbnail") + QString::number(updateTimes_) + QString("_") + QString::number((int64)siteInfoItem->GetID(), 16);
+    return QString("image://") + name_ + QString("/thumbnail") + QString("_") + QString::fromStdString(siteInfoItem->url.spec());
   } else if (role == FaviconRule) {
     //DLOG(INFO)<<"query "<<(QString("image://") + name_ + QString("/favicon") + QString::number(updateTimes_) + QString("_") + QString::number((int64)siteInfoItem->GetID(), 16)).toStdString();
-    return QString("image://") + name_ + QString("/favicon") + QString::number(updateTimes_) + QString("_") + QString::number((int64)siteInfoItem->GetID(), 16);
+    return QString("image://") + name_ + QString("/favicon") + QString("_") + QString::fromStdString(siteInfoItem->url.spec());
   } else if (role == IndexRule) {
     //return index.row();
-    return (int)siteInfoItem->GetID();
+    return QString::fromStdString(siteInfoItem->url.spec());
+    //return (int)siteInfoItem->GetID();
   }
 
   return QVariant();
@@ -936,10 +893,11 @@ QString MaxViewModel::GetCategoryName() {
      
 }
 
-int MaxViewModel::getId(int index) {
+QString MaxViewModel::getId(int index) {
   //DLOG(INFO) <<"get index id: " << index;
-  if(index >= 0 && index < rowCount())
-    return (int)(siteInfoList_[index]->GetID());
+  if(index >= 0 && index < rowCount()) {
+    return QString::fromStdString(siteInfoList_[index]->url.spec());
+  }
 }
 
 void MaxViewModel::openWebPage(int index) {
@@ -954,7 +912,7 @@ void MaxViewModel::openWebPage(int index) {
 }
 
 void MaxViewModel::bringToFront(int i) {
-    PageUsageData* siteInfoItem = siteInfoList_[i];
+    MostVisitedPage* siteInfoItem = siteInfoList_[i];
     beginRemoveRows(QModelIndex(), i, i);
     siteInfoList_.removeAt(i);
     endRemoveRows();
@@ -982,8 +940,8 @@ void MaxViewModel::swap(int from, int to) {
 */
     int big = from>to?from:to;
     int small = from>to?to:from;
-    PageUsageData* siteInfoBigItem = siteInfoList_[big];
-    PageUsageData* siteInfoSmallItem = siteInfoList_[small];
+    MostVisitedPage* siteInfoBigItem = siteInfoList_[big];
+    MostVisitedPage* siteInfoSmallItem = siteInfoList_[small];
     beginRemoveRows(QModelIndex(), big, big);
     siteInfoList_.removeAt(big);
     endRemoveRows();
