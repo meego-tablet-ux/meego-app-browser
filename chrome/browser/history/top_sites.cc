@@ -834,7 +834,9 @@ void TopSites::SetTopSites(const MostVisitedURLList& new_top_sites) {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
 
   MostVisitedURLList top_sites(new_top_sites);
+#if !defined(TOOLKIT_MEEGOTOUCH)
   AddPrepopulatedPages(&top_sites);
+#endif
 
   TopSitesDelta delta;
   DiffMostVisited(cache_->top_sites(), top_sites, &delta);
