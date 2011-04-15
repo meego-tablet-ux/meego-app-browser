@@ -105,10 +105,11 @@ Q_SIGNALS:
   void updatePinchState(int pinchState);
   void setViewPos(QPointF& pos);
   void setViewSize(QSizeF& size);
+  void sizeAdjusted();
 
 protected Q_SLOTS:
   void onOrientationAngleChanged();
-  void onGeometryChanged();
+  void onSizeAdjusted();
   void onAnimationFinished();
   void onClicked();
  private:

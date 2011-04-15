@@ -144,7 +144,7 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
 
   installed_filter_ = false;
 
-  connect(this, SIGNAL(geometryChanged()), this, SLOT(onGeometryChanged()));
+  connect(this, SIGNAL(sizeAdjusted()), this, SLOT(onSizeAdjusted()));
   
   pinchEmulationEnabled = false;
   pinch_completing_ = false;
@@ -1384,9 +1384,9 @@ void RWHVQtWidget::ModifySelection(SelectionHandlerID handler, gfx::Point new_po
 }
 
 
-void RWHVQtWidget::onGeometryChanged()
+void RWHVQtWidget::onSizeAdjusted()
 {
-  DLOG(INFO) << "onGeometryChanged " << this << " "
+  DLOG(INFO) << "onSizeAdjusted " << this << " "
              << geometry().x() << " "
              << geometry().y() << " "
              << geometry().width() << " "
@@ -1553,6 +1553,7 @@ void RWHVQtWidget::DidBackingStoreScale()
       QRect rect = backing_store->ContentsRect();
       setGeometry(QRectF(geometry().topLeft(),
                          QSizeF(rect.width(), rect.height())));
+      emit sizeAdjusted();
     }
   }
 }
@@ -1562,6 +1563,7 @@ void RWHVQtWidget::AdjustSize()
   setGeometry(QRectF(geometry().topLeft(),
                      QSizeF(host_view_->contents_size_.width() * scale(),
                             host_view_->contents_size_.height() * scale())));
+  emit sizeAdjusted();
 }
 
 void RWHVQtWidget::ScrollRectToVisible(const gfx::Rect& rect)
