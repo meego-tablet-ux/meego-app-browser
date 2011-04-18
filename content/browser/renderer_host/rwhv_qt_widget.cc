@@ -839,20 +839,22 @@ done:
 
 void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  setFocusPolicy(Qt::StrongFocus);
-  if (!hasFocus()) {
-    setFocus();
-    QGraphicsItem *parent = parentItem();
-    while (parent) {
-      if (parent->flags() & QGraphicsItem::ItemIsFocusScope)
-        parent->setFocus(Qt::OtherFocusReason);
-      parent = parent->parentItem();
-    }
-  }
 
   WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event);
 
   if (!hostView()->IsPopup()) {
+
+    setFocusPolicy(Qt::StrongFocus);
+    if (!hasFocus()) {
+      setFocus();
+      QGraphicsItem *parent = parentItem();
+      while (parent) {
+        if (parent->flags() & QGraphicsItem::ItemIsFocusScope)
+          parent->setFocus(Qt::OtherFocusReason);
+        parent = parent->parentItem();
+      }
+    }
+
     qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
     if (timestamp - m_dbclkHackTimeStamp < 350) {
       // we may hit a double tap
