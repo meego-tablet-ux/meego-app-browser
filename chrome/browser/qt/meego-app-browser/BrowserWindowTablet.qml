@@ -73,7 +73,7 @@ Item {
     property bool fullscreen: is_fullscreen
     property bool showtoolbar: true
     property bool showbookmarkbar: false
-    property bool hasfindbar: false
+    //property bool hasfindbar: false
     property alias findbar: findBarLoader.item
     property alias showsearch: toolbar.showsearch
     property alias toolbarheight: toolbar.height
@@ -299,6 +299,7 @@ Item {
 
         Loader {
             id: findBarLoader
+            source: "FindBarNull.qml"
         }
         Connections {
             target: findBarModel
@@ -315,7 +316,7 @@ Item {
                 findbar.height = ih
                 findbar.z = innerContent.z + 1
                 findbar.showfindbar = true
-                hasfindbar = true
+                //hasfindbar = true
                 findBarModel.positionUpdated(ix, mappedPos.y, ix, ih);
             }
         }
