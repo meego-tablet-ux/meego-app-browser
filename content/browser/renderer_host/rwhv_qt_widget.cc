@@ -648,7 +648,7 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
   // but the focus will not move, unless you click another entry again.
   // This bug also exist in GTK code.
 
-  bool is_enabled = (type != WebKit::WebTextInputTypeNone);
+  is_enabled_ = (type != WebKit::WebTextInputTypeNone);
   
   if (type == WebKit::WebTextInputTypeNumber) {
     setInputMethodHints(Qt::ImhDigitsOnly);
@@ -662,7 +662,7 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
     setInputMethodHints(Qt::ImhNone);
   }
 
-  if (!is_enabled) {
+  if (!is_enabled_) {
     if (im_enabled_) {
       ic->reset();
       setFlag(QGraphicsItem::ItemAcceptsInputMethod, false);
@@ -859,7 +859,7 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
       qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
       if (length < 40) {
         DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
-        if (!isDoingGesture()) {
+        if (!isDoingGesture() && !is_enabled_) {
           zoom2TextAction(event->pos());
           if (delay_for_click_timer_->isActive()) {
             delay_for_click_timer_->stop();

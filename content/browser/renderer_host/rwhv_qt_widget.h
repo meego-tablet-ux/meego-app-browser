@@ -213,6 +213,9 @@ protected Q_SLOTS:
   QPropertyAnimation* scroll_animation_;
   int vkb_height_;
   int vkb_flag_;
+  
+  //track cursor whether in input entry
+  bool is_enabled_;
 
   // Current scale factor
   qreal scale_;
