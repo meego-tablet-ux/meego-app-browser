@@ -59,6 +59,7 @@ static const qreal kMaxPinchScale = 10;
 static const qreal kMinPinchScale = 0.5;
 static const qreal kNormalContentsScale = 1.0;
 static const int kRebouceDuration = 200;
+static const int kScrollDuration = 200;
 
 static const int SelectionHandlerRadius = 30;
 static const int SelectionHandlerRadiusSquare = (SelectionHandlerRadius * SelectionHandlerRadius);
@@ -112,6 +113,10 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   rebounce_animation_->setEndValue(1.f);
   rebounce_animation_->setStartValue(1.f);
 
+  // Create animation for scroll effect 
+
+  scroll_animation_ = NULL;
+
   selection_start_pos_ = gfx::Point(0, 0);
   selection_end_pos_ = gfx::Point(0, 0);
   in_selection_mode_ = false;
@@ -152,11 +157,18 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
 
   delay_for_click_timer_ = new QTimer(this);
   connect(delay_for_click_timer_, SIGNAL(timeout()), this, SLOT(onClicked()));
+
+  //vkb height 
+  vkb_height_ = 0;
+  vkb_flag_ = false;
+  connect((const QObject*)qApp->inputContext(), SIGNAL(inputMethodAreaChanged(QRect)),
+            this, SLOT(handleInputMethodAreaChanged(QRect)));
 }
 
 RWHVQtWidget::~RWHVQtWidget()
 {
   delete rebounce_animation_;
+  delete scroll_animation_;
 }
 
 
@@ -376,7 +388,7 @@ void RWHVQtWidget::focusInEvent(QFocusEvent* event)
   }
   hostView()->ShowCurrentCursor();
   hostView()->GetRenderWidgetHost()->GotFocus();
-
+  vkb_flag_ = false;
   event->accept();
 }
 
@@ -397,6 +409,7 @@ void RWHVQtWidget::focusOutEvent(QFocusEvent* event)
   QEvent sip_request(QEvent::CloseSoftwareInputPanel);
   ic->filterEvent(&sip_request);
   hostView()->GetRenderWidgetHost()->SetInputMethodActive(false);
+  vkb_flag_ = false;
   event->accept();
   return;
 }
@@ -443,7 +456,6 @@ void RWHVQtWidget::onKeyPressReleaseEvent(QKeyEvent* event)
     nwke.type = WebKit::WebInputEvent::Char;
     hostView()->ForwardKeyboardEvent(nwke);
   }
-
   event->accept();
 }
 
@@ -493,7 +505,6 @@ void RWHVQtWidget::inputMethodEvent(QInputMethodEvent *event)
   } else {
     hostView()->GetRenderWidgetHost()->ImeCancelComposition();
   }
-
 }
 
 void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget * widget)
@@ -597,7 +608,6 @@ bool RWHVQtWidget::event(QEvent *event)
       scene()->installEventFilter(this);
       installed_filter_ = true;
   }
-  
   switch (event->type()) {
   // case QEvent::GraphicsSceneMouseDoubleClick:
   //   // DLOG(INFO) << "==>" << __PRETTY_FUNCTION__ <<
@@ -624,7 +634,6 @@ bool RWHVQtWidget::event(QEvent *event)
 void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const gfx::Rect& caret_rect) {
   if (!hasFocus())
     return;
-
   DLOG(INFO) << "imUpdateStatus x,y,w,h = " << caret_rect.x() << " - "
     << caret_rect.y() << " - "
     << caret_rect.width() << " - "
@@ -634,7 +643,6 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
   cursor_rect_ = QRect(caret_rect.x(), caret_rect.y(), caret_rect.width(), caret_rect.height());
 
   QInputContext *ic = qApp->inputContext();
-  ic->reset();
   // FIXME: if we got unconfirmed composition text, and we try to move cursor
   // from one text entry to another, the unconfirmed composition text will be cancelled
   // but the focus will not move, unless you click another entry again.
@@ -655,21 +663,25 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
   }
 
   if (!is_enabled) {
-  //if (im_enabled_) {
+    if (im_enabled_) {
+      ic->reset();
       setFlag(QGraphicsItem::ItemAcceptsInputMethod, false);
       QEvent sip_request(QEvent::CloseSoftwareInputPanel);
       ic->filterEvent(&sip_request);
       im_enabled_ = false;
-  //}
+    }
   } else {
     // Enable the InputMethod if it's not enabled yet.
-  //  if (!im_enabled_) {
+    if (!im_enabled_) {
+      ic->reset();
       setFlag(QGraphicsItem::ItemAcceptsInputMethod, true);
       QEvent sip_request(QEvent::RequestSoftwareInputPanel);
       ic->setFocusWidget(qApp->focusWidget());
       ic->filterEvent(&sip_request);
       im_enabled_ = true;
-  //  }
+    } else {
+      scrollAndZoomForTextInput(cursor_rect_);
+    }
   }
   
   if (type == WebKit::WebTextInputTypePassword) {
@@ -681,10 +693,98 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
   hostView()->host_->QueryEditorCursorPosition(im_cursor_pos_);
   hostView()->host_->QueryEditorSelection(im_selection_);
   hostView()->host_->QueryEditorSurroundingText(im_surrounding_);
-
+  vkb_flag_ = true;
   ic->update();
 }
 
+void RWHVQtWidget::handleInputMethodAreaChanged(const QRect &newArea) {
+  if (!vkb_flag_)
+    return;
+  vkb_height_ = newArea.height();
+  scrollAndZoomForTextInput(cursor_rect_);
+}
+
+void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect)
+{
+  if (vkb_height_ == 0) 
+    return;
+
+  RenderWidgetHost* host = hostView()->host_;
+  QGraphicsObject* webview = GetWebViewItem();
+  QGraphicsObject* viewport_item = GetViewportItem();
+  if (!webview || !viewport_item)
+    return;
+  int web_x = viewport_item->property("contentX").toInt();
+  int web_y = viewport_item->property("contentY").toInt();
+  int web_width = viewport_item->property("width").toInt();
+  int web_height = viewport_item->property("height").toInt(); 
+  int height_threshold = web_height/20;
+//  if (vkb_height <= 0) vkb_height = web_height/3;
+/*
+  if (caret_rect.height()*scale_ + 0.5 < height_threshold) {
+    //Here caret_rect.height()-1 is calculated, because first cursor always larger 1 than later cursor.
+    double factor;
+    factor = height_threshold*1.0/((caret_rect.height()-1)*scale_);
+
+    //Get the TopLeft positon
+    int middle_height = (web_height - vkb_height - caret_rect.height()*scale_*factor)/2;
+    int x = 0;
+    int y = 0;
+
+    if (caret_rect.y()*scale_ > (web_y + middle_height)) {
+      y = middle_height + caret_rect.y()*scale_*(factor-1);
+      qCritical() << "scroll up";
+    } else if (caret_rect.y()*scale_ < web_y) {
+      y = (caret_rect.y()*scale_-50)*factor > 0? (caret_rect.y()*scale_-50)*factor:0;
+    } 
+    if (caret_rect.x()*scale_*factor < web_x*factor) {
+      x = (caret_rect.x()*scale_-80)*factor > 0? (caret_rect.x()*scale_-80)*factor:0;
+    } else if(caret_rect.x()*scale_*factor > web_x*factor + web_width) {
+      x = (web_x + 50)*factor;
+    } else {
+      x = caret_rect.x()*scale_*(factor - 1);
+    }
+    topLeft_ = QPointF(-x, -3000);
+    //Pinch
+    pinch_start_pos_ = QPointF(-web_x, -web_y);
+    qCritical() << -web_x << "  " << -web_y;
+    pinch_scale_factor_ = factor;
+    pending_scale_ = scale_*factor;
+    //setting the pinch_center_
+    pinch_center_=QPointF(0, 0);
+    setTransformOriginPoint(QPointF(0, 0));	
+    pinch_completing_ = true;
+    BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+      host->GetBackingStore(false));
+    backing_store->SetFrozen(true);
+    setScale(factor);
+    onAnimationFinished();
+  }*/ 
+  // only scroll the web
+  if(scroll_animation_ == NULL) {
+	  scroll_animation_ = new QPropertyAnimation(viewport_item, "contentY", this);
+	  QEasingCurve curve_scroll(QEasingCurve::Linear);
+	  scroll_animation_->setEasingCurve(curve_scroll);
+	  scroll_animation_->setDuration(kScrollDuration);
+	  scroll_animation_->setEndValue(0);
+	  scroll_animation_->setStartValue(0);
+  }
+  int middle_height = (web_height - vkb_height_ - caret_rect.height()*scale_)/2;
+  if (caret_rect.y()*scale_ > (web_y + middle_height)) {
+    scroll_animation_->setStartValue(web_y);
+    scroll_animation_->setEndValue(caret_rect.y()*scale_ - middle_height);
+    scroll_animation_->start();
+  } else if (caret_rect.y()*scale_ < web_y) {
+    scroll_animation_->setStartValue(web_y);
+    scroll_animation_->setEndValue(caret_rect.y()*scale_-50>0? caret_rect.y()*scale_-50:0);
+    scroll_animation_->start();
+  }
+  if (caret_rect.x()*scale_ < web_x) {
+    viewport_item->setProperty("contentX", QVariant(caret_rect.x()*scale_-80>0? caret_rect.x()*scale_-80:0));
+  } else if(caret_rect.x()*scale_ > web_x + web_width) {
+    viewport_item->setProperty("contentX", QVariant(web_x + 50));
+  } 
+}
 
 void RWHVQtWidget::imeCancelComposition() {
   if (!im_enabled_)
@@ -996,19 +1096,20 @@ void RWHVQtWidget::onAnimationFinished()
  
   if (viewport_item)
   {
-    QPointF topLeft(-viewport_item->property("contentX").toInt(),
-                    -viewport_item->property("contentY").toInt());
-    DLOG(INFO) << "Web view top left " << topLeft.x()
-               << " " << topLeft.y();
+  //   topLeft_ = QPointF(-viewport_item->property("contentX").toInt(),
+  //                  -viewport_item->property("contentY").toInt());
+    //DLOG(INFO) << "Web view top left " << topLeft.x()
+    //           << " " << topLeft.y();
     DLOG(INFO) << "Web view pinch start top left" << pinch_start_pos_.x()
                << " " << pinch_start_pos_.y();
     QPointF center = viewport_item->mapFromScene(pinch_center_);
     DLOG(INFO) << "Web view pinch center " << center.x() << " " << center.y();
     QPointF distance = pinch_start_pos_ - center;
-    pending_webview_rect_ = QRectF(
-        QPointF(distance * pinch_scale_factor_ + center + (topLeft - pinch_start_pos_)),
+  
+   pending_webview_rect_ = QRectF(
+        QPointF(distance * pinch_scale_factor_ + center + (topLeft_- pinch_start_pos_)),
         size() * pinch_scale_factor_);
-  }
+ }
 
   UnFrozen();
 }
@@ -1036,6 +1137,8 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
       {
         pinch_scale_factor_ = kNormalContentsScale;
         pending_scale_ = scale_;
+        topLeft_ = QPointF(-viewport_item->property("contentX").toInt(),
+                    -viewport_item->property("contentY").toInt());
 
         gesture->setGestureCancelPolicy(QGesture::CancelAllInContext);
         setDoingGesture(Qt::PinchGesture);
@@ -1144,7 +1247,6 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
 void RWHVQtWidget::SetScaleFactor(double scale)
 {
   if(scale_ == scale) return;
-
   scale_ = scale;
 
   RenderWidgetHost *host = hostView()->host_;
@@ -1393,7 +1495,6 @@ void RWHVQtWidget::onSizeAdjusted()
              << geometry().height();
   QSizeF size(geometry().width(), geometry().height());
   QGraphicsObject* viewport_item = GetViewportItem();
-
   if (viewport_item)
   {
     viewport_item->setProperty("interactive", QVariant(true));
@@ -1414,7 +1515,6 @@ void RWHVQtWidget::onSizeAdjusted()
         viewport_item->setProperty("contentY", QVariant(-pending_webview_rect_.y()));
         DLOG(INFO) << "set Web View pos " << pending_webview_rect_.x() << " "
                    << pending_webview_rect_.y();
-
       }
     }
     SetWebViewSize();

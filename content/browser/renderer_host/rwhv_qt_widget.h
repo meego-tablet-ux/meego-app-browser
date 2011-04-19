@@ -109,6 +109,7 @@ Q_SIGNALS:
 
 protected Q_SLOTS:
   void onOrientationAngleChanged();
+  void handleInputMethodAreaChanged(const QRect &newArea);
   void onSizeAdjusted();
   void onAnimationFinished();
   void onClicked();
@@ -143,6 +144,7 @@ protected Q_SLOTS:
   void pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture);
 
   void zoom2TextAction(const QPointF&);
+  void scrollAndZoomForTextInput(const QRect& caret_rect);
   // selection
   SelectionHandlerID findSelectionHandler(int x, int y);
   void InvokeSelection(QTapAndHoldGesture* gesture);
@@ -153,6 +155,8 @@ protected Q_SLOTS:
   // IME_DISABLE is received, and shall be set to true if control ==
   // IME_COMPLETE_COMPOSITION or IME_MOVE_WINDOWS.
   bool im_enabled_;
+
+  // only scroll and zoom on first input method update.
 
   int im_cursor_pos_;
   std::string im_selection_;
@@ -202,8 +206,13 @@ protected Q_SLOTS:
 
   QRectF pending_webview_rect_;
 
+  QPointF topLeft_;
   // Animation for rebounce effect
   QPropertyAnimation* rebounce_animation_;
+  // Animation for vkb scroll effect
+  QPropertyAnimation* scroll_animation_;
+  int vkb_height_;
+  int vkb_flag_;
 
   // Current scale factor
   qreal scale_;
