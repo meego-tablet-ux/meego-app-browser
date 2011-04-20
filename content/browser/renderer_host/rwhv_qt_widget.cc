@@ -35,6 +35,8 @@
 #include "base/time.h"
 
 #include "chrome/browser/renderer_host/render_widget_host_view_qt.h"
+#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "content/browser/renderer_host/animation_utils.h"
 #include "content/browser/renderer_host/backing_store_x.h"
 #include "content/browser/renderer_host/event_util_qt.h"
@@ -1525,31 +1527,38 @@ void RWHVQtWidget::onSizeAdjusted()
 
 QGraphicsObject* RWHVQtWidget::GetWebViewItem()
 {
-  QGraphicsObject* parent = parentObject();
-  if(parent)
-  {
-    return parent->parentObject();
+  // We have the assumption here that the QML "webView" item won't change on run.
+  // If this is not the case later, we might need to fix the code here to refresh the item everytime.
+
+  static QDeclarativeItem *webview_item = NULL;
+
+  if (!webview_item) {
+    Browser* browser = BrowserList::GetLastActive();
+    BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+    QDeclarativeView *view = browser_window->DeclarativeView();
+    webview_item = view->rootObject()->findChild<QDeclarativeItem*>("webView");
   }
+
+  assert(webview_item);
+  return webview_item;
 }
 
 QGraphicsObject* RWHVQtWidget::GetViewportItem()
 {
-  QGraphicsObject* webview_item = GetWebViewItem();
-  if (webview_item)
-  {
-    QGraphicsObject* parent;
-    parent = webview_item->parentObject();
-    while (parent)
-    {
-      if (parent->objectName() == "innerContent")
-      {
-        return parent;
-      }
+  static QDeclarativeItem *viewport_item = NULL;
 
-      parent = parent->parentObject();
-    }
+  // We have the assumption here that the QML "innerContent" item won't change on run.
+  // If this is not the case later, we might need to fix the code here to refresh the item everytime.
+
+  if (!viewport_item) {
+    Browser* browser = BrowserList::GetLastActive();
+    BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+    QDeclarativeView *view = browser_window->DeclarativeView();
+    viewport_item = view->rootObject()->findChild<QDeclarativeItem*>("innerContent");
   }
-  return NULL;
+
+  assert(viewport_item);
+  return viewport_item;
 }
 
 void RWHVQtWidget::SetWebViewSize()
