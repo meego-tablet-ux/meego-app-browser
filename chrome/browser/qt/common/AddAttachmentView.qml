@@ -1,6 +1,5 @@
 import Qt 4.7
-import MeeGo.Labs.Components 0.1
-import MeeGo.Media 0.1
+import MeeGo.Components 0.1
 import Qt.labs.gestures 2.0
 
 Item {
@@ -17,7 +16,7 @@ Item {
         Swipe {}
     }
 
-    function pickerCancelled () {
+    function pickerRejected () {
         console.log ("Cancelled picker");
         selectFileDialogObject.OnPickerCancelled()
     }
@@ -25,14 +24,12 @@ Item {
     function pickerSelected (uri) {
         console.log (uri + " selected");
         selectFileDialogObject.OnPickerSelected(uri)
-
-        //attachments.append ({"uri": uri});
     }
 
     function addPicker (pickerComponent) {
         var picker = pickerComponent.createObject (container);
         picker.show ();
-        picker.cancel.connect (pickerCancelled);
+        picker.rejected.connect (pickerRejected);
         picker.selected.connect (pickerSelected);
     }
 
@@ -43,7 +40,7 @@ Item {
         color: theme_dialogFogColor
         opacity: theme_dialogFogOpacity
         Behavior on opacity {
-               PropertyAnimation { duration: theme_dialogAnimationDuration }
+            PropertyAnimation { duration: theme_dialogAnimationDuration }
         }
     }
 
@@ -54,10 +51,10 @@ Item {
             mouse.accepted = true;
         }
         onPressed: {
-             mouse.accepted = true;
+            mouse.accepted = true;
         }
         onReleased: {
-             mouse.accepted = true;
+            mouse.accepted = true;
         }
     }
 
@@ -74,7 +71,7 @@ Item {
             Column {
                 anchors.fill: parent
                 Button {
-                    title: qsTr ("Photos")
+                    text: qsTr ("Photos")
                     width: fileTypeDialog.width
                     height: 40
 
@@ -84,19 +81,19 @@ Item {
                 }
 
                 Button {
-                    title: qsTr ("Movies")
+                    text: qsTr ("Movies")
                     width: fileTypeDialog.width
                     height: 40
 
                     onClicked: {
-                        addPicker (moviePicker);
+                        addPicker (videoPicker);
                     }
                 }
 
-    /*
+/*
                 Button {
-                    title: qsTr ("Musics")
-                    width: parent.width
+                    text: qsTr ("Musics")
+                    width: fileTypeDialog.width
                     height: 40
 
                     onClicked: {
@@ -145,7 +142,7 @@ Item {
     }
 
     Component {
-        id: moviePicker
+        id: videoPicker
         VideoPicker {
             anchors.fill: parent
 
