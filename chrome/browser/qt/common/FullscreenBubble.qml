@@ -129,7 +129,7 @@ TimedOverlay {
                 id: yesButton;
                 objectName: "exitFullscreenYesButton"
                 text: fullscreenBubbleYes
-                color: "white"
+                textColor: "white"
                 height: 40
                 width: 100
                 bgSourceUp: "image://themedimage/images/btn_blue_up"
@@ -147,7 +147,7 @@ TimedOverlay {
                 id: noButton;
                 objectName: "exitFullscreenNoButton"
                 text: fullscreenBubbleNo
-                color: "white"
+                textColor: "white"
                 height: 40
                 width: 100
                 bgSourceUp: "image://themedimage/images/btn_red_up"
