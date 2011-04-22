@@ -44,7 +44,7 @@ TimedOverlay {
     BorderImage {
         id: container
 
-        source: "image://theme/navigationBar_l"
+        source: "image://themedimage/navigationBar_l"
 
         width: parent.width
         height: 60
@@ -132,8 +132,8 @@ TimedOverlay {
                 color: "white"
                 height: 40
                 width: 100
-                bgSourceUp: "image://theme/btn_blue_up"
-                bgSourceDn: "image://theme/btn_blue_dn"
+                bgSourceUp: "image://themedimage/btn_blue_up"
+                bgSourceDn: "image://themedimage/btn_blue_dn"
 
                 anchors.right: noButton.left
                 anchors.rightMargin: 5
@@ -150,8 +150,8 @@ TimedOverlay {
                 color: "white"
                 height: 40
                 width: 100
-                bgSourceUp: "image://theme/btn_red_up"
-                bgSourceDn: "image://theme/btn_red_dn"
+                bgSourceUp: "image://themedimage/btn_red_up"
+                bgSourceDn: "image://themedimage/btn_red_dn"
 
                 anchors.right: parent.right
                 anchors.rightMargin: 5

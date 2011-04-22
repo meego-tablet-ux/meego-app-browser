@@ -36,7 +36,7 @@ Image {
     id: indicator 
     property bool switcher: false
 
-    source: "image://theme/browser/busy"; 
+    source: "image://themedimage/browser/busy"; 
     visible: indicator.switcher;
     NumberAnimation on rotation { 
       running: indicator.switcher; 

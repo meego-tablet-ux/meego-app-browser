@@ -61,7 +61,7 @@ Item {
     id: downloadBackground
     anchors.fill: parent
     fillMode: Image.Stretch
-    source: "image://theme/bg_application_p"
+    source: "image://themedimage/bg_application_p"
   }
   Rectangle {
     id: controlContainer
@@ -73,7 +73,7 @@ Item {
       id: controlBackground
       anchors.fill: parent
       fillMode: Image.Stretch
-      source: "image://theme/bg_application_p"
+      source: "image://themedimage/bg_application_p"
     }
 
     Image {
@@ -82,14 +82,14 @@ Item {
       width: height
       anchors.left: parent.left
       property bool pressed: false
-      source: "image://theme/icn_toolbar_back_button_up"
+      source: "image://themedimage/icn_toolbar_back_button_up"
       states: [
         State {
           name: "backPressed"
           when: back.pressed
           PropertyChanges {
             target: back
-            source: "image://theme/icn_toolbar_back_button_dn"
+            source: "image://themedimage/icn_toolbar_back_button_dn"
           }
         }
       ]
@@ -146,7 +146,7 @@ Item {
     width: parent.width
     anchors.top: controlContainer.bottom
     fillMode: Image.Stretch
-    source: "image://theme/btn_grey_up"
+    source: "image://themedimage/btn_grey_up"
   }
   DownloadShelf {
     id: listContainer

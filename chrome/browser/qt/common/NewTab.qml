@@ -55,7 +55,7 @@ Item {
         height: parent.height
         width: height
         anchors.left: parent.left
-        source: "image://theme/browser/icn_add_up"
+        source: "image://themedimage/browser/icn_add_up"
 	property bool pressed: false
         states: [
           State {
@@ -63,7 +63,7 @@ Item {
             when: addbutton.pressed
             PropertyChanges{
               target: addbutton
-              source: "image://theme/browser/icn_add_dn"
+              source: "image://themedimage/browser/icn_add_dn"
             }
           }
         ]

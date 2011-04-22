@@ -53,7 +53,7 @@ Item {
     id: backForwardIcon
     anchors.centerIn: parent
     height: parent.height
-    source: "image://theme/browser/icn_toolbar_back_forward_up"
+    source: "image://themedimage/browser/icn_toolbar_back_forward_up"
     property bool pressed: false
     opacity: 1
     states: [
@@ -62,7 +62,7 @@ Item {
           when: popup.showed
           PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_back_forward_dn"
+            source: "image://themedimage/browser/icn_toolbar_back_forward_dn"
           }
       },
       // backward inactive icon
@@ -71,7 +71,7 @@ Item {
         when: kind == 0 && !active && !backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_back_button_up"
+            source: "image://themedimage/browser/icn_toolbar_back_button_up"
             opacity: 0.5
         }
       },
@@ -80,7 +80,7 @@ Item {
         when: kind == 0 && active && !backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_back_button_up"
+            source: "image://themedimage/browser/icn_toolbar_back_button_up"
         }
       },
       // backward active icon
@@ -89,7 +89,7 @@ Item {
         when: kind == 0 && backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_back_button_dn"
+            source: "image://themedimage/browser/icn_toolbar_back_button_dn"
         }
       },
       State {
@@ -97,7 +97,7 @@ Item {
         when: kind == 1 && !backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_forward_button_up"
+            source: "image://themedimage/browser/icn_toolbar_forward_button_up"
         }
       },
       // forward icon
@@ -106,7 +106,7 @@ Item {
         when: kind == 1 && backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_forward_button_dn"
+            source: "image://themedimage/browser/icn_toolbar_forward_button_dn"
         }
       },
       State {
@@ -114,7 +114,7 @@ Item {
           when: kind == 2 && !backForwardIcon.pressed
           PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_back_forward_up"
+            source: "image://themedimage/browser/icn_toolbar_back_forward_up"
           }
       },
       // backforward icon
@@ -123,7 +123,7 @@ Item {
           when: kind == 2 && backForwardIcon.pressed
           PropertyChanges {
             target: backForwardIcon
-            source: "image://theme/browser/icn_toolbar_back_forward_dn"
+            source: "image://themedimage/browser/icn_toolbar_back_forward_dn"
           }
       }
     ]

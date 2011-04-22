@@ -41,7 +41,7 @@ Item {
   Image {
     id: closeIcon
     anchors.verticalCenter: parent.verticalCenter
-    source: "image://theme/notes/icn_close_up"
+    source: "image://themedimage/notes/icn_close_up"
     property bool pressed: false
     states: [
       State {
@@ -49,7 +49,7 @@ Item {
         when: closeIcon.pressed
         PropertyChanges {
           target: closeIcon
-          source: "image://theme/notes/icn_close_dn"
+          source: "image://themedimage/notes/icn_close_dn"
         }
       }
     ]

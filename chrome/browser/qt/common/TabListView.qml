@@ -82,7 +82,7 @@ Item {
       Image {
           id: overlay
           anchors.fill: parent
-          source: "image://theme/browser/bg_favouritesoverlay"
+          source: "image://themedimage/browser/bg_favouritesoverlay"
       }
 
       // thumbnail of the tab
@@ -139,7 +139,7 @@ Item {
         Image {
           id: closeIcon
           anchors.centerIn: parent
-          source: "image://theme/icn_close_up"
+          source: "image://themedimage/icn_close_up"
           property bool pressed: false
           states: [
             State {
@@ -147,7 +147,7 @@ Item {
               when: closeIcon.pressed
               PropertyChanges {
                 target: closeIcon
-                source: "image://theme/icn_close_dn"
+                source: "image://themedimage/icn_close_dn"
               }
             }
           ]

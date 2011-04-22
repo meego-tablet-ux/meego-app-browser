@@ -56,7 +56,7 @@ Item {
  
   Image {
 	id: finger
-	source: "image://theme/popupbox_arrow_top"
+	source: "image://themedimage/popupbox_arrow_top"
     anchors.top: parent.top
     anchors.horizontalCenter: parent.horizontalCenter
   }
@@ -71,7 +71,7 @@ Item {
 
 	BorderImage {
     	id: borderImage1
-	    source: "image://theme/popupbox_1"
+	    source: "image://themedimage/popupbox_1"
 		border.left: 10
 		border.right: 10
 		//border.top: 5
@@ -82,7 +82,7 @@ Item {
     BorderImage {
 		anchors.top: borderImage1.bottom
 		anchors.bottom: borderImage2.top
-		source: "image://theme/popupbox_2"
+		source: "image://themedimage/popupbox_2"
 		verticalTileMode: BorderImage.Repeat
 		width: parent.width
 		clip: true
@@ -94,7 +94,7 @@ Item {
 	BorderImage {
 		id: borderImage2
 		anchors.bottom: parent.bottom
-		source: "image://theme/popupbox_3"
+		source: "image://themedimage/popupbox_3"
 		width: parent.width
 		border.left: 10
 		border.right: 10
@@ -123,7 +123,7 @@ Item {
             anchors.top : urltext.bottom
             width: parent.width
             height: 1
-            source: "image://theme/menu_item_separator"
+            source: "image://themedimage/menu_item_separator"
             visible: index < view.count -1
           }
         MouseArea {

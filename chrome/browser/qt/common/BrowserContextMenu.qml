@@ -35,7 +35,7 @@ import Qt 4.7
 import MeeGo.Components 0.1
 
 
-ContextMenu {
+ModalContextMenu {
   id: contextInstance
   menuWidth: contextLoader.menuWidth
   onClose: {

@@ -61,7 +61,7 @@ Item {
           id: downloadItemBackground
           anchors.fill: parent
           fillMode: Image.Stretch
-          source: "image://theme/bg_application_p"
+          source: "image://themedimage/bg_application_p"
         }
  
         Text {
@@ -95,11 +95,11 @@ Item {
           width: height
           fillMode: Image.Stretch
           source: {
-            if (type == 1) "image://theme/mimetypes/64x64/document";
-            else if (type == 2) "image://theme/mimetypes/64x64/video";
-            else if (type == 3) "image://theme/mimetypes/64x64/image";
-            else if (type == 4) "image://theme/mimetypes/64x64/audio";
-            else "image://theme/mimetypes/64x64/archive";
+            if (type == 1) "image://themedimage/mimetypes/64x64/document";
+            else if (type == 2) "image://themedimage/mimetypes/64x64/video";
+            else if (type == 3) "image://themedimage/mimetypes/64x64/image";
+            else if (type == 4) "image://themedimage/mimetypes/64x64/audio";
+            else "image://themedimage/mimetypes/64x64/archive";
           }
           BusyIndicator { anchors.centerIn: parent; switcher: s == 2 }
         }

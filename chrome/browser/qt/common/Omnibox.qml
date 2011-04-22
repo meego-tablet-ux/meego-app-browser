@@ -50,7 +50,7 @@ Item {
     id: left
     height: parent.height
     anchors.verticalCenter: parent.verticalCenter
-    source: "image://theme/browser/urlinputbar_left"
+    source: "image://themedimage/browser/urlinputbar_left"
   }
   BorderImage {
     id: omniBox
@@ -58,7 +58,7 @@ Item {
     height: parent.height
     anchors.verticalCenter: parent.verticalCenter
     horizontalTileMode: BorderImage.Stretch
-    source: "image://theme/browser/urlinputbar_middle"
+    source: "image://themedimage/browser/urlinputbar_middle"
 
     Loader {
       id: autocompletePopupLoader
@@ -194,7 +194,7 @@ Item {
       Image {
         id: starIcon
         anchors.fill: parent
-        source: "image://theme/browser/icn_favourite_off"
+        source: "image://themedimage/browser/icn_favourite_off"
         fillMode: Image.Tile
         property bool pressed: false
         states: [
@@ -203,7 +203,7 @@ Item {
             when: starIcon.pressed
             PropertyChanges {
               target: starIcon
-              source: "image://theme/browser/icn_favourite_on"
+              source: "image://themedimage/browser/icn_favourite_on"
             }
           }
         ]
@@ -236,9 +236,9 @@ Item {
         target: browserToolbarModel
         onUpdateStarButton: {
           if(is_starred)
-            starIcon.source = "image://theme/browser/icn_favourite_on"
+            starIcon.source = "image://themedimage/browser/icn_favourite_on"
           else
-            starIcon.source = "image://theme/browser/icn_favourite_off"
+            starIcon.source = "image://themedimage/browser/icn_favourite_off"
         }
         onShowStarButton: {
           if (!show) {
@@ -259,7 +259,7 @@ Item {
   Image {
      id: right
      height: parent.height
-     source: "image://theme/browser/urlinputbar_right"
+     source: "image://themedimage/browser/urlinputbar_right"
      anchors.verticalCenter: parent.verticalCenter
   }
   }

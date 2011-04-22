@@ -113,7 +113,7 @@ Item {
     anchors { top: topContainer.bottom }
 
     Item {
-        property url icon: "image://theme/browser/icn_bookmarkbar"
+        property url icon: "image://themedimage/browser/icn_bookmarkbar"
         property string text: bookmarkBarFolderName
         width: parallax.width; height: parallax.height
         BookmarkListGridContainer {
@@ -124,7 +124,7 @@ Item {
     }
 
     Item {
-        property url icon: "image://theme/browser/icn_otherbookmarks"
+        property url icon: "image://themedimage/browser/icn_otherbookmarks"
         property string text: bookmarkBarOtherFolderName
         width: parallax.width; height: parallax.height
         BookmarkListGridContainer {
@@ -153,12 +153,12 @@ Item {
         id: backButtonIcon
         anchors.centerIn: parent
         height: parent.height
-        source: "image://theme/icn_toolbar_back_button_up"
+        source: "image://themedimage/icn_toolbar_back_button_up"
         states: State {
           when: backButton.pressed
           PropertyChanges {
             target: backButtonIcon
-            source: "image://theme/icn_toolbar_back_button_dn"
+            source: "image://themedimage/icn_toolbar_back_button_dn"
           }
         }
       }

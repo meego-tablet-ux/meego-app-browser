@@ -143,7 +143,7 @@ Flickable {
                         id: backgroundImage
                         width: parent.width
                         height: parent.height
-                        source: "image://theme/popupbox_2"
+                        source: "image://themedimage/popupbox_2"
                     }
                 }
 
@@ -189,7 +189,7 @@ Flickable {
 
                     visible: index < repeater.count - 1     // Seperator won't be visible for the last item
 
-                    source: "image://theme/menu_item_separator"
+                    source: "image://themedimage/menu_item_separator"
                 }
 
                 MouseArea {

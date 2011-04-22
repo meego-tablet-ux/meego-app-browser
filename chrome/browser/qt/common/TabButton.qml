@@ -44,7 +44,7 @@ Item {
     id: tabIcon
     height: parent.height
     anchors.centerIn: parent
-    source: "image://theme/browser/icn_toolbar_tabs_button_up"
+    source: "image://themedimage/browser/icn_toolbar_tabs_button_up"
     property bool pressed: false
     states: [
       State {
@@ -52,7 +52,7 @@ Item {
         when: tabIcon.pressed
         PropertyChanges {
           target: tabIcon
-          source: "image://theme/browser/icn_toolbar_tabs_button_dn"
+          source: "image://themedimage/browser/icn_toolbar_tabs_button_dn"
         }
       },
       State {
@@ -60,7 +60,7 @@ Item {
         when: tabSidebar.showItem
         PropertyChanges {
             target: tabIcon
-            source: "image://theme/browser/icn_toolbar_tabs_button_dn"
+            source: "image://themedimage/browser/icn_toolbar_tabs_button_dn"
         }
       }
     ]
