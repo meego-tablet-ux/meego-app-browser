@@ -144,7 +144,7 @@ protected Q_SLOTS:
   void pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture);
 
   void zoom2TextAction(const QPointF&);
-  void scrollAndZoomForTextInput(const QRect& caret_rect);
+  void scrollAndZoomForTextInput(const QRect& caret_rect, bool animation);
   // selection
   SelectionHandlerID findSelectionHandler(int x, int y);
   void InvokeSelection(QTapAndHoldGesture* gesture);

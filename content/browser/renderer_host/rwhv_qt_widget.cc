@@ -682,7 +682,7 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
       ic->filterEvent(&sip_request);
       im_enabled_ = true;
     } else {
-      scrollAndZoomForTextInput(cursor_rect_);
+      scrollAndZoomForTextInput(cursor_rect_, false);
     }
   }
   
@@ -703,10 +703,10 @@ void RWHVQtWidget::handleInputMethodAreaChanged(const QRect &newArea) {
   if (!vkb_flag_)
     return;
   vkb_height_ = newArea.height();
-  scrollAndZoomForTextInput(cursor_rect_);
+  scrollAndZoomForTextInput(cursor_rect_, true);
 }
 
-void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect)
+void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect, bool animation)
 {
   if (vkb_height_ == 0) 
     return;
@@ -764,22 +764,32 @@ void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect)
   }*/ 
   // only scroll the web
   if(scroll_animation_ == NULL) {
-	  scroll_animation_ = new QPropertyAnimation(viewport_item, "contentY", this);
-	  QEasingCurve curve_scroll(QEasingCurve::Linear);
-	  scroll_animation_->setEasingCurve(curve_scroll);
-	  scroll_animation_->setDuration(kScrollDuration);
-	  scroll_animation_->setEndValue(0);
-	  scroll_animation_->setStartValue(0);
+    scroll_animation_ = new QPropertyAnimation(viewport_item, "contentY", this);
+    QEasingCurve curve_scroll(QEasingCurve::Linear);
+    scroll_animation_->setEasingCurve(curve_scroll);
+    scroll_animation_->setDuration(kScrollDuration);
+    scroll_animation_->setEndValue(0);
+    scroll_animation_->setStartValue(0);
   }
   int middle_height = (web_height - vkb_height_ - caret_rect.height()*scale_)/2;
   if (caret_rect.y()*scale_ > (web_y + middle_height)) {
-    scroll_animation_->setStartValue(web_y);
-    scroll_animation_->setEndValue(caret_rect.y()*scale_ - middle_height);
-    scroll_animation_->start();
+    if (animation) {
+      scroll_animation_->stop();
+      scroll_animation_->setStartValue(web_y);
+      scroll_animation_->setEndValue(caret_rect.y()*scale_ - middle_height);
+      scroll_animation_->start();
+    } else {
+      viewport_item->setProperty("contentY", QVariant(caret_rect.y()*scale_ - middle_height));
+    }
   } else if (caret_rect.y()*scale_ < web_y) {
-    scroll_animation_->setStartValue(web_y);
-    scroll_animation_->setEndValue(caret_rect.y()*scale_-50>0? caret_rect.y()*scale_-50:0);
-    scroll_animation_->start();
+    if (animation) {
+      scroll_animation_->stop();
+      scroll_animation_->setStartValue(web_y);
+      scroll_animation_->setEndValue(caret_rect.y()*scale_-50>0? caret_rect.y()*scale_-50:0);
+      scroll_animation_->start();
+    } else {
+      viewport_item->setProperty("contentY", QVariant(caret_rect.y()*scale_-50>0? caret_rect.y()*scale_-50:0));
+    }
   }
   if (caret_rect.x()*scale_ < web_x) {
     viewport_item->setProperty("contentX", QVariant(caret_rect.x()*scale_-80>0? caret_rect.x()*scale_-80:0));
