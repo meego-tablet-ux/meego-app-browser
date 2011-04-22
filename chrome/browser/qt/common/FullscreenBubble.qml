@@ -128,7 +128,7 @@ TimedOverlay {
             Button {
                 id: yesButton;
                 objectName: "exitFullscreenYesButton"
-                title: fullscreenBubbleYes
+                text: fullscreenBubbleYes
                 color: "white"
                 height: 40
                 width: 100
@@ -146,7 +146,7 @@ TimedOverlay {
             Button {
                 id: noButton;
                 objectName: "exitFullscreenNoButton"
-                title: fullscreenBubbleNo
+                text: fullscreenBubbleNo
                 color: "white"
                 height: 40
                 width: 100

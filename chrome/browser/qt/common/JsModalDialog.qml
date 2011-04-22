@@ -139,7 +139,7 @@ Item {
                         id: button1
                         width: 210
                         height: 60
-			title: browserDialogModel.getLeftButtonText()
+                        text: browserDialogModel.getLeftButtonText()
                         onClicked: {
                             container.dialogClicked (1);
                         }
@@ -149,7 +149,7 @@ Item {
                         id: button2
                         width: 210
                         height: 60
-			title: browserDialogModel.getRightButtonText()
+                        text: browserDialogModel.getRightButtonText()
                         onClicked: {
                             container.dialogClicked (2);
                         }

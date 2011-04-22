@@ -92,7 +92,7 @@ Item {
             else
               1
           }
-          title: acceptLabel
+          text: acceptLabel
           font.pixelSize: container.itemHeight * 0.6
 
           onClicked: {
@@ -120,7 +120,7 @@ Item {
             else
               1
           }
-          title: cancelLabel
+          text: cancelLabel
           font.pixelSize: container.itemHeight * 0.6
 
           onClicked: {
