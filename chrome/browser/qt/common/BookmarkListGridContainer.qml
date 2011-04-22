@@ -96,13 +96,11 @@ Item {
       grid.model.moveToAnotherFolder(bmGlobal.idHasMenu);
     }
     onRemoveItem: {
-      dialogLoader.sourceComponent = bmItemDeleteDialog
-      dialogLoader.item.parent = bmlistContainer
+      bmItemDeleteDialog.show()
       bmGlobal.currentModel = grid.model
     }
     onEditItem: {
-      dialogLoader.sourceComponent = bmItemEditDialog
-      dialogLoader.item.parent = bmlistContainer
+      bmItemEditDialog.show()
       bmGlobal.currentModel = grid.model
     }
   }

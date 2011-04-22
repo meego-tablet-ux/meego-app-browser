@@ -113,25 +113,25 @@ Item {
     anchors { top: topContainer.bottom }
 
     Item {
-        property url icon: "image://themedimage/images/browser/icn_bookmarkbar"
-        property string text: bookmarkBarFolderName
-        width: parallax.width; height: parallax.height
-        BookmarkListGridContainer {
-          id: barContainer  // Items from bookmark bar
-          model: bookmarkBarListModel
-          anchors.fill: parent
-        }
+      property url icon: "image://themedimage/images/browser/icn_bookmarkbar"
+      property string text: bookmarkBarFolderName
+      width: parallax.width; height: parallax.height
+      BookmarkListGridContainer {
+        id: barContainer  // Items from bookmark bar
+        model: bookmarkBarListModel
+        anchors.fill: parent
+      }
     }
 
     Item {
-        property url icon: "image://themedimage/images/browser/icn_otherbookmarks"
-        property string text: bookmarkBarOtherFolderName
-        width: parallax.width; height: parallax.height
-        BookmarkListGridContainer {
-          id: othersContainer  // Items from bookmark folder others
-          model: bookmarkOthersListModel
-          anchors.fill: parent
-        }
+      property url icon: "image://themedimage/images/browser/icn_otherbookmarks"
+      property string text: bookmarkBarOtherFolderName
+      width: parallax.width; height: parallax.height
+      BookmarkListGridContainer {
+        id: othersContainer  // Items from bookmark folder others
+        model: bookmarkOthersListModel
+        anchors.fill: parent
+      }
     }
   }
 
@@ -194,64 +194,53 @@ Item {
     }
   }
 
-  property string tmpTitle: ""
-  property string tmpUrl: ""
-  Loader {
-    id: dialogLoader
-  }
-  Component {
+  ModalDialog {
     id: bmItemDeleteDialog
-    ModalDialog {
-      acceptButtonText: qsTr("Delete")
-      cancelButtonText: qsTr("Cancel")
-      title: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
-      onAccepted: {
-        bmGlobal.currentModel.remove(bmGlobal.idHasMenu)
-      }
-      onRejected: {
-        dialogLoader.sourceComponent = undefined;
-      }
+    title: qsTr("Delete bookmark")
+    acceptButtonText: qsTr("Delete")
+    //acceptButtonImage: "image://meegotheme/widgets/common/button/button-negative"
+    //acceptButtonImagePressed: "image://meegotheme/widgets/common/button/button-negative-pressed"
+    cancelButtonText: qsTr("Cancel")
+    content: Text {
+      text: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
+      anchors.fill: parent
+      anchors.margins: 20
+      wrapMode: Text.WordWrap
+    }
+    onAccepted: {
+      bmGlobal.currentModel.remove(bmGlobal.idHasMenu)
     }
   }
- Component {
+
+  property string tmpTitle: ""
+  property string tmpUrl: ""
+  ModalDialog {
     id: bmItemEditDialog
-    ModalDialog {
-      acceptButtonText: qsTr("Save")
-      cancelButtonText: qsTr("Cancel")
-      title: qsTr("Edit bookmark"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"");
-      onAccepted: {
-        if (button == 1) {
-          if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.gridIdHasMenu, tmpTitle);
-          if (tmpUrl != "")   bmGlobal.currentModel.urlChanged  (bmGlobal.gridIdHasMenu, tmpUrl);
-        }
+    title: qsTr("Edit bookmark"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"");
+    acceptButtonText: qsTr("Save")
+    cancelButtonText: qsTr("Cancel")
+    content: Item {
+      id: bmContent
+      anchors.fill: parent
+      TextEntry {
+        id: titleEditor
+        anchors { top: bmContent.top; topMargin: 20; left: bmContent.left; leftMargin: 20; }
+        width: parent.width - 40; height: 50; focus: true
+        //defaultText: bmGlobal.currentTitle
+        text: bmGlobal.currentTitle
+        onTextChanged: tmpTitle = text
       }
-      onRejected: {
-        dialogLoader.sourceComponent = undefined;
+      TextEntry {
+        id: urlEditor
+        anchors { top: titleEditor.bottom; topMargin: 20; left: titleEditor.left }
+        width: titleEditor.width; height: titleEditor.height; focus: true
+        text: bmGlobal.currentUrl
+        onTextChanged: tmpUrl = text
       }
-      Component.onCompleted: {
-        contentLoader.sourceComponent = bmEditorComponent;
-      }
-      Component {
-        id: bmEditorComponent
-        Item {
-          id: bmEditorEntry
-          anchors.fill: parent
-          TextEntry{
-            id: titleEditor
-            width: parent.width; height: 50; focus: true
-            //defaultText: bmGlobal.currentTitle
-            text: bmGlobal.currentTitle
-            onTextChanged: tmpTitle = text
-          }
-          TextEntry{
-            id: urlEditor
-            anchors { top: titleEditor.bottom; margins: 5 }
-            width: parent.width; height: 50; focus: true
-            text: bmGlobal.currentUrl
-            onTextChanged: tmpUrl = text
-          }
-        }
-      }
+    }
+    onAccepted: {
+      if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.gridIdHasMenu, tmpTitle);
+      if (tmpUrl != "")   bmGlobal.currentModel.urlChanged  (bmGlobal.gridIdHasMenu, tmpUrl);
     }
   }
 }
