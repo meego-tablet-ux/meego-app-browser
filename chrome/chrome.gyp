@@ -128,6 +128,7 @@
     'chrome_tests.gypi',
     'common_constants.gypi',
     'nacl.gypi',
+    'preload.gypi',
   ],
   'targets': [
     {
