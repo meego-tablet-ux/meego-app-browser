@@ -134,14 +134,14 @@ Item {
         property int transformY: 0
         property int angle: 0
     }
-
+/*
     ApplicationsModel {
         id: appsModel
     }
     WindowModel {
         id: windowModel
     }
-
+*/
     // This function returns if the view is in landscape or inverted landscape
     function isLandscapeView() {
       if (screenHeight <= screenWidth)
