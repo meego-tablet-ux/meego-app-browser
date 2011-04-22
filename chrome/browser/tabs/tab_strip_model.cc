@@ -62,7 +62,7 @@ bool TabStripModelDelegate::CanCloseTab() const {
 // TabStripModel, public:
 
 static const int MAX_TABS_LIMIT = 65535;
-static const int MIN_TABS_LIMIT = 1;
+static const int MIN_TABS_LIMIT = 2;
 
 TabStripModel::TabStripModel(TabStripModelDelegate* delegate, Profile* profile)
     : delegate_(delegate),
@@ -88,7 +88,9 @@ TabStripModel::TabStripModel(TabStripModelDelegate* delegate, Profile* profile)
     }
   }
 
-  if (tabs_limit_ < MIN_TABS_LIMIT || tabs_limit_ > MAX_TABS_LIMIT)
+  if (tabs_limit_ < MIN_TABS_LIMIT)
+    tabs_limit_ = MIN_TABS_LIMIT;
+  else if (tabs_limit_ > MAX_TABS_LIMIT)
     tabs_limit_ = MAX_TABS_LIMIT;
 }
 
