@@ -358,7 +358,7 @@ Item {
             downloadsLoader.item.parent = outerContent
           }
         }
-
+/*
         Item {
             id: innerContent
             anchors.left: outerContent.left
@@ -369,6 +369,53 @@ Item {
 	          property alias orientation: scene.orientation
 	          clip: true
         }
+*/
+ Flickable {
+     id: innerContent
+     anchors.left: outerContent.left
+     anchors.top: infobarLoader.bottom
+     height:outerContent.height - toolbar.height - infobarLoader.height - bookmarkBarLoader.height
+     width: outerContent.width
+     contentWidth: webview.width
+     contentHeight: webview.height
+     objectName: "innerContent"
+     boundsBehavior: Flickable.DragOverBounds
+     clip:true
+     Item {
+       id: webview
+       objectName: "webView"
+     }
+ }
+
+    ScrollBar {
+      id: innerContentVerticalBar
+      width: 8
+      anchors { right: innerContent.right; top: innerContent.top; bottom: innerContent.bottom }
+      pageSize: innerContent.visibleArea.heightRatio
+      position: innerContent.visibleArea.yPosition
+      opacity: 0
+      states:
+         State {
+            name: "ShowScrollBar"
+            when: innerContent.movingVertically
+            PropertyChanges { target: innerContentVerticalBar; opacity: 1}
+         }
+      }
+
+    ScrollBar {
+      id: innerContentHorizontalBar
+      height: 8; orientation: Qt.Horizontal
+      anchors { right: innerContent.right; rightMargin: 8; left: innerContent.left; bottom: innerContent.bottom }
+      pageSize: innerContent.visibleArea.widthRatio
+      position: innerContent.visibleArea.xPosition
+      opacity: 0
+      states:
+         State {
+            name: "ShowScrollBar"
+            when: innerContent.movingHorizontally
+            PropertyChanges { target: innerContentHorizontalBar; opacity: 1}
+         }
+      }
 
         TimedOverlay {
             containerInterval: 3000
