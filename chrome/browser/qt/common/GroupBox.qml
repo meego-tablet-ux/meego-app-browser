@@ -70,7 +70,7 @@ Item
     BorderImage
     {
         id:groupBorderImage
-        source:"image://themedimage/browser/bg_list_white"
+        source:"image://themedimage/images/browser/bg_list_white"
         opacity:1
         width: parent.width
         horizontalTileMode: BorderImage.Stretch
@@ -78,7 +78,7 @@ Item
 
         BorderImage {
             id: bg
-            source: "image://themedimage/browser/bg_bookmarkbar"
+            source: "image://themedimage/images/browser/bg_bookmarkbar"
             border { left: 20; right: 20; top: 45; bottom:5 }
             width: parent.width
             height: parent.height
@@ -99,7 +99,7 @@ Item
 
         Image {
             id:arrowDown
-            source: "image://themedimage/notes/icn_dropdown_off"
+            source: "image://themedimage/images/notes/icn_dropdown_off"
             anchors.top: parent.top
             anchors.topMargin: 18
             anchors.right: parent.right
@@ -110,7 +110,7 @@ Item
                     name: "active"
                     PropertyChanges {
                         target: arrowDown
-                        source: "image://themedimage/notes/icn_dropdown_off"
+                        source: "image://themedimage/images/notes/icn_dropdown_off"
                         anchors.topMargin: 20
                         anchors.rightMargin: 20
                     }

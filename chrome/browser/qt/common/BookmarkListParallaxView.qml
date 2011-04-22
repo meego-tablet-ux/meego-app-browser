@@ -99,7 +99,7 @@ Item {
     width: parent.width
     height: 20
     anchors.top: selectorContainer.bottom
-    source: "image://themedimage/bg_application_p"
+    source: "image://themedimage/images/bg_application_p"
   }
 
   Image {
@@ -107,7 +107,7 @@ Item {
     height: parent.height
     width: 10
     anchors.top: selectorContainer.bottom
-    source: "image://themedimage/bg_application_p"
+    source: "image://themedimage/images/bg_application_p"
   }
 
   Item {
@@ -118,7 +118,7 @@ Item {
     anchors.left: leftPad.right
     Image {
       anchors.fill: parent
-      source: "image://themedimage/bg_application_p"
+      source: "image://themedimage/images/bg_application_p"
     }
     ListView {
       id: list

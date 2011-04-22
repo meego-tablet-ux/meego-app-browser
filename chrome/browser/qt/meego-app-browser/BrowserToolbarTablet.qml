@@ -96,7 +96,7 @@ Item {
 
     BorderImage {
         id: background
-        source: "image://meegotheme/images/titlebar_l"
+        source: "image://themedimage/images/titlebar_l"
         width: parent.width
         height: 50
 
@@ -122,7 +122,7 @@ Item {
             id: divider1
             anchors.left: backForwardButton.right
             height: buttonHeight - 3
-            source: "image://meegotheme/widgets/common/toolbar/toolbar-item-separator"
+            source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
         ReloadButton {
@@ -143,7 +143,7 @@ Item {
             id: divider2
             anchors.left: reloadButton.right
             height: buttonHeight - 3
-            source: "image://meegotheme/widgets/common/toolbar/toolbar-item-separator"
+            source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
         Omnibox {
@@ -205,7 +205,7 @@ Item {
             id: divider3
             anchors.right: tabButton.left
             height: buttonHeight - 3
-            source: "image://meegotheme/widgets/common/toolbar/toolbar-item-separator"
+            source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
         TabButton {
@@ -220,7 +220,7 @@ Item {
             id: divider4
             anchors.right: wrenchButton.left
             height: buttonHeight - 3
-            source: "image://meegotheme/widgets/common/toolbar/toolbar-item-separator"
+            source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
         WrenchButton {

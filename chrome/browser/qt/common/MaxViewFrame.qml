@@ -56,7 +56,7 @@ Item {
       id: sector_bg
       anchors.fill: parent
       fillMode: Image.Stretch
-      source: "image://themedimage/bg_application_p"
+      source: "image://themedimage/images/bg_application_p"
     }
  
     Loader {
@@ -76,7 +76,7 @@ Item {
 	width: 300
 	height: maxViewLoader.height
         fillMode: Image.Stretch
-        source: "image://themedimage/bg_application_p"
+        source: "image://themedimage/images/bg_application_p"
     }
 
     Image {
@@ -85,7 +85,7 @@ Item {
 	width: 300
 	height: maxViewLoader.height
         fillMode: Image.Stretch
-        source: "image://themedimage/bg_application_p"
+        source: "image://themedimage/images/bg_application_p"
     }
 
     Image {
@@ -95,13 +95,13 @@ Item {
 	anchors.left: parent.left
 	width: parent.width
 	height: title.height
-        source: "image://themedimage/bg_application_p"
+        source: "image://themedimage/images/bg_application_p"
 	
 	Image {
 	    id: arrow
      	    anchors.verticalCenter: title.verticalCenter
 	    anchors.left: parent.left
-	    source: "image://themedimage/notes/icn_dropdown_off"
+	    source: "image://themedimage/images/notes/icn_dropdown_off"
 	}
 	
 	Text {

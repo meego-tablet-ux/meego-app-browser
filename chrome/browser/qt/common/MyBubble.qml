@@ -120,7 +120,7 @@ Item {
 
 	    BorderImage {
 	      id: borderImage1
-	      source: "image://themedimage/popupbox_1"
+	      source: "image://themedimage/images/popupbox_1"
 	      border.left: 20
 	      border.right: 20
 	      border.top: 5
@@ -131,7 +131,7 @@ Item {
                 id: borderImageMiddle
 		anchors.top: borderImage1.bottom
 		anchors.bottom: borderImage2.top
-		source: "image://themedimage/popupbox_2"
+		source: "image://themedimage/images/popupbox_2"
 		verticalTileMode: BorderImage.Repeat
 		width: parent.width
 		clip: true
@@ -142,7 +142,7 @@ Item {
 	    BorderImage {
 		id: borderImage2
 		anchors.bottom: parent.bottom
-		source: "image://themedimage/popupbox_3"
+		source: "image://themedimage/images/popupbox_3"
 		width: parent.width
 		border.left: 20
 		border.right: 20
@@ -169,7 +169,7 @@ Item {
                 height: 2
                 width: parent.width
                 fillMode: Image.Stretch
-                source: "image://themedimage/btn_grey_up"
+                source: "image://themedimage/images/btn_grey_up"
               }
               Text {
                 id: nameLabel
@@ -283,7 +283,7 @@ Item {
 		        	y: container.fingerY - finger.height / 2
 				sourceSize.width: 0
 				sourceSize.height: 0
-				source: "image://themedimage/popupbox_arrow_left"
+				source: "image://themedimage/images/popupbox_arrow_left"
 			}
 		},
 		State {
@@ -295,7 +295,7 @@ Item {
 				y: container.fingerY - finger.height / 2
 				sourceSize.width: 0
 				sourceSize.height: 0
-				source: "image://themedimage/popupbox_arrow_right"
+				source: "image://themedimage/images/popupbox_arrow_right"
 			}
 		},
 		State {
@@ -307,7 +307,7 @@ Item {
 				y: -(finger.height) + 2
 				sourceSize.width: 0
 				sourceSize.height: 0
-				source: "image://themedimage/popupbox_arrow_top"
+				source: "image://themedimage/images/popupbox_arrow_top"
 			}
 		},
 		State {
@@ -319,7 +319,7 @@ Item {
 				y: container.bubbleHeight - 13 - finger.height
 				sourceSize.width: 0
 				sourceSize.height: 0
-				source: "image://themedimage/popupbox_arrow_bottom"
+				source: "image://themedimage/images/popupbox_arrow_bottom"
 			}
 		}
           ]

@@ -83,7 +83,7 @@ Item {
         Image {
             id: bg
             anchors.fill: parent
-            source: "image://themedimage/browser/bg_favouritesoverlay"
+            source: "image://themedimage/images/browser/bg_favouritesoverlay"
         }
 
         Rectangle {

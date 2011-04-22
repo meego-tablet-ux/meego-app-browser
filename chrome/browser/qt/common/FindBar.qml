@@ -54,7 +54,7 @@ Item {
 
   BorderImage {
     id: background
-    source: "image://themedimage/titlebar_l"
+    source: "image://themedimage/images/titlebar_l"
     anchors.fill: parent
 
     TextEntry {
@@ -94,7 +94,7 @@ Item {
       Image {
         id: prevIcon
         anchors.centerIn: parent
-        source: "image://themedimage/browser/btn_findbar_prev"
+        source: "image://themedimage/images/browser/btn_findbar_prev"
         property bool pressed: false
         states: [
           State {
@@ -102,7 +102,7 @@ Item {
             when: prevIcon.pressed
             PropertyChanges {
               target: prevIcon
-              source: "image://themedimage/browser/btn_findbar_prev_dn"
+              source: "image://themedimage/images/browser/btn_findbar_prev_dn"
             }
           }
         ]
@@ -123,7 +123,7 @@ Item {
       Image {
         id: nextIcon
         anchors.centerIn: parent
-        source: "image://themedimage/browser/btn_findbar_next"
+        source: "image://themedimage/images/browser/btn_findbar_next"
         property bool pressed: false
         states: [
           State {
@@ -131,7 +131,7 @@ Item {
             when: nextIcon.pressed
             PropertyChanges {
               target: nextIcon
-              source: "image://themedimage/browser/btn_findbar_next_dn"
+              source: "image://themedimage/images/browser/btn_findbar_next_dn"
             }
           }
         ]
@@ -154,7 +154,7 @@ Item {
       Image {
         id: closeIcon
         anchors.centerIn: parent
-        source: "image://themedimage/browser/btn_findbar_close"
+        source: "image://themedimage/images/browser/btn_findbar_close"
         property bool pressed: false
         states: [
           State {
@@ -162,7 +162,7 @@ Item {
             when: closeIcon.pressed
             PropertyChanges {
               target: closeIcon
-              source: "image://themedimage/browser/btn_findbar_close_dn"
+              source: "image://themedimage/images/browser/btn_findbar_close_dn"
             }
           }
         ]

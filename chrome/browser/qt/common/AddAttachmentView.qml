@@ -61,7 +61,7 @@ Item {
   
     BorderImage {
         id: fileTypeDialog
-        source: "image://themedimage/notificationBox_bg"
+        source: "image://themedimage/images/notificationBox_bg"
 
         x: (container.width - width) / 2
         y: (container.height - height) / 2

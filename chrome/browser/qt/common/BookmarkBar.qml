@@ -81,7 +81,7 @@ Item {
       id: bookmarkbackground
       anchors.fill: parent
       fillMode: Image.Tile
-      source: "image://themedimage/browser/bg_bookmarkbar"
+      source: "image://themedimage/images/browser/bg_bookmarkbar"
     }
     Text {
       id: instruction
@@ -115,7 +115,7 @@ Item {
 
         Image {
           id: borderleft
-          source: "image://themedimage/browser/btn_bookmarkitem_left"
+          source: "image://themedimage/images/browser/btn_bookmarkitem_left"
           anchors.left: parent.left
           height: parent.height
           width: 15
@@ -124,13 +124,13 @@ Item {
            id: bordermiddle
            anchors.left: borderleft.right
            anchors.right: borderright.left
-           source: "image://themedimage/browser/btn_bookmarkitem_middle"
+           source: "image://themedimage/images/browser/btn_bookmarkitem_middle"
            height: parent.height
         }
         Image {
           id: borderright
           anchors.right: parent.right
-          source: "image://themedimage/browser/btn_bookmarkitem_right"
+          source: "image://themedimage/images/browser/btn_bookmarkitem_right"
           height: parent.height
           width:15
         }

@@ -92,7 +92,7 @@ Item {
         border.right: 20
         border.bottom: 20
 
-        source: "image://themedimage/notificationBox_bg"
+        source: "image://themedimage/images/notificationBox_bg"
 
         x: (container.width - width) / 2
         y: (container.height - height) / 2

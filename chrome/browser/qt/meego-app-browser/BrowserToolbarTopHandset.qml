@@ -89,7 +89,7 @@ Item {
 
   BorderImage {
     id: background
-    source: "image://themedimage/titlebar_l"
+    source: "image://themedimage/images/titlebar_l"
     anchors.fill: parent
 
     BackForwardButton {

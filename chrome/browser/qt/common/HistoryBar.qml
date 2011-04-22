@@ -56,7 +56,7 @@ Item {
       id: finger
       x: fingerX - finger.width / 2 
       y: fingerY
-      source: "image://themedimage/popupbox_arrow_top"
+      source: "image://themedimage/images/popupbox_arrow_top"
     }
 
     Item {
@@ -69,7 +69,7 @@ Item {
 
     BorderImage {
         id: borderImage1
-        source: "image://themedimage/popupbox_1"
+        source: "image://themedimage/images/popupbox_1"
         border.left: 20
         border.right: 20
         border.top: 5
@@ -80,7 +80,7 @@ Item {
     BorderImage {
         anchors.top: borderImage1.bottom
         anchors.bottom: borderImage2.top
-        source: "image://themedimage/popupbox_2"
+        source: "image://themedimage/images/popupbox_2"
         verticalTileMode: BorderImage.Repeat
         width: parent.width
         clip: true
@@ -92,7 +92,7 @@ Item {
     BorderImage {
         id: borderImage2
         anchors.bottom: parent.bottom
-        source: "image://themedimage/popupbox_3"
+        source: "image://themedimage/images/popupbox_3"
         width: parent.width
         border.left: 20
         border.right: 20

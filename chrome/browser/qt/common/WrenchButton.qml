@@ -43,7 +43,7 @@ Item {
   Image {
     id: wrenchIcon
     anchors.verticalCenter: parent.verticalCenter
-    source: "image://themedimage/icn_toolbar_applicationpage_menu_up"
+    source: "image://themedimage/images/icn_toolbar_applicationpage_menu_up"
     property bool pressed: false
     states: [
       State {
@@ -51,7 +51,7 @@ Item {
         when: wrenchIcon.pressed
         PropertyChanges {
           target: wrenchIcon
-          source: "image://themedimage/icn_toolbar_applicationpage_menu_dn"
+          source: "image://themedimage/images/icn_toolbar_applicationpage_menu_dn"
           height: parent.height
         }
       },
@@ -60,7 +60,7 @@ Item {
         when: shown
         PropertyChanges {
           target: wrenchIcon
-          source: "image://themedimage/icn_toolbar_applicationpage_menu_dn"
+          source: "image://themedimage/images/icn_toolbar_applicationpage_menu_dn"
           height: parent.height
         }
       }

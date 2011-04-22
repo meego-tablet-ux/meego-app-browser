@@ -44,7 +44,7 @@ Item {
     id: reloadIcon
     height: parent.height
     anchors.centerIn: parent
-    source: "image://themedimage/browser/icn_refresh_up"
+    source: "image://themedimage/images/browser/icn_refresh_up"
     property bool pressed: false
     states: [
       State {
@@ -52,7 +52,7 @@ Item {
         when: reloadIcon.pressed && !loading
         PropertyChanges {
           target: reloadIcon
-          source: "image://themedimage/browser/icn_refresh_dn"
+          source: "image://themedimage/images/browser/icn_refresh_dn"
         }
       },
      State {
@@ -60,7 +60,7 @@ Item {
          when: !reloadIcon.pressed && !loading
          PropertyChanges {
              target: reloadIcon
-             source: "image://themedimage/browser/icn_refresh_up"
+             source: "image://themedimage/images/browser/icn_refresh_up"
          }
      }, 
     State {
@@ -68,7 +68,7 @@ Item {
         when: reloadIcon.pressed && loading
         PropertyChanges {
             target: reloadIcon
-            source: "image://themedimage/browser/icn_stop_dn"
+            source: "image://themedimage/images/browser/icn_stop_dn"
         }
     }, 
     State {
@@ -76,7 +76,7 @@ Item {
         when: !reloadIcon.pressed && loading
         PropertyChanges {
             target: reloadIcon
-            source: "image://themedimage/browser/icn_stop_up"
+            source: "image://themedimage/images/browser/icn_stop_up"
         }
     }
     ]

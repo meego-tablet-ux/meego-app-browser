@@ -47,7 +47,7 @@ Item {
     id: infobarContainer
     width: parent.width
     height: {(view.count  > container.maxItems ? maxItems * container.itemHeight : view.count * container.itemHeight)}
-    source: "image://themedimage/navigationBar_l"
+    source: "image://themedimage/images/navigationBar_l"
 
     clip: true
 
@@ -76,8 +76,8 @@ Item {
           id: acceptButton
           anchors.right: cancelButton.left
           objectName: "acceptButton"
-          bgSourceUp: "image://themedimage/btn_blue_up"
-          bgSourceDn: "image://themedimage/btn_blue_dn"
+          bgSourceUp: "image://themedimage/images/btn_blue_up"
+          bgSourceDn: "image://themedimage/images/btn_blue_dn"
           y: buttonMargin
           height: parent.height - buttonMargin * 2
           width: {
@@ -104,8 +104,8 @@ Item {
           id: cancelButton
           anchors.right: closeButton.left
           objectName: "cancelButton"
-          bgSourceUp: "image://themedimage/btn_red_up"
-          bgSourceDn: "image://themedimage/btn_red_dn"
+          bgSourceUp: "image://themedimage/images/btn_red_up"
+          bgSourceDn: "image://themedimage/images/btn_red_dn"
           y: buttonMargin
           height: parent.height - buttonMargin * 2
           width: {
@@ -139,7 +139,7 @@ Item {
           Image {
             id: closeIcon
             anchors.centerIn: parent
-            source: "image://themedimage/browser/btn_findbar_close"
+            source: "image://themedimage/images/browser/btn_findbar_close"
             property bool pressed: false
             states: [
               State {
@@ -147,7 +147,7 @@ Item {
                 when: closeIcon.pressed
                 PropertyChanges {
                   target: closeIcon
-                  source: "image://themedimage/browser/btn_findbar_close_dn"
+                  source: "image://themedimage/images/browser/btn_findbar_close_dn"
                 }
               }
             ]
@@ -168,7 +168,7 @@ Item {
             anchors.bottom: parent.bottom
             width: parent.width
             visible: index < view.count - 1     // Seperator won't be visible for the last item
-            source: "image://themedimage/menu_item_separator"
+            source: "image://themedimage/images/menu_item_separator"
         }
 
       }

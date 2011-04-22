@@ -57,7 +57,7 @@ Item {
     x: start_x - width / 2
     y: up?start_y:start_y - height
     z: 1
-    source: up? "image://themedimage/popupbox_arrow_top":"image://themedimage/popupbox_arrow_bottom"
+    source: up? "image://themedimage/images/popupbox_arrow_top":"image://themedimage/images/popupbox_arrow_bottom"
   }
 
   Column {
@@ -85,11 +85,11 @@ Item {
       width: parent.width
       border.left: 10
       border.right: 10
-      source: "image://themedimage/popupbox_1"
+      source: "image://themedimage/images/popupbox_1"
     }
 
     BorderImage {
-      source: "image://themedimage/popupbox_2"
+      source: "image://themedimage/images/popupbox_2"
       verticalTileMode: BorderImage.Repeat
       clip: true
       width: parent.width
@@ -140,7 +140,7 @@ Item {
       width: parent.width
       border.left: 10
       border.right: 10
-      source: "image://themedimage/popupbox_3"
+      source: "image://themedimage/images/popupbox_3"
     }
 
   }

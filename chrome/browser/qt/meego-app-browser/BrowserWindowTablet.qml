@@ -239,7 +239,7 @@ Item {
             id: background
             anchors.fill: parent
             fillMode: Image.Tile
-            source: "image://themedimage/bg_application_p"
+            source: "image://themedimage/images/bg_application_p"
         }
 
         BrowserToolbarTablet {
