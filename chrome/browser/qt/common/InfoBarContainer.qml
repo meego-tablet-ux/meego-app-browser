@@ -80,21 +80,16 @@ Item {
           bgSourceDn: "image://themedimage/images/btn_blue_dn"
           y: buttonMargin
           height: parent.height - buttonMargin * 2
-          width: {
-            if (acceptLabel == "")
-              1
-            else
-              0
-          }
-          opacity: {
-            if (acceptLabel == "")
-              0
-            else
-              1
-          }
           text: acceptLabel
           font.pixelSize: container.itemHeight * 0.6
 
+          Component.onCompleted: { 
+              if (acceptLabel == "") {
+                  acceptButton.width = 0;
+                  acceptButton.opacity = 0;
+              }
+          }
+ 
           onClicked: {
             infobarContainerModel.infobarInvoked(index, "ButtonAccept")
           }
@@ -108,20 +103,15 @@ Item {
           bgSourceDn: "image://themedimage/images/btn_red_dn"
           y: buttonMargin
           height: parent.height - buttonMargin * 2
-          width: {
-            if (cancelLabel == "")
-              1
-            else
-              0
-          }
-          opacity: {
-            if (cancelLabel == "")
-              0
-            else
-              1
-          }
           text: cancelLabel
           font.pixelSize: container.itemHeight * 0.6
+
+          Component.onCompleted: { 
+              if (cancelLabel == "") {
+                  cancelButton.width = 0;
+                  cancelButton.opacity = 0;
+              }
+          }
 
           onClicked: {
             infobarContainerModel.infobarInvoked(index, "ButtonCancel")
