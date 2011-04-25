@@ -1708,8 +1708,15 @@ gfx::Rect RWHVQtWidget::adjustScrollRect(const gfx::Rect& rect)
     QRectF bounding = viewport->boundingRect();
     int contentX = viewport->property("contentX").toInt();
     int contentY = viewport->property("contentY").toInt();
+    if (is_enabled_) {
+      ret.set_x(contentX);
+      ret.set_y(contentY);
+      return ret;
+    }
     if (contentX < scaled.x() && scaled.x() < contentX + bounding.width()) {
       // if in current visible area, skip to move
+      ret.set_x(contentX);
+    } else if (scaled.x() < 0) {
       ret.set_x(contentX);
     } else if( scaled.x() + bounding.width() > rwhvSize.width()) {
       ret.set_x(rwhvSize.width() - bounding.width());
@@ -1720,13 +1727,14 @@ gfx::Rect RWHVQtWidget::adjustScrollRect(const gfx::Rect& rect)
     // It's better for find not to scroll when finded item is in the current
     // visible area
     // TODO: improve the scroll for find
-    /*if (contentY < scaled.y() && scaled.y() < contentY + bounding.height()) {
-      //ret.set_y(contentY);
-    } else*/ 
-    if( scaled.y() + bounding.height() > rwhvSize.height()) {
+    /*if (is_enabled_ &&
+        contentY < scaled.y() && scaled.y() < contentY + bounding.height()) {
+      ret.set_y(contentY);
+    } else*/ if (scaled.y() + bounding.height() > rwhvSize.height()) {
       ret.set_y(rwhvSize.height() - bounding.height());
-    } /*else {
-        */
+    } else if (scaled.y() < 0) {
+      ret.set_y(contentY);
+    }
   }
   return ret;
 }
