@@ -16,6 +16,9 @@
 #include "chrome/browser/history/history_backend.h"
 #include "chrome/browser/history/history_notifications.h"
 #include "chrome/browser/history/page_usage_data.h"
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "chrome/browser/history/recent_and_bookmark_thumbnails_qt.h"
+#endif
 #include "chrome/browser/history/top_sites_backend.h"
 #include "chrome/browser/history/top_sites_cache.h"
 #include "chrome/browser/prefs/pref_service.h"
@@ -38,12 +41,16 @@
 
 namespace history {
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+static const char* kRecThumbnailFilename = "Recent Thumbnails";
+#endif
+
 // How many top sites to store in the cache.
 static const size_t kTopSitesNumber = 20;
 
 // Max number of temporary images we'll cache. See comment above
 // temp_images_ for details.
-static const size_t kMaxTempTopImages = 20;
+static const size_t kMaxTempTopImages = 8;
 
 static const size_t kTopSitesShown = 8;
 static const int kDaysOfHistory = 90;
@@ -161,6 +168,10 @@ TopSites::TopSites(Profile* profile)
       profile_->GetPrefs()->GetDictionary(prefs::kNTPMostVisitedURLsBlacklist);
   pinned_urls_ =
       profile_->GetPrefs()->GetDictionary(prefs::kNTPMostVisitedPinnedURLs);
+#if defined(TOOLKIT_MEEGOTOUCH)
+  recent_sites_thumbnails_.reset(new RecentAndBookmarkThumbnailsQt(profile));
+  recent_sites_thumbnails_->Init(profile_->GetPath().Append(history::kRecThumbnailFilename));
+#endif
 }
 
 void TopSites::Init(const FilePath& db_name) {
@@ -185,7 +196,25 @@ void TopSites::Init(const FilePath& db_name) {
 bool TopSites::SetPageThumbnail(const GURL& url,
                                 const SkBitmap& thumbnail,
                                 const ThumbnailScore& score) {
+  DLOG(INFO)<<__FUNCTION__<<url.spec();
+
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  // update recent visited page thumbnails
+  recent_sites_thumbnails_->SetRecentPageThumbnail(url, thumbnail);
+
+  // Skip if the top sites list is full, and the URL is not known.
+  const bool is_known = IsKnownURL(url);
+  if (IsFull() && !is_known)
+    return false;
+  // Skip if we don't have to udpate the existing thumbnail.
+  ThumbnailScore current_score;
+  if (is_known &&
+      GetPageThumbnailScore(url, &current_score) &&
+      !current_score.ShouldConsiderUpdating())
+    return false;
+#endif
 
   if (!loaded_) {
     // TODO(sky): I need to cache these and apply them after the load
@@ -247,11 +276,7 @@ bool TopSites::GetPageThumbnail(const GURL& url,
                                 scoped_refptr<RefCountedBytes>* bytes) {
   // WARNING: this may be invoked on any thread.
   base::AutoLock lock(lock_);
-  bool ret = thread_safe_cache_->GetPageThumbnail(url, bytes);
-  if (!ret) {
-    return GetTemporaryThumbnailByURL(url, bytes);
-  }
-  return ret;
+  return thread_safe_cache_->GetPageThumbnail(url, bytes);
 }
 
 bool TopSites::GetPageThumbnailScore(const GURL& url,
@@ -600,19 +625,6 @@ void TopSites::RemoveTemporaryThumbnailByURL(const GURL& url) {
   }
 }
 
-bool TopSites::GetTemporaryThumbnailByURL(const GURL& url, 
-                                          scoped_refptr<RefCountedBytes>* bytes) {
-  for (TempImages::iterator i = temp_images_.begin(); i != temp_images_.end();
-       ++i) {
-    if (i->first == url) {
-      *bytes = i->second.thumbnail.get();
-      return true;
-    }
-  }
-  return false;
-}
-
-
 void TopSites::AddTemporaryThumbnail(const GURL& url,
                                      const RefCountedBytes* thumbnail,
                                      const ThumbnailScore& score) {
@@ -625,6 +637,16 @@ void TopSites::AddTemporaryThumbnail(const GURL& url,
   image.second.thumbnail_score = score;
   temp_images_.push_back(image);
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+RecentAndBookmarkThumbnailsQt* TopSites::GetRecentAndBookmarkThumbnails() {
+  if(!recent_sites_thumbnails_.get()) {
+    recent_sites_thumbnails_.reset(new RecentAndBookmarkThumbnailsQt(profile_));
+    recent_sites_thumbnails_->Init(profile_->GetPath().Append(history::kRecThumbnailFilename));
+  }
+  return recent_sites_thumbnails_.get();
+}
+#endif
 
 void TopSites::TimerFired() {
   StartQueryForMostVisited();

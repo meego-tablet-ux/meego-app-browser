@@ -32,6 +32,7 @@
 #include "ui/base/resource/resource_bundle.h"
 #include "base/i18n/rtl.h"
 #include "chrome/browser/history/history_types.h"
+#include "chrome/browser/history/recent_and_bookmark_thumbnails_qt.h"
 #include "chrome/browser/tabs/tab_strip_model.h"
 #include "chrome/browser/prefs/pref_service.h"
 #include "content/common/notification_observer.h"
@@ -141,8 +142,8 @@ public:
 
   void addImage(const QString& type, const QString& id, const QImage &image)
   {
-    //DLOG(INFO) <<"add map id: " << id.toStdString();
     if(type.contains("thumbnail")) {
+    DLOG(INFO) <<"add map id: " << id.toStdString();
       imageList_.insert(id, image);
     }else{
       favList_.insert(id,image);
@@ -158,7 +159,6 @@ private:
 class ThumbnailEntry
 {
 public:
-
   ThumbnailEntry(MaxViewImageProvider* imageProvider,
                  GURL url, Profile* profile, MaxViewModel* model)
                  : url_(url), imageProvider_(imageProvider), model_(model) {
@@ -168,14 +168,19 @@ public:
       if (ts) {
          scoped_refptr<RefCountedBytes> thumbnail_data;
          ts->GetPageThumbnail(url, &thumbnail_data);
-         handleThumbnailData(thumbnail_data);
-         return;
-      }
-
-      HistoryService* hs = profile->GetHistoryService(Profile::EXPLICIT_ACCESS);
-      hs->GetPageThumbnail(url, &consumer_,
+    	 if (thumbnail_data.get()) {
+           handleThumbnailData(thumbnail_data);
+           return;
+         }
+ 
+         history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
+                                       ts->GetRecentAndBookmarkThumbnails();
+         if(recentThumbnails) {
+           recentThumbnails->GetRecentPageThumbnail(url, &consumer_,
                            NewCallback(static_cast<ThumbnailEntry*>(this),
                            &ThumbnailEntry::onThumbnailDataAvailable));
+         }
+      }
     } else {
       //QImage image = QImage::fromColor();
       model_->beginReset();
@@ -188,7 +193,8 @@ public:
 
   void onThumbnailDataAvailable(HistoryService::Handle request_handle,
                                 scoped_refptr<RefCountedBytes> jpeg_data) {
-         handleThumbnailData(jpeg_data);
+        DLOG(INFO)<<__FUNCTION__<<"get thumbnail for "<< url_.spec();
+        handleThumbnailData(jpeg_data);
   };
 
   void handleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data) {
@@ -871,10 +877,10 @@ QVariant MaxViewModel::data(const QModelIndex & index, int role) const
     return QString::fromStdWString(title_str);
   } else if (role == ThumbnailRule) {
     //DLOG(INFO)<<"query "<<(QString("image://") + name_ + QString("/thumbnail") + QString::number(updateTimes_) + QString("_") + QString::number((int64)siteInfoItem->GetID(), 16)).toStdString();
-    return QString("image://") + name_ + QString("/thumbnail") + QString("_") + QString::fromStdString(siteInfoItem->url.spec());
+    return QString("image://") + name_ + QString("/thumbnail") + QString::number(updateTimes_) + QString("_") + QString::fromStdString(siteInfoItem->url.spec());
   } else if (role == FaviconRule) {
     //DLOG(INFO)<<"query "<<(QString("image://") + name_ + QString("/favicon") + QString::number(updateTimes_) + QString("_") + QString::number((int64)siteInfoItem->GetID(), 16)).toStdString();
-    return QString("image://") + name_ + QString("/favicon") + QString("_") + QString::fromStdString(siteInfoItem->url.spec());
+    return QString("image://") + name_ + QString("/favicon") + QString::number(updateTimes_) + QString("_") + QString::fromStdString(siteInfoItem->url.spec());
   } else if (role == IndexRule) {
     //return index.row();
     return QString::fromStdString(siteInfoItem->url.spec());

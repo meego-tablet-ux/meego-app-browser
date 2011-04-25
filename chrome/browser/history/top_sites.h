@@ -35,6 +35,9 @@ namespace history {
 class TopSitesCache;
 class TopSitesBackend;
 class TopSitesTest;
+#if defined(TOOLKIT_MEEGOTOUCH)
+class RecentAndBookmarkThumbnailsQt;
+#endif
 
 // Stores the data for the top "most visited" sites. This includes a cache of
 // the most visited data from history, as well as the corresponding thumbnails
@@ -163,6 +166,9 @@ class TopSites
   // TopSites isn't loaded yet.
   virtual bool IsFull();
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  RecentAndBookmarkThumbnailsQt* GetRecentAndBookmarkThumbnails();
+#endif
  protected:
   // For allowing inheritance.
   virtual ~TopSites();
@@ -305,8 +311,12 @@ class TopSites
   void OnTopSitesAvailableFromHistory(CancelableRequestProvider::Handle handle,
                                       MostVisitedURLList data);
 
-  bool GetTemporaryThumbnailByURL(const GURL& url, 
-                                  scoped_refptr<RefCountedBytes>* bytes); 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  // Because chromium use TopSites as the interface to ThumbnailGenerator
+  // So we add the instance of RecentAndBookmarkThumbnailsQt inside TopSites
+  // for convenience.
+  scoped_ptr<RecentAndBookmarkThumbnailsQt> recent_sites_thumbnails_;
+#endif
 
   scoped_refptr<TopSitesBackend> backend_;
 

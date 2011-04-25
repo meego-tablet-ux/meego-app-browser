@@ -35,6 +35,7 @@
 #include "base/utf_string_conversions.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/history/history.h"
+#include "chrome/browser/history/recent_and_bookmark_thumbnails_qt.h"
 #include "chrome/browser/prefs/pref_service.h"
 #include "chrome/browser/profiles/profile.h"
 #include "content/browser/site_instance.h"
@@ -116,15 +117,12 @@ void TabItem::GetThumbnail()
   {
     history::TopSites* ts = tablist_->browser()->profile()->GetTopSites();
     if (ts) {
-      scoped_refptr<RefCountedBytes> jpeg_data;
-      ts->GetPageThumbnail(tab_contents_->tab_contents()->GetURL(), &jpeg_data);
-
-      if (jpeg_data.get()) {
-	std::vector<unsigned char> thumbnail_data;
-	std::copy(jpeg_data->data.begin(), jpeg_data->data.end(),
-		  std::back_inserter(thumbnail_data));
-	QImage image = QImage::fromData(thumbnail_data.data(), thumbnail_data.size());
-	thumbnail_ = image;
+      history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
+			                ts->GetRecentAndBookmarkThumbnails();
+      if(recentThumbnails) {
+        recentThumbnails->GetRecentPageThumbnail(tab_contents_->tab_contents()->GetURL(), &consumer_,
+			 NewCallback(static_cast<TabItem*>(this),
+  		         &TabItem::OnThumbnailDataAvailable));
       }
     }
   }

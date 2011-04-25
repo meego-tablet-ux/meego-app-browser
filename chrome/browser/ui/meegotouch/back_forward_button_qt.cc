@@ -45,6 +45,7 @@
 #include "grit/theme_resources.h"
 #include "net/base/registry_controlled_domain.h"
 #include "chrome/browser/history/history.h"
+#include "chrome/browser/history/recent_and_bookmark_thumbnails_qt.h"
 #include "chrome/browser/prefs/pref_service.h"
 #include "chrome/browser/profiles/profile.h"
 
@@ -509,6 +510,15 @@ void HistoryEntry::getThumbnailData(NavigationController *controller)
       QImage image = QImage::fromData(jpeg.data(), jpeg.size());
       DLOG(INFO) << "image size ===== " << jpeg.size();
       hiProvider_.addImage(QString::number(index_), image);
+      return;
+    }
+
+    history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
+                             ts->GetRecentAndBookmarkThumbnails();
+    if(recentThumbnails) {
+      recentThumbnails->GetRecentPageThumbnail(entry_->url(), &consumer_,
+                     NewCallback(static_cast<HistoryEntry*>(this),
+                     &HistoryEntry::onThumbnailDataAvailable));
     }
   } else {
      HistoryService* hs = controller->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);

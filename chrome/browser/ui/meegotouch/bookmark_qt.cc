@@ -17,6 +17,7 @@
 #include "chrome/browser/browser_shutdown.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "chrome/browser/history/recent_and_bookmark_thumbnails_qt.h"
 #include "chrome/browser/importer/importer_data_types.h"
 #include "chrome/browser/metrics/user_metrics.h"
 #include "chrome/browser/ntp_background_util.h"
@@ -72,7 +73,17 @@ void BookmarkListItem::RequestImg(int index) {
   if (ts) {
     scoped_refptr<RefCountedBytes> jpeg_data;
     ts->GetPageThumbnail(url, &jpeg_data);
-    HandleThumbnailData(jpeg_data);
+    if(jpeg_data.get()) {
+    	HandleThumbnailData(jpeg_data);
+	return;
+    }
+    history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
+                            ts->GetRecentAndBookmarkThumbnails();
+    if(recentThumbnails) {
+       recentThumbnails->GetRecentPageThumbnail(url, &consumer_,
+			NewCallback(static_cast<BookmarkListItem*>(this),
+                        &BookmarkListItem::OnThumbnailDataAvailable));
+    }
   }
   else {
     HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);

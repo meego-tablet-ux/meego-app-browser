@@ -14,6 +14,8 @@
 #include "base/utf_string_conversions.h"
 #include "chrome/browser/bookmarks/bookmark_model.h"
 #include "chrome/browser/ui/tab_contents/tab_contents_wrapper.h"
+#include "chrome/browser/history/recent_and_bookmark_thumbnails_qt.h"
+#include "chrome/browser/history/top_sites.h"
 
 #include "BrowserServiceWrapper.h"
 
@@ -247,11 +249,31 @@ void BrowserServiceBackend::AddFavIconItemImpl(GURL url, scoped_refptr<RefCounte
 
 void BrowserServiceWrapper::GetThumbnail(GURL url)
 {
+  history::TopSites* ts = browser_->profile()->GetTopSites();
+  if (ts) {
+     /*
+     scoped_refptr<RefCountedBytes> thumbnail_data;
+     ts->GetPageThumbnail(url, &thumbnail_data);
+     if (thumbnail_data.get()) {
+       handleThumbnailData(thumbnail_data);
+       return;
+     }
+     */
+     history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
+                                   ts->GetRecentAndBookmarkThumbnails();
+     if(recentThumbnails) {
+       recentThumbnails->GetRecentPageThumbnail(url, &consumer_,
+                          NewCallback(static_cast<BrowserServiceWrapper*>(this),
+                          &BrowserServiceWrapper::OnThumbnailDataAvailable));
+       return;
+     }
+  }
+
   HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
   if (hs) {
     HistoryService::Handle handle = hs->GetPageThumbnail(url, &consumer_,
-                                                         NewCallback(static_cast<BrowserServiceWrapper*>(this),
-                                                                     &BrowserServiceWrapper::OnThumbnailDataAvailable));
+                                                       NewCallback(static_cast<BrowserServiceWrapper*>(this),
+                                                                   &BrowserServiceWrapper::OnThumbnailDataAvailable));
     consumer_.SetClientData(hs, handle, new GURL(url));
   }
 }
