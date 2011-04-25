@@ -202,13 +202,13 @@ Item {
   Component {
     id: bmItemDeleteDialog
     ModalDialog {
-      leftButtonText: qsTr("Delete")
-      rightButtonText: qsTr("Cancel")
-      dialogTitle: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
-      onDialogClicked: {
-        if (button == 1) {
-          bmGlobal.currentModel.remove(bmGlobal.idHasMenu)
-        }
+      acceptButtonText: qsTr("Delete")
+      cancelButtonText: qsTr("Cancel")
+      title: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
+      onAccepted: {
+        bmGlobal.currentModel.remove(bmGlobal.idHasMenu)
+      }
+      onRejected: {
         dialogLoader.sourceComponent = undefined;
       }
     }
@@ -216,14 +216,16 @@ Item {
  Component {
     id: bmItemEditDialog
     ModalDialog {
-      leftButtonText: qsTr("Save")
-      rightButtonText: qsTr("Cancel")
-      dialogTitle: qsTr("Edit bookmark"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"");
-      onDialogClicked: {
+      acceptButtonText: qsTr("Save")
+      cancelButtonText: qsTr("Cancel")
+      title: qsTr("Edit bookmark"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"");
+      onAccepted: {
         if (button == 1) {
           if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.gridIdHasMenu, tmpTitle);
           if (tmpUrl != "")   bmGlobal.currentModel.urlChanged  (bmGlobal.gridIdHasMenu, tmpUrl);
         }
+      }
+      onRejected: {
         dialogLoader.sourceComponent = undefined;
       }
       Component.onCompleted: {
