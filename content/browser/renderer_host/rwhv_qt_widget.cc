@@ -1091,6 +1091,7 @@ void RWHVQtWidget::onAnimationFinished()
      || (scale_ == kMaxContentsScale 
          && pending_scale_ > kMaxContentsScale)) {
     pinch_completing_ = false;
+    viewport_item->setProperty("interactive", QVariant(true));
   }
  
   if(pending_scale_ < kNormalContentsScale)

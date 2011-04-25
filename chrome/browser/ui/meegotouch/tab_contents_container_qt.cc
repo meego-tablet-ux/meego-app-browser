@@ -189,7 +189,8 @@ void TabContentsContainerQt::Observe(NotificationType type,
     NavigationController::LoadCommittedDetails&
       commited_details = *(Details<NavigationController::LoadCommittedDetails>(details).ptr());
 
-    if(!commited_details.is_in_page)
+    if(commited_details.entry->url() != commited_details.previous_url
+        && !commited_details.is_in_page)
       RestoreViewportProperty();
 
   }else {
