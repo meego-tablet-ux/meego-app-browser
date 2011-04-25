@@ -75,7 +75,7 @@ class BackingStoreX : public BackingStore {
   // Tiled backing store public APIs
   
   // Adjust tiles according to visible rect, contents size or scale change
-  void AdjustTiles();
+  void AdjustTiles(bool recreatedAll = false);
 
   // Handle tiles painting tiles ack from render
   void PaintTilesAck(unsigned int seq, unsigned int tag, const QRect& rect, const QRect& pixmap_rect);
@@ -163,6 +163,8 @@ private:
     QRect Rect() { return rect_; }
 
     bool IsReady() { return ready_; }
+
+    void reset() { ready_ = false; }
     
    private:
     friend class base::RefCounted<Tile>;

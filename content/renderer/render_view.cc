@@ -2943,6 +2943,9 @@ void RenderView::didChangeContentsSize(WebFrame* frame, const WebSize& size) {
              << " " << webview()->mainFrame()->contentsSize().height;
   if (resize_to_contents_ && frame == webview()->mainFrame())
   {
+    if ( size.width <= 8 && size.height <= 8) {
+      return;
+    }
     contents_size_ = size;
     Send(new ViewHostMsg_DidContentsSizeChanged(routing_id_,
                                                 size));

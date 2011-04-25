@@ -751,7 +751,7 @@ QRect BackingStoreX::GetCachedRect()
   return cached_rect.intersected(ContentsRect());
 }
 
-void BackingStoreX::AdjustTiles()
+void BackingStoreX::AdjustTiles(bool recreatedAll)
 {
   if (frozen_)
     return;
@@ -775,6 +775,9 @@ void BackingStoreX::AdjustTiles()
     {
       itr = GetWorkingTilesMap().erase(itr);
       continue;
+    }
+    if (recreatedAll) {
+      (*itr)->reset();
     }
     itr++;
   }
@@ -1023,7 +1026,7 @@ void BackingStoreX::SetContentsScale(float scale)
   contents_scale_ = scale;
   pending_scaling_ = true;
   tiles_map_seq_++;
-  AdjustTiles();
+  AdjustTiles(true);
 }
 
 void BackingStoreX::SetFrozen(bool frozen)
