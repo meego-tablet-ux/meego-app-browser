@@ -1691,10 +1691,45 @@ void RWHVQtWidget::AdjustSize()
 void RWHVQtWidget::ScrollRectToVisible(const gfx::Rect& rect)
 {
   QGraphicsObject* viewport = GetViewportItem();
-  if(viewport && !rect.IsEmpty()) {
-    viewport->setProperty("contentX", QVariant(rect.x() * scale_));
-    viewport->setProperty("contentY", QVariant(rect.y() * scale_));
+  if(viewport) {
+    gfx::Rect adjusted = adjustScrollRect(rect);
+    viewport->setProperty("contentX", QVariant(adjusted.x()));
+    viewport->setProperty("contentY", QVariant(adjusted.y()));
   }
 }
+
+gfx::Rect RWHVQtWidget::adjustScrollRect(const gfx::Rect& rect)
+{
+  gfx::Rect scaled(rect.x() * scale(), rect.y() * scale(), 0, 0);
+  gfx::Rect ret = scaled;
+  QSizeF rwhvSize = size();
+  QGraphicsObject* viewport = GetViewportItem();
+  if(viewport) {
+    QRectF bounding = viewport->boundingRect();
+    int contentX = viewport->property("contentX").toInt();
+    int contentY = viewport->property("contentY").toInt();
+    if (contentX < scaled.x() && scaled.x() < contentX + bounding.width()) {
+      // if in current visible area, skip to move
+      ret.set_x(contentX);
+    } else if( scaled.x() + bounding.width() > rwhvSize.width()) {
+      ret.set_x(rwhvSize.width() - bounding.width());
+    } 
+    // always move Y since internal page jump needs this
+    // currently we can't distinguish scroll requests from internal page jump and
+    // find bar request
+    // It's better for find not to scroll when finded item is in the current
+    // visible area
+    // TODO: improve the scroll for find
+    /*if (contentY < scaled.y() && scaled.y() < contentY + bounding.height()) {
+      //ret.set_y(contentY);
+    } else*/ 
+    if( scaled.y() + bounding.height() > rwhvSize.height()) {
+      ret.set_y(rwhvSize.height() - bounding.height());
+    } /*else {
+        */
+  }
+  return ret;
+}
+
 
 #include "moc_rwhv_qt_widget.cc"

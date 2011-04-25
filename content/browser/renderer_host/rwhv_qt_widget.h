@@ -150,6 +150,8 @@ protected Q_SLOTS:
   void InvokeSelection(QTapAndHoldGesture* gesture);
   void ModifySelection(SelectionHandlerID handler, gfx::Point new_pos);
 
+  gfx::Rect adjustScrollRect(const gfx::Rect& rect);
+
   // Whether the input method is enabled by webkit or not.
   // It shall be set to false when an imUpdateStatus message with control ==
   // IME_DISABLE is received, and shall be set to true if control ==
