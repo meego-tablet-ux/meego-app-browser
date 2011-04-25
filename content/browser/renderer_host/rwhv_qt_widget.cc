@@ -833,7 +833,7 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
   if (is_modifing_selection_) {
     ModifySelection(current_selection_handler_,
-        gfx::Point(static_cast<int>(event->pos().x()), static_cast<int>(event->pos().y())));
+        gfx::Point(static_cast<int>(event->pos().x() / scale()), static_cast<int>(event->pos().y() / scale())));
     goto done;
   }
 
@@ -892,7 +892,7 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
     m_dbclkHackTimeStamp = 0;
     m_dbclkHackPos = QPointF(0, 0);
 
-    current_selection_handler_ = findSelectionHandler(static_cast<int>(event->pos().x()), static_cast<int>(event->pos().y()));
+    current_selection_handler_ = findSelectionHandler(static_cast<int>(event->pos().x() / scale()), static_cast<int>(event->pos().y() / scale()));
     if (current_selection_handler_ != SELECTION_HANDLER_NONE) {
       is_modifing_selection_ = true;
       goto done;
