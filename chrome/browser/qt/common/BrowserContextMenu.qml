@@ -32,16 +32,34 @@
  ****************************************************************************/
 
 import Qt 4.7
-import MeeGo.Labs.Components 0.1
+import MeeGo.Components 0.1
 
-
-ContextMenu {
+ModalContextMenu {
   id: contextInstance
-  menuWidth: contextLoader.menuWidth
-  onClose: {
+  property variant model: []
+  property variant payload
+
+  property int minMenuWidth: 200
+  property int maxMenuWidth: 500
+
+  onFogHideFinished: {
     contextLoader.close();
   }
-  onTriggered: {
-    contextLoader.triggered(index);
+
+  function displayContextMenu (mouseX, mouseY) {
+    contextInstance.setPosition(mouseX, mouseY);
+    contextInstance.show();
+  }
+
+  fogMaskVisible: true;
+
+  content: ActionMenu {
+    model: contextInstance.model
+    minWidth: minMenuWidth
+    maxWidth: maxMenuWidth
+    onTriggered: {
+        contextLoader.triggered(index,payload)
+        contextInstance.hide();
+    }
   }
 }

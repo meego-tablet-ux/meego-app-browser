@@ -224,7 +224,7 @@ BrowserWindowHandset {
       var parentContainer = screenlayer;
 
       loader.item.parent = parentContainer;
-      loader.item.targetParent = parentContainer;
+      //loader.item.targetParent = parentContainer;
       loader.item.model = model;
 
       var menuContainer = loader.item;
