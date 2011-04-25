@@ -39,8 +39,8 @@ Item {
     id: container
 
     property alias contentLoader: contentLoader
-    property alias leftButtonText: button1.title
-    property alias rightButtonText: button2.title
+    property alias leftButtonText: button1.text
+    property alias rightButtonText: button2.text
     property alias dialogTitle: title.text
 
     anchors.fill: parent
