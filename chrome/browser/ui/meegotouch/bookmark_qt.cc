@@ -74,14 +74,14 @@ void BookmarkListItem::RequestImg(int index) {
     scoped_refptr<RefCountedBytes> jpeg_data;
     ts->GetPageThumbnail(url, &jpeg_data);
     if(jpeg_data.get()) {
-    	HandleThumbnailData(jpeg_data);
-	return;
+      HandleThumbnailData(jpeg_data);
+      return;
     }
     history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
                             ts->GetRecentAndBookmarkThumbnails();
     if(recentThumbnails) {
        recentThumbnails->GetRecentPageThumbnail(url, &consumer_,
-			NewCallback(static_cast<BookmarkListItem*>(this),
+                        NewCallback(static_cast<BookmarkListItem*>(this),
                         &BookmarkListItem::OnThumbnailDataAvailable));
     }
   }
@@ -694,6 +694,8 @@ BookmarkQtImpl::BookmarkQtImpl(BookmarkQt* bookmark_qt, QObject *parent)
 }
 
 bool BookmarkQtImpl::addBookmark(const BookmarkItem &bookmark) {
+  if (bookmarks_.contains(bookmark)) 
+    return false;
   beginInsertRows(QModelIndex(), rowCount(), rowCount());
   bookmarks_ << bookmark;
   endInsertRows();
@@ -701,6 +703,8 @@ bool BookmarkQtImpl::addBookmark(const BookmarkItem &bookmark) {
 }
 
 bool BookmarkQtImpl::addBookmark(const BookmarkItem &bookmark, int index) {
+  if (bookmarks_.contains(bookmark)) 
+    return false;
   beginInsertRows(QModelIndex(), index, index);
   bookmarks_.insert(index, bookmark);
   endInsertRows();
