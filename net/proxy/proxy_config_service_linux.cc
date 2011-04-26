@@ -224,6 +224,8 @@ class GConfSettingGetterImplGConf
     DCHECK(MessageLoop::current() == glib_default_loop);
     DCHECK(!client_);
     DCHECK(!loop_);
+
+    DLOG(INFO) << "#### " << __PRETTY_FUNCTION__;
     loop_ = glib_default_loop;
     client_ = gconf_client_get_default();
     if (!client_) {
@@ -233,6 +235,16 @@ class GConfSettingGetterImplGConf
       return false;
     }
     GError* error = NULL;
+
+    // In case of /system/proxy and /system/http_proxy directories
+    // don't exists in $HOME/.gconf directory
+    if(!gconf_client_dir_exists(client_, "/system/proxy", NULL)) {
+      gconf_client_set_string(client_, "/system/proxy/mode", "none", NULL);
+    }
+    if(!gconf_client_dir_exists(client_, "/system/http_proxy", NULL)) {
+      gconf_client_set_bool(client_, "/system/http_proxy/use_http_proxy", false, NULL);
+    }
+
     // We need to add the directories for which we'll be asking
     // notifications, and we might as well ask to preload them.
     gconf_client_add_dir(client_, "/system/proxy",
