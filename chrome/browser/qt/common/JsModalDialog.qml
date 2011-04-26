@@ -37,128 +37,102 @@ import Qt.labs.gestures 2.0
 
 Item {
     id: container
-
-    property alias contentLoader: contentLoader
-    property alias leftButtonText: button1.text
-    property alias rightButtonText: button2.text
-    property alias dialogTitle: title.text
-
     anchors.fill: parent
 
-    signal dialogClicked (int button)
+    GestureArea {
+      anchors.fill: parent
+      Tap {}
+      TapAndHold {}
+      Pan {}
+      Pinch {}
+      Swipe {}
+    }
 
-	Rectangle {
-		id: fog
+    // create ModalDialog:
+    ModalDialog {
+        id: jsDialog
+	property alias contentLoader: contentLoader
 
-		anchors.fill: parent
-		color: theme_dialogFogColor
-		opacity: theme_dialogFogOpacity
-		Behavior on opacity {
-			PropertyAnimation { duration: theme_dialogAnimationDuration }
+        title : browserDialogModel.getDialogTitle()
+        buttonWidth: 200
+        buttonHeight: 35
+        showCancelButton: true
+        showAcceptButton: true
+        cancelButtonText: browserDialogModel.getRightButtonText()
+        acceptButtonText: browserDialogModel.getLeftButtonText()
+        content: Loader { id: contentLoader
+    			  anchors.fill: parent }
+
+        // handle signals:
+        onAccepted: {
+            // do something
+	    console.log("Accept Button clicked: ");
+	    console.log("is Suppress: " + contentLoader.item.isSuppress);
+	    if(browserDialogModel.getDialogType() == 4)
+		browserDialogObject.OnButtonClicked(1, contentLoader.item.input1.toString(), contentLoader.item.input2.toString(), contentLoader.item.isSuppress);
+	    else if(browserDialogModel.getDialogType() == 2)
+		browserDialogObject.OnButtonClicked(1, contentLoader.item.input1.toString(), null, contentLoader.item.isSuppress);
+	    else
+		browserDialogObject.OnButtonClicked(1, null, null, contentLoader.item.isSuppress);
+	
+        }
+        onRejected: {
+            // do something
+	    console.log("Cancel Button clicked: ");
+	    console.log("is Suppress: " + contentLoader.item.isSuppress);
+	    if(browserDialogModel.getDialogType() == 4)
+		browserDialogObject.OnButtonClicked(2, contentLoader.item.input1.toString(), contentLoader.item.input2.toString(), contentLoader.item.isSuppress);
+	    else if(browserDialogModel.getDialogType() == 2)
+		browserDialogObject.OnButtonClicked(2, contentLoader.item.input1.toString(), null, contentLoader.item.isSuppress);
+	    else
+		browserDialogObject.OnButtonClicked(2, null, null, contentLoader.item.isSuppress);
+	
+         }
+     }
+
+     // show on signal:
+     Component.onCompleted: {
+         jsDialog.show()
+     }
+
+	states: [
+		State {
+		    name: "alert"
+		    PropertyChanges {
+			target: jsDialog.contentLoader
+			sourceComponent: alertContent
+		    }
+		    PropertyChanges {
+			target: jsDialog
+			showCancelButton: false
+		    }
+		},
+
+		State {
+		    name: "confirm"
+		    PropertyChanges {
+			target: jsDialog.contentLoader
+			sourceComponent: alertContent
+		    }
+		},
+
+		State {
+		    name: "prompt"
+		    PropertyChanges {
+			target: jsDialog.contentLoader;
+			sourceComponent: promptContent
+		    }
+		},
+		State {
+		    name: "auth"
+		    PropertyChanges {
+			target: jsDialog.contentLoader;
+			sourceComponent: authContent
+		    }
 		}
-	}
+	]
 
-  GestureArea {
-    anchors.fill: parent
-    Tap {}
-    TapAndHold {}
-    Pan {}
-    Pinch {}
-    Swipe {}
-  }
-
-  // should not need this one, since GestureArea 2 also block Tap?
-	/* This mousearea is to prevent clicks from passing through the fog */
-	MouseArea {
-		anchors.fill: parent
-        	acceptedButtons: Qt.RightButton|Qt.LeftButton
-		onClicked: {
-		  mouse.accepted = true;
-		}
-		onPressed: {
-		  mouse.accepted = true;
-		}
-		onReleased: {
-		  mouse.accepted = true;
-		}
-		  
-	}
-
-	BorderImage {
-        id: dialog
-
-        border.top: 14
-        border.left: 20
-        border.right: 20
-        border.bottom: 20
-
-        source: "image://themedimage/images/notificationBox_bg"
-
-        x: (container.width - width) / 2
-        y: (container.height - height) / 2
-        width: contents.width + 40 //478
-        height: contents.height + 40 //318
-
-        Item {
-            id: contents
-            x: 20
-            y: 20
-
-            width: 438
-            height: 200
-
-            Column {
-                id: contentColumn
-                anchors.fill: parent
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-		    width: 400
-                    id: title
-                    text: browserDialogModel.getDialogTitle()
-                    font.weight: Font.Bold
-		    font.pixelSize: theme_dialogTitleFontPixelSize
-		    color: theme_dialogTitleFontColor
-                    height: 32
-		    elide: Text.ElideRight
-                }
-
-                Loader {
-                    id: contentLoader
-                    width: 438
-                    height: contents.height - (buttonBar.height + title.height)
-                }
-		
-                Row {
-                    id: buttonBar
-                    width: parent.width
-                    height: 60
-                    spacing: 18
-
-                    Button {
-                        id: button1
-                        width: 210
-                        height: 60
-                        text: browserDialogModel.getLeftButtonText()
-                        onClicked: {
-                            container.dialogClicked (1);
-                        }
-                    }
-
-                    Button {
-                        id: button2
-                        width: 210
-                        height: 60
-                        text: browserDialogModel.getRightButtonText()
-                        onClicked: {
-                            container.dialogClicked (2);
-                        }
-                    }
-                }
-            }
-        }}
-
-	Component {
+	 Component {
 	    id: alertContent
 	    Item {
 		property alias isSuppress: checkBox.isChecked
@@ -348,60 +322,6 @@ Item {
 
 	    }
         }
-
-	states: [
-		State {
-		    name: "alert"
-		    PropertyChanges {
-			target: button2;
-			visible: false
-		    }
-		    PropertyChanges {
-			target: button1;
-			anchors.horizontalCenter: parent.horizontalCenter
-		    }
-		    PropertyChanges {
-			target: contentLoader;
-			sourceComponent: alertContent
-		    }
-		},
-
-		State {
-		    name: "confirm"
-		    PropertyChanges {
-			target: contentLoader;
-			sourceComponent: alertContent
-		    }
-		},
-
-		State {
-		    name: "prompt"
-		    PropertyChanges {
-			target: contentLoader;
-			sourceComponent: promptContent
-		    }
-		},
-		State {
-		    name: "auth"
-		    PropertyChanges {
-			target: contentLoader;
-			sourceComponent: authContent
-		    }
-		}
-	]
-
-        Connections {
-		target: container
-		onDialogClicked: {
-		    console.log("Button clicked: " + button);
-		    console.log("is Suppress: " + contentLoader.item.isSuppress);
-		    if(browserDialogModel.getDialogType() == 4)
-			browserDialogObject.OnButtonClicked(button, contentLoader.item.input1.toString(), contentLoader.item.input2.toString(), contentLoader.item.isSuppress);
-		    else if(browserDialogModel.getDialogType() == 2)
-			browserDialogObject.OnButtonClicked(button, contentLoader.item.input1.toString(), null, contentLoader.item.isSuppress);
-		    else
-			browserDialogObject.OnButtonClicked(button, null, null, contentLoader.item.isSuppress);
-		}
-        }
-
 }
+
+
