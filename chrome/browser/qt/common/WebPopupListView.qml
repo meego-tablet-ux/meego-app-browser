@@ -93,10 +93,6 @@ Flickable {
         container.contentY = bestY;
     }
 
-    Component.onCompleted: {
-       positionCurrentItem();
-    }
-
     Column {
         id: layout
         width: parent.width
@@ -110,7 +106,7 @@ Flickable {
             delegate: Item {
                 id: delegateThingy
 
-                width: parent.width
+                width: repeater.width
                 height: textItem.height + seperatorImage.height
 
                 clip: true
@@ -216,6 +212,7 @@ Flickable {
 
             // enable text eliding when the correct width was computed
             Component.onCompleted: {
+                positionCurrentItem();
                 elideEnabled = true;
             }
         }

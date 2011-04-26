@@ -32,7 +32,7 @@
  ****************************************************************************/
 
 import Qt 4.7
-import MeeGo.Labs.Components 0.1
+import MeeGo.Components 0.1
 
 Item {
     id: container
@@ -41,22 +41,28 @@ Item {
     property int maxPopupListWidth : 600
     property int maxPopupListHeight : 600
     property int currentIndex : 0
-    property alias targetParent : webPopupListContext.targetParent
+    //property alias targetParent : webPopupListContext.targetParent
+    property Item contentItem: null
 
     anchors.fill : parent
     visible : false
 
     function show(x, y) {
+        if(container.contentItem) container.contentItem.destroy();
+            container.contentItem = popupholder.createObject (container);
         visible = true;
-        webPopupListContext.display(x,y);
+        container.contentItem.display(x,y);
     }
 
     function close() {
         visible = false;
+        if(container.contentItem) {
+            container.contentItem.destroy();
+            container.contentItem = null;
+        }
     }
 
     function selectItem(index) {
-        model.itemInvoked(index);
         close();
     }
 
@@ -65,30 +71,33 @@ Item {
         close();
     }
 
-    AbstractContext {
-        id: webPopupListContext
-        function display(x, y) {
-            webPopupListContext.mouseX = x;
-            webPopupListContext.mouseY = y;
-            visible = true;
-        }
+    Component {
+        id : popupholder
+        ModalContextMenu {
+            id: webPopupListContext
+            function display(x, y) {
+                webPopupListContext.setPosition(x, y);
+                webPopupListContext.show();
+            }
 
-        onClose: {
-            if (container.visible == true) {
-                container.canceled();
+            onFogHideFinished: {
+                if (container.visible == true) {
+                    container.canceled();
+                }
+            }
+
+            content : WebPopupListView {
+                model: container.model
+                minWidth: minPopupListWidth
+                maxWidth: maxPopupListWidth
+                maxHeight: maxPopupListHeight
+                currentIndex: container.currentIndex
+                onTriggered: {
+                    model.itemInvoked(index);
+                    webPopupListContext.hide();
+                    container.selectItem(index);
+                }
             }
         }
-
-        content: WebPopupListView {
-            model: container.model
-            minWidth: minPopupListWidth
-            maxWidth: maxPopupListWidth
-            maxHeight: maxPopupListHeight
-            currentIndex: container.currentIndex
-            onTriggered: {
-                container.selectItem(index);
-            }
-        }
-
     }
 }

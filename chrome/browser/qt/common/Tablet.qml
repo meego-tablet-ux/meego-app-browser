@@ -162,7 +162,7 @@ BrowserWindowTablet {
       popupListLoader.source = "WebPopupList.qml"
       popupListLoader.item.model = PopupListModel
       popupListLoader.item.parent = screenlayer
-      popupListLoader.item.targetParent = screenlayer;
+      //popupListLoader.item.targetParent = screenlayer;
       popupListLoader.item.currentIndex = PopupListModel.currentSelectedItem();
       popupListLoader.item.maxPopupListHeight = screenlayer.height - 20;
 
