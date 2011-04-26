@@ -49,6 +49,7 @@ Flickable {
     property Item currentItem : null
     property int currentItemY : 0
     property int currentItemHeight : 0
+    property int realheight : 200
 
     property int maxHeight : 600
 
@@ -58,7 +59,7 @@ Flickable {
     width: currentWidth
     height: (contentHeight < maxHeight) ? contentHeight : maxHeight
 
-    contentHeight: layout.height
+    contentHeight: realheight
     contentWidth: currentWidth
 
     interactive: (contentHeight > height) ? true : false
@@ -212,6 +213,7 @@ Flickable {
 
             // enable text eliding when the correct width was computed
             Component.onCompleted: {
+                container.realheight = layout.height
                 positionCurrentItem();
                 elideEnabled = true;
             }
