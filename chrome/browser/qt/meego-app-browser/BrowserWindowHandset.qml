@@ -183,7 +183,7 @@ Item {
             onClicked: {
               scene.statusBarTriggered();
               console.log(orientation);
-              console.log(hasfindbar);
+              //console.log(hasfindbar);
             }
         }
         states: [
@@ -281,6 +281,7 @@ Item {
 
         Loader {
             id: findBarLoader
+            source: "FindBarNull.qml"
         }
         Connections {
             target: findBarModel
@@ -292,8 +293,8 @@ Item {
                 var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height + infobarLoader.height + bookmarkBarLoader.height)
                 var ix = innerContent.width / 2
                 var ih = 50
-     //           findbar.x = ix
-     //           findbar.width = ix
+                findbar.x = ix
+                findbar.width = ix
                 findbar.height = ih
                 findbar.z = innerContent.z + 1
                 findbar.showfindbar = true
@@ -471,6 +472,11 @@ Item {
                 angle: 0
                 transformX: 0
             }
+            PropertyChanges {
+                target: findbar
+                width: scene.width / 2
+                x: scene.width / 2
+            }
         },
 
         State {
@@ -491,6 +497,11 @@ Item {
                 transformX: scene.width
                 transformY: scene.height
             }
+            PropertyChanges {
+                target: findbar
+                width: scene.width / 2
+                x: scene.width / 2
+            }
         },
 
         State {
@@ -509,6 +520,11 @@ Item {
                 target: privateData
                 angle: 90
                 transformX: scene.width
+            }
+            PropertyChanges {
+                target: findbar
+                width: scene.height / 2
+                x: scene.height / 2
             }
         },
 
@@ -529,30 +545,13 @@ Item {
                 angle: -90
                 transformY: scene.height
             }
+            PropertyChanges {
+                target: findbar
+                width: scene.height / 2
+                x: scene.height / 2
+            }
         }
     ]
-/*    States: [
-
-        State {                                                                                   
-            name: "findbarlandscape"                                                      
-            when: hasfindbar && (orientation == 3 || orientation == 1)                                             
-            PropertyChanges {                                                                     
-                target: findbar                                                                   
-                width: scene.width / 2                                                            
-                x: scene.width / 2                                                                
-            }                                                                                     
-        },                                                                                        
-                                                                                                  
-        State {                                                                                   
-            name: "findbarportrait"                                                               
-            when: hasfindbar && (orientation == 0 || orientation == 2)                                            
-            PropertyChanges {                                                                     
-                target: findbar                                                                   
-                width: {console.log(scene.height);scene.height / 2 }                                                         
-                x: scene.height / 2                                                               
-            }                                                                                     
-        }                                                                                        
-    ]*/
     transitions: [
         Transition {
             from: "*"

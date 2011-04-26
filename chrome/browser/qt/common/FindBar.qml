@@ -173,7 +173,7 @@ Item {
         onClicked: {
           container.showfindbar = false;
           findBarModel.closeButtonClicked();
-          scene.hasfindbar = false;
+          //scene.hasfindbar = false;
         }
         onPressed: closeIcon.pressed = true
         onReleased: closeIcon.pressed = false
