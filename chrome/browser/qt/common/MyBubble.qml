@@ -132,7 +132,7 @@ Item {
 		anchors.top: borderImage1.bottom
 		anchors.bottom: borderImage2.top
 		source: "image://themedimage/images/popupbox_2"
-		verticalTileMode: BorderImage.Repeat
+                verticalTileMode: BorderImage.Repeat
 		width: parent.width
 		clip: true
 		height: column.height
@@ -281,8 +281,6 @@ Item {
 				target: finger
 				x: container.fingerX
 		        	y: container.fingerY - finger.height / 2
-				sourceSize.width: 0
-				sourceSize.height: 0
 				source: "image://themedimage/images/popupbox_arrow_left"
 			}
 		},
@@ -293,8 +291,6 @@ Item {
 				target: finger
 				x: container.bubbleWidth - borderImage1.border.right + 5
 				y: container.fingerY - finger.height / 2
-				sourceSize.width: 0
-				sourceSize.height: 0
 				source: "image://themedimage/images/popupbox_arrow_right"
 			}
 		},
@@ -305,8 +301,6 @@ Item {
 				target: finger
 				x: container.fingerX - finger.width / 2
 				y: -(finger.height) + 2
-				sourceSize.width: 0
-				sourceSize.height: 0
 				source: "image://themedimage/images/popupbox_arrow_top"
 			}
 		},
@@ -317,8 +311,6 @@ Item {
 				target: finger
 				x: container.fingerX - finger.width / 2
 				y: container.bubbleHeight - 13 - finger.height
-				sourceSize.width: 0
-				sourceSize.height: 0
 				source: "image://themedimage/images/popupbox_arrow_bottom"
 			}
 		}
