@@ -982,6 +982,19 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   if (isDoingGesture())
     return;
 
+  // we don't want to block mouse release event for popup
+  if (hostView()->IsPopup()) {
+    deliverMousePressEvent();
+    mouse_release_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
+    if(hostView()->host_) {
+      hostView()->host_->ForwardMouseEvent(mouse_release_event_);
+    }
+
+    delay_for_click_timer_->stop();
+    goto done;
+  }
+
+
 // If no gesture is going on, it means that we are doing a short click
   if (!cancel_next_mouse_release_event_) {
     if (!delay_for_click_timer_->isActive()) {
