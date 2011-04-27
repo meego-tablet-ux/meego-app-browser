@@ -503,6 +503,8 @@ void HistoryEntry::getThumbnailData(NavigationController *controller)
     scoped_refptr<RefCountedBytes> thumbnail_data;
     ts->GetPageThumbnail(entry_->url(), &thumbnail_data);
     if (thumbnail_data.get()) {
+      //Also update the count for the thumbnail from TopSites
+      model_->beginReset();
       std::vector <unsigned char> jpeg;
       std::copy(thumbnail_data->data.begin(), 
                 thumbnail_data->data.end(),
@@ -510,6 +512,7 @@ void HistoryEntry::getThumbnailData(NavigationController *controller)
       QImage image = QImage::fromData(jpeg.data(), jpeg.size());
       DLOG(INFO) << "image size ===== " << jpeg.size();
       hiProvider_.addImage(QString::number(index_), image);
+      model_->endReset();
       return;
     }
 
