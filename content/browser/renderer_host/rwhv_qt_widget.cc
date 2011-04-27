@@ -987,6 +987,8 @@ done:
 
 void RWHVQtWidget::onClicked()
 {
+  // send out mouse press and release event in pair
+  deliverMousePressEvent();
   hostView()->host_->ForwardMouseEvent(mouse_release_event_);
   delay_for_click_timer_->stop();
 }
