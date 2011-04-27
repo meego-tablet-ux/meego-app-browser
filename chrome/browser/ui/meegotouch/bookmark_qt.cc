@@ -122,7 +122,8 @@ BookmarkQt::BookmarkQt(BrowserWindowQt* window,
       browser_(browser),
       window_(window),
       model_(NULL),
-      another_folder_name_(anotherFolder)
+      another_folder_name_(anotherFolder),
+      bmStarted_(false)
 {
   list_impl_ = new BookmarkQtListImpl(this);
   filter_ = new BookmarkQtFilterProxyModel(list_impl_);
@@ -245,7 +246,8 @@ void BookmarkQt::BookmarkNodeMoved(BookmarkModel* model,
 
 void BookmarkQt::BookmarkNodeChanged(BookmarkModel* model,
                                      const BookmarkNode* node) {
-  if (!IsMyParent(node->parent())) return;
+  // Only handles list_impl_ here
+  if (!bmStarted_ || !IsMyParent(node->parent())) return;
   if (node->parent() != model_->GetBookmarkBarNode()) {
     // We only care about nodes on the bookmark bar.
     return;
@@ -550,12 +552,11 @@ bool BookmarkBarQt::IsAlwaysShown() {
 }
 
 void BookmarkBarQt::ShowBookmarkManager() {
-  static bool first = true;
   filter_->OpenBookmarkManager();
-  if (first) {
+  if (!bmStarted_) {
     this->CreateAllBookmarkListItems();
     others_->CreateAllBookmarkListItems();
-    first = false;
+    bmStarted_= true;
   }
 }
 

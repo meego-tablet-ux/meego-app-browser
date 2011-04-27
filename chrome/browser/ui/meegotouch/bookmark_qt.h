@@ -259,6 +259,9 @@ protected:
   QString another_folder_name_;
   BookmarkListMenuModel* bookmark_menu_;
 
+  // Flag to enable bookmark manager delay loading
+  bool bmStarted_;
+
   DISALLOW_COPY_AND_ASSIGN(BookmarkQt);
 };
 
