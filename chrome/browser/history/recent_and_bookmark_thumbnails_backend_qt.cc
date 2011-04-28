@@ -76,8 +76,8 @@ void RecentAndBookmarkThumbnailsBackendQt::SetPageThumbnail(const GURL& url,
   if (!thumbnail_db_.get())
     return;
 
-  if(thumbnail_db_->IsThumbnailValid(url))
-    return;
+  //if(thumbnail_db_->IsThumbnailValid(url))
+  //  return;
 
   if(thumbnail_db_->HasThisPage(url)) {
     thumbnail_db_->SetPageThumbnail(url, thumbnail);

@@ -9,6 +9,7 @@
 #include "content/common/notification_type.h"
 #include "content/common/notification_service.h"
 #include "base/base64.h"
+#include "base/file_util.h"
 #include "base/string_util.h"
 #include "base/stringprintf.h"
 #include "base/utf_string_conversions.h"
@@ -16,9 +17,17 @@
 #include "chrome/browser/ui/tab_contents/tab_contents_wrapper.h"
 #include "chrome/browser/history/recent_and_bookmark_thumbnails_qt.h"
 #include "chrome/browser/history/top_sites.h"
+#include "content/browser/renderer_host/render_process_host.h"
+#include "content/browser/renderer_host/render_view_host.h"
+#include "chrome/browser/tab_contents/thumbnail_generator.h"
+#include "chrome/browser/browser_process.h"
+#include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "chrome/browser/browser_list.h"
+#include "ui/gfx/codec/jpeg_codec.h"
+#include <launcherwindow.h>
 
 #include "BrowserServiceWrapper.h"
-
 #include "MeeGoPluginAPI.h"
 
 class BrowserServiceBackend : public base::RefCountedThreadSafe<BrowserServiceBackend>
@@ -49,6 +58,75 @@ class BrowserServiceBackend : public base::RefCountedThreadSafe<BrowserServiceBa
   MeeGoPluginAPI* plugin_;
 };
 
+class SnapshotTaker {
+ public:
+  SnapshotTaker(BrowserServiceBackend* backend, GURL url)
+	:backend_(backend), url_(url) {
+  }
+
+  void SnapshotOnContents(TabContents* contents) {
+      Browser* browser = BrowserList::GetLastActive();
+      BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+      int width = browser_window->window()->width();
+      int height = browser_window->window()->height();
+      gfx::Size page_size = gfx::Size(width, height);
+      gfx::Size snapshot_size = gfx::Size(512, 320);
+ 
+      RenderViewHost* renderer = contents->render_view_host();
+
+      ThumbnailGenerator* generator =  g_browser_process->GetThumbnailGenerator();
+      ThumbnailGenerator::ThumbnailReadyCallback* callback =
+                   NewCallback(this, &SnapshotTaker::OnSnapshotTaken);
+      generator->MonitorRenderer(renderer, true);
+      generator->AskForSnapshot(renderer, false, callback,
+                            page_size, snapshot_size);
+  }
+ 
+
+  void OnSnapshotTaken(const SkBitmap& bitmap) {
+/*
+      // Debug use
+      base::ThreadRestrictions::ScopedAllowIO allow_io;
+      std::vector<unsigned char> png_data;
+      gfx::PNGCodec::EncodeBGRASkBitmap(bitmap, true, &png_data);
+      int bytes_written = file_util::WriteFile(FilePath("/root/.config/chromium/a.png"),
+                                reinterpret_cast<char*>(&png_data[0]), png_data.size());
+*/
+      scoped_refptr<RefCountedBytes> jpeg_data;
+      if (!EncodeBitmap(bitmap, &jpeg_data))
+	return;
+
+      if (jpeg_data.get() && jpeg_data->data.size()) {
+	BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
+	    backend_, &BrowserServiceBackend::AddThumbnailItemImpl, url_, jpeg_data));    
+      }
+  }
+  
+// static
+  static bool EncodeBitmap(const SkBitmap& bitmap,
+                            scoped_refptr<RefCountedBytes>* bytes) {
+      *bytes = new RefCountedBytes();
+      SkAutoLockPixels bitmap_lock(bitmap);
+      std::vector<unsigned char> data;
+      if (!gfx::JPEGCodec::Encode(
+	      reinterpret_cast<unsigned char*>(bitmap.getAddr32(0, 0)),
+	      gfx::JPEGCodec::FORMAT_BGRA, bitmap.width(),
+	      bitmap.height(),
+	      static_cast<int>(bitmap.rowBytes()), 90,
+	      &data)) {
+	return false;
+      }
+      // As we're going to cache this data, make sure the vector is only as big as
+      // it needs to be.
+      (*bytes)->data = data;
+      return true;
+  }
+
+ private:
+  GURL url_;
+  BrowserServiceBackend* backend_;
+};
+
 BrowserServiceWrapper* BrowserServiceWrapper::GetInstance() {
   return Singleton<BrowserServiceWrapper>::get();
 }
@@ -63,7 +141,16 @@ BrowserServiceWrapper::BrowserServiceWrapper():
 BrowserServiceWrapper::~BrowserServiceWrapper()
 {
   backend_->Release();
+  ClearSnapshotList();
   ///\todo: unregister observers
+}
+
+void BrowserServiceWrapper::ClearSnapshotList() {
+  int count = snapshotList_.count();
+  for(int i=0; i<count; i++) {
+    delete snapshotList_[i];
+  }
+  snapshotList_.clear();
 }
 
 void BrowserServiceWrapper::Init(Browser* browser)
@@ -163,12 +250,13 @@ void BrowserServiceWrapper::BookmarkImportBeginning(BookmarkModel* model) {
 void BrowserServiceWrapper::BookmarkImportEnding(BookmarkModel* model) {
 }
 
-void BrowserServiceWrapper::TabInsertedAt(TabContents* contents,
+void BrowserServiceWrapper::TabInsertedAt(TabContentsWrapper* contents,
                                           int index,
                                           bool foreground) {
+  TabContents* content = contents->tab_contents();
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
       backend_, &BrowserServiceBackend::AddTabItemImpl,
-      index, 0, contents->GetURL().spec(), UTF16ToUTF8(contents->GetTitle()), contents->GetURL().HostNoBrackets()));  
+      index, 0, content->GetURL().spec(), UTF16ToUTF8(content->GetTitle()), content->GetURL().HostNoBrackets()));  
 }
 
 void BrowserServiceBackend::AddTabItemImpl(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl)
@@ -177,7 +265,7 @@ void BrowserServiceBackend::AddTabItemImpl(int tab_id, int win_id, std::string u
   plugin_->addTabItem(tab_id, win_id, url, title, faviconUrl);
 }
 
-void BrowserServiceWrapper::TabDetachedAt(TabContents* contents,
+void BrowserServiceWrapper::TabDetachedAt(TabContentsWrapper* contents,
                                           int index) {
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
       backend_, &BrowserServiceBackend::RemoveTabItemImpl, index));  
@@ -189,17 +277,18 @@ void BrowserServiceBackend::RemoveTabItemImpl(int index)
   plugin_->removeTabItem(index);
 }
 
-void BrowserServiceWrapper::TabClosingAt(TabContents* contents,
+void BrowserServiceWrapper::TabClosingAt(TabStripModel* tab_strip_model,  
+					TabContentsWrapper* contents,
                                          int index) {
 }
 
-void BrowserServiceWrapper::TabSelectedAt(TabContents* old_contents,
-                                                TabContents* new_contents,
+void BrowserServiceWrapper::TabSelectedAt(TabContentsWrapper* old_contents,
+                                                TabContentsWrapper* new_contents,
                                                 int index,
                                                 bool user_gesture) {
 }
 
-void BrowserServiceWrapper::TabMoved(TabContents* contents,
+void BrowserServiceWrapper::TabMoved(TabContentsWrapper* contents,
                                            int from_index,
                                            int to_index) {
 }
@@ -247,35 +336,12 @@ void BrowserServiceBackend::AddFavIconItemImpl(GURL url, scoped_refptr<RefCounte
                           png_data->front(), png_data->size());
 }
 
-void BrowserServiceWrapper::GetThumbnail(GURL url)
+void BrowserServiceWrapper::GetThumbnail(TabContents* contents, GURL url)
 {
-  history::TopSites* ts = browser_->profile()->GetTopSites();
-  if (ts) {
-     /*
-     scoped_refptr<RefCountedBytes> thumbnail_data;
-     ts->GetPageThumbnail(url, &thumbnail_data);
-     if (thumbnail_data.get()) {
-       handleThumbnailData(thumbnail_data);
-       return;
-     }
-     */
-     history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
-                                   ts->GetRecentAndBookmarkThumbnails();
-     if(recentThumbnails) {
-       recentThumbnails->GetRecentPageThumbnail(url, &consumer_,
-                          NewCallback(static_cast<BrowserServiceWrapper*>(this),
-                          &BrowserServiceWrapper::OnThumbnailDataAvailable));
-       return;
-     }
-  }
-
-  HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
-  if (hs) {
-    HistoryService::Handle handle = hs->GetPageThumbnail(url, &consumer_,
-                                                       NewCallback(static_cast<BrowserServiceWrapper*>(this),
-                                                                   &BrowserServiceWrapper::OnThumbnailDataAvailable));
-    consumer_.SetClientData(hs, handle, new GURL(url));
-  }
+  // We use new method to get thumbnail here for higher qulity for web panel.
+  SnapshotTaker* taker = new SnapshotTaker(backend_, url);
+  taker->SnapshotOnContents(contents);
+  snapshotList_.push_back(taker);
 }
 
 void BrowserServiceWrapper::GetFavIcon(GURL url)
@@ -292,29 +358,31 @@ void BrowserServiceWrapper::GetFavIcon(GURL url)
 
 }
 
-void BrowserServiceWrapper::TabChangedAt(TabContents* contents,
+void BrowserServiceWrapper::TabChangedAt(TabContentsWrapper* contents,
                                          int index,
                                          TabChangeType change_type) {
-  if (contents->is_loading())
+  TabContents* content = contents->tab_contents();
+  if (content->is_loading())
     return;
-
   // load completed
-  GURL url = contents->GetURL();
+  GURL url = content->GetURL();
   MessageLoop::current()->PostDelayedTask(FROM_HERE,
-                                          factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail, url),
+                                          factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail, 
+					  			     content, url),
                                           500);
   MessageLoop::current()->PostDelayedTask(FROM_HERE,
                                           factory_.NewRunnableMethod(&BrowserServiceWrapper::GetFavIcon, url),
                                           500);
 
   HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
-  hs->QueryURL(contents->GetURL(), true, &consumer_,
+  hs->QueryURL(content->GetURL(), true, &consumer_,
                NewCallback(this, &BrowserServiceWrapper::AddURLItem));
 
 }
 
-void BrowserServiceWrapper::TabReplacedAt(TabContents* old_contents,
-                                          TabContents* new_contents,
+void BrowserServiceWrapper::TabReplacedAt(TabStripModel* tab_strip_model,
+					  TabContentsWrapper* old_contents,
+                                          TabContentsWrapper* new_contents,
                                           int index)
 {
 }
