@@ -103,6 +103,7 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   cancel_next_mouse_release_event_ = false;
   mouse_press_event_delivered_ = false;
   hold_paint_ = false;
+  is_inputtext_selection_ = false;
   
   // Create animation for rebounce effect 
   rebounce_animation_ = new QPropertyAnimation(this, "scale", this);
@@ -838,6 +839,10 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   }
 
   if (shouldDeliverMouseMove()) {
+    setViewportInteractive(false);
+    // although it may be forwarded to plugin, but it's okay to set this flag
+    is_inputtext_selection_ = true;
+ 
     // send out mouse press event, if it hadn't been sent out.
     deliverMousePressEvent();
 
@@ -895,6 +900,7 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
     current_selection_handler_ = findSelectionHandler(static_cast<int>(event->pos().x() / scale()), static_cast<int>(event->pos().y() / scale()));
     if (current_selection_handler_ != SELECTION_HANDLER_NONE) {
       is_modifing_selection_ = true;
+      setViewportInteractive(false);
       goto done;
     }
   }
@@ -951,6 +957,7 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   if (is_modifing_selection_) {
     is_modifing_selection_ = false;
     current_selection_handler_ = SELECTION_HANDLER_NONE;
+    setViewportInteractive(true);
     goto done;
   }
 
@@ -979,6 +986,11 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     ///\bug If we are doing gesture on a button in the page
     ///the bug will keep press down status since we cancel the mouse release event.
     cancel_next_mouse_release_event_= false;
+  }
+
+  if(is_inputtext_selection_ || in_selection_mode_) {
+    is_inputtext_selection_ = false;
+    setViewportInteractive(true);
   }
 
 done:
@@ -1086,14 +1098,12 @@ void RWHVQtWidget::onAnimationFinished()
   if (!viewport_item)
     return;
  
-  //viewport_item->setProperty("interactive", QVariant(false));
-   
   if((scale_ == kNormalContentsScale 
       && pending_scale_ < kNormalContentsScale) 
      || (scale_ == kMaxContentsScale 
          && pending_scale_ > kMaxContentsScale)) {
     pinch_completing_ = false;
-    viewport_item->setProperty("interactive", QVariant(true));
+    setViewportInteractive(true);
   }
  
   if(pending_scale_ < kNormalContentsScale)
@@ -1180,8 +1190,7 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         //TODO: enable interactive when doing pinch
         //Currently we disable it for we're confused by native rwhv gestures and Flickable gestures.
         //Flickable element will cause pinch jump when the pinch finger is firstly pressed first released
-        if (viewport_item)
-          viewport_item->setProperty("interactive", QVariant(false));
+        setViewportInteractive(false);
       }
       break;
     case Qt::GestureUpdated:
@@ -1243,9 +1252,7 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         if (backing_store)
           backing_store->SetFrozen(false);
         
-        QGraphicsObject* viewport_item = GetViewportItem();
-        if (viewport_item)
-          viewport_item->setProperty("interactive", QVariant(true));
+        setViewportInteractive(true);
       }
 
       break;
@@ -1464,15 +1471,10 @@ void RWHVQtWidget::UpdateSelectionRange(gfx::Point start,
   if (!set) {
     in_selection_mode_ = false;
     current_selection_handler_ = SELECTION_HANDLER_NONE;
-    QGraphicsObject* viewport_item = GetViewportItem();
-    if (viewport_item)
-      viewport_item->setProperty("interactive", QVariant(true));
     return;
   }
 
-  QGraphicsObject* viewport_item = GetViewportItem();
-  if (viewport_item)
-    viewport_item->setProperty("interactive", QVariant(false));
+  setViewportInteractive(false);
 
   in_selection_mode_ = true;
   selection_start_pos_ = start;
@@ -1511,11 +1513,7 @@ void RWHVQtWidget::onSizeAdjusted()
              << geometry().width() << " "
              << geometry().height();
   QSizeF size(geometry().width(), geometry().height());
-  QGraphicsObject* viewport_item = GetViewportItem();
-  if (viewport_item)
-  {
-    viewport_item->setProperty("interactive", QVariant(true));
-  }
+  setViewportInteractive(true);
   
   if (previous_size_ != size)
   {
@@ -1525,6 +1523,8 @@ void RWHVQtWidget::onSizeAdjusted()
     {
       QPointF pos;
       pinch_completing_ = false;
+
+      QGraphicsObject* viewport_item = GetViewportItem();
 
       if (viewport_item)
       {
@@ -1739,6 +1739,15 @@ gfx::Rect RWHVQtWidget::adjustScrollRect(const gfx::Rect& rect)
     }
   }
   return ret;
+}
+
+void RWHVQtWidget::setViewportInteractive(bool interactive)
+{
+    QGraphicsObject* viewport_item = GetViewportItem();
+    if (!viewport_item)
+      return;
+
+    viewport_item->setProperty("interactive", QVariant(interactive));
 }
 
 

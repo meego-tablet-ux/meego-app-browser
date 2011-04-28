@@ -152,6 +152,8 @@ protected Q_SLOTS:
 
   gfx::Rect adjustScrollRect(const gfx::Rect& rect);
 
+  void setViewportInteractive(bool interactive);
+
   // Whether the input method is enabled by webkit or not.
   // It shall be set to false when an imUpdateStatus message with control ==
   // IME_DISABLE is received, and shall be set to true if control ==
@@ -218,6 +220,8 @@ protected Q_SLOTS:
   
   //track cursor whether in input entry
   bool is_enabled_;
+  // whether in selecting characters in input entry
+  bool is_inputtext_selection_;
 
   // Current scale factor
   qreal scale_;
