@@ -219,7 +219,8 @@ void BookmarkQt::BookmarkModelBeingDeleted(BookmarkModel* model) {
 void BookmarkQt::BookmarkNodeAdded(BookmarkModel* model,
                                    const BookmarkNode* parent,
                                    int index) {
-  if (!IsMyParent(parent)) return;
+  // Only handles items of Bookmark Manager 
+  if (!bmStarted_ || !IsMyParent(parent)) return;
   const BookmarkNode* node = parent->GetChild(index);
   BookmarkListItem* listitem = CreateBookmarkListItem(node);
 //  list_impl_->addBookmark(*listitem, index);
@@ -230,7 +231,8 @@ void BookmarkQt::BookmarkNodeRemoved(BookmarkModel* model,
                                      const BookmarkNode* parent,
                                      int old_index,
                                      const BookmarkNode* node) {
-  if (!IsMyParent(parent)) return;
+  // Only handles items of Bookmark Manager 
+  if (!bmStarted_ || !IsMyParent(parent)) return;
   list_impl_->removeBookmark(node);
 }
 
