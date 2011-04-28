@@ -10,8 +10,8 @@
 #include "base/string_number_conversions.h"
 #include "base/task.h"
 #include "base/values.h"
+#include "base/string16.h"
 #include "chrome/browser/extensions/extension_message_service.h"
-
 ExtensionDldmEventRouter* ExtensionDldmEventRouter::GetInstance() {
   return Singleton<ExtensionDldmEventRouter>::get();
 }
@@ -19,18 +19,22 @@ ExtensionDldmEventRouter* ExtensionDldmEventRouter::GetInstance() {
 void ExtensionDldmEventRouter::ModelChanged() {
 
   DLOG(INFO) << "download model changed.";
-  download_manager_->GetCurrentDownloads(FilePath(), &download_items_);
+  // Clear out old state and remove self as observer for each download.
+  for (std::vector<DownloadItem*>::iterator it = download_items_.begin();
+      it != download_items_.end(); ++it) {
+    (*it)->RemoveObserver(this);
+  }
+  download_items_.clear(); 
+ 
+//  download_manager_->GetCurrentDownloads(FilePath(), &download_items_);
+  download_manager_->SearchDownloads(string16(), &download_items_);
 
   for (std::vector<DownloadItem*>::iterator it = download_items_.begin();
        it != download_items_.end(); ++it) {
-
     DownloadItem* download = *it;
-    download->RemoveObserver(this);
     download->AddObserver(this);
     DLOG(INFO) << "   ITEM " << download->url().spec();
-
   }
-
 }
 
 void ExtensionDldmEventRouter::OnDownloadFileCompleted(DownloadItem* download) {
