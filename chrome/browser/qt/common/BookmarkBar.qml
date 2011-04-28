@@ -36,7 +36,8 @@ import Qt 4.7
 Item {
   id: container
   property alias model: view.model
-  property int itemWidth: 200
+  property int itemMaxWidth: 150
+  property int itemMinWidth: 60
   parent: outerContent
   width: parent.width
   states: [
@@ -102,8 +103,15 @@ Item {
         property bool pressed: false
         property bool active: true
         opacity: active ? 1.0 : 0.5
-        width:length*20 > container.itemWidth? container.itemWidth:length*20 
-        height: parent.height - 6
+        width:{
+          if(length*25 > container.itemMaxWidth) 
+             container.itemMaxWidth;
+          else if (length*25 < container.itemMinWidth) 
+             container.itemMinWidth;
+          else
+             length*25;
+        } 
+        height: parent.height - 12
         radius: 20 
         anchors.verticalCenter: parent.verticalCenter
         clip: true
@@ -144,7 +152,7 @@ Item {
           elide: Text.ElideRight
           verticalAlignment: Text.AlignVCenter
           horizontalAlignment: Text.AlignHCenter
-          font.pixelSize: container.height * 0.5
+          font.pixelSize: theme_fontPixelSizeNormal 
           text: title
           wrapMode: Text.NoWrap
           clip: true
