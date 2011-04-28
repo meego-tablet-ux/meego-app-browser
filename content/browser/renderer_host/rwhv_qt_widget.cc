@@ -1474,8 +1474,6 @@ void RWHVQtWidget::UpdateSelectionRange(gfx::Point start,
     return;
   }
 
-  setViewportInteractive(false);
-
   in_selection_mode_ = true;
   selection_start_pos_ = start;
   selection_end_pos_ = end;
