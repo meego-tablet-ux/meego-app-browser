@@ -60,6 +60,7 @@ Item {
       }
     }
   ]
+  /*
   transitions: [
     Transition {
       from: "show"
@@ -71,6 +72,7 @@ Item {
       }
     }
   ]
+  */
 
   Rectangle {
     id: bookmarkcontainer

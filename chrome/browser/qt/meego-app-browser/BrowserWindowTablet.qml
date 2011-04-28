@@ -207,23 +207,56 @@ Item {
         states: [
             State {
                 name: "fullscreen"
-				when: scene.fullscreen
+                when: scene.fullscreen
                 PropertyChanges {
                     target: statusbar
                     height: 0
                     opacity: 0
                 }
+            },
+            State{
+                name: "unfullscreen"
+                when: !scene.fullscreen
+                PropertyChanges {
+                    target: statusbar
+                    height: 30
+                    opacity: 1
+                }
             }
         ]
         transitions: [
             Transition {
-                from: ""
+                from: "unfullscreen"
                 to: "fullscreen"
                 reversible: true
-                PropertyAnimation {
-                    properties: "height"
-                    duration: 500
-                    easing.type: "OutSine"
+                ParallelAnimation{
+                    PropertyAnimation {
+                        property: "height"
+                        duration: 250
+                        easing.type: "OutSine"
+                    }
+                    PropertyAnimation {
+                        property: "opacity"
+                        duration: 250
+                        easing.type: "OutSine"
+                    }
+                }
+            },
+            Transition {
+                from: "fullscreen"
+                to: "unfullscreen"
+                reversible: true
+                ParallelAnimation{
+                    PropertyAnimation {
+                        property: "height"
+                        duration: 250
+                        easing.type: "OutSine"
+                    }
+                    PropertyAnimation {
+                        property: "opacity"
+                        duration: 250
+                        easing.type: "OutSine"
+                    }
                 }
             }
         ]

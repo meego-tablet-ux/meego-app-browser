@@ -80,16 +80,16 @@ TimedOverlay {
                 from: "show"
                 to: "hide"
                 PropertyAnimation {
-                    properties: "anchors.topMargin,height,opacity"
-                    duration: 500
+                    properties: "height,opacity"
+                    duration: 250
                 }
             },
             Transition {
                 from: "hide"
                 to: "show"
                 PropertyAnimation {
-                    properties: "anchors.topMargin,height,opacity"
-                    duration: 500
+                    properties: "height,opacity"
+                    duration: 250
                 }
             }
         ]

@@ -82,7 +82,7 @@ Item {
             }
         }
     ]
-
+/*
     transitions: [
         Transition {
             from: "*"
@@ -93,7 +93,7 @@ Item {
             }
         }
     ]
-
+*/
     BorderImage {
         id: background
         source: "image://themedimage/images/titlebar_l"
