@@ -64,7 +64,7 @@ Item {
     width: parent.width > parent.height?Math.round(parent.width/4):Math.round(parent.width/3)
     //height: newtab.height + tabsidebarview.height + sidebarMargin*2 + headSpacing
     //width: borderImage1.width
-    height: borderImage1.height + newtab.height + tabsidebarview.height + sidebarMargin*2 + borderImage2.height
+    height: tabsidebarview.height ? borderImage1.height + newtab.height + tabsidebarview.height + sidebarMargin*2 + borderImage2.height : borderImage1.height + newtab.height + tabsidebarview.height + borderImage2.height
 
     x: calcX()
     y: up?start_y + arrow.height-2:start_y - arrow.height - height +2
