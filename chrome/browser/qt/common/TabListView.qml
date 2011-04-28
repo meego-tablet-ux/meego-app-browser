@@ -115,7 +115,7 @@ Item {
         anchors.topMargin: -commonMargin
         anchors.left: parent.left
         anchors.leftMargin: 4*commonMargin
-        anchors.right: parent.right
+        anchors.right: close.left
         anchors.rightMargin: 4*commonMargin
 
         verticalAlignment: Text.AlignVCenter
