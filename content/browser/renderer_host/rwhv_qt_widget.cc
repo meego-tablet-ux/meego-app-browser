@@ -955,6 +955,7 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
 // we don't do normal mouse release event when modifing selection
   if (is_modifing_selection_) {
+    CommitSelection();
     is_modifing_selection_ = false;
     current_selection_handler_ = SELECTION_HANDLER_NONE;
     setViewportInteractive(true);
@@ -997,6 +998,13 @@ done:
   event->accept();
 }
 
+void RWHVQtWidget::CommitSelection() {
+  RenderViewHost* rvh = reinterpret_cast<RenderViewHost*>(hostView()->host_);
+  if (!rvh)
+    return;
+  rvh->CommitSelection();
+}
+
 void RWHVQtWidget::onClicked()
 {
   // send out mouse press and release event in pair
@@ -1021,7 +1029,7 @@ void RWHVQtWidget::tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGestu
         // don't start another selection upon longpress when the previous one is still on going.
         if (!(in_selection_mode_ ||
             (hostView()->webkit_node_info_ & RenderWidgetHostViewQt::NODE_INFO_IS_EDITABLE)))
-          InvokeSelection(gesture);
+	  InvokeSelection(gesture);
         // we might need to ignore this when other higher priority gesture is on going.
         fakeMouseRightButtonClick(event, gesture);
         ///\todo to trigger the context menu according to Dom item.

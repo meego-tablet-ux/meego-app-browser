@@ -296,6 +296,8 @@ IPC_MESSAGE_ROUTED3(ViewMsg_SetSelectionRange,
 IPC_MESSAGE_ROUTED1(ViewMsg_SelectItem,
                     gfx::Point /* item's pos */)
 
+IPC_MESSAGE_ROUTED0(ViewMsg_CommitSelection)
+
 IPC_SYNC_MESSAGE_ROUTED2_1(ViewMsg_PaintContents,
                            TransportDIB::Handle /* dib_handle */,
                            gfx::Rect,

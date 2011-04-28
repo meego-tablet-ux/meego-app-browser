@@ -149,6 +149,7 @@ protected Q_SLOTS:
   SelectionHandlerID findSelectionHandler(int x, int y);
   void InvokeSelection(QTapAndHoldGesture* gesture);
   void ModifySelection(SelectionHandlerID handler, gfx::Point new_pos);
+  void CommitSelection();
 
   gfx::Rect adjustScrollRect(const gfx::Rect& rect);
 

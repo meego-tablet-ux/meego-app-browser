@@ -436,6 +436,7 @@ class RenderViewHost : public RenderWidgetHost {
   void OnUpdateSelectionRange(gfx::Point start, gfx::Point end, bool set);
   void SetSelectionRange(gfx::Point start, gfx::Point end, bool set);
   void SelectItem(gfx::Point pos);
+  void CommitSelection();
 #endif
 
   // Tells the renderer which browser window it is being attached to.

@@ -889,6 +889,10 @@ void RenderViewHost::SelectItem(gfx::Point pos) {
   Send(new ViewMsg_SelectItem(routing_id(), pos));
 }
 
+void RenderViewHost::CommitSelection() {
+  Send(new ViewMsg_CommitSelection(routing_id()));
+}
+
 #endif
 
 void RenderViewHost::OnMsgShowView(int route_id,

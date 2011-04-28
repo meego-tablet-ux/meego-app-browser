@@ -715,6 +715,7 @@ class RenderView : public RenderWidget,
   void OnQueryScrollOffset(gfx::Point* output);
   void OnSetSelectionRange(gfx::Point start, gfx::Point end, bool set);
   void OnSelectItem(gfx::Point pos);
+  void OnCommitSelection();
 
 // reimplement from webviewclient
   virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, bool set);

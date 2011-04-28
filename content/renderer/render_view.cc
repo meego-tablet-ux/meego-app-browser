@@ -718,6 +718,7 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_QueryScrollOffset, OnQueryScrollOffset)
     IPC_MESSAGE_HANDLER(ViewMsg_SetSelectionRange, OnSetSelectionRange)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectItem, OnSelectItem)
+    IPC_MESSAGE_HANDLER(ViewMsg_CommitSelection, OnCommitSelection)
 #endif
 #if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
@@ -749,6 +750,12 @@ void RenderView::OnSetSelectionRange(gfx::Point start, gfx::Point end, bool set)
   if (view) {
     view->setSelectionRange(start, end, set);
   }
+}
+
+void RenderView::OnCommitSelection() {
+  WebView* view = webview();
+  if (view)
+    view->commitSelection();
 }
 
 void RenderView::UpdateSelectionRange(WebKit::WebPoint& start, WebKit::WebPoint& end, bool set) {
