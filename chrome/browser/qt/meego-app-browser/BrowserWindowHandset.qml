@@ -65,6 +65,7 @@ Item {
 
     // public
     property alias content: innerContent
+    property alias webview: webview 
     property alias container: outerContent
     property alias screenlayer: screenLayer
 //    property Item scene: null

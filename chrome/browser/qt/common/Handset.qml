@@ -164,7 +164,7 @@ BrowserWindowHandset {
       popupListLoader.item.currentIndex = PopupListModel.currentSelectedItem();
       popupListLoader.item.maxPopupListHeight = screenlayer.height - 20;
 
-      var map = content.mapToItem(screenlayer, Math.round(hx + hw/2), Math.round(hy + hh/2));
+      var map = webview.mapToItem(screenlayer, Math.round(hx + hw/2), Math.round(hy + hh/2));
       popupListLoader.item.show(map.x, map.y);
     }
 

@@ -157,7 +157,7 @@ BrowserWindowTablet {
   Connections {
     target: PopupListModel
     onShowPopup: {
-      //console.log("onShowPopup")
+      //console.log("onShowPopupList, x-y : " + hx + "-" + hy);
       //var mappedPos = scene.mapToItem (outerContent, scene.lastMousePos.mouseX, scene.lastMousePos.mouseY);
       popupListLoader.source = "WebPopupList.qml"
       popupListLoader.item.model = PopupListModel
@@ -166,7 +166,7 @@ BrowserWindowTablet {
       popupListLoader.item.currentIndex = PopupListModel.currentSelectedItem();
       popupListLoader.item.maxPopupListHeight = screenlayer.height - 20;
 
-      var map = content.mapToItem(screenlayer, Math.round(hx + hw/2), Math.round(hy + hh/2));
+      var map = webview.mapToItem(screenlayer, Math.round(hx + hw/2), Math.round(hy + hh/2));
       popupListLoader.item.show(map.x, map.y);
     }
 
