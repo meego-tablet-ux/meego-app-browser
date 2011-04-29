@@ -98,7 +98,8 @@ RenderWidgetHost::RenderWidgetHost(RenderProcessHost* process,
       text_direction_updated_(false),
       text_direction_(WebKit::WebTextDirectionLeftToRight),
       text_direction_canceled_(false),
-      suppress_next_char_events_(false) {
+      suppress_next_char_events_(false),
+      scale_factor_(1.0f) {
   if (routing_id_ == MSG_ROUTING_NONE)
     routing_id_ = process_->GetNextRoutingID();
 
@@ -813,14 +814,17 @@ void RenderWidgetHost::SetVisibleRect(const gfx::Rect& rect)
   Send(new ViewMsg_SetVisibleRect(routing_id(), rect));
 }
 
-void RenderWidgetHost::SetScaleFactor(double factor)
+double RenderWidgetHost::GetScaleFactor() const
 {
-  Send(new ViewMsg_SetScaleFactor(routing_id(), factor));
+  return scale_factor_;
 }
 
-void RenderWidgetHost::InvalidateRect(const gfx::Rect& rect, unsigned int seq)
+void RenderWidgetHost::SetScaleFactor(double factor)
 {
-  Send(new ViewMsg_InvalidateRect(routing_id(), rect, seq));
+  if(scale_factor_ == factor) return;
+
+  scale_factor_ = factor;
+  Send(new ViewMsg_SetScaleFactor(routing_id(), factor));
 }
 
 void RenderWidgetHost::QueryNodeAtPosition(int x, int y) {

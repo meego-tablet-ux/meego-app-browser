@@ -212,6 +212,8 @@ class RenderWidget : public IPC::Channel::Listener,
   void OnSetTextDirection(WebKit::WebTextDirection direction);
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+  void OnSetScaleFactor(double factor);
+  void OnSetVisibleRect(const gfx::Rect& rect);
   void OnQueryNodeAtPosition(int x, int y);
   void OnQueryEditorCursorPosition(int* cursor_position);
   void OnQueryEditorSelection(std::string* selection);

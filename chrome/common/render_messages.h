@@ -344,10 +344,6 @@ IPC_MESSAGE_ROUTED5(ViewMsg_PaintTile,
                     gfx::Rect /* tiles rect*/,
                     gfx::Rect /* pixmap rect, top left point is not scaled */)
 
-IPC_MESSAGE_ROUTED2(ViewMsg_InvalidateRect,
-                    gfx::Rect,
-                    unsigned int /* seq */)
-
 IPC_MESSAGE_ROUTED1(ViewMsg_SetVisibleRect,
                     gfx::Rect)
 

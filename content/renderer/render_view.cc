@@ -377,8 +377,7 @@ RenderView::RenderView(RenderThreadBase* render_thread,
       device_orientation_dispatcher_(NULL),
       accessibility_ack_pending_(false),
       p2p_socket_dispatcher_(NULL),
-      session_storage_namespace_id_(session_storage_namespace_id),
-      accum_scale_(1.0)
+      session_storage_namespace_id_(session_storage_namespace_id)
 {
   routing_id_ = routing_id;
   if (opener_id != MSG_ROUTING_NONE)
@@ -640,15 +639,12 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_FindReplyACK, OnFindReplyAck)
     IPC_MESSAGE_HANDLER(ViewMsg_Zoom, OnZoom)
     IPC_MESSAGE_HANDLER(ViewMsg_ZoomFactor, OnZoomFactor)
-    IPC_MESSAGE_HANDLER(ViewMsg_SetScaleFactor, OnSetScaleFactor)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryZoomFactor, OnQueryZoomFactor)
     IPC_MESSAGE_HANDLER(ViewMsg_PaintContents, OnMsgPaintContents)
     IPC_MESSAGE_HANDLER(ViewMsg_GetLayoutAlgorithm, OnGetLayoutAlgorithm)
     IPC_MESSAGE_HANDLER(ViewMsg_SetLayoutAlgorithm, OnSetLayoutAlgorithm)
     IPC_MESSAGE_HANDLER(ViewMsg_Zoom2TextPre, OnZoom2TextPre)
     IPC_MESSAGE_HANDLER(ViewMsg_Zoom2TextPost, OnZoom2TextPost)
-    IPC_MESSAGE_HANDLER(ViewMsg_InvalidateRect, OnInvalidateRect)
-    IPC_MESSAGE_HANDLER(ViewMsg_SetVisibleRect, OnSetVisibleRect)
     IPC_MESSAGE_HANDLER(ViewMsg_SetScrollPosition, OnSetScrollPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_SetZoomLevel, OnSetZoomLevel)
     IPC_MESSAGE_HANDLER(ViewMsg_SetZoomLevelForLoadingURL,
@@ -2164,22 +2160,6 @@ bool RenderView::canHandleRequest(
   return true;
 }
 
-void RenderView::OnInvalidateRect(const gfx::Rect& rect, unsigned int seq)
-{
-  if (seq >= seq_)
-    seq_ = seq;
-  didInvalidateRect(WebRect(rect.x(), rect.y(),
-                            rect.width(), rect.height()));
-}
-
-void RenderView::OnSetVisibleRect(const gfx::Rect& rect)
-{
-  if (visible_rect_ != rect)
-  {
-    visible_rect_ = rect;
-  }
-}
-
 void RenderView::OnMsgPaintContents(const TransportDIB::Handle& dib_handle,
                                    const gfx::Rect& rect,
                                    int* retval) {
@@ -3435,22 +3415,6 @@ void RenderView::OnZoom(PageZoom::Function function) {
 
   webview()->setZoomLevel(false, zoom_level);
   zoomLevelChanged();
-}
-
-void RenderView::OnSetScaleFactor(double factor) {
-  if (!webview())  // Not sure if this can happen, but no harm in being safe.
-    return;
-
-  DLOG(INFO) << "OnSetScaleFactor " << factor;
-  
-//  accum_scale_ = accum_scale_ * factor;
-//  scale_ = flatScaleByStep(accum_scale_);
-//  size_.Scale(factor, factor);
-  scale_ = flatScaleByStep(factor);
-  size_.Scale(factor/accum_scale_, factor/accum_scale_);
-  accum_scale_ = factor;
-
-  paint_aggregator_.ClearPendingUpdate();
 }
 
 void RenderView::OnZoomFactor(double factor) {

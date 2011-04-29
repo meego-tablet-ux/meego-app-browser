@@ -581,7 +581,7 @@ static void paintTileBackground(QPainter *painter, QRect &tile, QRect &dirty)
   }
 
   QRect target = tile.intersected(dirty);
-  painter->drawTiledPixmap(tile, *(g_background_pixmap.get()));
+  painter->drawTiledPixmap(target, *(g_background_pixmap.get()));
   // paint checkers when a tile is not ready
 }
 #endif

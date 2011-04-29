@@ -201,6 +201,8 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_SetTextDirection, OnSetTextDirection)
     IPC_MESSAGE_HANDLER(ViewMsg_Move_ACK, OnRequestMoveAck)
 #if defined (TOOLKIT_MEEGOTOUCH)
+    IPC_MESSAGE_HANDLER(ViewMsg_SetScaleFactor, OnSetScaleFactor);
+    IPC_MESSAGE_HANDLER(ViewMsg_SetVisibleRect, OnSetVisibleRect);
     IPC_MESSAGE_HANDLER(ViewMsg_QueryNodeAtPosition, OnQueryNodeAtPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorCursorPosition, OnQueryEditorCursorPosition)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSelection, OnQueryEditorSelection)
@@ -277,7 +279,8 @@ void RenderWidget::OnResize(const gfx::Size& new_size,
   if (!webwidget_)
     return;
 
-  if (resize_to_contents_)
+  if (resize_to_contents_ &&
+      popup_type_ == WebKit::WebPopupTypeNone)
     return;
     
 
@@ -442,6 +445,22 @@ void RenderWidget::OnSetFocus(bool enable) {
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+void RenderWidget::OnSetScaleFactor(double factor)
+{
+  if(scale_ == factor) return;
+
+  double flatten_factor = flatScaleByStep(factor);
+  size_.Scale(flatten_factor/scale_, flatten_factor/scale_);
+  scale_ = flatten_factor;
+  paint_aggregator_.ClearPendingUpdate();
+}
+
+void RenderWidget::OnSetVisibleRect(const gfx::Rect& rect)
+{
+  if(visible_rect_ != rect)
+    visible_rect_ = rect;
+}
+
 void RenderWidget::OnQueryNodeAtPosition(int x, int y) {
   bool is_embedded_object;
   bool is_editable_text;
@@ -820,8 +839,11 @@ void RenderWidget::DoDeferredUpdate() {
     params.copy_rects.swap(copy_rects);  // TODO(darin): clip to bounds?
   }
 
-  // In tiled backing store mode, view size is not used
-  params.view_size = gfx::Size();
+  if(popup_type_ == WebKit::WebPopupTypeNone)
+    // In tiled backing store mode, view size is not used
+    params.view_size = gfx::Size();
+  else
+    params.view_size = size_;
   
   params.resizer_rect = resizer_rect_;
   params.plugin_window_moves.swap(plugin_window_moves_);

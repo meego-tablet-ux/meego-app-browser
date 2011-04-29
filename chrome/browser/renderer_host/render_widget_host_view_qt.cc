@@ -58,7 +58,6 @@ RenderWidgetHostViewQt::RenderWidgetHostViewQt(RenderWidgetHost* widget_host)
       visually_deemphasized_(false),
       parent_host_view_(NULL),
       parent_(NULL),
-      popup_(NULL),
       is_popup_first_mouse_release_(true),
       was_focused_before_grab_(false),
       do_x_grab_(false),
@@ -75,7 +74,6 @@ void RenderWidgetHostViewQt::InitAsChild() {
 
   view_->show();
 }
-
 void RenderWidgetHostViewQt::InitAsPopup(
     RenderWidgetHostView* parent_host_view, const gfx::Rect& pos) {
   parent_host_view_ = parent_host_view;
@@ -85,26 +83,35 @@ void RenderWidgetHostViewQt::InitAsPopup(
     return;
   }
 
-  popup_ = new QGraphicsWidget(parent_host_view_->GetNativeView());
-  QGraphicsLinearLayout *layout_ = new QGraphicsLinearLayout(Qt::Vertical);
+  double scale = 1.0;
 
-  layout_->setContentsMargins(0, 0, 0, 0);
-  layout_->setSpacing(0.0);
-  popup_->setLayout(layout_);
+  // The scale factor of popup widget should be the same 
+  // as the parent's. 
+  RenderWidgetHost* host = parent_host_view_->GetRenderWidgetHost();
+  if(host) {
+    scale = host->GetScaleFactor();
+    host_->SetScaleFactor(scale);
+  }
 
-  view_ = new RWHVQtWidget(this);
-  layout_->addItem(view_);
+  // Set contents size and preferred size for popup widget
+  contents_size_ = gfx::Size(pos.width(), pos.height());
+  host_->SetPreferredSize(gfx::Size(pos.width(), pos.height()));
 
-  requested_size_ = gfx::Size(std::min(pos.width(), kMaxWindowWidth),
-                              std::min(pos.height(), kMaxWindowHeight));
-  QRect geometry(pos.x(), pos.y(), requested_size_.width(), requested_size_.height());
-  popup_->setMinimumSize(requested_size_.width(), requested_size_.height());
-  popup_->setMaximumSize(requested_size_.width(), requested_size_.height());
-  popup_->setGeometry(geometry);
+  parent_ = parent_host_view_->GetNativeView();
+  RWHVQtWidget* widget = new RWHVQtWidget(this);
+  widget->setParentItem(parent_->parentItem());
+  widget->SetScaleFactor(scale);
+  view_ = widget;
 
+  requested_size_ = gfx::Size(std::min(pos.width()-1, kMaxWindowWidth)*scale,
+      std::min(pos.height()-1, kMaxWindowHeight)*scale);
+  QRect geometry(pos.x()*scale, pos.y()*scale, requested_size_.width(), requested_size_.height());
+  view_->setMinimumSize(requested_size_.width(), requested_size_.height());
+  view_->setMaximumSize(requested_size_.width(), requested_size_.height());
+  view_->setGeometry(geometry);
+  view_->show();
+  
   host_->WasResized();
-  popup_->show();
-
 }
 
 void RenderWidgetHostViewQt::DidBecomeSelected() {
@@ -314,18 +321,12 @@ void RenderWidgetHostViewQt::UpdateSelectionRange(gfx::Point start,
     reinterpret_cast<RWHVQtWidget*>(view_)->UpdateSelectionRange(start, end, set);
 }
 
-void RenderWidgetHostViewQt::Destroy() {
-  ///\todo Fixme, can we delete view here???
-  if (IsPopup()) {
-    if (popup_) {
-      delete popup_;
-      popup_ = NULL;
-    }
-  } else  if(view_) {
+void RenderWidgetHostViewQt::Destroy() {  
+  if(view_) {
+    view_->setParentItem(NULL);
     delete view_;
     view_ = NULL;
   }
-
   // The RenderWidgetHost's destruction led here, so don't call it.
   host_ = NULL;
 
@@ -366,9 +367,13 @@ BackingStore* RenderWidgetHostViewQt::AllocBackingStore(
     const gfx::Size& size) {
   DLOG(INFO) << "AllocBackingStore size " << size.width() << " " << size.height();
 
-  return new BackingStoreX(host_, size,
+  BackingStoreX* backing_store = new BackingStoreX(host_, size,
                            QApplication::desktop()->x11Info().visual(),
                            QApplication::desktop()->x11Info().depth());
+  if(backing_store && IsPopup()) {
+    backing_store->SetContentsScale(host_->GetScaleFactor());
+  }
+  return backing_store;
 }
 
 void RenderWidgetHostViewQt::SetBackground(const SkBitmap& background) {

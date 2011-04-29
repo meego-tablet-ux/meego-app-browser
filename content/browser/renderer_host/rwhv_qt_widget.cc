@@ -518,6 +518,8 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     return;
 
   host = hostView()->host_;
+  if(!host) return;
+
   BackingStoreX* backing_store = static_cast<BackingStoreX*>(
       host->GetBackingStore(true));
 
@@ -586,7 +588,8 @@ void RWHVQtWidget::deliverMousePressEvent()
     return;
 
   mouse_press_event_delivered_ = true;
-  hostView()->host_->ForwardMouseEvent(mouse_press_event_);
+  if(hostView()->host_)
+    hostView()->host_->ForwardMouseEvent(mouse_press_event_);
 }
 
 void RWHVQtWidget::gestureEvent(QGestureEvent *event)
@@ -693,9 +696,11 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
     setInputMethodHints(inputMethodHints() & ~(Qt::ImhHiddenText | Qt::ImhNoPredictiveText) );
   }
 
-  hostView()->host_->QueryEditorCursorPosition(im_cursor_pos_);
-  hostView()->host_->QueryEditorSelection(im_selection_);
-  hostView()->host_->QueryEditorSurroundingText(im_surrounding_);
+  if(hostView()->host_) {
+    hostView()->host_->QueryEditorCursorPosition(im_cursor_pos_);
+    hostView()->host_->QueryEditorSelection(im_selection_);
+    hostView()->host_->QueryEditorSurroundingText(im_surrounding_);
+  }
   vkb_flag_ = true;
   ic->update();
 }
@@ -713,6 +718,8 @@ void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect, bool anima
     return;
 
   RenderWidgetHost* host = hostView()->host_;
+  if(!host) return;
+
   QGraphicsObject* webview = GetWebViewItem();
   QGraphicsObject* viewport_item = GetViewportItem();
   if (!webview || !viewport_item)
@@ -847,7 +854,8 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     deliverMousePressEvent();
 
     WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
-    hostView()->host_->ForwardMouseEvent(mouseEvent);
+    if(hostView()->host_)
+      hostView()->host_->ForwardMouseEvent(mouseEvent);
   }
 
 done:
@@ -905,30 +913,31 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
   }
 
-// we send a touch event first to give user a visual feedback on mouse down,
-// but do not do actual mouse down works
-  hostView()->host_->ForwardTouchEvent(touchEvent);
+  // we send a touch event first to give user a visual feedback on mouse down,
+  // but do not do actual mouse down works
+  if(hostView()->host_) {
+    hostView()->host_->ForwardTouchEvent(touchEvent);
 
-// Then query the node under current pos
-  hostView()->host_->QueryNodeAtPosition(static_cast<int>(event->pos().x() / scale()),
-                                         static_cast<int>(event->pos().y() / scale()));
+    // Then query the node under current pos
+    hostView()->host_->QueryNodeAtPosition(static_cast<int>(event->pos().x() / scale()),
+        static_cast<int>(event->pos().y() / scale()));
 
-// Finally, save the mouse press event for later usage
-  mouse_press_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
-  mouse_press_event_delivered_ = false;
-  cancel_next_mouse_release_event_ = false;
+    // Finally, save the mouse press event for later usage
+    mouse_press_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
+    mouse_press_event_delivered_ = false;
+    cancel_next_mouse_release_event_ = false;
 
-  //QGraphicsItem* mouseGrabber = controller->mouseGrabberItem();
+    //QGraphicsItem* mouseGrabber = controller->mouseGrabberItem();
 
-  DLOG(INFO) << "--" << __PRETTY_FUNCTION__ << ": " <<
-    "host = " << hostView()->host_ <<
-    " is popup window:" << hostView()->IsPopup() <<
-    ",x: " << mouse_press_event_.x <<
-    ",y: " << mouse_press_event_.y <<
-    ",gx: " << mouse_press_event_.globalX <<
-    ",gy: " << mouse_press_event_.globalY <<
-    std::endl;
-
+    DLOG(INFO) << "--" << __PRETTY_FUNCTION__ << ": " <<
+      "host = " << hostView()->host_ <<
+      " is popup window:" << hostView()->IsPopup() <<
+      ",x: " << mouse_press_event_.x <<
+      ",y: " << mouse_press_event_.y <<
+      ",gx: " << mouse_press_event_.globalX <<
+      ",gy: " << mouse_press_event_.globalY <<
+      std::endl;
+  }
 done:
   event->accept();
 }
@@ -963,7 +972,8 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   }
 
 // we send a touch event first to give user a visual feedback on mouse up
-  hostView()->host_->ForwardTouchEvent(touchEvent);
+  if(hostView()->host_)
+    hostView()->host_->ForwardTouchEvent(touchEvent);
 
   // we clear the TapAndHoldGesture here to prevent a PanGesture been invoked upon the same 
   // touch event of tapAndHoldGesture
@@ -1009,8 +1019,10 @@ void RWHVQtWidget::onClicked()
 {
   // send out mouse press and release event in pair
   deliverMousePressEvent();
-  hostView()->host_->ForwardMouseEvent(mouse_release_event_);
-  delay_for_click_timer_->stop();
+  if(hostView()->host_) {
+    hostView()->host_->ForwardMouseEvent(mouse_release_event_);
+    delay_for_click_timer_->stop();
+  }
 }
 
 void RWHVQtWidget::tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGesture* gesture)
@@ -1096,7 +1108,8 @@ void RWHVQtWidget::panGestureEvent(QGestureEvent* event, QPanGesture* gesture)
       break;
   }
 
-  hostView()->host_->ForwardWheelEvent(wheelEvent);
+  if(hostView()->host_)
+    hostView()->host_->ForwardWheelEvent(wheelEvent);
   event->accept();
 }
 
@@ -1161,6 +1174,8 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
   }
 
   RenderWidgetHost *host = hostView()->host_;
+  if(!host) return;
+
   BackingStoreX* backing_store = static_cast<BackingStoreX*>(
       host->GetBackingStore(false));
   
@@ -1634,8 +1649,15 @@ QRect RWHVQtWidget::GetVisibleRect()
 
   if (webview_item == NULL || viewprot_item == NULL)
     return QRect();
+  
+  QRectF itemRect;
 
-  QRectF itemRect = webview_item->boundingRect();
+  if(hostView()->IsPopup()) {
+    itemRect = boundingRect();
+    return itemRect.toAlignedRect();
+  }
+
+  itemRect = webview_item->boundingRect();
 
   if (pinch_completing_)
   {
@@ -1653,8 +1675,9 @@ QRect RWHVQtWidget::GetVisibleRect()
   //           << " " << itemRect.y()
   //           << " " << itemRect.width()
   //           << " " << itemRect.height();
-  
-  itemRect = itemRect.intersected(viewprot_item->boundingRect());
+
+  QRectF viewport_rect = viewprot_item->boundingRect();
+  itemRect = itemRect.intersected(viewport_rect);
 
   if (pinch_completing_)
   {

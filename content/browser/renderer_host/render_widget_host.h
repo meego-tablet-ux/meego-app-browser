@@ -398,6 +398,7 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // relayout for zoom
   void SetZoomFactor (double factor);
   // paint scale
+  double GetScaleFactor () const;
   void SetScaleFactor (double factor);
   void QueryZoomFactor(double& factor);
   void SetScrollPosition (int x, int y);
@@ -629,6 +630,9 @@ class RenderWidgetHost : public IPC::Channel::Listener,
 
   // Preferred size;
   gfx::Size preferred_size_;
+
+  // Scale factor
+  double scale_factor_;
   
   // The size we last sent as requested size to the renderer. |current_size_|
   // is only updated once the resize message has been ack'd. This on the other

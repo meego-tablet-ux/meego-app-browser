@@ -137,7 +137,6 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   // The native UI widget.
   QGraphicsWidget* view_;
   QGraphicsWidget* parent_;
-  QGraphicsWidget* popup_;
 
   // This is true when we are currently painting and thus should handle extra
   // paint requests by expanding the invalid rect rather than actually
