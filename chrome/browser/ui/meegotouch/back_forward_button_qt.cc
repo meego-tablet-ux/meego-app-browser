@@ -97,12 +97,18 @@ public:
             QImage& image = imageList_[id.left(finded)];
             if (!image.isNull()) {
                 //QImage scaled = image.scaled(requestedSize);
-                *size = image.size();
+                if (size) {
+                  *size = image.size();
+                }
                 return image;
             }
         }
-        *size = QSize(0, 0);
-        return QImage();
+        QImage ret(kThumbnailWidth,kThumbnailHeight, QImage::Format_RGB32);
+        ret.fill(0xFFFFFF);
+        if (size) {
+          *size = ret.size();
+        }
+        return ret;
     }
 
     // add a new image
@@ -112,6 +118,8 @@ public:
     }
 
 private:
+    static const int kThumbnailWidth = 212;
+    static const int kThumbnailHeight = 132;
     QMap<QString, QImage> imageList_;
 };
 
