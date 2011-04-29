@@ -105,7 +105,7 @@ Item {
 	  MouseArea {
 	    anchors.fill: parent
 	    onClicked: {
-              container.model.cancel();
+            //  container.model.cancel();
               container.close();
             }
 	  }
