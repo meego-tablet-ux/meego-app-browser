@@ -305,7 +305,8 @@ void RenderWidgetHostViewQt::RenderViewGone(base::TerminationStatus status,
 }
 
 void RenderWidgetHostViewQt::UpdateWebKitNodeInfo(bool is_embedded_object,
-    bool is_content_editable) {
+    bool is_content_editable,
+    bool has_touch_listener) {
   webkit_node_info_ = NODE_INFO_NONE;
 
   if (is_embedded_object)
@@ -313,6 +314,10 @@ void RenderWidgetHostViewQt::UpdateWebKitNodeInfo(bool is_embedded_object,
 
   if (is_content_editable)
     webkit_node_info_ |= NODE_INFO_IS_EDITABLE;
+
+  if (has_touch_listener) {
+    webkit_node_info_ |= NODE_INFO_HAS_TOUCH_LISTENER;
+  }
 }
 
 void RenderWidgetHostViewQt::UpdateSelectionRange(gfx::Point start,

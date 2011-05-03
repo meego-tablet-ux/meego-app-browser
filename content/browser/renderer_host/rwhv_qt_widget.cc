@@ -582,6 +582,19 @@ bool RWHVQtWidget::shouldDeliverMouseMove()
                         | RenderWidgetHostViewQt::NODE_INFO_IS_EDITABLE));
 }
 
+
+// check whether we delive touch move by emulating from mouse move 
+bool RWHVQtWidget::shouldDeliverTouchMove()
+{
+  int node_info = hostView()->webkit_node_info_;
+  
+  if (hostView()->IsPopup())
+    return false;
+
+  // only deliver the touch move event if and only if node has touch listener
+  return (node_info & RenderWidgetHostViewQt::NODE_INFO_HAS_TOUCH_LISTENER);
+}
+
 void RWHVQtWidget::deliverMousePressEvent()
 {
   if (mouse_press_event_delivered_)
@@ -845,7 +858,15 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     goto done;
   }
 
-  if (shouldDeliverMouseMove()) {
+  // whether forwarding touch move events to WebKit
+  if (shouldDeliverTouchMove()) {
+    setViewportInteractive(false);
+    //temporarily use this flag to disable/enable flickable
+    is_inputtext_selection_ = true;
+    // forward touch events to the element which listen to touch events
+    WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
+    hostView()->host_->ForwardTouchEvent(touchEvent);
+  } else if (shouldDeliverMouseMove()) {
     setViewportInteractive(false);
     // although it may be forwarded to plugin, but it's okay to set this flag
     is_inputtext_selection_ = true;
@@ -865,7 +886,7 @@ done:
 void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
 
-  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event);
+  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
 
   if (!hostView()->IsPopup()) {
 

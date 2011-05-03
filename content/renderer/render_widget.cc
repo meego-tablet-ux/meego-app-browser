@@ -464,8 +464,9 @@ void RenderWidget::OnSetVisibleRect(const gfx::Rect& rect)
 void RenderWidget::OnQueryNodeAtPosition(int x, int y) {
   bool is_embedded_object;
   bool is_editable_text;
-  webwidget_->queryNodeTypeAtPoint(x, y, is_embedded_object, is_editable_text);
-  IPC::Message* response = new ViewHostMsg_QueryNodeAtPosition_ACK(routing_id_, is_embedded_object, is_editable_text);
+  bool has_touch_listener;
+  webwidget_->queryNodeTypeAtPoint(x, y, is_embedded_object, is_editable_text, has_touch_listener);
+  IPC::Message* response = new ViewHostMsg_QueryNodeAtPosition_ACK(routing_id_, is_embedded_object, is_editable_text, has_touch_listener);
   Send(response);
 }
 

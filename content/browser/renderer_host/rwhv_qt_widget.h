@@ -136,6 +136,9 @@ protected Q_SLOTS:
   void doZoom(qreal factor, QPointF pos, bool reset);
 
   void onKeyPressReleaseEvent(QKeyEvent* event);
+  
+  // touch events
+  bool shouldDeliverTouchMove();
 
   //gestureEvent
   void gestureEvent(QGestureEvent* event);

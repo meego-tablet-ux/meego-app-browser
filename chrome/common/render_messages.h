@@ -316,9 +316,10 @@ IPC_SYNC_MESSAGE_ROUTED0_0(ViewMsg_Zoom2TextPost)
 
 IPC_SYNC_MESSAGE_ROUTED1_0(ViewMsg_ZoomFactor, double)
 
-IPC_MESSAGE_ROUTED2(ViewHostMsg_QueryNodeAtPosition_ACK,
+IPC_MESSAGE_ROUTED3(ViewHostMsg_QueryNodeAtPosition_ACK,
                     bool /* is_embedded_object */,
-                    bool /* is_text_entry*/ )
+                    bool /* is_text_entry*/,
+                    bool /* has_touch_listener */)
 
 IPC_MESSAGE_ROUTED3(ViewHostMsg_UpdateSelectionRange,
                     gfx::Point, /* start point */

@@ -560,7 +560,7 @@ class RenderWidgetHost : public IPC::Channel::Listener,
 #endif
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  void OnMsgQueryNodeAtPositionACK(bool is_embedded_object, bool is_content_editable);
+  void OnMsgQueryNodeAtPositionACK(bool is_embedded_object, bool is_content_editable, bool has_touch_listener);
 #endif
 
   // Paints the given bitmap to the current backing store at the given location.

@@ -35,6 +35,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
       NODE_INFO_NONE = 0x00,
       NODE_INFO_IS_EMBEDDED_OBJECT = 0x01,
       NODE_INFO_IS_EDITABLE = 0x02,
+      NODE_INFO_HAS_TOUCH_LISTENER = 0x04,
   };
 
   explicit RenderWidgetHostViewQt(RenderWidgetHost* widget);
@@ -89,7 +90,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void ImeCancelComposition();
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  virtual void UpdateWebKitNodeInfo(bool is_embedded_object, bool is_content_editable);
+  virtual void UpdateWebKitNodeInfo(bool is_embedded_object, bool is_content_editable, bool has_touch_listener);
   virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set);
 
   ////////////////////////////////////////////////////////////
