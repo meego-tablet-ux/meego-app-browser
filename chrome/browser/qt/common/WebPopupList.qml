@@ -73,7 +73,7 @@ Item {
 
     Component {
         id : popupholder
-        ModalContextMenu {
+        ContextMenu {
             id: webPopupListContext
             function display(x, y) {
                 webPopupListContext.setPosition(x, y);
