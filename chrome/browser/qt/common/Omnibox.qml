@@ -254,6 +254,40 @@ Item {
         }
       }
     }
+    Item {
+        id: "processIndicator"
+        height: parent.height/2
+        width: height
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: parent.right
+        anchors.leftMargin: 5
+        anchors.rightMargin: 5
+        visible: false
+        Image {
+            id: indicator
+            anchors.fill: parent
+            source: "image://themedimage/images/browser/busy"; 
+            NumberAnimation on rotation { 
+                from: 0; 
+                to: 360; 
+                loops: Animation.Infinite; 
+                duration: 2000 
+            }
+        }
+        Connections {
+            target: browserToolbarModel
+            onUpdateReloadButton: {
+                if(is_loading){
+                    processIndicator.visible = true;
+                    starButton.visible = false;
+                }
+                else{
+                    processIndicator.visible = false;
+                    starButton.visible = true;
+                }
+            }
+        }
+    }
   }
 
   Image {
