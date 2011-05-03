@@ -45,9 +45,9 @@ Item {
       id: newtab
       z: 1000
       anchors.fill: parent
-      color: "#383838"
-      border.width: 4
-      border.color: "black"
+      color: "#2CACE3"
+      radius: 4
+      /*
       Image {
         id: addbutton
         anchors.verticalCenter: parent.verticalCenter
@@ -56,7 +56,7 @@ Item {
         width: height
         anchors.left: parent.left
         source: "image://themedimage/images/browser/icn_add_up"
-	property bool pressed: false
+	      property bool pressed: false
         states: [
           State {
             name: "pressed"
@@ -67,21 +67,22 @@ Item {
             }
           }
         ]
-
       }
+      */
       Text { 
-        anchors.left: addbutton.right
-        anchors.margins: 10
+        //anchors.left: addbutton.right
+        //anchors.margins: 10
         anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
         verticalAlignment: Text.AlignVCenter
         font.pixelSize: theme_fontPixelSizeNormal
-	//font.bold: true
+	      //font.bold: true
         color: "white"
         text: newtabtitle 
       }
       MouseArea {
         anchors.fill: parent
-	onPressed: { addbutton.pressed = true}
+        onPressed: { addbutton.pressed = true}
         onReleased: { mouse.accepted = true; if (newTabContainer.newTabEnabled) tabSideBarModel.newTab()}
       }
     }
