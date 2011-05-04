@@ -2939,7 +2939,6 @@ void RenderView::didChangeContentsSize(WebFrame* frame, const WebSize& size) {
     size_ = size;
     size_.Scale(scale_, scale_);
     webwidget_->setViewportSize(size);
-    webwidget_->resize(size);
   }
 }
 
