@@ -55,7 +55,7 @@ Item {
   Image {
     id: arrow
     x: start_x - width / 2
-    y: up?start_y:start_y - height
+    y: up?start_y-height/4:start_y - height
     z: 1
     source: up? "image://themedimage/images/popupbox_arrow_top":"image://themedimage/images/popupbox_arrow_bottom"
   }
@@ -67,7 +67,7 @@ Item {
     height: tabsidebarview.height ? borderImage1.height + newtab.height + tabsidebarview.height + sidebarMargin*2 + borderImage2.height : borderImage1.height + newtab.height + tabsidebarview.height + borderImage2.height
 
     x: calcX()
-    y: up?start_y + arrow.height-2:start_y - arrow.height - height +2
+    y: up?arrow.y + arrow.height-2:start_y - arrow.height - height +2
 
     function calcX () {
       var minimumX = 4
