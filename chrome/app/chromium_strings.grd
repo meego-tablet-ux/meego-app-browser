@@ -358,7 +358,7 @@ be available for now. -->
         Whoa! Chromium has crashed. Relaunch now?
       </message>
       <message name="IDS_PASSWORD_MANAGER_SAVE_PASSWORD_PROMPT" desc="Info bar message to save a password">
-        Do you want Chromium to save your password?
+        Do you want MeeGo browser to save your password?
       </message>
       <message name="IDS_FR_BUBBLE_QUESTION" desc="Main text for the bubble">
         Chromium uses your default search engine, which is currently set to <ph name="PAGE_TITLE">$1<ex>Google</ex></ph>. Do you want to keep your default search engine?
