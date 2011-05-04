@@ -32,7 +32,7 @@
  ****************************************************************************/
 
 import Qt 4.7
-import MeeGo.Components 0.1
+import MeeGo.Components 0.1 as UX
 import QtMobility.sensors 1.1
 import Qt.labs.gestures 2.0
 
@@ -173,7 +173,7 @@ Item {
     ]
     transformOrigin: Item.TopLeft
 
-    StatusBar {
+    UX.StatusBar {
         id: statusbar
         anchors.top: parent.top
         width: container.width
@@ -434,8 +434,10 @@ Item {
         }
     }
 
-    Item {
+    Window {
         // this screen layer is used to show items that need fog for whole screen.
+        // It must use the Window Item. And It must been set as the parent of those
+        // items who eventually use TopItem to detect top level qml window
         id: screenLayer
         width: { 
           if (privateData.angle == 90 ||privateData.angle == -90) {
