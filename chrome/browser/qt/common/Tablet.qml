@@ -162,7 +162,7 @@ BrowserWindowTablet {
       popupListLoader.source = "WebPopupList.qml"
       popupListLoader.item.model = PopupListModel
       popupListLoader.item.parent = screenlayer
-      //popupListLoader.item.targetParent = screenlayer;
+      popupListLoader.item.targetContainer = screenlayer;
       popupListLoader.item.currentIndex = PopupListModel.currentSelectedItem();
       popupListLoader.item.maxPopupListHeight = screenlayer.height - 20;
 
@@ -227,7 +227,7 @@ BrowserWindowTablet {
       var parentContainer = screenlayer;
 
       loader.item.parent = parentContainer;
-      //loader.item.targetParent = parentContainer;
+      loader.item.targetContainer = parentContainer;
       loader.item.model = model;
 
       var menuContainer = loader.item;
@@ -351,4 +351,4 @@ BrowserWindowTablet {
       bubbleContainer.fingerX = mouseX - bubbleContainer.bubbleX;
       bubbleContainer.fingerY = mouseY - bubbleContainer.bubbleY;
   }
-}  
+}

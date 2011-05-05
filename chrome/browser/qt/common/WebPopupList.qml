@@ -41,7 +41,7 @@ Item {
     property int maxPopupListWidth : 600
     property int maxPopupListHeight : 600
     property int currentIndex : 0
-    //property alias targetParent : webPopupListContext.targetParent
+    property Item targetContainer : null
     property Item contentItem: null
 
     anchors.fill : parent
@@ -75,6 +75,7 @@ Item {
         id : popupholder
         ContextMenu {
             id: webPopupListContext
+            targetContainer: container.targetContainer
             function display(x, y) {
                 webPopupListContext.setPosition(x, y);
                 webPopupListContext.show();

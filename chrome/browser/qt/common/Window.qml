@@ -37,4 +37,6 @@ import Qt 4.7
 // to satisfy the TopItem's query mechanism for a TopLevel Window
 Item {
   id: window
+  //dummysignal is needed to generate a New QML Type Object
+  signal dummysignal()
 }
