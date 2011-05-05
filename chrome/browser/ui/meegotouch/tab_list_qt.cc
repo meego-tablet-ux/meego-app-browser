@@ -281,7 +281,8 @@ void TabListQt::createContents()
   TabStripModel* tabs = browser_->tabstrip_model();
   int tab_count = tabs->count();
 
-  for (int i=0; i< tab_count; i++)
+  //for (int i=0; i< tab_count; i++)
+  for (int i=tab_count-1; i>=0; i--)
   {
     TabContentsWrapper* tab_contents = tabs->GetTabContentsAt(i);
     if (tab_contents)
