@@ -343,19 +343,15 @@ Item {
             target: findBarModel
             onShow: {
                 findBarLoader.source = "FindBar.qml"
-                findbar.parent = innerContent 
-//                findbar.width = isLandscapeView()? outerContent.width / 2 - 20 : outerContent.width - 20
-
-                var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height + infobarLoader.height + bookmarkBarLoader.height)
-                var ix = innerContent.width / 2
-                var ih = 50
-                findbar.x = ix
-                findbar.width = ix
-                findbar.height = ih
-                findbar.z = innerContent.z + 1
-                findbar.showfindbar = true
+                findbar.parent = toolbar
+                findbar.x = toolbar.x
+                findbar.y = toolbar.y
+                findbar.width = toolbar.width
+                findbar.height = toolbar.height
+                findbar.z = toolbar.z + 1
                 hasfindbar = true
-                findBarModel.positionUpdated(ix, mappedPos.y, ix, ih);
+                findbar.showfindbar = true
+                findBarModel.positionUpdated(toolbar.x, toolbar.y, toolbar.width, toolbar.height);
             }
         }
         
