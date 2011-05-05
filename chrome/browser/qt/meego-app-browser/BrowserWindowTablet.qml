@@ -314,16 +314,20 @@ Item {
           }
         }
 
-        Loader {
-            id: bookmarkManagerLoader
+        Window {
+            // Wrapper window item to make TopItem bring in by bookmarklist.qml to work correctly
+            anchors.fill: parent
+            z: toolbar.z + 1
+            Loader {
+                id: bookmarkManagerLoader
+                anchors.fill: parent
+            }
         }
         Connections {
             target: bookmarkBarListModel
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
             onOpenBookmarkManager: {
                 bookmarkManagerLoader.source = "BookmarkList.qml"
-                bookmarkManagerLoader.item.parent = outerContent 
-                bookmarkManagerLoader.item.z = toolbar.z + 1
             }
         }
         Connections {
