@@ -79,15 +79,16 @@ BrowserWindowTablet {
     onPopup: {
       scene.showDialog(dialogLoader, browserDialogModel);
       //scene.showDialog(dialogLoader);//, browserDialogModel);
-      console.log("Dialog: onPopup signal received.");
     }
   }
 
   function showDialog(loader, model) {
       var type = model.getDialogType();
-      console.log("type_ is: " + type);
+      dialogLoader.parent = screenlayer
+      dialogLoader.width = screenlayer.width
+      dialogLoader.height = screenlayer.height
       loader.source="JsModalDialog.qml"
-      loader.item.parent = container
+    //loader.item.targetContainer = screenlayer
       loader.item.z = 100
       if(type == 0) {
     	  loader.item.state = "alert"
@@ -100,7 +101,7 @@ BrowserWindowTablet {
       }else{
     	  loader.item.state = "confirm"
       }
-
+      loader.item.show();
   }
 
   Loader {

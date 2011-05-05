@@ -37,7 +37,12 @@ import Qt.labs.gestures 2.0
 
 Item {
     id: container
+    property alias targetContainer: jsDialog.targetContainer
     anchors.fill: parent
+
+    function show() {
+        jsDialog.show()
+    }
 
     GestureArea {
       anchors.fill: parent
@@ -51,7 +56,7 @@ Item {
     // create ModalDialog:
     ModalDialog {
         id: jsDialog
-	property alias contentLoader: contentLoader
+        property alias contentLoader: contentLoader
 
         title : browserDialogModel.getDialogTitle()
         buttonWidth: 200
@@ -88,11 +93,6 @@ Item {
 		browserDialogObject.OnButtonClicked(2, null, null, contentLoader.item.isSuppress);
 	
          }
-     }
-
-     // show on signal:
-     Component.onCompleted: {
-         jsDialog.show()
      }
 
 	states: [
