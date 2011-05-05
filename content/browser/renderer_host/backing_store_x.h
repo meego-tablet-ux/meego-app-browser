@@ -158,6 +158,10 @@ private:
                              const QRect& bitmap_rect,
                              const QRect& rect);
 
+    // support fast path scroll
+    void ScrollBackingStore(int dx, int dy,
+                            const QRect& clip_rect);
+
     TileIndex Index() { return index_; }
     
     QRect Rect() { return rect_; }
@@ -165,6 +169,8 @@ private:
     bool IsReady() { return ready_; }
 
     void reset() { ready_ = false; }
+
+    QPixmap* Pixmap() {return pixmap_;}
     
    private:
     friend class base::RefCounted<Tile>;

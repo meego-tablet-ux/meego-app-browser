@@ -1315,9 +1315,8 @@ void RenderWidgetHost::OnMsgDestroyPluginContainer(gfx::PluginWindowHandle id) {
 #endif
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-void RenderWidgetHost::OnMsgQueryNodeAtPositionACK(bool is_embedded_object, bool is_content_editable, bool has_touch_listener) {
-  DLOG(INFO) << "zys: touch listener - " << has_touch_listener;
-  view_->UpdateWebKitNodeInfo(is_embedded_object, is_content_editable, has_touch_listener);
+void RenderWidgetHost::OnMsgQueryNodeAtPositionACK(unsigned int node_info) {
+  view_->UpdateWebKitNodeInfo(node_info);
 }
 
 void RenderWidgetHost::OnMsgDidContentsSizeChanged(const gfx::Size& size)

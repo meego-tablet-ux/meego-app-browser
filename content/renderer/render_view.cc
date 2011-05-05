@@ -432,11 +432,6 @@ RenderView::RenderView(RenderThreadBase* render_thread,
     p2p_socket_dispatcher_ = new P2PSocketDispatcher(this);
 
   content::GetContentClient()->renderer()->RenderViewCreated(this);
-
-
-  // In tiling mode, set frame flattening as true
-  WebSettings* settings = webview()->settings();
-  settings->setFrameFlatteningEnabled(true);
 }
 
 RenderView::~RenderView() {

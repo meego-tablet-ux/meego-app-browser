@@ -86,7 +86,7 @@ class RenderWidgetHostView {
   virtual void InitAsFullscreen() = 0;
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  virtual void UpdateWebKitNodeInfo(bool is_embedded_object, bool is_content_editable, bool has_touch_listener) { }
+  virtual void UpdateWebKitNodeInfo(unsigned int node_info) { }
   virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set) {}
 
   ///////////////////////////////////////////

@@ -45,6 +45,7 @@
 #include "content/browser/renderer_host/render_widget_host_view.h"
 #include "content/browser/renderer_host/rwhv_qt_widget.h"
 #include "content/common/native_web_keyboard_event.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebWidget.h"
 
 #include <launcherapp.h>
 
@@ -104,6 +105,7 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   mouse_press_event_delivered_ = false;
   hold_paint_ = false;
   is_inputtext_selection_ = false;
+  is_scrolling_scrollable_ = false;
   
   // Create animation for rebounce effect 
   rebounce_animation_ = new QPropertyAnimation(this, "scale", this);
@@ -140,7 +142,6 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
     setFocusPolicy(Qt::StrongFocus);
 
     // use flickable to handle pan and flicking
-    //grabGesture(Qt::PanGesture);
     grabGesture(Qt::TapAndHoldGesture);
     grabGesture(Qt::PinchGesture);
     setAcceptTouchEvents(true);
@@ -571,6 +572,16 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
   }
 }
 
+bool RWHVQtWidget::inScrollableArea()
+{
+  int node_info = hostView()->webkit_node_info_;
+  
+  if (hostView()->IsPopup())
+    return false;
+
+  return (node_info & WebKit::WebWidget::NODE_INFO_IS_SCROLLABLE_AREA);
+}
+
 bool RWHVQtWidget::shouldDeliverMouseMove()
 {
   int node_info = hostView()->webkit_node_info_;
@@ -578,8 +589,8 @@ bool RWHVQtWidget::shouldDeliverMouseMove()
   if (hostView()->IsPopup())
     return false;
 
-  return (node_info & (RenderWidgetHostViewQt::NODE_INFO_IS_EMBEDDED_OBJECT
-                        | RenderWidgetHostViewQt::NODE_INFO_IS_EDITABLE));
+  return (node_info & (WebKit::WebWidget::NODE_INFO_IS_EMBEDDED_OBJECT
+                       | WebKit::WebWidget::NODE_INFO_IS_EDITABLE));
 }
 
 
@@ -592,7 +603,7 @@ bool RWHVQtWidget::shouldDeliverTouchMove()
     return false;
 
   // only deliver the touch move event if and only if node has touch listener
-  return (node_info & RenderWidgetHostViewQt::NODE_INFO_HAS_TOUCH_LISTENER);
+  return (node_info & WebKit::WebWidget::NODE_INFO_HAS_TOUCH_LISTENER);
 }
 
 void RWHVQtWidget::deliverMousePressEvent()
@@ -843,8 +854,10 @@ void RWHVQtWidget::resizeEvent(QGraphicsSceneResizeEvent* event)
 void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   DLOG(INFO) << "--" << __PRETTY_FUNCTION__ << ": " <<
-    "shouldDeliverMouseMove = " << shouldDeliverMouseMove() <<
-    std::endl;
+      " shouldDeliverMouseMove = " << shouldDeliverMouseMove() <<
+      " shouldDeliverTouchMove = " << shouldDeliverTouchMove() <<
+      " inScrollableArea = " << inScrollableArea() <<
+      std::endl;
 
 #if 0
   // Anyone need the touch move event?
@@ -877,6 +890,27 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
     if(hostView()->host_)
       hostView()->host_->ForwardMouseEvent(mouseEvent);
+  } else if (inScrollableArea())
+  {
+    if (is_scrolling_scrollable_ == false)
+    {
+      int dx = static_cast<int>(event->pos().x() - event->buttonDownPos(Qt::LeftButton).x());
+      int dy = static_cast<int>(event->pos().y() - event->buttonDownPos(Qt::LeftButton).y());
+      if (abs(dx) >= 3 || abs(dy) >= 3)
+      {
+        setViewportInteractive(false);
+        is_scrolling_scrollable_ = true;
+      }
+    }
+
+    if (is_scrolling_scrollable_)
+    {
+      WebKit::WebMouseWheelEvent wheelEvent = EventUtilQt::ToMouseWheelEvent(
+          event, orientationAngle(), scale());
+      DLOG(INFO) << "wheelEvent " << wheelEvent.deltaX << " " << wheelEvent.deltaY;
+      hostView()->host_->ForwardWheelEvent(wheelEvent);
+      cancel_next_mouse_release_event_ = true;
+    }
   }
 
 done:
@@ -1038,6 +1072,11 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     setViewportInteractive(true);
   }
 
+  if (is_scrolling_scrollable_)
+  {
+    is_scrolling_scrollable_ = false;
+    setViewportInteractive(true);
+  }
 done:
   event->accept();
 }
@@ -1074,7 +1113,7 @@ void RWHVQtWidget::tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGestu
       if (isDoingGesture(Qt::TapAndHoldGesture)) {
         // don't start another selection upon longpress when the previous one is still on going.
         if (!(in_selection_mode_ ||
-            (hostView()->webkit_node_info_ & RenderWidgetHostViewQt::NODE_INFO_IS_EDITABLE)))
+              (hostView()->webkit_node_info_ & WebKit::WebWidget::NODE_INFO_IS_EDITABLE)))
 	  InvokeSelection(gesture);
         // we might need to ignore this when other higher priority gesture is on going.
         fakeMouseRightButtonClick(event, gesture);
@@ -1096,7 +1135,13 @@ void RWHVQtWidget::tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGestu
 
 void RWHVQtWidget::panGestureEvent(QGestureEvent* event, QPanGesture* gesture)
 {
+  DLOG(INFO) << "--" << __PRETTY_FUNCTION__ << ": " <<
+      std::endl;
+
   if (is_modifing_selection_)
+    return;
+
+  if (!is_scrolling_scrollable_)
     return;
 
   //ignore pan gesture when doing TapAndHold Gesture
@@ -1111,7 +1156,8 @@ void RWHVQtWidget::panGestureEvent(QGestureEvent* event, QPanGesture* gesture)
 //  WebKit::WebMouseWheelEvent wheelEvent = EventUtilQt::ToMouseWheelEvent(
 //      event, gesture, hostView()->native_view());
 
-  if (shouldDeliverMouseMove()) {
+  if (shouldDeliverMouseMove() ||
+      shouldDeliverTouchMove()) {
       cancel_next_mouse_release_event_ = false;
       return;
   }

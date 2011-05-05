@@ -140,6 +140,9 @@ protected Q_SLOTS:
   // touch events
   bool shouldDeliverTouchMove();
 
+  // scrollable area check
+  bool inScrollableArea();
+  
   //gestureEvent
   void gestureEvent(QGestureEvent* event);
   void tapAndHoldGestureEvent(QGestureEvent* event, QTapAndHoldGesture* gesture);
@@ -226,6 +229,9 @@ protected Q_SLOTS:
   bool is_enabled_;
   // whether in selecting characters in input entry
   bool is_inputtext_selection_;
+
+  // whether scrolling scrollable area
+  bool is_scrolling_scrollable_;
 
   // Current scale factor
   qreal scale_;

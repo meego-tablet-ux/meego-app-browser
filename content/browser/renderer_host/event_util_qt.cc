@@ -186,6 +186,50 @@ WebKit::WebKeyboardEvent EventUtilQt::KeyboardEvent(wchar_t character, Qt::Keybo
   return result;
 }
 
+WebKit::WebMouseWheelEvent EventUtilQt::ToMouseWheelEvent(const QGraphicsSceneMouseEvent* qevent,
+                                                          QtMobility::QOrientationReading::Orientation angle,
+                                                          double scale)
+{
+  WebKit::WebMouseWheelEvent result;
+
+  result.type = WebKit::WebInputEvent::MouseWheel;
+  result.button = WebKit::WebMouseEvent::ButtonNone;
+
+  result.timeStampSeconds = base::Time::Now().ToInternalValue() / 1000;
+
+  result.x = static_cast<int>(qevent->pos().x() / scale);
+  result.y = static_cast<int>(qevent->pos().y() / scale);
+
+  result.windowX = result.x;
+  result.windowY = result.y;
+  result.globalX = static_cast<int>(qevent->screenPos().x());
+  result.globalY = static_cast<int>(qevent->screenPos().y());
+
+  int dx = static_cast<int>(qevent->pos().x() - qevent->lastPos().x());
+  int dy = static_cast<int>(qevent->pos().y() - qevent->lastPos().y());
+  
+  switch (angle) {
+    case QtMobility::QOrientationReading::TopUp:
+      result.deltaX = dx;
+      result.deltaY = dy;
+      break;
+    case QtMobility::QOrientationReading::RightUp:
+      result.deltaX = dy;
+      result.deltaY = 0 - dx;
+      break;
+    case QtMobility::QOrientationReading::TopDown:
+      result.deltaX = 0 - dx;
+      result.deltaY = 0 - dy;
+      break;
+    case QtMobility::QOrientationReading::LeftUp:
+      result.deltaX = 0 - dy;
+      result.deltaY = dx;
+      break;
+  }
+
+  return result;
+}
+
 WebKit::WebMouseWheelEvent EventUtilQt::ToMouseWheelEvent(const QGestureEvent *qevent,
                                                            const QPanGesture *gesture, QGraphicsWidget *item,
                                                            QtMobility::QOrientationReading::Orientation angle)

@@ -51,11 +51,16 @@ class EventUtilQt {
   /*!
    * \brief Convert QPanGesture to WebKit::WebMouseWheelEvent to simulate a pan event
    */
+  // deprecated
   static WebKit::WebMouseWheelEvent ToMouseWheelEvent(const QGestureEvent *qevent, const QPanGesture *gesture,
       QGraphicsWidget *item, QtMobility::QOrientationReading::Orientation angle = QtMobility::QOrientationReading::TopUp);
 
   static WebKit::WebMouseWheelEvent ToMouseWheelEvent(int x, int y, int gx, int gy, int dx, int dy,
       QtMobility::QOrientationReading::Orientation angle = QtMobility::QOrientationReading::TopUp);
+
+  static WebKit::WebMouseWheelEvent ToMouseWheelEvent(const QGraphicsSceneMouseEvent* event,
+      QtMobility::QOrientationReading::Orientation angle = QtMobility::QOrientationReading::TopUp,
+      double scale = 1.0);
 
   static WebKit::WebTouchEvent ToWebTouchEvent(const QGraphicsSceneMouseEvent *qevent, double scale = 1.0);
 };

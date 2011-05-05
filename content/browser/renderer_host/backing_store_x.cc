@@ -373,7 +373,9 @@ void BackingStoreX::PaintToBackingStore(
   if (shared_memory_support_ != ui::SHARED_MEMORY_NONE)
     XSync(display_, False);
 
+#if !defined(TILED_BACKING_STORE)
   XRenderFreePicture(display_, picture);
+#endif
   XFreePixmap(display_, pixmap);
 }
 
@@ -515,7 +517,129 @@ void BackingStoreX::ScrollBackingStore(int dx, int dy,
     }
   }
 #else
-  NOTIMPLEMENTED();
+  DLOG(INFO) << "BackingStoreX::ScrollBackingStore "
+             << dx << " " << dy
+             << " " << clip_rect.x() << " " << clip_rect.y()
+             << " " << clip_rect.width() << " " << clip_rect.height();
+
+  QRect dirty_rect(clip_rect.x(), clip_rect.y(), clip_rect.width(), clip_rect.height());
+  dirty_rect = MapFromContents(dirty_rect);
+  dx *= flatScaleByStep(contents_scale_);
+  dy *= flatScaleByStep(contents_scale_);
+
+  TileIndex first = GetTileIndexFrom(dirty_rect.topLeft());
+  TileIndex last = GetTileIndexFrom(dirty_rect.bottomRight());
+  int x_begin = first.x();
+  int x_end = last.x();
+  int x_step = 1;
+  int y_begin = first.y();
+  int y_end = last.y();
+  int y_step = 1;
+
+  if (dx > 0)
+  {
+    x_begin = last.x();
+    x_end = first.x();
+    x_step = -1;
+  }
+
+  if (dy > 0)
+  {
+    y_begin = last.y();
+    y_end = first.y();
+    y_step = -1;
+  }
+  
+  for (int x = x_begin; x != x_end + x_step; x += x_step)
+  {
+    for (int y = y_begin; y != y_end + y_step; y += y_step)
+    {
+      DLOG(INFO) << "Scroll Tile " << x << " " << y;
+      
+      TileIndex index(x, y);
+      // Always use front tiles map
+      scoped_refptr<Tile> tile = tiles_map_.value(index);
+      if (tile.get())
+      {                
+        tile->ScrollBackingStore(dx, dy, dirty_rect);
+
+        if (dx > 0)
+        {
+          TileIndex next(x - 1, y);
+          scoped_refptr<Tile> next_tile = tiles_map_.value(next);
+          if (next_tile.get())
+          {
+            QPainter painter(tile->Pixmap());
+            QRect target(tile->Pixmap()->rect().x(),
+                         tile->Pixmap()->rect().y(),
+                         dx,
+                         tile->Pixmap()->rect().height());
+            QRect source(next_tile->Pixmap()->rect().x() + next_tile->Pixmap()->rect().width() - dx,
+                         next_tile->Pixmap()->rect().y(),
+                         dx,
+                         next_tile->Pixmap()->rect().height());
+            painter.drawPixmap(target, *(next_tile->Pixmap()), source);
+          }
+        } else if (dx < 0)
+        {
+          TileIndex next(x + 1, y);
+          scoped_refptr<Tile> next_tile = tiles_map_.value(next);
+          if (next_tile.get())
+          {
+            QPainter painter(tile->Pixmap());
+            QRect target(tile->Pixmap()->rect().x() + tile->Pixmap()->rect().width() + dx,
+                         tile->Pixmap()->rect().y(),
+                         -dx,
+                         tile->Pixmap()->rect().height());
+            QRect source(next_tile->Pixmap()->rect().x(),
+                         next_tile->Pixmap()->rect().y(),
+                         -dx,
+                         next_tile->Pixmap()->rect().height());
+            painter.drawPixmap(target, *(next_tile->Pixmap()), source);
+          }
+        }
+
+        if (dy > 0)
+        {
+          TileIndex next(x, y - 1);
+          scoped_refptr<Tile> next_tile = tiles_map_.value(next);
+          if (next_tile.get())
+          {
+            QPainter painter(tile->Pixmap());
+            QRect target(tile->Pixmap()->rect().x(),
+                         tile->Pixmap()->rect().y(),
+                         tile->Pixmap()->rect().width(),
+                         dy);
+            QRect source(next_tile->Pixmap()->rect().x(),
+                         next_tile->Pixmap()->rect().y() + next_tile->Pixmap()->rect().height() - dy,
+                         next_tile->Pixmap()->rect().width(),
+                         dy);
+            painter.drawPixmap(target, *(next_tile->Pixmap()), source);
+          }
+        } else if (dy < 0)
+        {
+          TileIndex next(x, y + 1);
+          scoped_refptr<Tile> next_tile = tiles_map_.value(next);
+          if (next_tile.get())
+          {
+            QPainter painter(tile->Pixmap());
+            QRect target(tile->Pixmap()->rect().x(),
+                         tile->Pixmap()->rect().y() + tile->Pixmap()->rect().height() + dy,
+                         tile->Pixmap()->rect().width(),
+                         -dy);
+            QRect source(next_tile->Pixmap()->rect().x(),
+                         next_tile->Pixmap()->rect().y(),
+                         next_tile->Pixmap()->rect().width(),
+                         -dy);
+            painter.drawPixmap(target, *(next_tile->Pixmap()), source);
+          }
+        }
+      }
+    }
+  }
+
+  gfx::Rect grect(dirty_rect.x(), dirty_rect.y(), dirty_rect.width(), dirty_rect.height());
+  render_widget_host_->view()->DidBackingStorePaint(grect);
 #endif
 }
 
@@ -737,6 +861,20 @@ void BackingStoreX::Tile::PaintToBackingStore(QPixmap& bitmap,
              << target.width() << "," << target.height() << ")"
              << " source (" << source.x() << "," << source.y() << ","
              << source.width() << "," << source.height() << ")";
+}
+
+void BackingStoreX::Tile::ScrollBackingStore(int dx, int dy,
+                                             const QRect& clip_rect)
+{
+  QRect rect = clip_rect & rect_;
+  rect = QRect(rect.x() - rect_.x(),
+               rect.y() - rect_.y(),
+               rect.width(),
+               rect.height());
+  DLOG(INFO) << "BackingStoreX::Tile::ScrollBackingStore "
+             << pixmap_->rect().x() << " " << pixmap_->rect().y() << " " << pixmap_->rect().width() << " " << pixmap_->rect().height()
+             << " " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height();
+  pixmap_->scroll(dx, dy, rect);
 }
 
 QRect BackingStoreX::GetCachedRect()
