@@ -105,7 +105,7 @@ class RenderWidget : public IPC::Channel::Listener,
 
   // WebKit::WebWidgetClient
   virtual void didInvalidateRect(const WebKit::WebRect&);
-  virtual void scrollRectToVisible(const WebKit::WebRect&);
+  virtual void didSetScrollPosition(const WebKit::WebPoint&);
   virtual void didScrollRect(int dx, int dy, const WebKit::WebRect& clipRect);
   virtual void didActivateAcceleratedCompositing(bool active);
   virtual void scheduleComposite();
@@ -213,7 +213,8 @@ class RenderWidget : public IPC::Channel::Listener,
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   void OnSetScaleFactor(double factor);
-  void OnSetVisibleRect(const gfx::Rect& rect);
+  void OnSetVisibleRect(const gfx::Rect& cached_tiles_rect,
+                        const gfx::Rect& visible_contents_rect);
   void OnQueryNodeAtPosition(int x, int y);
   void OnQueryEditorCursorPosition(int* cursor_position);
   void OnQueryEditorSelection(std::string* selection);

@@ -181,7 +181,7 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
     IPC_MESSAGE_HANDLER(ViewHostMsg_Focus, OnMsgFocus)
     IPC_MESSAGE_HANDLER(ViewHostMsg_Blur, OnMsgBlur)
     IPC_MESSAGE_HANDLER(ViewHostMsg_SetCursor, OnMsgSetCursor)
-    IPC_MESSAGE_HANDLER(ViewHostMsg_ScrollRectToVisible, OnScrollRectToVisible)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_SetScrollPosition, OnSetScrollPosition)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ImeUpdateTextInputState,
                         OnMsgImeUpdateTextInputState)
     IPC_MESSAGE_HANDLER(ViewHostMsg_ImeCancelComposition,
@@ -809,9 +809,10 @@ void RenderWidgetHost::SetActive(bool active) {
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-void RenderWidgetHost::SetVisibleRect(const gfx::Rect& rect)
+void RenderWidgetHost::SetVisibleRect(const gfx::Rect& cached_tiles_rect,
+                                      const gfx::Rect& visible_contents_rect)
 {
-  Send(new ViewMsg_SetVisibleRect(routing_id(), rect));
+  Send(new ViewMsg_SetVisibleRect(routing_id(), cached_tiles_rect, visible_contents_rect));
 }
 
 double RenderWidgetHost::GetScaleFactor() const
@@ -1157,11 +1158,11 @@ void RenderWidgetHost::OnMsgBlur() {
   process()->ReceivedBadMessage();
 }
 
-void RenderWidgetHost::OnScrollRectToVisible(const gfx::Rect& rect) {
+void RenderWidgetHost::OnSetScrollPosition(const gfx::Point& pos) {
   if (!view_) {
     return;
   }
-  view_->ScrollRectToVisible(rect);
+  view_->SetScrollPosition(pos);
 }
 
 void RenderWidgetHost::OnMsgSetCursor(const WebCursor& cursor) {

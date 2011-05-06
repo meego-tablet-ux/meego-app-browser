@@ -343,8 +343,9 @@ IPC_MESSAGE_ROUTED5(ViewMsg_PaintTile,
                     gfx::Rect /* tiles rect*/,
                     gfx::Rect /* pixmap rect, top left point is not scaled */)
 
-IPC_MESSAGE_ROUTED1(ViewMsg_SetVisibleRect,
-                    gfx::Rect)
+IPC_MESSAGE_ROUTED2(ViewMsg_SetVisibleRect,
+                    gfx::Rect /* cached tiles rect */,
+                    gfx::Rect /* visible contents rect */)
 
 IPC_MESSAGE_ROUTED1(ViewMsg_SetScaleFactor,
                     double)
@@ -358,7 +359,7 @@ IPC_MESSAGE_ROUTED4(ViewHostMsg_PaintTile_ACK,
                     gfx::Rect /* painted rect */,
                     gfx::Rect /* pixmap rect */)
 
-IPC_MESSAGE_ROUTED1(ViewHostMsg_ScrollRectToVisible, gfx::Rect)
+IPC_MESSAGE_ROUTED1(ViewHostMsg_SetScrollPosition, gfx::Point)
 #endif
 
 IPC_MESSAGE_CONTROL1(ViewHostMsg_UpdatedCacheStats,

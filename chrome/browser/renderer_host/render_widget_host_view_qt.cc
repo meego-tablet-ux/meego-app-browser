@@ -236,11 +236,11 @@ gfx::Rect RenderWidgetHostViewQt::GetViewBounds() const {
                    requested_size_.height());
 }
 
-void RenderWidgetHostViewQt::ScrollRectToVisible(const gfx::Rect& rect)
+void RenderWidgetHostViewQt::SetScrollPosition(const gfx::Point& pos)
 {
   if(view_)
   {
-    reinterpret_cast<RWHVQtWidget*>(view_)->ScrollRectToVisible(rect);
+    reinterpret_cast<RWHVQtWidget*>(view_)->SetScrollPosition(pos);
   }
 }
 

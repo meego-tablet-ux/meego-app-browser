@@ -147,7 +147,7 @@ class RenderWidgetHostView {
   // Retrieve the bounds of the View, in screen coordinates.
   virtual gfx::Rect GetViewBounds() const = 0;
 
-  virtual void ScrollRectToVisible(const gfx::Rect& rect) = 0;
+  virtual void SetScrollPosition(const gfx::Point& scrollPosition) = 0;
   
   // Sets the cursor to the one associated with the specified cursor_type
   virtual void UpdateCursor(const WebCursor& cursor) = 0;

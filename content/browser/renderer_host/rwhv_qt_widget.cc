@@ -1799,55 +1799,13 @@ void RWHVQtWidget::AdjustSize()
   emit sizeAdjusted();
 }
 
-void RWHVQtWidget::ScrollRectToVisible(const gfx::Rect& rect)
+void RWHVQtWidget::SetScrollPosition(const gfx::Point& scrollPosition)
 {
   QGraphicsObject* viewport = GetViewportItem();
   if(viewport) {
-    gfx::Rect adjusted = adjustScrollRect(rect);
-    viewport->setProperty("contentX", QVariant(adjusted.x()));
-    viewport->setProperty("contentY", QVariant(adjusted.y()));
+    viewport->setProperty("contentX", QVariant(scrollPosition.x() * scale()));
+    viewport->setProperty("contentY", QVariant(scrollPosition.y() * scale()));
   }
-}
-
-gfx::Rect RWHVQtWidget::adjustScrollRect(const gfx::Rect& rect)
-{
-  gfx::Rect scaled(rect.x() * scale(), rect.y() * scale(), 0, 0);
-  gfx::Rect ret = scaled;
-  QSizeF rwhvSize = size();
-  QGraphicsObject* viewport = GetViewportItem();
-  if(viewport) {
-    QRectF bounding = viewport->boundingRect();
-    int contentX = viewport->property("contentX").toInt();
-    int contentY = viewport->property("contentY").toInt();
-    if (is_enabled_) {
-      ret.set_x(contentX);
-      ret.set_y(contentY);
-      return ret;
-    }
-    if (contentX < scaled.x() && scaled.x() < contentX + bounding.width()) {
-      // if in current visible area, skip to move
-      ret.set_x(contentX);
-    } else if (scaled.x() < 0) {
-      ret.set_x(contentX);
-    } else if( scaled.x() + bounding.width() > rwhvSize.width()) {
-      ret.set_x(rwhvSize.width() - bounding.width());
-    } 
-    // always move Y since internal page jump needs this
-    // currently we can't distinguish scroll requests from internal page jump and
-    // find bar request
-    // It's better for find not to scroll when finded item is in the current
-    // visible area
-    // TODO: improve the scroll for find
-    /*if (is_enabled_ &&
-        contentY < scaled.y() && scaled.y() < contentY + bounding.height()) {
-      ret.set_y(contentY);
-    } else*/ if (scaled.y() + bounding.height() > rwhvSize.height()) {
-      ret.set_y(rwhvSize.height() - bounding.height());
-    } else if (scaled.y() < 0) {
-      ret.set_y(contentY);
-    }
-  }
-  return ret;
 }
 
 void RWHVQtWidget::setViewportInteractive(bool interactive)

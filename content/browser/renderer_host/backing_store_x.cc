@@ -944,7 +944,19 @@ void BackingStoreX::AdjustTiles(bool recreatedAll)
                                 mapped.y(),
                                 mapped.width(),
                                 mapped.height());
-    render_widget_host_->SetVisibleRect(mapped_tiles_rect);
+    gfx::Rect visible_rect = render_widget_host_->view()->GetVisibleRect();
+    QRect qrect(visible_rect.x(),
+                visible_rect.y(),
+                visible_rect.width(),
+                visible_rect.height());
+    mapped = MapToContents(qrect);
+    gfx::Rect mapped_contents_rect(mapped.x(),
+                                mapped.y(),
+                                mapped.width(),
+                                mapped.height());
+    
+    render_widget_host_->SetVisibleRect(mapped_tiles_rect,
+                                        mapped_contents_rect);
   }
 
   // Create tiles

@@ -72,7 +72,7 @@ class RWHVQtWidget : public QGraphicsWidget
   void DidBecomeSelected();
   void DidBackingStoreScale();
   void AdjustSize();
-  void ScrollRectToVisible(const gfx::Rect& rect);
+  void SetScrollPosition(const gfx::Point& scrollPosition);
   qreal scale() { return flatScaleByStep(scale_); }
   void SetScaleFactor(double scale);
   
@@ -156,8 +156,6 @@ protected Q_SLOTS:
   void InvokeSelection(QTapAndHoldGesture* gesture);
   void ModifySelection(SelectionHandlerID handler, gfx::Point new_pos);
   void CommitSelection();
-
-  gfx::Rect adjustScrollRect(const gfx::Rect& rect);
 
   void setViewportInteractive(bool interactive);
 

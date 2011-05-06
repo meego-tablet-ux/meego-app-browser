@@ -422,7 +422,8 @@ class RenderWidgetHost : public IPC::Channel::Listener,
                  const gfx::Rect& rect,
                  const gfx::Rect& pixmap_rect);
 
-  void SetVisibleRect(const gfx::Rect& rect);
+  void SetVisibleRect(const gfx::Rect& cached_tiles_rect,
+                      const gfx::Rect& visible_contents_rect);
   ////////////////////////////////////////////////
 #endif
 
@@ -524,7 +525,7 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // for tiled backing store
   void OnMsgPaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect);
   void OnMsgDidContentsSizeChanged(const gfx::Size& size);
-  void OnScrollRectToVisible(const gfx::Rect& rect);
+  void OnSetScrollPosition(const gfx::Point& pos);
   
   void OnMsgSetCursor(const WebCursor& cursor);
   void OnMsgImeUpdateTextInputState(WebKit::WebTextInputType type,

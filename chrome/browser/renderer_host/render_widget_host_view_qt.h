@@ -57,7 +57,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void Hide();
   virtual bool IsShowing();
   virtual gfx::Rect GetViewBounds() const;
-  virtual void ScrollRectToVisible(const gfx::Rect& rect);
+  virtual void SetScrollPosition(const gfx::Point& pos);
   virtual void UpdateCursor(const WebCursor& cursor);
   virtual void SetIsLoading(bool is_loading);
   virtual void DidUpdateBackingStore(

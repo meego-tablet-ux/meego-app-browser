@@ -25,6 +25,7 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebPopupMenu.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebPopupMenuInfo.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebRect.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebPoint.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebScreenInfo.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebSize.h"
 #include "ui/gfx/point.h"
@@ -60,6 +61,7 @@ using WebKit::WebPopupMenu;
 using WebKit::WebPopupMenuInfo;
 using WebKit::WebPopupType;
 using WebKit::WebRect;
+using WebKit::WebPoint;
 using WebKit::WebScreenInfo;
 using WebKit::WebSize;
 using WebKit::WebString;
@@ -455,10 +457,13 @@ void RenderWidget::OnSetScaleFactor(double factor)
   paint_aggregator_.ClearPendingUpdate();
 }
 
-void RenderWidget::OnSetVisibleRect(const gfx::Rect& rect)
+void RenderWidget::OnSetVisibleRect(const gfx::Rect& cached_tiles_rect,
+                                    const gfx::Rect& visible_contents_rect)
 {
-  if(visible_rect_ != rect)
-    visible_rect_ = rect;
+  if(visible_rect_ != cached_tiles_rect)
+    visible_rect_ = cached_tiles_rect;
+
+  webwidget_->setActualVisibleContentRect(visible_contents_rect);
 }
 
 void RenderWidget::OnQueryNodeAtPosition(int x, int y) {
@@ -879,10 +884,10 @@ void RenderWidget::DoDeferredUpdate() {
 ///////////////////////////////////////////////////////////////////////////////
 // WebWidgetClient
 
-void RenderWidget::scrollRectToVisible(const WebRect& rect)
+void RenderWidget::didSetScrollPosition(const WebPoint& pos)
 {
-  gfx::Rect gfx_rect(rect);
-  Send(new ViewHostMsg_ScrollRectToVisible(routing_id_, gfx_rect));  
+  gfx::Point gfx_pos(pos);
+  Send(new ViewHostMsg_SetScrollPosition(routing_id_, gfx_pos));  
 }
 
 void RenderWidget::didInvalidateRect(const WebRect& rect) {
