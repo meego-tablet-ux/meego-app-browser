@@ -47,6 +47,10 @@
 
 #define TOQTSTR(x) QString::fromUtf8(l10n_util::GetStringUTF8(x).c_str())
 
+namespace BookmarkList {
+bool bStarted = false;
+}
+
 namespace {
 
 // The showing height of the bar.
@@ -122,8 +126,7 @@ BookmarkQt::BookmarkQt(BrowserWindowQt* window,
       browser_(browser),
       window_(window),
       model_(NULL),
-      another_folder_name_(anotherFolder),
-      bmStarted_(false)
+      another_folder_name_(anotherFolder)
 {
   list_impl_ = new BookmarkQtListImpl(this);
   filter_ = new BookmarkQtFilterProxyModel(list_impl_);
@@ -220,7 +223,7 @@ void BookmarkQt::BookmarkNodeAdded(BookmarkModel* model,
                                    const BookmarkNode* parent,
                                    int index) {
   // Only handles items of Bookmark Manager 
-  if (!bmStarted_ || !IsMyParent(parent)) return;
+  if (!BookmarkList::bStarted || !IsMyParent(parent)) return;
   const BookmarkNode* node = parent->GetChild(index);
   BookmarkListItem* listitem = CreateBookmarkListItem(node);
 //  list_impl_->addBookmark(*listitem, index);
@@ -232,7 +235,7 @@ void BookmarkQt::BookmarkNodeRemoved(BookmarkModel* model,
                                      int old_index,
                                      const BookmarkNode* node) {
   // Only handles items of Bookmark Manager 
-  if (!bmStarted_ || !IsMyParent(parent)) return;
+  if (!BookmarkList::bStarted || !IsMyParent(parent)) return;
   list_impl_->removeBookmark(node);
 }
 
@@ -249,12 +252,8 @@ void BookmarkQt::BookmarkNodeMoved(BookmarkModel* model,
 void BookmarkQt::BookmarkNodeChanged(BookmarkModel* model,
                                      const BookmarkNode* node) {
   // Only handles list_impl_ here
-  if (!bmStarted_ || !IsMyParent(node->parent())) return;
-  if (node->parent() != model_->GetBookmarkBarNode()) {
-    // We only care about nodes on the bookmark bar.
-    return;
-  }
-  int index = model_->GetBookmarkBarNode()->GetIndexOf(node);
+  if (!BookmarkList::bStarted || !IsMyParent(node->parent())) return;
+  int index = GetParent()->GetIndexOf(node);
   DCHECK(index != -1);
 
   QString title, url, id;
@@ -555,10 +554,10 @@ bool BookmarkBarQt::IsAlwaysShown() {
 
 void BookmarkBarQt::ShowBookmarkManager() {
   filter_->OpenBookmarkManager();
-  if (!bmStarted_) {
+  if (!BookmarkList::bStarted) {
     this->CreateAllBookmarkListItems();
     others_->CreateAllBookmarkListItems();
-    bmStarted_= true;
+    BookmarkList::bStarted = true;
   }
 }
 
