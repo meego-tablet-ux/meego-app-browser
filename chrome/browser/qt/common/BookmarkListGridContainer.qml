@@ -61,7 +61,6 @@ Item {
       Swipe {}
     }
 
-
     MouseArea {
       anchors.fill: parent
       acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -80,10 +79,12 @@ Item {
         if (currentId == -1) return
         currentId = -1
         model.moveDone(oldIndex, newIndex)
+        console.log("hdqq movedone - oldIndex", oldIndex, "==>", newIndex);
       }
       onMousePositionChanged: {
         index = grid.indexAt(mouseX, mouseY)
         if (gridMouseArea.currentId != -1 && index != -1 && index != newIndex) {
+          console.log("hdqq moving - newindex", newIndex, "--> index", index);
           model.moving(newIndex, newIndex = index) // This wouldn't affect model until moveDone() called
         }
       }
@@ -91,10 +92,9 @@ Item {
   }
 
   Connections {
-    target: grid.model
-    onMoveToAnother: {
-      grid.model.moveToAnotherFolder(bmGlobal.idHasMenu);
-    }
+    target: bookmarkBarListModel
+//    onMoveToAnother: { grid.model.moveToAnotherFolder(bmGlobal.idxHasMenu); }
+    onOpenItem: { grid.model.openBookmarkItem(bmGlobal.idHasMenu); }
     onRemoveItem: {
       bmItemDeleteDialog.show()
       bmGlobal.currentModel = grid.model

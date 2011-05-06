@@ -72,19 +72,20 @@
 ****************************************************************************/
 
 import Qt 4.7
+import MeeGo.Components 0.1
 import Qt.labs.gestures 2.0
 
+//Rectangle {  // for test in qmlviwer
+//  width: 800; height: 600 // for test in qmlviewer
 Item {
-  id: parallaxView
-
-  property int currentIndex: 0
-  default property alias content: visualModel.children
+  id: treeContainer
+  anchors.fill: parent
+  property alias model: tree.model
 
   MouseArea {
     anchors.fill: parent
     acceptedButtons: Qt.LeftButton | Qt.RightButton
   }
-
   GestureArea {
     anchors.fill: parent
     Tap {}
@@ -94,124 +95,70 @@ Item {
     Swipe {}
   }
 
-  Image {
-    id: selectorPad
-    width: parent.width
-    height: 20
-    anchors.top: selectorContainer.bottom
-    source: "image://themedimage/images/bg_application_p"
-  }
+  ListView {
+    id: tree
+    anchors.fill: parent
+    delegate: BookmarkListTreeItem {}
+    //model: bookmarkTreeModel
+    interactive: treeMouseArea.currentId == -1
+    //Rectangle { color: "green"
+    Item {
+      width: bmGlobal.listHeight //\TODO dragElement.width
+      height: bmGlobal.listHeight*tree.count
+      anchors { top: parent.top; right: parent.right; rightMargin: bmGlobal.leftMargin }
+      MouseArea {
+        id: treeMouseArea
+        //anchors.fill: parent
+        anchors.fill:parent
 
-  Image {
-    id: leftPad
-    height: parent.height
-    width: 10
-    anchors.top: selectorContainer.bottom
-    source: "image://themedimage/images/bg_application_p"
-  }
-
-  Rectangle { color: "white"; anchors { top: parent.top; bottom: parent.bottom; left: selectorContainer.right; right: parent.right; } }
-  Item {
-    id: listContainer
-    width: parent.width/4 * 3
-    height: parent.height
-    //anchors { top: parent.top; topMargin: bmGlobal.leftMargin; left: selectorContainer.right; leftMargin: bmGlobal.leftMargin }
-    anchors { top: parent.top; left: selectorContainer.right; }
-
-    ListView {
-      id: list
-      anchors.fill: parent
-      interactive: bmGlobal.gridShow && (barContainer.interactive && othersContainer.interactive) //!stateGlobal.enableDrag
-
-      currentIndex: parallaxView.currentIndex
-      onCurrentIndexChanged: parallaxView.currentIndex = currentIndex
-
-      orientation: Qt.Horizontal
-      boundsBehavior: bmGlobal.gridShow ? Flickable.DragOverBounds : Flickable.DragAndOvershootBounds
-      model: VisualItemModel { id: visualModel }
-
-      highlightRangeMode: ListView.StrictlyEnforceRange
-      highlightMoveDuration: bmGlobal.gridShow ? 200 : 1
-      snapMode: ListView.SnapOneItem
-    }
-  }
-
-  Rectangle { id: listShadow; color: "#d1dce0"; width: 1; anchors { top: parent.top; bottom: parent.bottom; right: selectorContainer.right } }
-  Item {
-    id: selectorContainer
-    property int iSize: 60
-    property int iSpace: 20
-    width: parent.width/4; height: parent.height
-    anchors { left: parent.left; top: parent.top }
-    Rectangle {
-      anchors.fill: selectorContainer
-      color: "#e5e5e5"
-    }
-    ListView {
-      id: selector
-      anchors.fill: parent
-      interactive: false
-
-      Image {
-        id: arrow; source: "../../../chrome/browser/qt/common/arrow.png"; smooth: true
-        anchors { right: selector.right }
-        y: 8
-        Behavior on y { NumberAnimation { duration: 250; } }
-      }
-
-      currentIndex: parallaxView.currentIndex
-      onCurrentIndexChanged: {
-        arrow.y = currentIndex * bmGlobal.listHeight + 8
-        parallaxView.currentIndex = currentIndex
-      }
-
-      model: visualModel.children
-      delegate: Item {
-        id: delegateparallaxView
-        height: bmGlobal.listHeight; width: selector.width
-
-        Item {
-          id: folderItemContainer
-          anchors.fill: parent
-          Rectangle {
-            id: folderItem;
-            color: "#e5e5e5"
-            width: parent.width
-            height: bmGlobal.listHeight-2
-            Text {
-              id: folderItemText
-              text: modelData.text; elide: Text.ElideRight
-              anchors { left: parent.left; leftMargin: bmGlobal.leftMargin; verticalCenter: parent.verticalCenter }
-            }
-            MouseArea {
-              anchors.fill: parent
-              onClicked: { parallaxView.currentIndex = index }
-            }
-          }
-          Rectangle { id: wedge; color: "#bac4c8"; height: 1; anchors { top: folderItem.bottom; left: parent.left; right: parent.right } }
-          Rectangle {            color: "#f6f6f6"; height: 1; anchors { top: wedge.bottom;      left: parent.left; right: parent.right } }
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        property int currentId: -1  // Original ID in model
+        property int newIndex       // Current Position in model
+        property int index          // Item underneath cursor
+        property int oldIndex       // Start position on moving
+        onPressed: {
+          index = tree.indexAt(mouseX, mouseY)
+          if (index < 0) return
+          if (0 == model.level(index)) return; // forbid "bar"/"others" moving
+          bmGlobal.dragging = true
+          oldIndex = index
+          currentId = model.id(newIndex = index)
         }
-
-        states: State {
-          name: "Selected"
-          when: delegateparallaxView.ListView.isCurrentItem == true
-          PropertyChanges {
-            target: folderItem
-            color: "#eaf6fb"
+        onReleased: {
+          bmGlobal.dragging = false
+          if (currentId == -1) return
+          //console.log("hdq... moveDone", currentId, model.id(newIndex))
+          //model.moveDone(currentId, model.id(newIndex))
+          currentId = -1
+          //model.moveDone(oldIndex, newIndex)
+        }
+        onMousePositionChanged: {
+          index = tree.indexAt(mouseX, mouseY)
+          if (treeMouseArea.currentId != -1 && index != -1 && index != newIndex) {
+            //model.moving(newIndex, newIndex = index) // This wouldn't affect model until moveDone() called
+            console.log("hdq...... move", newIndex, "-->", index, "id of ", model.id(newIndex), model.id(index));
+            model.moveDone(newIndex, index, model.id(newIndex), model.id(newIndex = index))
           }
         }
-        transitions: Transition {
-          NumberAnimation { properties: "scale,y, opacity" }
-        }
       }
-
-      //        Rectangle {
-      //            color: "gray"
-      //            /*x: -selector.iSpace/2; */ y: -3; z: -1
-      //            width: parent.width + selector.iSpace; height: parent.height
-      //            radius: 10
-      //            opacity: 0.8
-      //        }
     }
   }
+
+  Connections {
+    target: bmGlobal.portrait ? bookmarkBarListModel : tree.model   // connects with menu->filter_
+//    onMoveToAnother: { tree.model.moveToAnotherFolder(bmGlobal.idxHasMenu); }
+    onOpenItemInNewTab: {
+      console.log("hdq opening item of ", bmGlobal.idHasMenu)
+      tree.model.openBookmarkItem(bmGlobal.idHasMenu); }
+    onRemoveItem: {
+      bmItemDeleteDialog.show()
+      bmGlobal.currentModel = tree.model
+    }
+    onEditItem: {
+      console.log("hdq editing item of ", bmGlobal.idHasMenu)
+      bmItemEditDialog.show()
+      bmGlobal.currentModel = tree.model
+    }
+  }
+
 }

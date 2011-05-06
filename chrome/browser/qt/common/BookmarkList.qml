@@ -78,8 +78,34 @@ import Qt.labs.gestures 2.0
 //Rectangle {  // for test in qmlviwer
 //  width: 800; height: 600 // for test in qmlviewer
 Item {
-  id: bmlistContainer
+  id: bookmarkListRoot
   anchors.fill: parent
+
+  property bool portrait: false
+  property int bottomMargin: 20
+  property int searchMargin: 20
+  property int headTextPixel: 21
+  property int headTextHeight: 50
+  property int headHeight: 115
+
+
+  Item {
+    id: bmGlobal
+    property bool portrait: bookmarkListRoot.portrait
+    property bool dragging: false
+    property bool exiting: false
+    property bool exitDone: false
+    property int idxHasMenu: -1
+    property int idHasMenu: -1
+    property string currentTitle: ""
+    property string currentUrl: ""
+    property variant currentModel
+//    property bool gridShow: true
+    property bool gridShow: false
+    property int listHeight: 55
+    property int leftMargin: 20
+    property real parallaxWidthFactor: 0.75
+  }
 
   MouseArea {
     anchors.fill: parent
@@ -95,59 +121,27 @@ Item {
     Swipe {}
   }
 
-  Item {
-    id: bmGlobal
-    property bool dragging: false
-    property bool exiting: false
-    property bool exitDone: false
-    property int idHasMenu: -1
-    property int gridIdHasMenu: -1
-    property string currentTitle: ""
-    property string currentUrl: ""
-    property variant currentModel
-  }
-
-  BookmarkListParallaxView {
-    id: parallax
-    width: bmlistContainer.width; height: bmlistContainer.height - headContainer.height
+  Loader {
+    id: listLoader
+    parent: bookmarkListRoot
+    width: parent.width; height: parent.height - topContainer.height
     anchors { top: topContainer.bottom }
-
-    Item {
-      property url icon: "image://themedimage/images/browser/icn_bookmarkbar"
-      property string text: bookmarkBarFolderName
-      width: parallax.width; height: parallax.height
-      BookmarkListGridContainer {
-        id: barContainer  // Items from bookmark bar
-        model: bookmarkBarListModel
-        anchors.fill: parent
-      }
-    }
-
-    Item {
-      property url icon: "image://themedimage/images/browser/icn_otherbookmarks"
-      property string text: bookmarkBarOtherFolderName
-      width: parallax.width; height: parallax.height
-      BookmarkListGridContainer {
-        id: othersContainer  // Items from bookmark folder others
-        model: bookmarkOthersListModel
-        anchors.fill: parent
-      }
-    }
+    source: portrait ? "BookmarkListTreeAll.qml" : bmGlobal.gridShow ? "BookmarkListGridList.qml" : "BookmarkListTreeList.qml"
   }
 
   Item {
     id: topContainer
     width: parent.width
-    height: 60
-    Rectangle {
+    height: headHeight
+    Image {
       anchors.fill: parent
-      color: "lightgray"
+      source: "image://themedimage/images/bg_application_p"
     }
 
     Item {
       id: backButton
-      anchors { left: parent.left; top: parent.top; topMargin: 25 }
-      width: 36; height: width
+      anchors { left: headTextContainer.right; leftMargin: bmGlobal.leftMargin; verticalCenter: headTextContainer.verticalCenter }
+      width: 36; height: head.height*2
       property bool pressed: false
       Image {
         id: backButtonIcon
@@ -167,31 +161,39 @@ Item {
       anchors.fill: backButton
       onPressed: backButton.pressed = true
       onReleased: backButton.pressed = false
-      onClicked: barContainer.model.backButtonTapped()
+      onClicked: bookmarkBarListModel.backButtonTapped()
     }
 
     Item {
-      id: headContainer
-      anchors { left: backButton.right; leftMargin: 10; top: backButton.top }
-      width: 270; height: parent.height
+      id: headTextContainer
+      anchors { left: parent.left; leftMargin: bmGlobal.leftMargin; top: parent.top }
+      width:head.width; height: headTextHeight
       Text {
         id: head
-        width: parent.width; height: parent.height
+        anchors { verticalCenter: parent.verticalCenter }
         text: bookmarkManagerTitle
-        font { bold: true; pixelSize: 28 }
+        font { pixelSize: headTextPixel }
       }
     }
 
     TextEntry {
       id: searchBox
-      width: bmlistContainer.width-headContainer.width-backButton.width-40; height: headContainer.height*4/5
-      anchors { left: headContainer.right; leftMargin: 10; verticalCenter: backButton.verticalCenter }
+      width: parent.width / 2
+      height: headHeight - headTextHeight - bottomMargin
+      anchors { top: headTextContainer.bottom; left: parent.left; leftMargin: bmGlobal.leftMargin } //verticalCenter: backButton.verticalCenter }
       defaultText: bookmarkManagerSearchHolder
       onTextChanged: {
-        barContainer.model.textChanged(text);
-        othersContainer.model.textChanged(text);
+        if (portrait) {
+          listLoader.item.model.textChanged(text);
+        } else {
+          listLoader.item.barContainer.model.textChanged(text);
+          listLoader.item.othersContainer.model.textChanged(text);
+        }
       }
     }
+
+    Rectangle {            color: "#bac4c8"; height: 1; anchors { bottom: wedge.top;           left: parent.left; right: parent.right } }
+    Rectangle { id: wedge; color: "#ebebeb"; height: 1; anchors { bottom: topContainer.bottom; left: parent.left; right: parent.right } }
   }
 
   ModalDialog {
@@ -203,12 +205,13 @@ Item {
     cancelButtonText: qsTr("Cancel")
     content: Text {
       text: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
+      //text: qsTr("Are you sure you want to delete " + bmGlobal.currentTitle.toString().substring(0,30) + " id is " + bmGlobal.idxHasMenu + "\"?");
       anchors.fill: parent
       anchors.margins: 20
       wrapMode: Text.WordWrap
     }
     onAccepted: {
-      bmGlobal.currentModel.remove(bmGlobal.idHasMenu)
+      bmGlobal.currentModel.remove(bmGlobal.idxHasMenu)
     }
   }
 
@@ -239,8 +242,8 @@ Item {
       }
     }
     onAccepted: {
-      if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.gridIdHasMenu, tmpTitle);
-      if (tmpUrl != "")   bmGlobal.currentModel.urlChanged  (bmGlobal.gridIdHasMenu, tmpUrl);
+      if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.idHasMenu, tmpTitle);
+      if (tmpUrl != "")   bmGlobal.currentModel.urlChanged(bmGlobal.idHasMenu, tmpUrl);
     }
   }
 }

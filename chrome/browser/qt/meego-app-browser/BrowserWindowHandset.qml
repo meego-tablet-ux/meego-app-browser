@@ -283,6 +283,7 @@ Item {
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
             onOpenBookmarkManager: {
                 bookmarkManagerLoader.source = "BookmarkList.qml"
+                bookmarkManagerLoader.item.portrait = !isLandscapeView()
             }
         }
         Connections {

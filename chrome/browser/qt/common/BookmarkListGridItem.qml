@@ -76,13 +76,14 @@ Component{
                         }
                     }
                 ]
+                //Rectangle { color: "lightgreen"
                 Item {  // container of click to page mousearea
                     id: clickerContainer
                     anchors.top: snapshot.top
                     width: snapshot.width; height: snapshot.height - titleContainer.height - urlContainer.height
                     visible: true
                     MouseArea {
-                        enabled: !bmGlobal.dialoging
+                    //    enabled: !bmGlobal.dialoging
                         anchors.fill: parent
                         onClicked: {
                     //        bmGlobal.exiting = true
@@ -91,13 +92,14 @@ Component{
                           grid.model.openBookmarkItem(gridId);
                         }
                         onPressAndHold: {
-                          var map = mapToItem(parallax, mouseX, mouseY);
-                          map.y-=25;
-                          bmGlobal.idHasMenu = grid.indexAt(map.x, map.y)
-                          bmGlobal.gridIdHasMenu = gridId
+                          var map = mapToItem(bookmarkListRoot, mouseX, mouseY);
+                          //map.y-=115;
+                          bmGlobal.idxHasMenu = grid.indexAt(map.x-parallax.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
+                          bmGlobal.idHasMenu = gridId
                           bmGlobal.currentTitle = title
                           bmGlobal.currentUrl = url
                           grid.model.popupMenu(map.x, map.y)
+                          console.log("hdq press and hold ", bmGlobal.idxHasMenu, map.x, map.y, gridId)
                         }
                     }
                 }
@@ -130,73 +132,6 @@ Component{
                 color: "white"; font.pixelSize: 13;
                 anchors { left: urlContainer.left; top: urlContainer.top; leftMargin: itemMargin/2; topMargin: itemMargin/8 }
             }
-//            BookmarkListEditBox {
-//                id: titleEdit
-//                label: titleText.text
-//                anchors.fill: titleContainer
-//                fontsize: titleText.font.pixelSize
-//                visible: false
-//                //onLabelChanged: {  // this can support instant update without clicking Done button
-//                //    console.log("*************************************************** title changed with title ", label, " current id", gridId);
-//                //    titleText.text = label;
-//                //    grid.model.titleChanged(gridId, label);
-//                //}
-//            }
-//            BookmarkListEditBox {
-//                id: urlEdit
-//                label: urlText.text
-//                anchors.fill: urlContainer
-//                fontsize: urlText.font.pixelSize
-//                visible: false
-//                onLabelChanged: {
-//                    urlText.text = label;
-//                    grid.model.urlChanged(gridId, label);
-//                }
-//            }
-//            BookmarkListButton {
-//                id: editContainer; text: "Edit"
-//                anchors { right: parent.right; bottom: parent.bottom; margins: itemMargin }
-//                visible: true
-//                onClicked: {
-//                    titleContainer.visible = false; titleEdit.visible = true;
-//                    urlContainer.visible = false; urlEdit.visible = true;
-//                    editContainer.visible = false; editdoneContainer.visible = true;
-//                }
-//            }
-//            BookmarkListButton {
-//                id: editdoneContainer; text: "Done"
-//                anchors.fill: editContainer
-//                visible: false
-//                onClicked: {
-//                    grid.model.titleChanged(gridId, titleEdit.label);
-//                    grid.model.urlChanged(gridId, urlEdit.label);
-//                    titleText.text = titleEdit.label; urlText.text = urlEdit.label;
-//                    titleContainer.visible = true; titleEdit.visible = false;
-//                    urlContainer.visible = true; urlEdit.visible = false;
-//                    editContainer.visible = true; editdoneContainer.visible = false;
-//                }
-//            }
-//            BookmarkListButton {
-//                text: "Reorder"Click
-//                visible: !bmGlobal.enableDrag
-//                anchors { left: item.left; top: item.top; margins: itemMargin }
-//                MouseArea{
-//                    anchors.fill: parent
-//                    onPressed: parent.color = "#9fffff"
-//                    onReleased: parent.color = "lightblue"
-//                    onClicked: {
-//                        bmGlobal.enableDrag = true
-//                    }
-//                }
-//            }
-//            BookmarkListButton {
-//                id: deleteButton
-//                text: "X"
-//                anchors { right: item.right; top: item.top; margins: itemMargin }
-//                onClicked: {
-//                    grid.model.remove(grid.indexAt(main.x, main.y));
-//                }
-//            }
 
             // not working when parent is not gridMouseArea
             Behavior on x {
