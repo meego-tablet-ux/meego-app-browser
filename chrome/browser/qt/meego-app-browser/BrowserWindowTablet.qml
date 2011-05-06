@@ -454,6 +454,7 @@ Item {
                 historyLoader.source = "HistoryBar.qml"
                 //historyLoader.item.historyBarY = toolbar.y + toolbar.height
                 historyLoader.item.showed = true
+				historyLoader.item.itemCount = count
                 historyLoader.item.fingerX= mappedPos.x
                 historyLoader.item.fingerY= mappedPos.y
                 historyLoader.item.parent = outerContent

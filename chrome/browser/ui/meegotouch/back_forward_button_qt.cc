@@ -450,7 +450,7 @@ public:
             }
         }
         model_.show();
-        toolbar_->showHistory();
+        toolbar_->showHistory(count);
     }
 
 private:

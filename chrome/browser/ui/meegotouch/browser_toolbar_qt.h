@@ -85,7 +85,8 @@ class BrowserToolbarQt  : public CommandUpdater::CommandObserver,
  // update backward, forward and backforward buttons
  void updateBfButton(int kind, bool active);
 
- void showHistory();
+// show the history bar and send the history item count
+ void showHistory(int count);
 
  // update title in Omnibox when out of focus
  void UpdateTitle();

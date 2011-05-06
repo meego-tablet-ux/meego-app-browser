@@ -39,6 +39,9 @@ Item {
     id: historyOverlay
     anchors.fill: parent
     property bool showed: false
+	property int itemCount: 0
+	property int commonMargin: 4
+	property int showWidth: (itemCount * 240 + commonMargin*3) < parent.width ? itemCount * 240 + commonMargin*3 : parent.width
     //property alias historyBarY: historyBar.y
     z: 10
     opacity: 0
@@ -73,7 +76,7 @@ Item {
         border.left: 20
         border.right: 20
         border.top: 5
-        width: parent.width
+        width: showWidth
         anchors.top: parent.top
     }
     
@@ -82,7 +85,7 @@ Item {
         anchors.bottom: borderImage2.top
         source: "image://themedimage/images/popupbox_2"
         verticalTileMode: BorderImage.Repeat
-        width: parent.width
+        width: showWidth
         clip: true
         height: parent.height - borderImage1.height - borderImage2.height
         border.left: 20
@@ -93,7 +96,7 @@ Item {
         id: borderImage2
         anchors.bottom: parent.bottom
         source: "image://themedimage/images/popupbox_3"
-        width: parent.width
+        width: showWidth
         border.left: 20
         border.right: 20
         border.bottom: 34

@@ -111,9 +111,9 @@ class BrowserToolbarQtImpl: public QObject
     emit updateBfButton(kind, active);
   }
 
-  void showHistory()
+  void showHistory( int count)
   {
-    emit showHistoryStack();
+    emit showHistoryStack(count);
   }
 
   void goButtonClicked()
@@ -137,7 +137,7 @@ Q_SIGNALS:
   // update reload/stop button
   void updateReloadButton(bool is_loading);
 
-  void showHistoryStack();
+  void showHistoryStack(int count);
 
  private:
   BrowserToolbarQt* toolbar_;
@@ -255,9 +255,9 @@ void BrowserToolbarQt::updateBfButton(int kind, bool active)
   impl_->refreshBfButton(kind, active);
 }
 
-void BrowserToolbarQt::showHistory()
+void BrowserToolbarQt::showHistory(int count)
 {
-  impl_->showHistory();
+  impl_->showHistory(count);
 }
 
 void BrowserToolbarQt::UpdateReloadStopState(bool is_loading, bool force)
