@@ -116,7 +116,7 @@ class FFmpegVideoDecodeEngine : public VideoDecodeEngine {
 #if defined (TOOLKIT_MEEGOTOUCH)
 // _DEV2_H264_
   int InitializeHwEngine(void);
-  int ConfigHwEngine(uint32_t width, uint32_t height, uint32_t format);
+  int ConfigHwEngine(uint32_t width, uint32_t height, uint32_t format, uint32_t refs);
   int CheckStatus(VAStatus status, const char *msg);
   int CopyBufferFrmSurface(scoped_refptr<VideoFrame> video_frame,
                       const AVFrame* frame);

@@ -272,7 +272,7 @@ void FFmpegVideoDecodeEngine::Initialize(
 int FFmpegVideoDecodeEngine::CheckStatus(VAStatus status, const char *msg)
 {
     if (status != VA_STATUS_SUCCESS) {
-        LOG(INFO) << " " << msg << vaErrorStr(status);
+        LOG(ERROR) << " " << msg << vaErrorStr(status);
         return 1;
     }
     return 0;
@@ -1020,7 +1020,7 @@ enum PixelFormat FFmpegVideoDecodeEngine::GetFormatAndConfig(struct AVCodecConte
          * this is a callback , which is invoked by h264.c before 
          * decoding a real slice
          */
-        ret = engine->ConfigHwEngine(avctx->width , avctx->height, VAAPI_H264);
+        ret = engine->ConfigHwEngine(avctx->width , avctx->height, VAAPI_H264, avctx->refs);
         if(0 != ret){
         LOG(INFO) << "func : <ConfigHwEngine> return err " << ret;
         return PIX_FMT_NONE;
@@ -1194,7 +1194,7 @@ int FFmpegVideoDecodeEngine::InitializeHwEngine(void)
  *
  */
 
-int FFmpegVideoDecodeEngine::ConfigHwEngine(uint32_t width, uint32_t height, uint32_t format)
+int FFmpegVideoDecodeEngine::ConfigHwEngine(uint32_t width, uint32_t height, uint32_t format, uint32_t refs)
 {
     VAConfigAttrib attrib;
     VAStatus status;
@@ -1204,12 +1204,15 @@ int FFmpegVideoDecodeEngine::ConfigHwEngine(uint32_t width, uint32_t height, uin
     VAProfile profile = VAProfileH264High;
 
     /*reset */
-    hw_num_surfaces_ = NUM_VIDEO_SURFACES_H264;
+    //hw_num_surfaces_ = NUM_VIDEO_SURFACES_H264;
+    hw_num_surfaces_ = ((refs + 5) < NUM_VIDEO_SURFACES_H264) ? (refs + 5) : NUM_VIDEO_SURFACES_H264;
 
     hw_free_surfaces_head_index_ = 0;
     hw_free_surfaces_[hw_num_surfaces_] = NULL;
 
-    /*FIXED Format : H264 only*/
+    /*FIXED : H264 only, alignment input is needed, I do not why add limitation to this API??*/
+    width = (width + 3) & (~3);
+
     /* Create video surfaces */
     status = vaCreateSurfaces(hw_context_->display, width, height, VA_RT_FORMAT_YUV420,
                               hw_num_surfaces_, hw_surface_ids_);
