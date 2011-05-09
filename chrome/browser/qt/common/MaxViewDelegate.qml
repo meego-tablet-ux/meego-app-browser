@@ -68,19 +68,60 @@ Component{
               width: background.width
 	      height: titleText.height*2
               anchors { left: background.left; bottom: background.bottom}
+
 	      gradient: Gradient {
                   GradientStop { position: 0.0; color: "grey" }
          	  GradientStop { position: 1.0; color: "black" }
       	      }
 
               Text { 
-                    id: titleText
-		    width: titleContainer.width - 8
-                    anchors { left: titleContainer.left; top: titleContainer.top; margins:8 }
-		    text: title
-		    elide: Text.ElideRight
-                    color: "white" 
-		    font.pixelSize: 15
+                id: titleText
+		width: titleContainer.width - 4 - closeIcon.width
+                anchors { left: titleContainer.left; top: titleContainer.top; margins:8 }
+		text: title
+		elide: Text.ElideRight
+                color: "white" 
+                font.pixelSize: theme_fontPixelSizeNormal
+              }
+
+              Image {
+                id: closeIcon
+                height: 83
+                width: height
+                anchors { right: titleContainer.right; top: titleContainer.top; rightMargin:8 }
+                anchors.verticalCenter: parent.verticalCenter
+                source: "image://themedimage/images/notes/icn_close_up"
+                property bool pressed: false
+		visible: gridModel.getCloseButtonState()
+                states: [
+                  State {
+                    name: "pressed"
+                    when: closeIcon.pressed
+                    PropertyChanges {
+                    target: closeIcon
+                    source: "image://themedimage/images/notes/icn_close_dn"
+                    }
+                  }
+                ]
+
+                MouseArea {
+                  anchors.fill: parent
+                  onClicked: {
+                    mouse.accepted = true;
+                    gridModel.removeWebPage(index)
+		    console.log("remove index:" + index);
+                  }
+                  onPressed: {
+                    mouse.accepted = true;
+                    closeIcon.pressed = true
+		    console.log("press index:" + index);
+                  }
+                  onReleased: {
+                    mouse.accepted = true;
+                    closeIcon.pressed = false
+		    console.log("release index:" + index);
+                  }
+                }
               }
 
             }

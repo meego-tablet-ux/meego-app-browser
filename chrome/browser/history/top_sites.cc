@@ -741,8 +741,18 @@ void TopSites::ApplyBlacklistAndPinnedURLs(const MostVisitedURLList& urls,
     int cur_index = IndexOf(urls_copy, url);
     MostVisitedURL tmp;
     if (cur_index < 0) {
+#if !defined(TOOLKIT_MEEGOTOUCH)
       // Pinned URL not in urls.
       tmp.url = url;
+#else
+      // We changed the behavior here.
+      // Remove pinned URL from pinned_urls_ if pinned URL not in urls.
+      // And insert an empty URLs as fillers
+      RemovePinnedURL(url);
+      if (pinned_index > out->size())
+        out->resize(pinned_index);  // Add empty URLs as fillers.
+      continue;
+#endif
     } else {
       tmp = urls_copy[cur_index];
       urls_copy.erase(urls_copy.begin() + cur_index);

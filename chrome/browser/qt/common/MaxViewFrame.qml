@@ -70,25 +70,6 @@ Item {
     }
 
     Image {
-	anchors.left: maxViewLoader.right
-        anchors.top: category.bottom
-	anchors.leftMargin: -(itemHMargin)*2 + 1   //compensation for the grid margin offset
-	width: 300
-	height: maxViewLoader.height
-        fillMode: Image.Stretch
-        source: "image://themedimage/images/bg_application_p"
-    }
-
-    Image {
-	anchors.right: maxViewLoader.left
-        anchors.top: category.bottom
-	width: 300
-	height: maxViewLoader.height
-        fillMode: Image.Stretch
-        source: "image://themedimage/images/bg_application_p"
-    }
-
-    Image {
 	id: category
 	anchors.topMargin: topMargin
 	anchors.top: parent.top
@@ -226,6 +207,7 @@ Item {
 
     		GestureArea {
         	    anchors.fill: parent
+                    z: -6
         	    Tap {}
         	    TapAndHold {}
         	    Pan {}
@@ -243,6 +225,7 @@ Item {
 		    property bool draging: false
 		    property string dragOverId: ""
 		    id: gridMouseArea
+                    z: -5
 		    onClicked: {
 			index = grid.indexAt(mouseX, mouseY);
 			if(index != -1) {
@@ -283,10 +266,9 @@ Item {
 		    onMousePositionChanged: {
 			//console.log("mouseX:" + mouseX + " mouseY:" + mouseY );
 			index = grid.indexAt(mouseX, mouseY);
-			if(index != -1) {
-			//console.log("index:" + index + "longPressId:" + longPressId + "newIndex: " + newIndex);
-			  if (draging && longPressId != "" && index != -1 && index != newIndex)
-			    dragOverId = grid.model.getId(newIndex = index);			
+			if(index != -1 && index != newIndex && draging && longPressId != "") {
+			  //console.log("index:" + index + "longPressId:" + longPressId + "newIndex: " + newIndex);
+			  dragOverId = grid.model.getId(newIndex = index);			
 			}
 		    }
 		}

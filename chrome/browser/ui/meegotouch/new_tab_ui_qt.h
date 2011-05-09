@@ -146,6 +146,10 @@ class NewTabUIQt : public TabStripModelObserver,
     std::string GetDictionaryKeyForURL(const std::string& url);
     
     void SetMostVisistedPage(DictionaryValue* dict, const MostVisitedPage& page);
+
+    void AddBlacklistURL(const GURL& url);
+
+    void RefreshMostVisitedArea();
     
   private:
     Browser* browser_;
@@ -200,7 +204,7 @@ class NewTabUIQtImpl : public QObject {
   public Q_SLOTS:
     //void openWebPage(int index);
 
-//    void updateNewTab();
+    //void updateNewTab();
 
   private:
     NewTabUIQt* new_tab_;
@@ -238,7 +242,10 @@ class MaxViewModel : public QAbstractListModel {
   public Q_SLOTS:
     bool getCollapsedState() { return collapsedState; };
     void setCollapsedState(bool state) { collapsedState = state; };
+    bool getCloseButtonState() { return closeButtonState; };
+    void setCloseButtonState(bool state) { closeButtonState = state; };
     void openWebPage(int index);
+    void removeWebPage(int index);
     QString GetCategoryName();
     void swap(int from, int to);
     void bringToFront(int i);
@@ -246,11 +253,11 @@ class MaxViewModel : public QAbstractListModel {
 
   private:
     QList<MostVisitedPage*> siteInfoList_;
-    // list to hold entries
     QList<ThumbnailEntry*> thumbnailList_;
     QList<FaviconEntry*> faviconList_;
     int returnedImages_;
     bool collapsedState;
+    bool closeButtonState;
     NewTabUIQt* new_tab_;
     QString name_;
     //Add for force reloading image for QML

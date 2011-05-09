@@ -287,6 +287,7 @@ NewTabUIQt::NewTabUIQt(Browser* browser, BrowserWindowQt* window)
     recentlyClosedModel_ = new MaxViewModel(this, NULL, QString(RECENTLY_CLOSED));
     //Expand recently closed area defaully
     //recentlyClosedModel_->setCollapsedState(true);
+    recentlyClosedModel_->setCloseButtonState(false);
 
     QDeclarativeView* view = window_->DeclarativeView();
     QDeclarativeContext *context = view->rootContext();
@@ -397,11 +398,10 @@ bool NewTabUIQt::shouldDisplay() {
 }
 
 void NewTabUIQt::OnMostVisitedURLsAvailable(
-    const history::MostVisitedURLList &data) {
+                         const history::MostVisitedURLList &data) {
     //DLOG(INFO)<<__FUNCTION__;
     std::vector<MostVisitedPage*> pData;
     int size = data.size();
-    //DLOG(INFO)<<__FUNCTION__<<size;
     for (size_t i = 0; i < size; i++) {
 	const history::MostVisitedURL& mvp = data[i];	
         MostVisitedPage* page = new MostVisitedPage();
@@ -445,9 +445,14 @@ void NewTabUIQt::handleMostVisitedPageData(std::vector<MostVisitedPage*>* data) 
     }
 */
 
+/*  
+    // The sync work will be handled inside TopSites.
     std::vector<MostVisitedPage*> newData;
     syncWithPinnedPage(data, &newData);
+*/
+
 /*
+    // Checking whether refresh display
     bool changed = false;
     int oldCount = mostVisitedModel_->rowCount();
     if(oldCount == 8) {
@@ -465,14 +470,14 @@ void NewTabUIQt::handleMostVisitedPageData(std::vector<MostVisitedPage*>* data) 
 
     if(changed)
 */
-        mostVisitedModel_->updateContent(&newData);
+        mostVisitedModel_->updateContent(data);
 
     if(isAboutToShow_) {
         impl_->show();
     }
 
     //updateDataModel();
-
+/*
     //TODO: delete *data here!!!
     int count = newData.size();
     for(int i=0; i<count; i++) {
@@ -480,6 +485,7 @@ void NewTabUIQt::handleMostVisitedPageData(std::vector<MostVisitedPage*>* data) 
         delete page;
     }
     newData.clear();
+*/
 }
 
 void NewTabUIQt::syncWithPinnedPage(std::vector<MostVisitedPage*>* data,
@@ -566,16 +572,14 @@ void NewTabUIQt::HandleAddPinnedURL(MostVisitedPage* data, int index) {
 }
 
 void NewTabUIQt::AddPinnedURL(const MostVisitedPage& page, int index) {
-//Still use old way to save pinned url.
 
-/*
   history::TopSites* ts = browser_->GetProfile()->GetTopSites();
   if (ts){
     ts->AddPinnedURL(page.url, index);
     return;
   }
-*/
 
+/*
   // Remove any pinned URL at the given index.
   MostVisitedPage old_page;
   if (GetPinnedURLAtIndex(index, &old_page)) {
@@ -587,10 +591,7 @@ void NewTabUIQt::AddPinnedURL(const MostVisitedPage& page, int index) {
   new_value->SetString("url", page.url.spec());
   new_value->SetInteger("index", index);
   pinned_urls_->Set(GetDictionaryKeyForURL(page.url.spec()), new_value);
-
-  // TODO(arv): Notify observers?
-
-  // Don't call HandleGetMostVisited. Let the client call this as needed.
+*/
 }
 
 bool NewTabUIQt::GetPinnedURLAtIndex(int index,
@@ -630,23 +631,18 @@ bool NewTabUIQt::GetPinnedURLAtIndex(int index,
 }
 
 void NewTabUIQt::RemovePinnedURL(const GURL& url) {
-//Still use old way to save pinned url.
 
-/*
   history::TopSites* ts = browser_->GetProfile()->GetTopSites();
   if (ts) {
     ts->RemovePinnedURL(url);
     return;
   }
-*/
 
+/*
   const std::string key = GetDictionaryKeyForURL(url.spec());
   if (pinned_urls_->HasKey(key))
     pinned_urls_->Remove(key, NULL);
-
-  // TODO(arv): Notify observers?
-
-  // Don't call HandleGetMostVisited. Let the client call this as needed.
+*/
 }
 
 std::string NewTabUIQt::GetDictionaryKeyForURL(const std::string& url) {
@@ -748,6 +744,17 @@ void NewTabUIQt::StartQueryForMostVisited() {
   }
 }
 
+void NewTabUIQt::AddBlacklistURL(const GURL& url) {
+  history::TopSites* ts = browser_->GetProfile()->GetTopSites();
+  if (ts)
+    ts->AddBlacklistedURL(url);
+}
+
+// This method is added for close thumbanails function.
+void NewTabUIQt::RefreshMostVisitedArea() {
+  StartQueryForMostVisited();
+}
+
 MaxViewImageProvider* NewTabUIQt::getImageProviderByName(QString name) {
     if(name == MOST_VISITED)
         return mostVisitedImageProvider_;
@@ -761,7 +768,8 @@ MaxViewModel::MaxViewModel(NewTabUIQt* tab, std::vector<MostVisitedPage*>* data,
         new_tab_(tab),
         updateTimes_(0),
         name_(name),
-        collapsedState(false) {
+        collapsedState(false),
+        closeButtonState(true) {
   QHash<int, QByteArray> roles;
   roles[UrlRule] = "url";
   roles[TitleRule] = "title";
@@ -911,12 +919,15 @@ void MaxViewModel::openWebPage(int index) {
         new_tab_->getBrowser()->OpenURL(getItemURL(index), GURL(),
                 CURRENT_TAB, PageTransition::LINK);
     }
-    //TODO: UserMetrics????
-    //UserMetrics::RecordAction(UserMetricsAction("ClickedBookmarkBarURLButton"),
-    //                    browser_->profile());
-
 }
 
+void MaxViewModel::removeWebPage(int index) {
+    GURL url = getItemURL(index);
+    if(url != GURL(EMPTY_PAGE)) {
+	new_tab_->AddBlacklistURL(url);
+	new_tab_->RefreshMostVisitedArea();
+    }
+}
 void MaxViewModel::bringToFront(int i) {
     MostVisitedPage* siteInfoItem = siteInfoList_[i];
     beginRemoveRows(QModelIndex(), i, i);
