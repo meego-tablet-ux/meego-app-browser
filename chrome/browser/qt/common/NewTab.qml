@@ -47,28 +47,6 @@ Item {
       anchors.fill: parent
       color: "#2CACE3"
       radius: 4
-      /*
-      Image {
-        id: addbutton
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.margins: 10
-        height: parent.height
-        width: height
-        anchors.left: parent.left
-        source: "image://themedimage/images/browser/icn_add_up"
-	      property bool pressed: false
-        states: [
-          State {
-            name: "pressed"
-            when: addbutton.pressed
-            PropertyChanges{
-              target: addbutton
-              source: "image://themedimage/images/browser/icn_add_dn"
-            }
-          }
-        ]
-      }
-      */
       Text { 
         //anchors.left: addbutton.right
         //anchors.margins: 10
@@ -82,7 +60,6 @@ Item {
       }
       MouseArea {
         anchors.fill: parent
-        onPressed: { addbutton.pressed = true}
         onReleased: { mouse.accepted = true; if (newTabContainer.newTabEnabled) tabSideBarModel.newTab()}
       }
     }
