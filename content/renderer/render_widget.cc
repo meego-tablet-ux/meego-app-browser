@@ -211,6 +211,7 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_QueryEditorSurroundingText, OnQueryEditorSurroundingText)
     IPC_MESSAGE_HANDLER(ViewMsg_SetPreferredSize, OnSetPreferredSize)
     IPC_MESSAGE_HANDLER(ViewMsg_PaintTile, OnMsgPaintTile)
+    IPC_MESSAGE_HANDLER(ViewMsg_QueryElementAreaAt, OnQueryElementAreaAt);
 #endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
@@ -447,6 +448,19 @@ void RenderWidget::OnSetFocus(bool enable) {
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+void RenderWidget::OnQueryElementAreaAt(const gfx::Point& pos,
+                                        const gfx::Size& size,
+                                        gfx::Rect* rect)
+{
+  if(webwidget_)
+  {
+    WebRect area = webwidget_->queryElementAreaAt(pos.x(), pos.y(), 
+                                                  size.width(),
+                                                  size.height());
+    *rect = gfx::Rect(area);
+  }
+}
+
 void RenderWidget::OnSetScaleFactor(double factor)
 {
   if(scale_ == factor) return;

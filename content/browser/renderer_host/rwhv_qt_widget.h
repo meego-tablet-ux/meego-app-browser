@@ -112,6 +112,7 @@ protected Q_SLOTS:
   void handleInputMethodAreaChanged(const QRect &newArea);
   void onSizeAdjusted();
   void onAnimationFinished();
+  void onDoubleTapped();
   void onClicked();
  private:
 
@@ -149,7 +150,7 @@ protected Q_SLOTS:
   void panGestureEvent(QGestureEvent* event, QPanGesture* gesture);
   void pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture);
 
-  void zoom2TextAction(const QPointF&);
+  void doubleTapAction(const QPointF&);
   void scrollAndZoomForTextInput(const QRect& caret_rect, bool animation);
   // selection
   SelectionHandlerID findSelectionHandler(int x, int y);
@@ -230,6 +231,10 @@ protected Q_SLOTS:
 
   // whether scrolling scrollable area
   bool is_scrolling_scrollable_;
+
+  // double tap
+  bool is_doing_double_tap_;
+  QPropertyAnimation* scale_animation_;
 
   // Current scale factor
   qreal scale_;

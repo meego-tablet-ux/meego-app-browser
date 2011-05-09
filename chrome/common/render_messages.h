@@ -360,6 +360,11 @@ IPC_MESSAGE_ROUTED4(ViewHostMsg_PaintTile_ACK,
                     gfx::Rect /* pixmap rect */)
 
 IPC_MESSAGE_ROUTED1(ViewHostMsg_SetScrollPosition, gfx::Point)
+
+IPC_SYNC_MESSAGE_ROUTED2_1(ViewMsg_QueryElementAreaAt,
+                           gfx::Point, /* (x, y) */
+                           gfx::Size,  /* (max_width, max_height) */
+                           gfx::Rect); /* area returned */
 #endif
 
 IPC_MESSAGE_CONTROL1(ViewHostMsg_UpdatedCacheStats,

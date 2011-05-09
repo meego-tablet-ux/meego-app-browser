@@ -851,6 +851,14 @@ void RenderWidgetHost::QueryZoomFactor(double& factor) {
 		  10000);
 }
 
+void RenderWidgetHost::QueryElementAreaAt(const gfx::Point& pos,
+                                          const gfx::Size& size,
+                                          gfx::Rect& rect)
+{
+  SendWithTimeout(new ViewMsg_QueryElementAreaAt(routing_id(), pos, size, &rect),
+      4000);
+}
+
 int RenderWidgetHost::PaintContents(TransportDIB::Handle dib_handle,
 				     const gfx::Rect& rect) {
   int retval = 0;

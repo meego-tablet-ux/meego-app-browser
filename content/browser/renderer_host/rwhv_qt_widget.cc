@@ -61,6 +61,7 @@ static const qreal kMinContentsScale = 1.0;
 static const qreal kMaxPinchScale = 10;
 static const qreal kMinPinchScale = 0.5;
 static const qreal kNormalContentsScale = 1.0;
+static const qreal kMaxDoubleTapScale = 1.6;
 static const int kRebouceDuration = 200;
 static const int kScrollDuration = 200;
 
@@ -106,6 +107,12 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   hold_paint_ = false;
   is_inputtext_selection_ = false;
   is_scrolling_scrollable_ = false;
+
+  // double tap
+  is_doing_double_tap_ = false;
+   
+  scale_animation_ = new QPropertyAnimation(this, "scale", this);
+  connect(scale_animation_, SIGNAL(finished()), this, SLOT(onDoubleTapped()));
   
   // Create animation for rebounce effect 
   rebounce_animation_ = new QPropertyAnimation(this, "scale", this);
@@ -644,7 +651,7 @@ bool RWHVQtWidget::event(QEvent *event)
   //   //   " GraphicsSceneMouseDoubleClick" << std::endl;
   //   {
   //     QGraphicsSceneMouseEvent* e = (QGraphicsSceneMouseEvent*)event;
-  //     zoom2TextAction(e->pos());
+  //     doubleTapAction(e->pos());
   //   }
   //   break;
   case QEvent::Gesture:
@@ -942,7 +949,7 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
       if (length < 40) {
         DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
         if (!isDoingGesture() && !is_enabled_) {
-          zoom2TextAction(event->pos());
+          doubleTapAction(event->pos());
           if (delay_for_click_timer_->isActive()) {
             delay_for_click_timer_->stop();
           }
@@ -1006,7 +1013,7 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
       if (length < 40) {
         DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
-        zoom2TextAction(event->pos());
+        doubleTapAction(event->pos());
 
         return;
       }
@@ -1408,30 +1415,244 @@ QVariant RWHVQtWidget::inputMethodQuery(Qt::InputMethodQuery query) const
   }
 }
 
-void RWHVQtWidget::zoom2TextAction(const QPointF& pos)
+// Handler of double tap:
+// When user double-tap at the postion (x,y), browser sends
+// a query request to render process to get the element area
+// at (x, y), and the best scale factor is calculated from
+// the element area, screen size and webview size. 
+void RWHVQtWidget::doubleTapAction(const QPointF& pos)
 {
+  if(is_doing_double_tap_) return;
+  
   RenderWidgetHost* host = hostView()->host_;
-  WebKit::WebSettings::LayoutAlgorithm algo =
-    host->GetLayoutAlgorithm();
+  if(!host) return;
+  
+  gfx::Rect rect;
+  QGraphicsObject* viewport_item = GetViewportItem();
+  QGraphicsObject* webview_item = GetWebViewItem();
 
-  double factor;
-  host->QueryZoomFactor (factor);
+  QPointF click_pos = viewport_item->mapFromItem(webview_item, pos);
 
-  if (algo == WebKit::WebSettings::kLayoutNormal) {
-    host->Zoom2TextPre(static_cast<int>(pos.x() / scale_), static_cast<int>(pos.y() / scale_));
-    factor = 2;
-    host->SetLayoutAlgorithm(WebKit::WebSettings::kLayoutFitColumnToScreen);
-    host->SetZoomFactor(factor);
-    host->Zoom2TextPost();
-  } else {
-    factor = 1;
-    host->Zoom2TextPre(static_cast<int>(pos.x() / scale_), static_cast<int>(pos.y() / scale_));
-    host->SetLayoutAlgorithm(WebKit::WebSettings::kLayoutNormal);
-    host->SetZoomFactor(factor);
-    host->Zoom2TextPost();
+  // Get the viewport rectangle of flickable widget
+  QRectF viewport_rect = viewport_item->boundingRect();
+  // Get the web view rectagle
+  QRectF webview_rect = webview_item->boundingRect();
+ 
+  // Query the element area at the click point
+  gfx::Size real_size = gfx::Size(viewport_rect.width()/kMaxDoubleTapScale, 
+                                  viewport_rect.height()/kMaxDoubleTapScale);
+  host->QueryElementAreaAt(gfx::Point(pos.x()/scale_, pos.y()/scale_), 
+                           real_size, rect);
+                           
+  // Freeze the backing store and prepare scaling RWHV widget
+  BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+      host->GetBackingStore(false));
+  backing_store->SetFrozen(true);
+
+  // Remember content XY of flickable
+  pinch_start_pos_ = QPointF(-viewport_item->property("contentX").toInt(),
+                             -viewport_item->property("contentY").toInt());
+
+  pending_scale_ = viewport_rect.width()/(rect.width()*scale_);
+
+  pending_scale_ = qMin((qreal)flatScaleByStep(pending_scale_), kMaxDoubleTapScale);
+
+  if(pending_scale_ < kNormalContentsScale 
+      && scale_ == kNormalContentsScale) return;
+
+  pinch_scale_factor_ = pending_scale_/scale_;
+
+  QRectF r0; // area of viewport rectangle, says screen area
+  QRectF r1; // area of element to be zoomed in/out
+  QRectF r2; // area of webview rectangle
+  QPointF pCenter; // center point for scaling
+
+  // Zoom out the element
+  if(pinch_scale_factor_ < 1.2) {
+    pending_scale_ = 1.0;;
+    pinch_scale_factor_ = pending_scale_/scale_;
+    if(pinch_scale_factor_ == 1.0) return;
+    
+    r0 = QRectF(viewport_rect.x(), viewport_rect.y(), 
+                viewport_rect.width(), viewport_rect.height());
+
+    QPointF elem_topLeft = QPointF(rect.x()*scale_, rect.y()*scale_);
+    QPointF p1 = viewport_item->mapFromItem(webview_item, elem_topLeft);
+    r1 = QRectF(qMax(p1.x(), 0.0), 
+                qMax(p1.y(), 0.0), 
+                qMin(rect.width()*scale_,viewport_rect.width()),
+                qMin(rect.height()*scale_, viewport_rect.height()));
+
+    QPointF p2 = viewport_item->mapFromItem(webview_item, webview_rect.topLeft());
+    r2 = QRectF(p2.x(), p2.y(), webview_rect.width(), webview_rect.height());
+
+    // Horizontal Adjustment
+    if(r0.width() == r2.width()) {
+      pCenter.setX(click_pos.x());
+    }
+    // Left overflow of webview is less than the right overflow 
+    // relative to viewport
+    else if(qAbs(r2.x() - r0.x()) < qAbs(r0.x() + r0.width() - (r2.x() + r2.width())))
+    {
+      // Use the center of element as scale center point in case
+      // of the left edge of webview is still overflow after 
+      // zooming out.
+      if(qAbs((r1.x() + r1.width()/2 - r2.x())*pinch_scale_factor_) >
+          qAbs(r1.x() + r1.width()/2 - r0.x()))
+        pCenter.setX(r1.x()+r1.width()/2);
+      // Otherwise, calculate the center point to make sure that
+      // the left edge of webview can align exactly with the left 
+      // edge of viewport rectangle.
+      else 
+        pCenter.setX((pinch_scale_factor_*r2.x() - r0.x())/(pinch_scale_factor_-1));
+    }
+    // Left overflow of webview is greater than the right overflow
+    // Instead take the right edge into consideration
+    else if(qAbs(r2.x() - r0.x()) > 
+        qAbs(r0.x() + r0.width() - (r2.x() + r2.width())))
+    {
+      if(qAbs((r2.x()+r2.width()-r1.x()-r1.width()/2 )*pinch_scale_factor_) >= 
+          qAbs(r0.x()+r0.width()-r1.x()-r1.width()/2))
+        pCenter.setX(r1.x() + r1.width() /2);
+      else
+        pCenter.setX((pinch_scale_factor_*(r2.x() + r2.width()) - 
+              (r0.x() + r0.width()))/(pinch_scale_factor_-1));
+    }
+    // In case of left overflow equals to right overflow relative to viewport
+    // Use the center point of webview
+    else {
+      pCenter.setX(r2.x()+r2.width()/2);
+    }
+
+    // Vertical adjustment 
+    if(r0.height() == r2.height())
+    {
+      pCenter.setY(click_pos.y());
+    }
+    else if(qAbs(r2.y() - r0.y()) < 
+        qAbs(r0.y() + r0.height() - (r2.y() + r2.height())))
+    {
+      if(qAbs((r1.y() + r1.height()/2 - r2.y())*pinch_scale_factor_) > 
+          qAbs(r1.y() + r1.height()/2 - r0.y()))
+        pCenter.setY(r1.y() + r1.height() / 2);
+      else
+        pCenter.setY((pinch_scale_factor_*r2.y() - r0.y())/(pinch_scale_factor_-1));
+    } 
+    else if(qAbs(r2.y() - r0.y()) >
+        qAbs(r0.y() + r0.height() - (r2.y() + r2.height()))){
+      if(qAbs((r2.y()+r2.height()-r1.y()-r1.height()/2 )*pinch_scale_factor_) >= 
+          qAbs(r0.y()+r0.height()-r1.y()-r1.height()/2))
+        pCenter.setY(r1.y() + r1.height() /2);
+      else
+        pCenter.setY((pinch_scale_factor_*(r2.y() + r2.height()) -
+              (r0.y() + r0.height()))/(pinch_scale_factor_-1));
+    } 
+    else {
+      pCenter.setY(r2.y() + r2.height()/2);
+    }
+  } 
+  // Zoom in the element
+  else {
+    r0 = QRectF(viewport_rect.x(), viewport_rect.y(), 
+                viewport_rect.width(), viewport_rect.height() );
+
+    QPointF elem_topLeft = QPointF(rect.x()*scale_, rect.y()*scale_);
+    QPointF p1 = viewport_item->mapFromItem(webview_item, elem_topLeft);
+    r1= QRectF(qMax(p1.x(), 0.0), qMax(p1.y(), 0.0), 
+              qMin(rect.width()*scale_, viewport_rect.width()),
+              qMin(rect.height()*scale_, viewport_rect.height()));
+
+    // Horizontal adjustment
+    if(r0.width() == r1.width()) {
+      pCenter.setX(click_pos.x());
+    }
+    else if(qAbs(r1.x() - r0.x()) < 
+        qAbs(r0.x() + r0.width() - (r1.x() + r1.width())))
+    {
+      if(qAbs(r1.width()*(pinch_scale_factor_-1)/2) < qAbs(r1.x() - r0.x()))
+        pCenter.setX(r1.x()+r1.width()/2);
+      else 
+        pCenter.setX((pinch_scale_factor_*r1.x() - r0.x())/(pinch_scale_factor_-1));
+    } else if(qAbs(r1.x() - r0.x()) > qAbs(r0.x() + r0.width() - (r1.x() + r1.width()))) {
+      if(qAbs(r1.width()*pinch_scale_factor_/2) < 
+          qAbs(r0.x() + r0.width() - r1.x() - r1.width()/2))
+        pCenter.setX(r1.x() + r1.width() /2);
+      else
+        pCenter.setX((pinch_scale_factor_*(r1.x() + r1.width()) - 
+              (r0.x() + r0.width()))/(pinch_scale_factor_-1));
+    } else {
+      pCenter.setX(r1.x()+r1.width()/2);
+    }
+
+    // Vertical adjustment
+    if(r0.height() == r1.height())
+    {
+      pCenter.setY(click_pos.y());
+    }
+    else if(qAbs(r1.y() - r0.y()) < 
+        qAbs(r0.y() + r0.height() - (r1.y() + r1.height())))
+    {
+      if(qAbs(r1.height()*(pinch_scale_factor_-1)/2) < qAbs(r1.y() - r0.y()))
+        pCenter.setY(r1.y() + r1.height() / 2);
+      else
+        pCenter.setY((pinch_scale_factor_*r1.y() - r0.y())/(pinch_scale_factor_-1));
+    } else if(qAbs(r1.y() - r0.y()) > qAbs(r0.y() + r0.height() - (r1.y() + r1.height()))){
+      if(qAbs(r1.height()*pinch_scale_factor_/2) < 
+          qAbs(r0.y() + r0.height() - r1.y() - r1.height()/2))
+        pCenter.setY(r1.y() + r1.height() /2);
+      else
+        pCenter.setY((pinch_scale_factor_*(r1.y() + r1.height()) - 
+              (r0.y() + r0.height()))/(pinch_scale_factor_-1));
+    } else {
+      pCenter.setY(r1.y() + r1.height()/2);
+    }
   }
+  
+  is_doing_double_tap_ = true;
+ 
+  // Set scale center point and transform point
+  pinch_center_ = pCenter;
+  QPointF center = viewport_item->mapToItem(webview_item, pinch_center_);
+  setTransformOriginPoint(center);
+
+  topLeft_ = QPointF(-viewport_item->property("contentX").toInt(),
+                  -viewport_item->property("contentY").toInt());
+   
+  host_view_->host_->SetScaleFactor(pending_scale_);
+
+  this->SetScaleFactor(pending_scale_);
+
+  scale_animation_->setDuration(200);
+  scale_animation_->setStartValue(1.0);
+  scale_animation_->setEndValue(pinch_scale_factor_);
+  scale_animation_->start();
+  pinch_completing_ = true;
+ return;
+
 }
 
+void RWHVQtWidget::onDoubleTapped()
+{
+  QGraphicsObject* viewport_item = GetViewportItem();
+  QGraphicsObject* webview_item = GetWebViewItem();
+  if (!viewport_item)
+    return;
+ 
+  if (viewport_item)
+  {
+    QPointF center = pinch_center_;
+    DLOG(INFO) << "Web view pinch center " << center.x() << " " << center.y();
+    QPointF distance = pinch_start_pos_ - center;
+    pending_webview_rect_ = QRectF(
+        QPointF(distance * pinch_scale_factor_ + center + (topLeft_ - pinch_start_pos_)),
+        size() * pinch_scale_factor_);
+   }
+
+  UnFrozen();
+
+  is_doing_double_tap_ = false;
+}
+ 
 bool RWHVQtWidget::setDoingGesture(Qt::GestureType type)
 {
   ///\todo we might also detect gesture priority here?

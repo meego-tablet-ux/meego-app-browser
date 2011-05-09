@@ -401,6 +401,7 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   double GetScaleFactor () const;
   void SetScaleFactor (double factor);
   void QueryZoomFactor(double& factor);
+  void QueryElementAreaAt(const gfx::Point& pos, const gfx::Size& size, gfx::Rect& rect);
   void SetScrollPosition (int x, int y);
   int PaintContents(TransportDIB::Handle dib_handle, const gfx::Rect& rect);
   WebKit::WebSettings::LayoutAlgorithm GetLayoutAlgorithm();

@@ -225,6 +225,9 @@ class RenderWidget : public IPC::Channel::Listener,
                       const gfx::Rect& rect,
                       const gfx::Rect& pixmap_rect);
   void OnSetPreferredSize(const gfx::Size& size);
+  void OnQueryElementAreaAt(const gfx::Point& pos,
+                                        const gfx::Size& size,
+                                        gfx::Rect* rect);
  #endif
 
   // Override point to notify derived classes that a paint has happened.
