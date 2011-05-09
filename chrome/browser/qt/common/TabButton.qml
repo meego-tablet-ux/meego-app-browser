@@ -80,6 +80,7 @@ Item {
       var map = mapToItem(scene, px, py);
       scene.lastMousePos.mouseX = map.x;
       scene.lastMousePos.mouseY = map.y;
+      tabButton.focus = true;
       browserToolbarModel.tabButtonClicked()
     }
     onPressed: tabIcon.pressed = true
