@@ -280,10 +280,12 @@ Item {
                 if(is_loading){
                     processIndicator.visible = true;
                     starButton.visible = false;
+                    urlTextInput.anchors.right = processIndicator.left
                 }
                 else{
                     processIndicator.visible = false;
                     starButton.visible = true;
+                    urlTextInput.anchors.right = starButton.left
                 }
             }
         }
