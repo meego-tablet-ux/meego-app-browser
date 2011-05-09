@@ -34,6 +34,7 @@
 #include "ui/base/l10n/l10n_util.h"
 #include "grit/generated_resources.h"
 
+#include <QString>
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
 
@@ -73,12 +74,12 @@ void FullscreenExitBubbleQt::InitWidgets() {
 
   context->setContextProperty("fullscreenBubbleObject", impl_);
 
-  QString label = QString::fromStdString(l10n_util::GetStringUTF8(IDS_EXIT_FULLSCREEN_MODE));
+  QString label = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_EXIT_FULLSCREEN_MODE).c_str());
   label.replace(QString("($1)"), QString(""));
 
   context->setContextProperty("fullscreenBubbleLabel", label);
-  context->setContextProperty("fullscreenBubbleYes", QString::fromStdString(l10n_util::GetStringUTF8(IDS_CONFIRM_MESSAGEBOX_YES_BUTTON_LABEL)));
-  context->setContextProperty("fullscreenBubbleNo", QString::fromStdString(l10n_util::GetStringUTF8(IDS_CONFIRM_MESSAGEBOX_NO_BUTTON_LABEL)));
+  context->setContextProperty("fullscreenBubbleYes", QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CONFIRM_MESSAGEBOX_YES_BUTTON_LABEL).c_str()));
+  context->setContextProperty("fullscreenBubbleNo", QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CONFIRM_MESSAGEBOX_NO_BUTTON_LABEL).c_str()));
 }
 
 FullscreenExitBubbleQtImpl::FullscreenExitBubbleQtImpl(FullscreenExitBubbleQt* bubble)
