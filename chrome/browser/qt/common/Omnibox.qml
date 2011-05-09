@@ -137,8 +137,8 @@ Item {
       onActiveFocusChanged: {
         if (activeFocus == true){
           autocompleteEditViewModel.focusGained();
-          starButton.width = 0;
-          starIcon.width = 0;
+          //starButton.width = 0;
+          //starIcon.width = 0;
           urlTextInput.autoScroll = false;
 	  hlight.visible = true;
 	  left.visible = false;
@@ -242,9 +242,9 @@ Item {
         }
         onShowStarButton: {
           if (!show) {
-           starButton.width = 0;
-           starIcon.width = 0;
-           container.showStarButton = false;
+           //starButton.width = 0;
+           //starIcon.width = 0;
+           //container.showStarButton = false;
           }
           else {
            starButton.width = starButton.height;
