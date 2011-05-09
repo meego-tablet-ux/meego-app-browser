@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "base/metrics/histogram.h"
+#include <stdlib.h>
 
 // ----------------------------------------------------------------------------
 // ALGORITHM NOTES
@@ -185,6 +186,14 @@ void PaintAggregator::ScrollRect(int dx, int dy, const gfx::Rect& clip_rect) {
   // We might have just wiped out a pre-existing scroll.
   if (update_.scroll_delta == gfx::Point()) {
     update_.scroll_rect = gfx::Rect();
+    return;
+  }
+
+  // Don't scroll backing store more than a tile size
+  // FIXME: avoid to use const number here
+  if (abs(update_.scroll_delta.y()) > 512 ||
+      abs(update_.scroll_delta.x()) > 512) {
+    InvalidateRect(clip_rect);
     return;
   }
 

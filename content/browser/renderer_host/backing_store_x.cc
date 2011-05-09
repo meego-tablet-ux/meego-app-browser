@@ -560,9 +560,14 @@ void BackingStoreX::ScrollBackingStore(int dx, int dy,
       // Always use front tiles map
       scoped_refptr<Tile> tile = tiles_map_.value(index);
       if (tile.get())
-      {                
+      {
+        // Scroll the current tile
         tile->ScrollBackingStore(dx, dy, dirty_rect);
 
+        // Before scroll next tile, copy scroll-out region
+        // to this tile.
+        // There is an important assumption that the delta is less
+        // than tile size. This assumption is enforced in PaintAggregator::ScrollRect.
         if (dx > 0)
         {
           TileIndex next(x - 1, y);
@@ -570,14 +575,19 @@ void BackingStoreX::ScrollBackingStore(int dx, int dy,
           if (next_tile.get())
           {
             QPainter painter(tile->Pixmap());
-            QRect target(tile->Pixmap()->rect().x(),
-                         tile->Pixmap()->rect().y(),
-                         dx,
-                         tile->Pixmap()->rect().height());
-            QRect source(next_tile->Pixmap()->rect().x() + next_tile->Pixmap()->rect().width() - dx,
-                         next_tile->Pixmap()->rect().y(),
-                         dx,
-                         next_tile->Pixmap()->rect().height());
+
+            QRect target(tile->Rect());
+            target.setWidth(dx >= target.width() ? target.width() : dx);
+            target &= dirty_rect;
+            target.translate(-tile->Rect().x(), -tile->Rect().y());
+
+            QRect source(next_tile->Rect().x() + next_tile->Rect().width() - dx,
+                         next_tile->Rect().y(),
+                         target.width(),
+                         next_tile->Rect().height());            
+            source &= dirty_rect;
+            source.translate(-next_tile->Rect().x(), -next_tile->Rect().y());
+
             painter.drawPixmap(target, *(next_tile->Pixmap()), source);
           }
         } else if (dx < 0)
@@ -587,14 +597,19 @@ void BackingStoreX::ScrollBackingStore(int dx, int dy,
           if (next_tile.get())
           {
             QPainter painter(tile->Pixmap());
-            QRect target(tile->Pixmap()->rect().x() + tile->Pixmap()->rect().width() + dx,
-                         tile->Pixmap()->rect().y(),
-                         -dx,
-                         tile->Pixmap()->rect().height());
-            QRect source(next_tile->Pixmap()->rect().x(),
-                         next_tile->Pixmap()->rect().y(),
-                         -dx,
-                         next_tile->Pixmap()->rect().height());
+
+            QRect source(next_tile->Rect());
+            source.setWidth(abs(dx) >= source.width() ? source.width() : abs(dx));
+            source &= dirty_rect;
+            source.translate(-next_tile->Rect().x(), -next_tile->Rect().y());
+
+            QRect target(tile->Rect().x() + tile->Rect().width() - abs(dx),
+                         tile->Rect().y(),
+                         source.width(),
+                         tile->Rect().height());
+            target &= dirty_rect;
+            target.translate(-tile->Rect().x(), -tile->Rect().y());
+
             painter.drawPixmap(target, *(next_tile->Pixmap()), source);
           }
         }
@@ -606,14 +621,19 @@ void BackingStoreX::ScrollBackingStore(int dx, int dy,
           if (next_tile.get())
           {
             QPainter painter(tile->Pixmap());
-            QRect target(tile->Pixmap()->rect().x(),
-                         tile->Pixmap()->rect().y(),
-                         tile->Pixmap()->rect().width(),
-                         dy);
-            QRect source(next_tile->Pixmap()->rect().x(),
-                         next_tile->Pixmap()->rect().y() + next_tile->Pixmap()->rect().height() - dy,
-                         next_tile->Pixmap()->rect().width(),
-                         dy);
+            
+            QRect target(tile->Rect());
+            target.setHeight(dy >= target.height() ? target.height() : dy);
+            target &= dirty_rect;
+            target.translate(-tile->Rect().x(), -tile->Rect().y());
+
+            QRect source(next_tile->Rect().x(),
+                         next_tile->Rect().y() + next_tile->Rect().height() - dy,
+                         next_tile->Rect().width(),
+                         target.height());            
+            source &= dirty_rect;
+            source.translate(-next_tile->Rect().x(), -next_tile->Rect().y());
+            
             painter.drawPixmap(target, *(next_tile->Pixmap()), source);
           }
         } else if (dy < 0)
@@ -622,15 +642,19 @@ void BackingStoreX::ScrollBackingStore(int dx, int dy,
           scoped_refptr<Tile> next_tile = tiles_map_.value(next);
           if (next_tile.get())
           {
-            QPainter painter(tile->Pixmap());
-            QRect target(tile->Pixmap()->rect().x(),
-                         tile->Pixmap()->rect().y() + tile->Pixmap()->rect().height() + dy,
-                         tile->Pixmap()->rect().width(),
-                         -dy);
-            QRect source(next_tile->Pixmap()->rect().x(),
-                         next_tile->Pixmap()->rect().y(),
-                         next_tile->Pixmap()->rect().width(),
-                         -dy);
+            QPainter painter(tile->Pixmap());            
+            QRect source(next_tile->Rect());
+            source.setHeight(abs(dy) >= source.height() ? source.height() : abs(dy));
+            source &= dirty_rect;
+            source.translate(-next_tile->Rect().x(), -next_tile->Rect().y());
+
+            QRect target(tile->Rect().x(),
+                         tile->Rect().y() + tile->Rect().height() - abs(dy),
+                         tile->Rect().width(),
+                         source.height());
+            target &= dirty_rect;
+            target.translate(-tile->Rect().x(), -tile->Rect().y());
+            
             painter.drawPixmap(target, *(next_tile->Pixmap()), source);
           }
         }
@@ -872,7 +896,7 @@ void BackingStoreX::Tile::ScrollBackingStore(int dx, int dy,
                rect.width(),
                rect.height());
   DLOG(INFO) << "BackingStoreX::Tile::ScrollBackingStore "
-             << pixmap_->rect().x() << " " << pixmap_->rect().y() << " " << pixmap_->rect().width() << " " << pixmap_->rect().height()
+             << dx << " " << dy
              << " " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height();
   pixmap_->scroll(dx, dy, rect);
 }
