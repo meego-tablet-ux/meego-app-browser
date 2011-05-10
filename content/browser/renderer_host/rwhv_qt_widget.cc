@@ -1283,10 +1283,10 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
             delay_for_click_timer_->stop();
         }
        
-  
+#if defined(TILED_BACKING_STORE)
         if (backing_store)
           backing_store->SetFrozen(true);
-
+#endif
         pinch_center_ = gesture->centerPoint();
         QPointF center = mapFromScene(pinch_center_);
         setTransformOriginPoint(center);
@@ -1359,8 +1359,10 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
       {
         clearDoingGesture(Qt::PinchGesture);
         
+#if defined(TILED_BACKING_STORE)
         if (backing_store)
           backing_store->SetFrozen(false);
+#endif
         
         setViewportInteractive(true);
       }
@@ -1389,8 +1391,10 @@ void RWHVQtWidget::SetScaleFactor(double scale)
     host->SetScaleFactor(scale);
     BackingStoreX* backing_store = static_cast<BackingStoreX*>(
         host->GetBackingStore(false));
+#if defined(TILED_BACKING_STORE)
     if (backing_store)
       backing_store->SetContentsScale(scale_);
+#endif
   }
 }
 
@@ -1913,11 +1917,13 @@ void RWHVQtWidget::UnFrozen()
   RenderWidgetHost *host = hostView()->host_;
   BackingStoreX* backing_store = static_cast<BackingStoreX*>(
       host->GetBackingStore(false));
+#if defined(TILED_BACKING_STORE)
   if (backing_store)
   {
     backing_store->SetFrozen(false);
     backing_store->AdjustTiles();
   }
+#endif
 }
 
 void RWHVQtWidget::WasHidden()
@@ -2002,6 +2008,7 @@ void RWHVQtWidget::DidBackingStoreScale()
     RenderWidgetHost *host = hostView()->host_;
     BackingStoreX* backing_store = static_cast<BackingStoreX*>(
         host->GetBackingStore(false));
+#if defined(TILED_BACKING_STORE)
     if (backing_store)
     {
       QRect rect = backing_store->ContentsRect();
@@ -2009,6 +2016,7 @@ void RWHVQtWidget::DidBackingStoreScale()
                          QSizeF(rect.width(), rect.height())));
       emit sizeAdjusted();
     }
+#endif
   }
 }
 

@@ -448,10 +448,12 @@ void RenderWidgetHostViewQt::UpdateContentsSize(const gfx::Size& size)
       reinterpret_cast<RWHVQtWidget*>(view_)->AdjustSize();
     BackingStoreX* backing_store = static_cast<BackingStoreX*>(
       host_->GetBackingStore(false));
+#if defined(TILED_BACKING_STORE)
     if (backing_store)
     {
       backing_store->AdjustTiles();
     }
+#endif
   }
 }
 
@@ -461,10 +463,12 @@ void RenderWidgetHostViewQt::PaintTileAck(unsigned int seq, unsigned int tag, co
   QRect qpixmap_rect(pixmap_rect.x(), pixmap_rect.y(), pixmap_rect.width(), pixmap_rect.height());
   BackingStoreX* backing_store = static_cast<BackingStoreX*>(
       host_->GetBackingStore(false));
+#if defined(TILED_BACKING_STORE)
   if (backing_store)
   {
     backing_store->PaintTilesAck(seq, tag, qrect, qpixmap_rect);
   }
+#endif
 }
 
 gfx::Size RenderWidgetHostViewQt::GetContentsSize()
