@@ -900,9 +900,9 @@ QVariant MaxViewModel::data(const QModelIndex & index, int role) const
 
 QString MaxViewModel::GetCategoryName() {
   if(name_ == MOST_VISITED) {
-    return QString::fromStdString(l10n_util::GetStringUTF8(IDS_NEW_TAB_MOST_VISITED));
+    return QString::fromUtf8(l10n_util::GetStringUTF8(IDS_NEW_TAB_MOST_VISITED).c_str());
   } else if(name_ == RECENTLY_CLOSED) {
-    return QString::fromStdString(l10n_util::GetStringUTF8(IDS_NEW_TAB_RECENTLY_CLOSED));
+    return QString::fromUtf8(l10n_util::GetStringUTF8(IDS_NEW_TAB_RECENTLY_CLOSED).c_str());
   }
      
 }

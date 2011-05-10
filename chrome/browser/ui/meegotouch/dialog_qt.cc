@@ -140,27 +140,27 @@ DialogQtModel::DialogQtModel(DialogQt::DLG_TYPE flag, bool isSuppress, const cha
 		: isSuppress_(isSuppress), title_(QString(title)), type_(flag),
 		  content_(QString(content)), defaultPrompt_(QString(defaultPrompt)) {
     
-    suppressOption_ = QString::fromStdString(l10n_util::GetStringUTF8(
-        			IDS_JAVASCRIPT_MESSAGEBOX_SUPPRESS_OPTION));
-    leftButtonText_ = QString::fromStdString(l10n_util::GetStringUTF8(IDS_OK));
-    rightButtonText_ = QString::fromStdString(l10n_util::GetStringUTF8(IDS_CANCEL));
+    suppressOption_ = QString::fromUtf8(l10n_util::GetStringUTF8(
+        			IDS_JAVASCRIPT_MESSAGEBOX_SUPPRESS_OPTION).c_str());
+    leftButtonText_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_OK).c_str());
+    rightButtonText_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CANCEL).c_str());
 
     if( isBeforeUnload ) {
 	type_ = DialogQt::DLG_CONFIRM;
 	//title_ = QString("Confirm navigation");
-	leftButtonText_ = QString::fromStdString(l10n_util::GetStringUTF8(
-      				IDS_BEFOREUNLOAD_MESSAGEBOX_OK_BUTTON_LABEL));
-	rightButtonText_ = QString::fromStdString(l10n_util::GetStringUTF8(
-        			IDS_BEFOREUNLOAD_MESSAGEBOX_CANCEL_BUTTON_LABEL));
+	leftButtonText_ = QString::fromUtf8(l10n_util::GetStringUTF8(
+      				IDS_BEFOREUNLOAD_MESSAGEBOX_OK_BUTTON_LABEL).c_str());
+	rightButtonText_ = QString::fromUtf8(l10n_util::GetStringUTF8(
+        			IDS_BEFOREUNLOAD_MESSAGEBOX_CANCEL_BUTTON_LABEL).c_str());
     }
 
     if( type_ == DialogQt::DLG_AUTH ) {
-	leftButtonText_ = QString::fromStdString(l10n_util::GetStringUTF8(
-      				IDS_LOGIN_DIALOG_OK_BUTTON_LABEL));
-	usernameText_ = QString::fromStdString(l10n_util::GetStringUTF8(
-				IDS_LOGIN_DIALOG_USERNAME_FIELD));
-	passwordText_ = QString::fromStdString(l10n_util::GetStringUTF8(
-				IDS_LOGIN_DIALOG_PASSWORD_FIELD));
+	leftButtonText_ = QString::fromUtf8(l10n_util::GetStringUTF8(
+      				IDS_LOGIN_DIALOG_OK_BUTTON_LABEL).c_str());
+	usernameText_ = QString::fromUtf8(l10n_util::GetStringUTF8(
+				IDS_LOGIN_DIALOG_USERNAME_FIELD).c_str());
+	passwordText_ = QString::fromUtf8(l10n_util::GetStringUTF8(
+				IDS_LOGIN_DIALOG_PASSWORD_FIELD).c_str());
 
     }
 }
