@@ -90,11 +90,44 @@ Item {
         radius:5
         visible:false
     }
+    Rectangle{
+      id: sslArea
+      height: parent.height - 10
+      width:  sslIcon.width+sslTitle.paintedWidth + widthFix
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.left: parent.left
+      property int widthFix: 16
+      anchors.leftMargin: 5
+      anchors.rightMargin: 5
+      radius: 5
+      smooth: true
+      Image {
+        id: sslBackground
+        anchors.fill: parent
+        smooth: true
+      }
+      Image {
+        id: sslIcon
+        height: omniBox.height/2
+        width: height
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.leftMargin: 5
+      }
+      Text{
+        id:sslTitle
+        anchors.left: sslIcon.right
+        anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: theme_fontPixelSizeNormal
+        anchors.leftMargin: 3
+      }
+   }
     TextInput {
       id: urlTextInput
       objectName: "urlTextInput"
-      anchors.left: parent.left
+      anchors.left: sslArea.right
       anchors.right: starButton.left
+      anchors.leftMargin: 5
       anchors.topMargin: 10
       anchors.rightMargin: 5
       //height: parent.height
@@ -174,6 +207,31 @@ Item {
           }
         }
         onSetReadOnly: {urlTextInput.readOnly = readonly;}
+        onSecurityUpdate: {
+          if(state){
+            sslIcon.width = sslIcon.height;
+            sslTitle.text = domain;
+            sslArea.widthFix = 16
+            if (state == 1){
+              sslArea.border.color = "#1da611";
+              sslTitle.color = "#1da611";
+              sslIcon.source="image://themedimage/widgets/apps/browser/ssl-safe"
+            }
+            else{
+              sslArea.border.color = "#d42f2f";
+              sslTitle.color = "#d42f2f";
+              if (state ==2)
+                sslIcon.source="image://themedimage/widgets/apps/browser/close-small"
+              else
+                sslIcon.source="image://themedimage/widgets/apps/browser/close-small"
+            }
+          }
+          else{
+            sslIcon.width = 0;
+            sslTitle.text= "";
+            sslArea.widthFix = 0;
+          }
+        }
       }
     }
     MouseArea {

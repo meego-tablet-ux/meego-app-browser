@@ -25,6 +25,7 @@
 #include "googleurl/src/gurl.h"
 #include "grit/generated_resources.h"
 #include "net/base/escape.h"
+#include "net/base/registry_controlled_domain.h"
 #include "ui/base/clipboard/clipboard.h"
 #include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -77,7 +78,9 @@ class AutocompleteEditViewQtImpl: public QObject
   AutocompleteEditViewQtImpl(AutocompleteEditViewQt* edit_view):
       QObject(NULL),
       edit_view_(edit_view),
-      user_input_(true)
+      user_input_(true),
+      security_level_display_(0),
+      ssl_domain_(QString(""))
   {
   }
 
@@ -126,6 +129,7 @@ class AutocompleteEditViewQtImpl: public QObject
   void setSelection(int start, int end);
   void selectAll();
   void setReadOnly(bool readonly);
+  void securityUpdate(int state, QString domain);
   
   //call from chrome view
   public:
@@ -162,12 +166,48 @@ class AutocompleteEditViewQtImpl: public QObject
     emit setReadOnly(readonly);
   }
 
+  void SecurityUpdate()
+  {
+    switch (security_level_display_)
+    {
+        case ToolbarModel::NONE:
+            emit securityUpdate(0, QString());
+            break;
+        case ToolbarModel::EV_SECURE:
+        case ToolbarModel::SECURE:
+            emit securityUpdate(1, ssl_domain_);
+            break;
+        case ToolbarModel::SECURITY_WARNING:
+            emit securityUpdate(2, ssl_domain_);
+            break;
+        case ToolbarModel::SECURITY_ERROR:
+        case ToolbarModel::NUM_SECURITY_LEVELS:
+            emit securityUpdate(3, ssl_domain_);
+            break;
+        default:
+            emit securityUpdate(0, QString());
+    }
+  }
+
+  void SetSecurityLevelDisplay(int value)
+  {
+    security_level_display_ = value;
+    SecurityUpdate();
+  }
+
+  void SetSslDomain(QString domain)
+  {
+    ssl_domain_ = domain;
+  }
+
  private:
   AutocompleteEditViewQt* edit_view_;
   QString text_;
   bool user_input_;
   string16 prev_text;
   bool is_just_delete_text_;
+  int security_level_display_;
+  QString ssl_domain_;
 };
 
 AutocompleteEditViewQt::AutocompleteEditViewQt(
@@ -199,6 +239,7 @@ AutocompleteEditViewQt::AutocompleteEditViewQt(
   QDeclarativeView* view = window->DeclarativeView();
   QDeclarativeContext *context = view->rootContext();
   context->setContextProperty("autocompleteEditViewModel", impl_);
+  impl_->SetSecurityLevelDisplay(ToolbarModel::NONE);
 }
 
 AutocompleteEditViewQt::~AutocompleteEditViewQt() {
@@ -363,6 +404,7 @@ void AutocompleteEditViewQt::SelectAll(bool reversed) {
 }
 
 void AutocompleteEditViewQt::RevertAll() {
+  impl_->SetSecurityLevelDisplay(security_level_);
   ClosePopup();
   model_->Revert();
   TextChanged();
@@ -552,7 +594,20 @@ int AutocompleteEditViewQt::GetTextLength() {
 }
 
 void AutocompleteEditViewQt::EmphasizeURLComponents() {
-  DNOTIMPLEMENTED();
+  url_parse::Component scheme, host;
+  string16 text(WideToUTF16(toolbar_model_->GetText()));
+  AutocompleteInput::ParseForEmphasizeComponents(text, model_->GetDesiredTLD(), &scheme, &host);
+  if(!IsEditingOrEmpty()){
+    impl_->SetSecurityLevelDisplay(security_level_);
+    if (security_level_ != ToolbarModel::NONE){
+        QString domain;
+        if(security_level_ == ToolbarModel::EV_SECURE)
+            domain = QString::fromStdWString(toolbar_model_->GetEVCertName());
+        else
+            domain = QString::fromStdString(net::RegistryControlledDomainService::GetDomainAndRegistry(std::string(UTF16ToUTF8(text), host.begin, host.len)));
+        impl_->SetSslDomain(domain);
+    }
+  }
 }
 
 void AutocompleteEditViewQt::TextChanged() {
