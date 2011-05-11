@@ -179,7 +179,7 @@ Component{
             },
             State {
               name: "portrait"
-	      when: (scene.orientation == 2 || scene.orientation == 4) && index == 9
+	      when: (scene.orientation == 2 || scene.orientation == 0) && index == 9
               PropertyChanges {
                 target: gridItem
                 visible: false

@@ -35,8 +35,36 @@ import Qt 4.7
 
 Item { 
     id: main
-    width: list.cellWidth
-    height: list.cellHeight
+    width: list.width
+    height: getRowHeight()
+
+    function getRowHeight() {
+      if(newtab.width > newtab.height) {
+        if(newtab.width>1200)  //For 1280x800
+          return 44;
+        else if(newtab.width<1000)  //For handset
+          return 28;
+        else			//For 1024x600
+          return 35;
+      }else{
+        if(newtab.width>750)  //For 1280x800
+          return 44;
+        else if(newtab.width<550)  //For handset
+          return 28;
+        else			//For 1024x600
+          return 35;
+      }
+    }
+
+    Image {
+      id: sector_bg
+      anchors.fill: parent
+      fillMode: Image.Stretch
+      source: "image://themedimage/images/browser/new-tab-closed-bar-background"
+      // ToDo: Open this when resource is ready.
+      // visible: index%2 == 0
+      visible: false
+    }
 
     Image { 
 	id: favIcon
@@ -56,7 +84,7 @@ Item {
 	elide: Text.ElideRight
 	color: theme_fontColorNormal
 	font.family: "Droid Sans"
-	font.pixelSize: 18
+	font.pixelSize: theme_fontPixelSizeNormal
 
         states:[ 
 	  State {
@@ -88,23 +116,4 @@ Item {
 	    mouse.accepted = true;
       }
     }
-    states: [
-      State {
-        name: "landscape"
-        when: (scene.orientation == 1 || scene.orientation == 3) && index == 9
-        PropertyChanges {
-          target: main
-          visible: true
-        }
-      },
-      State {
-        name: "portrait"
-        when: (scene.orientation == 2 || scene.orientation == 0) && index == 9
-        PropertyChanges {
-          target: main
-          visible: false
-        }
-      }
-    ]
-
 }

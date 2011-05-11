@@ -258,8 +258,7 @@ Item {
 	    states: [
 		State {
 		    name: "landscape"
-		    //when: scene.orientation == 1 || scene.orientation == 3
-		    when: scene.orientation == 2 || scene.orientation == 4
+		    when: scene.orientation == 1 || scene.orientation == 3
 		    PropertyChanges {
 			target: grid
 			width: cellWidth*5   //5 coloums
@@ -269,8 +268,7 @@ Item {
 
 		State {
 		    name: "portrait"
-		    //when: scene.orientation == 2 || scene.orientation == 0
-		    when: scene.orientation == 1 || scene.orientation == 3
+		    when: scene.orientation == 2 || scene.orientation == 0
 		    PropertyChanges {
 			target: grid
 			width: cellWidth*3   //3 coloums
@@ -428,8 +426,7 @@ Item {
 	    states: [
 		State {
 		    name: "landscape"
-		    //when: scene.orientation == 1 || scene.orientation == 3
-		    when: scene.orientation == 2 || scene.orientation == 4
+		    when: scene.orientation == 1 || scene.orientation == 3
 		    PropertyChanges {
 			target:list
 			width: cellWidth * 5   //5 coloums
@@ -439,8 +436,7 @@ Item {
 
 		State {
 		    name: "portrait"
-		    //when: scene.orientation == 2 || scene.orientation == 0
-		    when: scene.orientation == 1 || scene.orientation == 3
+		    when: scene.orientation == 2 || scene.orientation == 0
 		    PropertyChanges {
 			target: list
 			width: cellWidth * 3   //3 coloums
@@ -527,8 +523,7 @@ Item {
 	    states: [
 		State {
 		    name: "landscape"
-		    //when: scene.orientation == 1 || scene.orientation == 3
-		    when: scene.orientation == 2 || scene.orientation == 4
+		    when: scene.orientation == 1 || scene.orientation == 3
 		    PropertyChanges {
 			target:list
 			width: (itemWidth + itemHMargin) * 5   //5 coloums
@@ -537,8 +532,7 @@ Item {
 
 		State {
 		    name: "portrait"
-		    //when: scene.orientation == 2 || scene.orientation == 0
-		    when: scene.orientation == 1 || scene.orientation == 3
+		    when: scene.orientation == 2 || scene.orientation == 0
 		    PropertyChanges {
 			target: list
 			width: (itemWidth + itemHMargin) * 3   //3 coloums
