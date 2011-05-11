@@ -45,8 +45,16 @@ class FindBarQtImpl: public QObject
   {
   }
 
-  void Show(bool animate)  { emit show(animate);  } 
-  void Hide() { emit hide();  }
+  void Show(bool animate)  
+  {
+    visible_ = true; 
+    emit show(animate);
+  } 
+  void Hide()
+  {
+    visible_ = false;
+    emit hide();
+  }
 
   bool isVisible() const { return visible_; } 
 
