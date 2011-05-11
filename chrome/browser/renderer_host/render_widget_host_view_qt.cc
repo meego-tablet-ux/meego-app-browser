@@ -43,6 +43,8 @@
 #include "chrome/browser/ui/meegotouch/qt_util.h"
 #include "webkit/plugins/npapi/webplugin.h"
 
+#define MEEGO_ENABLE_WINDOWED_PLUGIN
+
 // static
 RenderWidgetHostView* RenderWidgetHostView::CreateViewForWidget(
     RenderWidgetHost* widget) {
