@@ -48,7 +48,7 @@ Item {
   property int thumbnailMargin: 5
   property int counterSpacing: 5
 
-  property int tabHeight: width/1.5
+  property int tabHeight: 134
 
 
   width: parent.width

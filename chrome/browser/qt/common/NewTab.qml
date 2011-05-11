@@ -35,45 +35,80 @@ import Qt 4.7
 
 Item {
   id: container
-  Rectangle {
-    id: newTabContainer
-    anchors.fill: parent
-    anchors.margins: 4
-    opacity: 1
-    property bool newTabEnabled: true
-    Rectangle {
-      id: newtab
-      z: 1000
-      anchors.fill: parent
-      color: "#2CACE3"
-      radius: 4
-      Text { 
-        //anchors.left: addbutton.right
-        //anchors.margins: 10
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.horizontalCenter: parent.horizontalCenter
-        verticalAlignment: Text.AlignVCenter
+  state: "normal"
+  states: [
+    State {
+      name: "normal"
+      PropertyChanges{
+        target: newtab
+        source: "image://themedimage/widgets/common/button/button-default"
+        border.left: 6
+        border.right: 6
+        border.top: 6
+        border.bottom: 6
+        newTabEnabled: true
+      }
+      PropertyChanges{
+        target: textDisplay
+        text: newtabtitle
         font.pixelSize: theme_fontPixelSizeNormal
-	      //font.bold: true
         color: "white"
-        text: newtabtitle 
+        font.bold: false
       }
-      MouseArea {
+    },
+    State {
+      name: "overLimit"
+      PropertyChanges{
+        target: newtab
+        source: "image://themedimage/widgets/common/infobar/infobar-background"
+        border.left: 4
+        border.right: 4
+        border.top: 4
+        border.bottom: 4
+        newTabEnabled: false
+      }
+      PropertyChanges{
+        target: textDisplay
+        text: "Please close one of the<br>tabs to open a new one"
+        font.pixelSize: 13
+        color: "#383838"
+        font.bold: true
+      }
+    }
+  ]
+  BorderImage{
+    id: newtab
+    source: "image://themedimage/widgets/common/button/button-default"
+    state: "normal"
+    border.left: 6
+    border.right: 6
+    border.top: 6
+    border.bottom: 6
+    anchors.fill : parent
+    property bool newTabEnabled: true
+
+    Text {
+      id: textDisplay
+      width: parent.width
+      height: parent.height
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.horizontalCenter: parent.horizontalCenter
+      verticalAlignment: Text.AlignVCenter
+      horizontalAlignment: Text.AlignHCenter
+      font.pixelSize: theme_fontPixelSizeNormal
+      font.family: theme_fontFamily
+      font.bold: false
+      color: "white"
+      text: newtabtitle 
+    }
+    MouseArea {
         anchors.fill: parent
-        onReleased: { mouse.accepted = true; if (newTabContainer.newTabEnabled) tabSideBarModel.newTab()}
-      }
+        onPressed: { 
+          if( container.state == "normal"){
+            newtab.source = "image://themedimage/widgets/common/button/button-default-pressed"
+          }
+        }
+        onReleased: { mouse.accepted = true; if (newtab.newTabEnabled) tabSideBarModel.newTab()}
     }
-    Rectangle {
-      id: fog
-      z: 10
-      anchors.fill: parent
-      color: "#CCCCCC"
-      opacity: 0.5
-    }
-/*    Connections {
-      target: tabSideBarModel
-      onSetNewTabEnabled: {if (enabled) {newTabContainer.newTabEnabled = true; fog.z = 10; newtab.z = 1000;} 
-                           else {newTabContainer.newTabEnabled = false; fog.z = 1000; newtab.z = 10;}}
-    } */
   }
 }

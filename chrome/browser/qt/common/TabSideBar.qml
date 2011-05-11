@@ -61,9 +61,7 @@ Item {
   }
 
   Column {
-    width: parent.width > parent.height?Math.round(parent.width/4):Math.round(parent.width/3)
-    //height: newtab.height + tabsidebarview.height + sidebarMargin*2 + headSpacing
-    //width: borderImage1.width
+    width: 202
     height: tabsidebarview.height ? borderImage1.height + newtab.height + tabsidebarview.height + sidebarMargin*2 + borderImage2.height : borderImage1.height + newtab.height + tabsidebarview.height + borderImage2.height
 
     x: calcX()
@@ -74,7 +72,7 @@ Item {
       if ((start_x-width/2) < minimumX) {
           return minimumX;
       } else if ((start_x + width/2) > parent.width) {
-          return parent.width - width;
+          return (start_x + toolbar.buttonWidth/2 - width);
       } else {
           return Math.round(start_x-width/2);
       }
@@ -102,8 +100,9 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.leftMargin: sidebarMargin
-        anchors.rightMargin: sidebarMargin
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        anchors.topMargin: 10 - borderImage1.height
         height: 50
         z: 1000
       }
@@ -125,11 +124,9 @@ Item {
 
         onSetNewTabEnabled: {
           if (enabled) {
-              newtab.opacity = 1
-              newtab.height = 50;
+            newtab.state = "normal"
           } else {
-              newtab.opacity = 0
-              newtab.height = 0
+            newtab.state = "overLimit"
           }
         }
       }
