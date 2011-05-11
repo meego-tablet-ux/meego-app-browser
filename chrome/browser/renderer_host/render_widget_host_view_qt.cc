@@ -364,9 +364,11 @@ BackingStore* RenderWidgetHostViewQt::AllocBackingStore(
   BackingStoreX* backing_store = new BackingStoreX(host_, size,
                            QApplication::desktop()->x11Info().visual(),
                            QApplication::desktop()->x11Info().depth());
+#if defined(TILED_BACKING_STORE)
   if(backing_store && IsPopup()) {
     backing_store->SetContentsScale(host_->GetScaleFactor());
   }
+#endif
   return backing_store;
 }
 

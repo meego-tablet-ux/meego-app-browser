@@ -1451,7 +1451,9 @@ void RWHVQtWidget::doubleTapAction(const QPointF& pos)
   // Freeze the backing store and prepare scaling RWHV widget
   BackingStoreX* backing_store = static_cast<BackingStoreX*>(
       host->GetBackingStore(false));
+#if defined(TILED_BACKING_STORE)
   backing_store->SetFrozen(true);
+#endif
 
   // Remember content XY of flickable
   pinch_start_pos_ = QPointF(-viewport_item->property("contentX").toInt(),
