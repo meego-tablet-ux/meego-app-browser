@@ -5789,7 +5789,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Add Bookmark
       </message>
       <message name="IDS_BOOMARK_BUBBLE_PAGE_BOOKMARKED" desc="Title of the bubble after bookmarking something">
-        Bookmark Added!
+        Bookmark added!
       </message>
       <message name="IDS_BOOMARK_BUBBLE_PAGE_BOOKMARK" desc="Title of the bubble when re-clicking on a bookmark">
         Bookmark
@@ -5804,7 +5804,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Name:
       </message>
       <message name="IDS_BOOMARK_BUBBLE_FOLDER_TEXT" desc="Text preceding the folder selector">
-        Folder:
+        Add bookmark to:
       </message>
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_BOOMARK_BUBBLE_CHOOSER_ANOTHER_FOLDER" desc="Text in the combobox allowing the user to choose another folder (by bringing up th editor).">

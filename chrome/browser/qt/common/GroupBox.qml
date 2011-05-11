@@ -53,19 +53,16 @@ Item
         State {
             name: "elapsed"
             PropertyChanges  { target:contentLoader; height: 0; sourceComponent:undefined }
-            PropertyChanges  { target:groupBorderImage; height: 50; opacity: 0.7}
-            PropertyChanges  { target:arrowDown; rotation:180; }
+            PropertyChanges  { target:groupBorderImage; height: 45; opacity: 0.7}
+            PropertyChanges  { target:bubble; height: 292 }
         },
         State {
             name: "expanded"
             PropertyChanges  { target:contentLoader; height: innerHeight;}
-            PropertyChanges  { target:arrowDown; rotation:0; }
+            PropertyChanges  { target:arrowDown; rotation:180; }
+            PropertyChanges  { target:bubble; height: 360  }
         }
     ]
-
-//    transitions: Transition {
-//        NumberAnimation { properties: "height"; easing.type: Easing.InOutQuart; duration: 300 }
-//    }
 
     BorderImage
     {
@@ -90,16 +87,22 @@ Item
             id: groupInfoText
            // text: 
             anchors.top: parent.top
-            anchors.topMargin:15
+            anchors.topMargin:12
             anchors.left: parent.left
-            anchors.leftMargin:10
-            font.pixelSize: 20
-            color:"gray"//"black"
+            anchors.leftMargin:15
+            anchors.right: arrowDown.left
+            anchors.rightMargin: 10
+            font.pixelSize: 18
+            clip: true
+            elide: Text.ElideRight
+            color:"#383838"//"black"
         }
 
         Image {
             id:arrowDown
             source: "image://themedimage/images/notes/icn_dropdown_off"
+            width: 20
+            height: 10
             anchors.top: parent.top
             anchors.topMargin: 18
             anchors.right: parent.right
@@ -122,8 +125,8 @@ Item
     Loader
     {
         id:contentLoader
-        width:groupBorderImage.width - 20
-        anchors { top: parent.top; topMargin: 50; left: parent.left; leftMargin: 8 }
+        width:groupBorderImage.width - 25
+        anchors { top: parent.top; topMargin: 50; left: parent.left; leftMargin: 15 }
         onLoaded: groupBorderImage.height = 50 + contentLoader.childrenRect.height
     }
 

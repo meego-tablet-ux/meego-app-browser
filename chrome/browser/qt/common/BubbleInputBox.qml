@@ -35,8 +35,6 @@ import Qt 4.7
 
 Item {
     id:inputBox
-//    width: 340
-//    height: 40
 
     property alias text: textInput.text
     property alias textColor: textInput.color
@@ -56,17 +54,18 @@ Item {
 
         TextInput {
             id: textInput
-      //      text: null
             anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.topMargin: 8
+            anchors.leftMargin: 15
+            anchors.topMargin: 13
+            anchors.rightMargin: 15
             selectByMouse: true
             color: "white"
-            font.pixelSize: 24
+            font.pixelSize: 18
+            font.family: theme_fontFamily
             focus: false
             echoMode: TextInput.Normal
+            autoScroll: focus
             Keys.onReturnPressed: {
-                focus = false
                 inputBox.returnKeyPressed(textInput.text)
             }
             Keys.onReleased: {

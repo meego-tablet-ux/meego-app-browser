@@ -37,7 +37,9 @@ Rectangle {
     id: button
 
     property alias text: title.text
-
+    property alias btnColor: button.color
+    property alias textColor: title.color
+    property alias fontSize: title.font.pixelSize
     signal clicked
 
     width: title.width + 20; height: title.height + 6
@@ -45,12 +47,12 @@ Rectangle {
     radius: 5
 
     SystemPalette { id: palette }
-
+/*
     gradient: Gradient {
         GradientStop { id: gradientStop; position: 0.0; color:palette.midlight  }
         GradientStop { position: 1.0; color: "grey" }
     }
-
+*/
     MouseArea {
         id: mouseArea
         anchors.fill: parent
@@ -67,7 +69,7 @@ Rectangle {
     states: State {
         name: "pressed"
         when: mouseArea.pressed
-        PropertyChanges { target: gradientStop; color: palette.dark }
+        PropertyChanges { target: button; color: palette.dark }
     }
 }
 

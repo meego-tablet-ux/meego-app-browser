@@ -244,7 +244,7 @@ BrowserWindowTablet {
   Loader {
     id: bubbleLoader
     objectName: "bubbleLoader"
-    property int bubbleWidth : 400
+    property int bubbleWidth : 272
     function close() {
       bubbleLoader.sourceComponent = undefined
     }
@@ -338,9 +338,10 @@ BrowserWindowTablet {
           // We don't need to do something similar to mouseY because when
           // it would happen to mouseY, we have switched to top or bottom
           // fingermode, and so it because a mouseX issue
-          mouseX = clamp (mouseX, 35, parentContainer.width - 35);
+          //mouseX = clamp (mouseX, 35, parentContainer.width - 35);
 
-          bubbleContainer.bubbleX = clamp (mouseX - bubbleContainer.bubbleWidth / 2, 0, (bubbleContainer.width - bubbleContainer.bubbleWidth));
+          //bubbleContainer.bubbleX = clamp (mouseX - bubbleContainer.bubbleWidth / 2, 0, (bubbleContainer.width - bubbleContainer.bubbleWidth));
+          bubbleContainer.bubbleX = mouseX + 30 - bubbleContainer.bubbleWidth;
           if (bubbleContainer.fingerMode == 2) {
               bubbleContainer.bubbleY = mouseY + topOffset;
           } else {
@@ -349,7 +350,7 @@ BrowserWindowTablet {
           break;
       }
 
-      bubbleContainer.fingerX = mouseX - bubbleContainer.bubbleX;
-      bubbleContainer.fingerY = mouseY - bubbleContainer.bubbleY;
+      bubbleContainer.fingerX = mouseX;
+      bubbleContainer.fingerY = mouseY;
   }
 }
