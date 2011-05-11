@@ -74,33 +74,59 @@ Item {
 
   MaxViewFrame {
     id: mostVisited
-    visibleRow: 2
     enableDrag: true
     z:recentlyClosed.z + 1
     anchors.horizontalCenter: parent.horizontalCenter
-    itemWidth:(newtab.height < 650)? 210 : 231
-    itemHeight:(newtab.height < 650)? 130 : 143
-    gridScrollable: false;
   }
 
   MaxViewFrame {
     id: recentlyClosed
-    visibleRow: (newtab.height < 650)? 1 : 2
     enableDrag: false
-    anchors.top: mostVisited.bottom 
+    anchors.top: line.bottom 
     anchors.horizontalCenter: parent.horizontalCenter
-    itemWidth:(newtab.height < 650)? 210 : 231
-    itemHeight:(newtab.height < 650)? 130 : 143
-    gridScrollable:newtab.height < 650
+  }
+
+  Image {
+    id: line
+    width: parent.width
+    height: getLineTopMargin() + 1
+    anchors.top: mostVisited.bottom
+    fillMode: Image.Stretch
+    source: "image://themedimage/images/bg_application_p"
+
+    Rectangle {
+      width: parent.width
+      height: 1
+      anchors.bottom: parent.bottom
+      color: "lightGray"
+    }
+  }
+ 
+  function getLineTopMargin() {
+    if(newtab.width > newtab.height) {
+      if(newtab.width>1200)  //For 1280x800
+        return 19;
+      else if(newtab.width<1000)  //For handset
+        return 12;
+      else			//For 1024x600
+        return 15;
+    }else{
+      if(newtab.width>750)  //For 1280x800
+        return 19;
+      else if(newtab.width<550)  //For handset
+        return 12;
+      else			//For 1024x600
+        return 15;
+    }
   }
 
   function updateModel(model, model2) {
+    //console.log("NewTabPage: new tab width: " + newtab.width + " new tab height: " + newtab.height + "orientation: " + scene.orientation);
     mostVisitedModel = model;
     recentlyClosedModel = model2;
     mostVisited.categoryTitle = model.GetCategoryName();
     mostVisited.collapseState = model.getCollapsedState();
     recentlyClosed.categoryTitle = model2.GetCategoryName();
     recentlyClosed.collapseState = model2.getCollapsedState();
-    console.log("NewTabPage: update model signal received.");
   }
 }

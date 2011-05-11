@@ -37,20 +37,13 @@ import Qt.labs.gestures 2.0
 
 Item {
     id: sector
-    property int topMargin: 0
-    property int itemWidth: 210
-    property int itemHeight: 130
-    property int itemHMargin: 8
-    property int itemVMargin: 8
-    property int visibleRow: 2
-    property bool collapseState: false
+    property int collapseState: 1
     property bool enableDrag: false
     property alias categoryTitle: title.text
     property alias categoryBottom: category.bottom
     property QtObject gridModel
-    property bool gridScrollable: false
     width: maxViewLoader.width
-    height: maxViewLoader.height + category.height
+    height: maxViewLoader.height + category.height + getGridTopMargin()
 
     Image {
       id: sector_bg
@@ -63,19 +56,36 @@ Item {
       id: maxViewLoader
       anchors.top: category.bottom
       anchors.left: parent.left
-      anchors.topMargin: 5
+      anchors.topMargin: getGridTopMargin()
       width: item.viewWidth
       height: item.viewHeight
       sourceComponent: maxView
     }
 
+    function getGridTopMargin() {
+      if(newtab.width > newtab.height) {
+        if(newtab.width>1200)  //For 1280x800
+           return 19;
+        else if(newtab.width<1000)  //For handset
+          return 12;
+        else			//For 1024x600
+          return 15;
+      }else{
+        if(newtab.width>750)  //For 1280x800
+          return 19;
+        else if(newtab.width<550)  //For handset
+          return 12;
+        else			//For 1024x600
+          return 15;
+      }
+    }
+
     Image {
 	id: category
-	anchors.topMargin: topMargin
 	anchors.top: parent.top
 	anchors.left: parent.left
 	width: parent.width
-	height: title.height
+	height: getCategoryHeight()
         source: "image://themedimage/images/bg_application_p"
 	
 	Image {
@@ -87,31 +97,49 @@ Item {
 	
 	Text {
 	    id: title
-	    anchors.top: parent.top
+	    anchors.bottom: parent.bottom
 	    anchors.left: arrow.right
 	    anchors.leftMargin: 20
-            font.weight: Font.Bold
-            font.pixelSize: 18
+            font.pixelSize: theme_fontPixelSizeLarge
 	    font.family: "Droid Sans"
-	    color: "#4e4e4e"
+	    color: theme_fontColorNormal
 	}
 
+        function getCategoryHeight() {
+          if(newtab.width > newtab.height) {
+            if(newtab.width>1200)  //For 1280x800
+              return 50;
+            else if(newtab.width<1000)  //For handset
+              return 32;
+            else			//For 1024x600
+              return 40
+          }else{
+            if(newtab.width>750)  //For 1280x800
+              return 50;
+            else if(newtab.width<550)  //For handset
+              return 32;
+            else			//For 1024x600
+              return 40;
+          }
+        }
+/*
 	Rectangle {
 	    id: line
 	    anchors.left: title.right
 	    anchors.leftMargin: 20
      	    anchors.verticalCenter: title.verticalCenter
-	    width: sector.width - title.width - arrow.width - 40 - sector.itemHMargin*2
+	    width: sector.width - title.width - arrow.width - 50
 	    height: 2
-	    color: "#4e4e4e"
+	    color: theme_fontColorNormal
 	    //radius: 1
 	}
+*/
 	states: [
 	    State {
 		name: "highlight"
 		when: mouseArea.pressed
-		PropertyChanges { target: title; color: "#7e7e7e" }
-		PropertyChanges { target: line; color: "#7e7e7e" }
+		PropertyChanges { target: title; color: theme_fontColorHighlight }
+		//PropertyChanges { target: line; color: theme_fontColorHighlight }
 	    }
 	]
 
@@ -120,9 +148,14 @@ Item {
           anchors.fill: category
           onClicked: {
 	    mouse.accepted = true;
-	    collapseState = !collapseState;
+            if(collapseState == 1)
+              collapseState = 2;
+            else if(collapseState == 2)
+              collapseState = 1;
+            else
+              return;
+            
 	    gridModel.setCollapsedState(collapseState);
-	    //collapseMaxView();
           }
           onPressed: { 
 	    sector.focus = true;
@@ -138,72 +171,124 @@ Item {
     states: [
 	State {
 	    name: "collapsed"
-	    when: collapseState == true
+	    when: collapseState == 2
 	    PropertyChanges { target: maxViewLoader; sourceComponent: miniView }
 	    PropertyChanges { target: arrow; rotation: 270 }
 	},
 	State {
 	    name: "non-collapsed"
-	    when: collapseState == false
+	    when: collapseState == 1
 	    PropertyChanges { target: maxViewLoader; sourceComponent: maxView }
 	    PropertyChanges { target: arrow; rotation: 0 }
-	}
+	},
+	State {
+	    name: "list"
+	    when: collapseState == 3
+	    PropertyChanges { target: maxViewLoader; sourceComponent: listView }
+	    PropertyChanges { target: arrow; rotation: 270 }
+        }
     ]
 
-/*
-    function collapseMaxView() {
-	collapseState = !collapseState;
-	if(collapseState) {
-	    maxViewLoader.sourceComponent = miniView;
-	    arrow.rotation = 270;
-	}
-	else {
-	    maxViewLoader.sourceComponent = maxView;
-	    arrow.rotation = 0;
-	}
 
-        console.log("state: " + collapseState);
-    }
-*/
     Component {
 	id: maxView
 	Item {
-	    property alias viewWidth: grid.width
-	    property alias viewHeight: grid.height
+            id: maxViewRoot
+	    property int viewWidth: grid.width
+	    property int viewHeight: grid.height
+            property int itemWidth: getItemWidth();
+            property int itemHeight: getItemHeight();
+            property int itemHMargin: getItemHMargin();
+            property int itemVMargin: itemHMargin
+
+            function getItemWidth() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 225;
+                else if(newtab.width<1000)  //For handset
+                  return 144;
+                else			//For 1024x600
+                  return 180;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 225;
+                else if(newtab.width<550)  //For handset
+                  return 144;
+                else			//For 1024x600
+                  return 180;
+              }
+            }
+
+            function getItemHeight() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 143;
+                else if(newtab.width<1000)  //For handset
+                  return 91;
+                else			//For 1024x600
+                  return 114;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 143;
+                else if(newtab.width<550)  //For handset
+                  return 91;
+                else			//For 1024x600
+                  return 114;
+              }
+            }
+
+            function getItemHMargin() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 12;
+                else if(newtab.width<1000)  //For handset
+                  return 8;
+                else			//For 1024x600
+                  return 10;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 12;
+                else if(newtab.width<550)  //For handset
+                  return 8;
+                else			//For 1024x600
+                  return 10;
+              }
+            }
+
 	    states: [
 		State {
 		    name: "landscape"
-		    when: scene.orientation == 1 || scene.orientation == 3
+		    //when: scene.orientation == 1 || scene.orientation == 3
+		    when: scene.orientation == 2 || scene.orientation == 4
 		    PropertyChanges {
 			target: grid
-			width: itemWidth*4 + itemHMargin*8   //4 coloums
-			height: (sector.visibleRow == 2)?(itemHeight*2 + itemVMargin*4):(itemHeight + itemVMargin*2)
+			width: cellWidth*5   //5 coloums
+			height: cellHeight*2
 		    }
 		},
 
 		State {
 		    name: "portrait"
-		    when: scene.orientation == 2 || scene.orientation == 0
+		    //when: scene.orientation == 2 || scene.orientation == 0
+		    when: scene.orientation == 1 || scene.orientation == 3
 		    PropertyChanges {
 			target: grid
-			width: (newtab.width > (itemWidth*3 + itemHMargin*6))?(itemWidth*3 + itemHMargin*6):(itemWidth*2 + itemHMargin*4)
-			height: (sector.visibleRow == 2)?((newtab.width > (itemWidth*3 + itemHMargin*2))?(itemHeight*3 + itemVMargin*6):(itemHeight*4 + itemVMargin*8)):
-							 (((newtab.width > (itemWidth*3 + itemHMargin*2))?(itemHeight*3 + itemVMargin*6):(itemHeight*4 + itemVMargin*8))/2)
+			width: cellWidth*3   //3 coloums
+			height: cellHeight*3
 		    }
 		}
 	    ]
 
 	    GridView {
 		id: grid
-		cellWidth: itemWidth + 2*itemHMargin
-		cellHeight: itemHeight + 2*itemVMargin
-		width: itemWidth*4 + itemHMargin*8   //4 coloums
-		height: (sector.visibleRow == 2)?(itemHeight*2 + itemVMargin*4):(itemHeight + itemVMargin*2)
+		cellWidth: itemWidth + itemHMargin
+		cellHeight: itemHeight + itemVMargin
+		width: cellWidth*5
+		height: cellHeight*2
 		delegate: MaxViewDelegate { }
 		snapMode: GridView.SnapToRow
 		model: sector.gridModel
-		//model: MaxViewModel { }
-		interactive: sector.gridScrollable
+		interactive: false
 
     		GestureArea {
         	    anchors.fill: parent
@@ -279,56 +364,201 @@ Item {
     Component {
 	id: miniView
 	Item {
-	    property alias viewWidth: list.width
-	    property alias viewHeight: list.height
+	    property int viewWidth: list.width
+	    property int viewHeight: list.height
+            property int itemWidth: getItemWidth();
+            property int itemHeight: getItemHeight();
+            property int itemHMargin: getItemHMargin();
+            property int itemVMargin: itemHMargin
+
+            function getItemWidth() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 225;
+                else if(newtab.width<1000)  //For handset
+                  return 144;
+                else			//For 1024x600
+                  return 180;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 225;
+                else if(newtab.width<550)  //For handset
+                  return 144;
+                else			//For 1024x600
+                  return 180;
+              }
+            }
+
+            function getItemHeight() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 40;
+                else if(newtab.width<1000)  //For handset
+                  return 20;
+                else			//For 1024x600
+                  return 30;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 40;
+                else if(newtab.width<550)  //For handset
+                  return 20;
+                else			//For 1024x600
+                  return 30;
+              }
+            }
+
+            function getItemHMargin() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 12;
+                else if(newtab.width<1000)  //For handset
+                  return 8;
+                else			//For 1024x600
+                  return 10;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 12;
+                else if(newtab.width<550)  //For handset
+                  return 8;
+                else			//For 1024x600
+                  return 10;
+              }
+            }
 
 	    states: [
 		State {
 		    name: "landscape"
-		    when: scene.orientation == 1 || scene.orientation == 3
+		    //when: scene.orientation == 1 || scene.orientation == 3
+		    when: scene.orientation == 2 || scene.orientation == 4
 		    PropertyChanges {
 			target:list
-			width: itemWidth*4 + itemHMargin*8   //4 coloums
-			height: list.cellHeight * 2 + 15 //bottom margin
+			width: cellWidth * 5   //5 coloums
+			height: cellHeight * 2
 		    }
 		},
 
 		State {
 		    name: "portrait"
-		    when: scene.orientation == 2 || scene.orientation == 0
+		    //when: scene.orientation == 2 || scene.orientation == 0
+		    when: scene.orientation == 1 || scene.orientation == 3
 		    PropertyChanges {
 			target: list
-			width: (newtab.width > (itemWidth*3 + itemHMargin*6))?(itemWidth*3 + itemHMargin*6):(itemWidth*2 + itemHMargin*4)
-			height: (newtab.width > (itemWidth*3 + itemHMargin*6))?(list.cellHeight * 3 + 15):(list.cellHeight * 4 + 15)
+			width: cellWidth * 3   //3 coloums
+			height: cellHeight * 3
 		    }
 		}
 	    ]
 	    GridView {
 		id: list
-		cellWidth: itemWidth + 2*itemHMargin
-		cellHeight: 50
-      		anchors.bottomMargin: 15
-		width: itemWidth*4 + itemHMargin*8   //4 coloums
-		height: cellHeight * 2 + 15     //bottom margin
+		cellWidth: itemWidth + itemHMargin
+		cellHeight: itemHeight + itemVMargin
+		width: cellWidth * 5   //5 coloums
+		height: cellHeight * 2
 		delegate: MiniViewDelegate { }
 		snapMode: GridView.SnapToRow
 		model: sector.gridModel
-		//model: MaxViewModel { }
-		interactive: sector.gridScrollable
+		interactive: true
 	    }
-/*
-	    ListView {
-		id: list
-		width: sector.itemWidth*4 + sector.itemHMargin*8   //4 coloums
-      		anchors.bottomMargin: 5
-		height: 50
-		orientation: ListView.Horizontal
-		delegate: MiniViewDelegate { }
-		//delegate: Text { text: title }
-		model: sector.gridModel
-	    }
-*/
 	}
     }
+
+    Component {
+	id: listView
+	Item {
+	    property int viewWidth: list.width
+	    property int viewHeight: list.height + list.anchors.topMargin
+            property int itemWidth: getItemWidth();
+            property int itemHMargin: getItemHMargin();
+
+            function getItemWidth() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 225;
+                else if(newtab.width<1000)  //For handset
+                  return 144;
+                else			//For 1024x600
+                  return 180;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 225;
+                else if(newtab.width<550)  //For handset
+                  return 144;
+                else			//For 1024x600
+                  return 180;
+              }
+            }
+
+            function getItemHMargin() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 12;
+                else if(newtab.width<1000)  //For handset
+                  return 8;
+                else			//For 1024x600
+                  return 10;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 12;
+                else if(newtab.width<550)  //For handset
+                  return 8;
+                else			//For 1024x600
+                  return 10;
+              }
+            }
+
+            function getListViewTopMargin() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 25;
+                else if(newtab.width<1000)  //For handset
+                  return 16;
+                else			//For 1024x600
+                  return 20;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 25;
+                else if(newtab.width<550)  //For handset
+                  return 16;
+                else			//For 1024x600
+                  return 20;
+              }
+            }
+
+	    states: [
+		State {
+		    name: "landscape"
+		    //when: scene.orientation == 1 || scene.orientation == 3
+		    when: scene.orientation == 2 || scene.orientation == 4
+		    PropertyChanges {
+			target:list
+			width: (itemWidth + itemHMargin) * 5   //5 coloums
+		    }
+		},
+
+		State {
+		    name: "portrait"
+		    //when: scene.orientation == 2 || scene.orientation == 0
+		    when: scene.orientation == 1 || scene.orientation == 3
+		    PropertyChanges {
+			target: list
+			width: (itemWidth + itemHMargin) * 3   //3 coloums
+		    }
+		}
+	    ]
+            
+	    ListView {
+		id: list
+                anchors.topMargin: getListViewTopMargin()
+		width: (itemWidth + itemHMargin) * 5   //5 coloums
+		height: newtab.height - mostVisited.height - line.height - line.anchors.topMargin - category.height - anchors.topMargin
+                //height: 105
+		orientation: ListView.Vertical
+		delegate: ListViewDelegate { }
+		model: sector.gridModel
+		interactive: true
+	    }
+	}
+    }
+
 }
 

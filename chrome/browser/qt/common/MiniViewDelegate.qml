@@ -54,7 +54,7 @@ Item {
 	width: parent.width - favIcon.width - 40   // add margin
 	text: title
 	elide: Text.ElideRight
-	color: "blue"
+	color: theme_fontColorNormal
 	font.family: "Droid Sans"
 	font.pixelSize: 18
 
@@ -84,8 +84,27 @@ Item {
 	    mouse.accepted = true;
       }
       onReleased: { 
-	    titleText.color = "blue"
+	    titleText.color = theme_fontColorNormal
 	    mouse.accepted = true;
       }
     }
+    states: [
+      State {
+        name: "landscape"
+        when: (scene.orientation == 1 || scene.orientation == 3) && index == 9
+        PropertyChanges {
+          target: main
+          visible: true
+        }
+      },
+      State {
+        name: "portrait"
+        when: (scene.orientation == 2 || scene.orientation == 4) && index == 9
+        PropertyChanges {
+          target: main
+          visible: false
+        }
+      }
+    ]
+
 }

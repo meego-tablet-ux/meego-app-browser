@@ -48,11 +48,16 @@ static const char* kRecThumbnailFilename = "Recent Thumbnails";
 // How many top sites to store in the cache.
 static const size_t kTopSitesNumber = 20;
 
+#if !defined(TOOLKIT_MEEGOTOUCH)
 // Max number of temporary images we'll cache. See comment above
 // temp_images_ for details.
 static const size_t kMaxTempTopImages = 8;
 
 static const size_t kTopSitesShown = 8;
+#else
+static const size_t kMaxTempTopImages = 10;
+static const size_t kTopSitesShown = 10;
+#endif
 static const int kDaysOfHistory = 90;
 // Time from startup to first HistoryService query.
 static const int64 kUpdateIntervalSecs = 15;

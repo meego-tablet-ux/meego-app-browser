@@ -228,6 +228,8 @@ class MaxViewModel : public QAbstractListModel {
   	IndexRule
     };
 
+    enum LayoutType { LayoutThumbnails = 1, LayoutCollapsed, LayoutList };
+
     MaxViewModel(NewTabUIQt* tab, std::vector<MostVisitedPage*>* data, QString name);
     virtual ~MaxViewModel();
 
@@ -240,8 +242,8 @@ class MaxViewModel : public QAbstractListModel {
     GURL getItemURL(int index);
 
   public Q_SLOTS:
-    bool getCollapsedState() { return collapsedState; };
-    void setCollapsedState(bool state) { collapsedState = state; };
+    int getCollapsedState() { return collapsedState; };
+    void setCollapsedState(int state) { collapsedState = state; };
     bool getCloseButtonState() { return closeButtonState; };
     void setCloseButtonState(bool state) { closeButtonState = state; };
     void openWebPage(int index);
@@ -256,7 +258,7 @@ class MaxViewModel : public QAbstractListModel {
     QList<ThumbnailEntry*> thumbnailList_;
     QList<FaviconEntry*> faviconList_;
     int returnedImages_;
-    bool collapsedState;
+    int collapsedState;
     bool closeButtonState;
     NewTabUIQt* new_tab_;
     QString name_;

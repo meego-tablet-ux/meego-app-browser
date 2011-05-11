@@ -41,24 +41,23 @@ Component{
 	height: grid.cellHeight
         Rectangle {
             id: background
-            width: parent.width - sector.itemHMargin*2
-	    height: parent.height - sector.itemVMargin*2
-            anchors { leftMargin:sector.itemHMargin; topMargin:sector.itemVMargin } 	 
-	    //anchors.fill: parent
-            //radius: 12
+            width: maxViewRoot.itemWidth
+	    height: maxViewRoot.itemHeight
+            anchors { leftMargin: maxViewRoot.itemHMargin/2; topMargin:maxViewRoot.itemVMargin/2 } 	 
+            anchors { rightMargin: maxViewRoot.itemHMargin/2; bottomMargin:maxViewRoot.itemVMargin/2 } 	 
 	    smooth: true
 	    color: "white"
-	    border.color: "grey"
-	    border.width: 1
+	    border.color: "lightGray"
+	    border.width: 2
 
             Image {
                 id: snapshot
                 source: thumbnail
                 anchors.centerIn: background
-                anchors.margins: 2
-                width: background.width-4; height: background-4
+	        anchors.fill: parent
+                anchors { margins: 2 } 	 
                 smooth: true 
-		fillMode: Image.PreserveAspectFit
+		fillMode: Image.Stretch
             }
 
             Rectangle {
@@ -67,17 +66,17 @@ Component{
               opacity: 0.8
               width: background.width
 	      height: titleText.height*2
-              anchors { left: background.left; bottom: background.bottom}
-
+              anchors { left: background.left; bottom: background.bottom }
+/*
 	      gradient: Gradient {
                   GradientStop { position: 0.0; color: "grey" }
          	  GradientStop { position: 1.0; color: "black" }
       	      }
-
+*/
               Text { 
                 id: titleText
-		width: titleContainer.width - 4 - closeIcon.width
-                anchors { left: titleContainer.left; top: titleContainer.top; margins:8 }
+		width: titleContainer.width - closeIcon.width
+                anchors { left: titleContainer.left; leftMargin:8; rightMargin:8; verticalCenter:parent.verticalCenter }
 		text: title
 		elide: Text.ElideRight
                 color: "white" 
@@ -86,10 +85,9 @@ Component{
 
               Image {
                 id: closeIcon
-                height: 83
+                height: parent.height
                 width: height
-                anchors { right: titleContainer.right; top: titleContainer.top; rightMargin:8 }
-                anchors.verticalCenter: parent.verticalCenter
+                anchors { right: titleContainer.right; rightMargin:4; verticalCenter:parent.verticalCenter }
                 source: "image://themedimage/images/notes/icn_close_up"
                 property bool pressed: false
 		visible: gridModel.getCloseButtonState()
@@ -161,7 +159,6 @@ Component{
 
         }
 
-
 /*
         SequentialAnimation on rotation {
             NumberAnimation { to:  2; duration: 60 }
@@ -171,7 +168,24 @@ Component{
             loops: Animation.Infinite; alwaysRunToEnd: true
         }
 */
-
+        states: [
+            State {
+              name: "landscape"
+	      when: (scene.orientation == 1 || scene.orientation == 3) && index == 9
+              PropertyChanges {
+                target:gridItem
+                visible: true
+	      }
+            },
+            State {
+              name: "portrait"
+	      when: (scene.orientation == 2 || scene.orientation == 4) && index == 9
+              PropertyChanges {
+                target: gridItem
+                visible: false
+              }
+            }
+        ]
     }
 }
 

@@ -286,7 +286,7 @@ NewTabUIQt::NewTabUIQt(Browser* browser, BrowserWindowQt* window)
     mostVisitedModel_ = new MaxViewModel(this, NULL, QString(MOST_VISITED));
     recentlyClosedModel_ = new MaxViewModel(this, NULL, QString(RECENTLY_CLOSED));
     //Expand recently closed area defaully
-    //recentlyClosedModel_->setCollapsedState(true);
+    recentlyClosedModel_->setCollapsedState(MaxViewModel::LayoutList);
     recentlyClosedModel_->setCloseButtonState(false);
 
     QDeclarativeView* view = window_->DeclarativeView();
@@ -437,7 +437,8 @@ void NewTabUIQt::handleMostVisitedPageData(std::vector<MostVisitedPage*>* data) 
     }
 
     //Most Visited Area should not be null
-    int q_count = data->size(); if(q_count == 0) {
+    int q_count = data->size(); 
+    if(q_count == 0) {
         PageUsageData* page = new PageUsageData(0);
         page->SetURL(GURL(EMPTY_PAGE));
         page->SetTitle(UTF8ToUTF16("Example"));
@@ -706,7 +707,7 @@ void NewTabUIQt::TabRestoreServiceChanged(TabRestoreService* service) {
   std::vector<MostVisitedPage*> list_value;
   std::set<string16> unique_items;
   int added_count = 0;
-  const int max_count = 8;
+  const int max_count = 10;
   for (TabRestoreService::Entries::const_iterator it = entries.begin();
        it != entries.end() && added_count < max_count; ++it) {
     TabRestoreService::Entry* entry = *it;
@@ -768,7 +769,7 @@ MaxViewModel::MaxViewModel(NewTabUIQt* tab, std::vector<MostVisitedPage*>* data,
         new_tab_(tab),
         updateTimes_(0),
         name_(name),
-        collapsedState(false),
+        collapsedState(LayoutThumbnails),
         closeButtonState(true) {
   QHash<int, QByteArray> roles;
   roles[UrlRule] = "url";
