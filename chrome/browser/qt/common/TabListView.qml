@@ -84,18 +84,16 @@ Item {
         anchors.rightMargin: 10
         anchors.bottomMargin: 10
         property bool isCurrentTab: false
-        border.color: "grey"
-        border.width: 2
-        Image {
-          id: tabPageBg
-          anchors.fill: parent
-          source: "image://themedimage/widgets/apps/browser/tabs-background-overlay"
-        }
         Image {
           anchors.fill: parent
           fillMode: Image.PreserveAspectFit
           smooth: true
           source: "image://tabsidebar/thumbnail_" + index + "_" + thumbnail
+        }
+        Image {
+          id: tabPageBg
+          anchors.fill: parent
+          source: "image://themedimage/widgets/apps/browser/tabs-border-overlay"
         }
         // title of the tab
         Rectangle{
@@ -182,12 +180,8 @@ Item {
             name: "highlight"
             when: index == tabSideBarListView.currentIndex
             PropertyChanges {
-              target: tabContainer
-              border.color: "#2CACE3"
-            }
-            PropertyChanges {
               target: tabPageBg
-              source: "image://themedimage/widgets/apps/browser/tabs-background-overlay-active"
+              source: "image://themedimage/widgets/apps/browser/tabs-border-overlay-active"
             }
             PropertyChanges {
               target: textBg
