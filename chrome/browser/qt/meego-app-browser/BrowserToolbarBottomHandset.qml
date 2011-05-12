@@ -50,7 +50,7 @@ Item {
   states: [
     State {
       name: "show"
-      when: parent.containerVisible && !scene.fullscreen
+      when: parent.containerVisible && !scene.fullscreen && !scene.appmode
       PropertyChanges {
         target: toolbarBottom
         height: 50
@@ -59,7 +59,7 @@ Item {
     },
     State {
       name: "hide"
-      when: !parent.containerVisible || scene.fullscreen
+      when: !parent.containerVisible || scene.fullscreen || scene.appmode
       PropertyChanges {
         target: toolbarBottom
         height: 0

@@ -65,7 +65,7 @@ Item {
     states: [
         State {
             name: "show"
-            when: scene.showtoolbar && !scene.fullscreen
+            when: scene.showtoolbar && !scene.fullscreen && !scene.appmode
             PropertyChanges {
                 target: toolbar
                 height: 50
@@ -74,7 +74,7 @@ Item {
         },
         State {
             name: "hide"
-            when: !scene.showtoolbar || scene.fullscreen
+            when: !scene.showtoolbar || scene.fullscreen || scene.appmode
             PropertyChanges {
                 target: toolbar
                 height: 0

@@ -81,6 +81,7 @@ Item {
     onOrientationChanged: mainWindow.setFakeOrientationData(orientation);
 
     property bool fullscreen: is_fullscreen
+    property bool appmode: is_appmode
     property bool showtoolbar: true
     property bool showbookmarkbar: true
     property bool hasfindbar: false

@@ -11,6 +11,8 @@
 #include <QOrientationSensor>
 #include <QOrientationFilter>
 #include <QGLFormat>
+#include <QDeclarativeView>
+#include <QDeclarativeContext>
 #include <cstdlib>
 
 #include <launcherapp.h>
@@ -173,6 +175,9 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
   int height = 800;
   QString cmd;
   QString cdata;
+  bool appmode = false;
+  QString appUrl = "";
+
 
   for (int i=1; i<argc; i++)
   {
@@ -201,6 +206,13 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
     {
       height = atoi (argv[++i]);
     }
+    else if (s.startsWith("--app"))
+    {
+      appmode = true;
+      int equalPos = s.indexOf("=",0);
+      //now directly pass down --app=url to chromium core, let them deal with it
+      appUrl = s.remove(0,equalPos+1);
+    }
   }
 
   g_launcher_app = new LauncherApp(argc, argv);
@@ -210,6 +222,10 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
   initAtoms ();
 
   g_main_window = new LauncherWindow(fullscreen, width, height, opengl, setSource);
+
+  //set appmode according to argv
+  QDeclarativeContext *context = g_main_window->getDeclarativeView()->rootContext();
+  context->setContextProperty("is_appmode", appmode);
 
   //show main window to improve startup time
   g_main_window->show();

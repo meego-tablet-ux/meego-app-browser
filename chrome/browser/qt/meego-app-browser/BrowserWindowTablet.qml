@@ -71,6 +71,7 @@ Item {
     property alias screenlayer: screenLayer
 
     property bool fullscreen: is_fullscreen
+    property bool appmode: is_appmode
     property bool showtoolbar: true
     property bool showbookmarkbar: false
     property bool hasfindbar: false
