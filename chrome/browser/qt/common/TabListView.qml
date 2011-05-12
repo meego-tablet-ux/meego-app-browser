@@ -186,7 +186,7 @@ Item {
               border.color: "#2CACE3"
             }
             PropertyChanges {
-              target: newPageBg
+              target: tabPageBg
               source: "image://themedimage/widgets/apps/browser/tabs-background-overlay-active"
             }
             PropertyChanges {
