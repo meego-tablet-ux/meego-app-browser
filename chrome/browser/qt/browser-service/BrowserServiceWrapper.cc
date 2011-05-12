@@ -23,8 +23,12 @@
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "chrome/browser/autocomplete/autocomplete.h"
 #include "chrome/browser/browser_list.h"
+#include "chrome/browser/search_engines/template_url.h"
+#include "chrome/browser/search_engines/template_url_model.h"
 #include "ui/gfx/codec/jpeg_codec.h"
+#include "base/string16.h"
 #include <launcherwindow.h>
 
 #include "BrowserServiceWrapper.h"
@@ -42,7 +46,7 @@ class BrowserServiceBackend : public base::RefCountedThreadSafe<BrowserServiceBa
   void AddURLItemImpl(int64 id, std::string url, std::string title, std::string favicon_url, 
                        int visit_count, int typed_count, long long last_visit_time);
   void AddFavIconItemImpl(GURL url, scoped_refptr<RefCountedMemory> png_data);
-  void AddThumbnailItemImpl(GURL url, scoped_refptr<RefCountedBytes> jpeg_data);
+  void AddThumbnailItemImpl(int index, GURL url, scoped_refptr<RefCountedBytes> jpeg_data);
   void RemoveTabItemImpl(int index);
   void AddTabItemImpl(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl);
   void RemoveBookmarkItemImpl(int64 id);
@@ -50,18 +54,26 @@ class BrowserServiceBackend : public base::RefCountedThreadSafe<BrowserServiceBa
                            std::string title, std::string faviconUrl, long long dataAdded);
   void RemoveAllURLsImpl();
 
+  void OnBrowserClosingImpl();
+
+  void TabChangedAtImpl(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl);
+
  private:
   friend class base::RefCountedThreadSafe<BrowserServiceBackend>;
 
-  ~BrowserServiceBackend() {}
+  ~BrowserServiceBackend() {
+    if (plugin_)
+      delete plugin_;
+  }
   
   MeeGoPluginAPI* plugin_;
+  //int current_tab_id_;
 };
 
 class SnapshotTaker {
  public:
-  SnapshotTaker(BrowserServiceBackend* backend, GURL url)
-	:backend_(backend), url_(url) {
+  SnapshotTaker(BrowserServiceBackend* backend, GURL url, int index)
+        :backend_(backend), url_(url), tab_index_(index) {
   }
 
   void SnapshotOnContents(TabContents* contents) {
@@ -74,12 +86,13 @@ class SnapshotTaker {
  
       RenderViewHost* renderer = contents->render_view_host();
 
-      ThumbnailGenerator* generator =  g_browser_process->GetThumbnailGenerator();
-      ThumbnailGenerator::ThumbnailReadyCallback* callback =
-                   NewCallback(this, &SnapshotTaker::OnSnapshotTaken);
-      generator->MonitorRenderer(renderer, true);
-      generator->AskForSnapshot(renderer, false, callback,
-                            page_size, snapshot_size);
+      if(renderer) {
+        ThumbnailGenerator* generator =  g_browser_process->GetThumbnailGenerator();
+        ThumbnailGenerator::ThumbnailReadyCallback* callback =
+          NewCallback(this, &SnapshotTaker::OnSnapshotTaken);
+        generator->MonitorRenderer(renderer, true);
+        generator->AskForSnapshot(renderer, false, callback,page_size, snapshot_size);
+      }
   }
  
 
@@ -98,7 +111,7 @@ class SnapshotTaker {
 
       if (jpeg_data.get() && jpeg_data->data.size()) {
 	BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
-	    backend_, &BrowserServiceBackend::AddThumbnailItemImpl, url_, jpeg_data));    
+            backend_, &BrowserServiceBackend::AddThumbnailItemImpl, tab_index_, url_, jpeg_data));
       }
   }
   
@@ -124,6 +137,7 @@ class SnapshotTaker {
 
  private:
   GURL url_;
+  int tab_index_;
   BrowserServiceBackend* backend_;
 };
 
@@ -158,6 +172,7 @@ void BrowserServiceWrapper::Init(Browser* browser)
   browser_ = browser;
 
   backend_ = new BrowserServiceBackend();
+
   backend_->AddRef();
 
   MessageLoop::current()->PostDelayedTask(FROM_HERE,
@@ -176,6 +191,9 @@ void BrowserServiceWrapper::InitBottomHalf()
                  NotificationService::AllSources());
   registrar_.Add(this,
                  NotificationType::HISTORY_URLS_DELETED,
+                 NotificationService::AllSources());
+  registrar_.Add(this,
+                 NotificationType::BROWSER_CLOSING,
                  NotificationService::AllSources());
 
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
@@ -204,9 +222,9 @@ void BrowserServiceWrapper::BookmarkNodeAdded(BookmarkModel* model,
                                               int index) {
   const BookmarkNode* node = parent->GetChild(index);
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
-      backend_, &BrowserServiceBackend::AddBookmarkItemImpl, node->id(), node->GetURL().spec(),
-                            UTF16ToUTF8(node->GetTitle()), node->GetURL().HostNoBrackets(),
-                            node->date_added().ToInternalValue()));
+  backend_, &BrowserServiceBackend::AddBookmarkItemImpl, node->id(), node->GetURL().spec(),
+                      UTF16ToUTF8(node->GetTitle()), node->GetURL().HostNoBrackets(),
+                      node->date_added().ToInternalValue()));
 }
 
 void BrowserServiceBackend::AddBookmarkItemImpl(int64 id, std::string url,
@@ -254,9 +272,13 @@ void BrowserServiceWrapper::TabInsertedAt(TabContentsWrapper* contents,
                                           int index,
                                           bool foreground) {
   TabContents* content = contents->tab_contents();
+  GURL url = content->GetURL();
+//  if (url.HostNoBrackets() == "newtab")
+//      return;
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
-      backend_, &BrowserServiceBackend::AddTabItemImpl,
-      index, 0, content->GetURL().spec(), UTF16ToUTF8(content->GetTitle()), content->GetURL().HostNoBrackets()));  
+                          backend_, &BrowserServiceBackend::AddTabItemImpl,
+                          index, 0, url.spec(), UTF16ToUTF8(content->GetTitle()),
+                          url.HostNoBrackets()));
 }
 
 void BrowserServiceBackend::AddTabItemImpl(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl)
@@ -278,7 +300,7 @@ void BrowserServiceBackend::RemoveTabItemImpl(int index)
 }
 
 void BrowserServiceWrapper::TabClosingAt(TabStripModel* tab_strip_model,  
-					TabContentsWrapper* contents,
+                                         TabContentsWrapper* contents,
                                          int index) {
 }
 
@@ -296,20 +318,21 @@ void BrowserServiceWrapper::TabMoved(TabContentsWrapper* contents,
 void BrowserServiceWrapper::OnThumbnailDataAvailable(
     HistoryService::Handle handle,
     scoped_refptr<RefCountedBytes> jpeg_data) {
-  GURL* url =
-      consumer_.GetClientData(
-          browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS), handle);
-  if (jpeg_data.get() && jpeg_data->data.size()) {
-    BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
-        backend_, &BrowserServiceBackend::AddThumbnailItemImpl, *url, jpeg_data));    
-  }
-  delete url;
+    GURL* url =
+        consumer_.GetClientData(
+              browser_->profile()->GetTopSites()->GetRecentAndBookmarkThumbnails(), handle);
+            //browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS), handle);
+    if (jpeg_data.get() && jpeg_data->data.size()) {
+      BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
+          backend_, &BrowserServiceBackend::AddThumbnailItemImpl, 0, *url, jpeg_data));
+    }
+    delete url;
 }
 
-void BrowserServiceBackend::AddThumbnailItemImpl(GURL url, scoped_refptr<RefCountedBytes> jpeg_data)
+void BrowserServiceBackend::AddThumbnailItemImpl(int index, GURL url, scoped_refptr<RefCountedBytes> jpeg_data)
 {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::DB));
-  plugin_->addThumbnailItem(url.spec(), base::Time::Now().ToInternalValue(),
+  plugin_->addThumbnailItem(index, url.spec(), base::Time::Now().ToInternalValue(),
                             reinterpret_cast<const unsigned char*>(&jpeg_data->data[0]),
                             jpeg_data->data.size());
 }
@@ -336,10 +359,10 @@ void BrowserServiceBackend::AddFavIconItemImpl(GURL url, scoped_refptr<RefCounte
                           png_data->front(), png_data->size());
 }
 
-void BrowserServiceWrapper::GetThumbnail(TabContents* contents, GURL url)
+void BrowserServiceWrapper::GetThumbnail(TabContents* contents, GURL url, int index)
 {
   // We use new method to get thumbnail here for higher qulity for web panel.
-  SnapshotTaker* taker = new SnapshotTaker(backend_, url);
+  SnapshotTaker* taker = new SnapshotTaker(backend_, url, index);
   taker->SnapshotOnContents(contents);
   snapshotList_.push_back(taker);
 }
@@ -358,17 +381,32 @@ void BrowserServiceWrapper::GetFavIcon(GURL url)
 
 }
 
+void BrowserServiceWrapper::AddOpenedTab()
+{
+  int tabCount = browser_->tab_count();
+  for (int index = 0; index < tabCount; index++)
+  {
+    TabInsertedAt(browser_->GetTabContentsWrapperAt(index), index, false);
+  }
+}
+
 void BrowserServiceWrapper::TabChangedAt(TabContentsWrapper* contents,
                                          int index,
                                          TabChangeType change_type) {
   TabContents* content = contents->tab_contents();
-  if (content->is_loading())
-    return;
-  // load completed
+
   GURL url = content->GetURL();
+  
+  if (change_type != TabStripModelObserver::ALL)
+      return;
+
+  BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
+      backend_, &BrowserServiceBackend::TabChangedAtImpl,
+      index, 0, content->GetURL().spec(), UTF16ToUTF8(content->GetTitle()), content->GetURL().HostNoBrackets()));
+
   MessageLoop::current()->PostDelayedTask(FROM_HERE,
-                                          factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail, 
-					  			     content, url),
+                                          factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail,
+                                                                     content, url, index),
                                           500);
   MessageLoop::current()->PostDelayedTask(FROM_HERE,
                                           factory_.NewRunnableMethod(&BrowserServiceWrapper::GetFavIcon, url),
@@ -377,7 +415,12 @@ void BrowserServiceWrapper::TabChangedAt(TabContentsWrapper* contents,
   HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
   hs->QueryURL(content->GetURL(), true, &consumer_,
                NewCallback(this, &BrowserServiceWrapper::AddURLItem));
+}
 
+void BrowserServiceBackend::TabChangedAtImpl(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl)
+{
+  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::DB));
+  plugin_->updateTabItem(tab_id, win_id, url, title, faviconUrl);
 }
 
 void BrowserServiceWrapper::TabReplacedAt(TabStripModel* tab_strip_model,
@@ -389,6 +432,11 @@ void BrowserServiceWrapper::TabReplacedAt(TabStripModel* tab_strip_model,
 
 void BrowserServiceWrapper::TabStripEmpty()
 {
+}
+
+void BrowserServiceBackend::OnBrowserClosingImpl()
+{
+  plugin_->emitBrowserCloseSignal();
 }
 
 void BrowserServiceWrapper::Observe(NotificationType type,
@@ -403,9 +451,16 @@ void BrowserServiceWrapper::Observe(NotificationType type,
       HistoryUrlsRemoved(
           Details<const history::URLsDeletedDetails>(details).ptr());
       break;
+    case NotificationType::BROWSER_CLOSING:
+      OnBrowserClosing();
     default:
       return;
   }
+}
+
+void BrowserServiceWrapper::OnBrowserClosing()
+{
+  backend_->OnBrowserClosingImpl();
 }
 
 void BrowserServiceWrapper::HistoryUrlVisited(
@@ -516,4 +571,78 @@ void BrowserServiceWrapper::SelectTabByUrl(std::string url_string)
   }
 
   browser_->AddSelectedTabWithURL(url, PageTransition::LINK);
+}
+
+void BrowserServiceWrapper::updateCurrentTab()
+{
+    int index = browser_->selected_index();
+    TabChangedAt(browser_->GetTabContentsWrapperAt(index), index, TabStripModelObserver::ALL);
+}
+
+void BrowserServiceWrapper::showBrowser(const char *mode, const char *target)
+{
+    if(mode == NULL || target == NULL) return;
+
+    string16 search_term;
+    UTF8ToUTF16(target, strlen(target), &search_term);
+    GURL url;
+    Profile * profile = browser_->profile();
+
+    if(!strcmp(mode, "selecttab")) {
+      int index = atoi(target);
+      if(index >= 0 && index < browser_->tab_count()) 
+      {
+        browser_->SelectTabContentsAt(index, true);
+      }
+    }
+
+    if (!strcmp(mode, "gotourl")) {
+        scoped_ptr<AutocompleteController> controller( new AutocompleteController(profile, NULL) );
+        controller->Start(search_term, string16(), false, false, false, true);
+        const AutocompleteResult * result = &controller->result();
+        //url = result->match_at(0).destination_url;
+        AutocompleteResult::const_iterator itr = result->begin();
+        for (; itr != result->end(); itr ++) {
+            if (itr->type == AutocompleteMatch::URL_WHAT_YOU_TYPED) {
+                url = itr->destination_url;
+                break;
+            }
+        }
+        if (itr == result->end())
+            url = result->default_match()->destination_url;
+    }else if (!strcmp(mode, "search")) {
+        const TemplateURL* default_provider = profile->GetTemplateURLModel()->GetDefaultSearchProvider();
+        if (!default_provider || !default_provider->url()) {
+            return;
+        }
+        const TemplateURLRef* search_url = default_provider->url();
+        DCHECK(search_url->SupportsReplacement());
+        url = GURL(search_url->ReplaceSearchTerms(*default_provider, search_term,
+                TemplateURLRef::NO_SUGGESTIONS_AVAILABLE, string16()));
+    }
+
+    int tab_count = browser_->tab_count();
+    if (tab_count && browser_->GetTabContentsAt(tab_count - 1)->GetURL().spec() == "chrome://newtab/") {
+        browser_->OpenURL(url, GURL(""), CURRENT_TAB, PageTransition::TYPED);
+    }else
+        browser_->OpenURL(url, GURL(""), NEW_FOREGROUND_TAB, PageTransition::TYPED);
+        //browser_->AddSelectedTabWithURL(url, PageTransition::TYPED);
+}
+
+void BrowserServiceWrapper::closeTab(int index)
+{
+    if (browser_->CanCloseTab() && browser_->tab_count() > index) {
+
+        TabStripModel* model = browser_->tabstrip_model();
+        if (model->count() == 1) {
+          // the last one
+          model->delegate()->AddBlankTab(true);
+        }
+        model->CloseTabContentsAt(index, TabStripModel::CLOSE_CREATE_HISTORICAL_TAB);
+    }
+}
+
+int BrowserServiceWrapper::getCurrentTabIndex()
+{
+    return browser_->selected_index();
 }

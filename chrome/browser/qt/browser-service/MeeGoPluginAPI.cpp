@@ -27,15 +27,6 @@
 
 #include "MeeGoPluginAPI.h"
 
-//#define EXTENSION_DEBUG
-
-#ifdef EXTENSION_DEBUG
-#include <stdarg.h>
-#define DBG(...) g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, __VA_ARGS__)
-#else
-#define DBG(...) 
-#endif
-
 #define NETPANEL_DIRNAME "internet-panel"
 
 #define DEFAULT_MODE (S_IRUSR | S_IWUSR |S_IXUSR) | (S_IRGRP | S_IXGRP) | (S_IROTH | S_IXOTH)
@@ -55,8 +46,8 @@
 	(id INTEGER PRIMARY KEY, url LONGCHARVAR UNIQUE, last_update_time INTEGER)"
 
 #define CREATE_TABS_TABLE_STMT "CREATE TABLE IF NOT EXISTS current_tabs \
-	(id INTEGER PRIMARY KEY, tab_id INTEGER, win_id INTEGER, url LONGVARCHAR UNIQUE,\
-	 title LONGVARCHAR, favicon_url LONGVARCHAR)"
+        (id INTEGER PRIMARY KEY, tab_id INTEGER, win_id INTEGER, url LONGVARCHAR,\
+         title LONGVARCHAR, favicon_url LONGVARCHAR)"
 
 #define CREATE_ICON_TABLE_STMT "CREATE TABLE IF NOT EXISTS favicons \
 	(id INTEGER PRIMARY KEY, url LONGVARCHAR UNIQUE, last_update_time INTEGER)"
@@ -65,42 +56,6 @@
 #include "BrowserService-marshaller.h"
 
 #include "BrowserServiceWrapper.h"
-
-//
-// Browser service DBUS API implementation
-//
-gboolean browser_service_view_item(BrowserService* self, const char* url)
-{
-
-  DBG("browser_service_view_item: %s", url);
-
-  MeeGoPluginAPI* plugin = static_cast<MeeGoPluginAPI*>(self->provider);
-
-  if(plugin) plugin->openWebPage(url);
-
-  return TRUE;
-}
-
-
-gboolean browser_service_remove_bookmark(BrowserService* self, const char* id)
-{
-  DBG("browser_service_remove_bookmark");
-
-  MeeGoPluginAPI* plugin = static_cast<MeeGoPluginAPI*>(self->provider);
-
-	if(plugin) plugin->removeBookmarkByExtension(id);
-
-	return TRUE;
-}
-
-gboolean browser_service_remove_url(BrowserService* self, const char* url)
-{
-  DBG("browser_service_remove_url");
-  MeeGoPluginAPI* plugin = static_cast<MeeGoPluginAPI*>(self->provider);
-  if(plugin) plugin->removeUrlByExtension(url);
-
-	return TRUE;
-}
 
 //
 // MeeGoPluginAPI Implementation
@@ -172,11 +127,23 @@ void MeeGoPluginAPI::init_browser_service()
   return;
 }
 
+static void UpdateAlreadyOpenedTab(BrowserServiceWrapper* wrapper)
+{
+  if(wrapper)
+    wrapper->AddOpenedTab();
+}
+
 MeeGoPluginAPI::MeeGoPluginAPI(BrowserServiceWrapper* wrapper):
-    wrapper_(wrapper)
+    wrapper_(wrapper),
+    m_panel_db(NULL),
+    m_browser_closing(false)
 {
   init_db();
   init_browser_service();
+  g_signal_emit_by_name(m_browserService, "browser_launched");
+
+  BrowserThread::PostTask(BrowserThread::UI, FROM_HERE, NewRunnableFunction(
+        UpdateAlreadyOpenedTab, wrapper_));
 }
 
 MeeGoPluginAPI::~MeeGoPluginAPI()
@@ -184,6 +151,7 @@ MeeGoPluginAPI::~MeeGoPluginAPI()
   DBG("~MeeGoPluginAPI");
 
   browser_service_destroy(m_browserService);
+
   sqlite3_close(m_panel_db);
   g_free(m_db_dirname);
   m_panel_db = NULL;
@@ -237,6 +205,7 @@ void MeeGoPluginAPI::init_db()
     sqlite3_exec(m_panel_db, "CREATE INDEX url ON favicons(url)", NULL, NULL, NULL);
 
     sqlite3_exec(m_panel_db, CREATE_TABS_TABLE_STMT, NULL, NULL, NULL);
+    sqlite3_exec(m_panel_db, "DELETE FROM current_tabs", NULL, NULL, NULL);
     sqlite3_busy_timeout(m_panel_db, 100);
   }
   else 
@@ -462,7 +431,7 @@ void MeeGoPluginAPI::updateURLInfo(std::string url, std::string title, std::stri
  
 #define DATA_URL_PREFIX_LENGTH 22
 // save thumbnail to a local file
-void MeeGoPluginAPI::addThumbnailItem(std::string url, long long last_update, const unsigned char* blob, size_t len)
+void MeeGoPluginAPI::addThumbnailItem(int tab_id, std::string url, long long last_update, const unsigned char* blob, size_t len)
 {
   if(!m_panel_db) return;
 	
@@ -499,6 +468,7 @@ void MeeGoPluginAPI::addThumbnailItem(std::string url, long long last_update, co
   if(fp) fclose(fp);
 
   g_signal_emit_by_name(m_browserService, "thumbnail_updated", url.c_str());
+  g_signal_emit_by_name(m_browserService, "tab_info_updated", tab_id);
 
   return;
 }
@@ -507,38 +477,83 @@ void MeeGoPluginAPI::addThumbnailItem(std::string url, long long last_update, co
 void MeeGoPluginAPI::addTabItem(int tab_id, int win_id, std::string url, 
                                 std::string title, std::string faviconUrl)
 {
+  bool success = false;
 	if(!m_panel_db) return;
 
+  char* errmsg = NULL;
+  if(sqlite3_exec(m_panel_db, "BEGIN IMMEDIATE TRANSACTION", 0, 0, NULL) != SQLITE_OK)
+  {
+    g_warning("failed to start a sqlite3 transaction: %s", errmsg);
+    g_free(errmsg);
+    return;
+  }
+  
+  // Update tab_id field according to the tab insertion mechanism used in chromium
+  // New tab will inserted adjacent to the tab that opened the new one
+  char* update_sql = g_strdup_printf("UPDATE current_tabs SET tab_id=tab_id+1 WHERE tab_id>=%d", tab_id);
   sqlite3_stmt *select_stmt = NULL;
+  if(sqlite3_exec(m_panel_db, update_sql, 0,0,&errmsg) == SQLITE_OK) 
+  {
+    const char* sql =
+      "INSERT INTO current_tabs(tab_id, win_id, url, title, favicon_url) "
+      "VALUES(?, ?, ?, ?, ?)";
 
-	const char* sql = 
-			"INSERT OR REPLACE INTO current_tabs(tab_id, win_id, url, title, favicon_url) "
-			"VALUES(?, ?, ?, ?, ?)";
+    if(sqlite3_prepare_v2(m_panel_db, sql, -1, &select_stmt, NULL) == SQLITE_OK
+        && sqlite3_bind_int(select_stmt, 1, tab_id) == SQLITE_OK 
+        && sqlite3_bind_int(select_stmt, 2, win_id) == SQLITE_OK
+        && sqlite3_bind_text(select_stmt,3, url.c_str(), -1, SQLITE_STATIC) == SQLITE_OK
+        && sqlite3_bind_text(select_stmt, 4, title.c_str(), -1, SQLITE_STATIC) == SQLITE_OK
+        && sqlite3_bind_text(select_stmt, 5, faviconUrl.c_str(), -1, SQLITE_STATIC) == SQLITE_OK
+        && sqlite3_step(select_stmt) == SQLITE_DONE) {
+        success = true;
+      } else {
+        success = false;
+      }
+  }
 
-	if(sqlite3_prepare_v2(m_panel_db, sql, -1, &select_stmt, NULL) != SQLITE_OK)
+  if(success) {
+      sqlite3_exec(m_panel_db, "COMMIT TRANSACTION", 0, 0, NULL);
+      g_signal_emit_by_name(m_browserService, "tab_list_updated");
+  } else {
+    sqlite3_exec(m_panel_db, "ROLLBACK TRANSACTION", 0, 0, NULL);
+  }
+
+	if(select_stmt) sqlite3_finalize(select_stmt);
+  if(errmsg) g_free(errmsg);
+  g_free(update_sql);
+ 
+  return;
+}
+
+void MeeGoPluginAPI::updateTabItem(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl)
+{
+  bool updated = false;
+  if(!m_panel_db) return;
+
+	const char* sql = "UPDATE current_tabs SET win_id=?, url=?, title=?, favicon_url=? WHERE tab_id=?";
+
+	sqlite3_stmt* stmt = NULL;
+
+	if(sqlite3_prepare_v2(m_panel_db, sql, -1, &stmt, NULL) != SQLITE_OK)
 	{
 			g_warning("failed to prepare %s", sql);
 			return;
 	}
-	do
-	{
-			if(sqlite3_bind_int(select_stmt, 1, tab_id) != SQLITE_OK) break;
-			if(sqlite3_bind_int(select_stmt, 2, win_id) != SQLITE_OK) break;
-			if(sqlite3_bind_text(select_stmt,3, url.c_str(), -1, SQLITE_STATIC) != SQLITE_OK) break;
-			if(sqlite3_bind_text(select_stmt, 4, title.c_str(), -1, SQLITE_STATIC) != SQLITE_OK) break;
-			if(sqlite3_bind_text(select_stmt, 5, faviconUrl.c_str(), -1, SQLITE_STATIC) != SQLITE_OK) break;
 
-			if(sqlite3_step(select_stmt) != SQLITE_DONE) {
-					g_warning("failed to step: %s", sql);
-					break;
-			}
+	do {
+			if(sqlite3_bind_int(stmt, 1, win_id) != SQLITE_OK) break;
+			if(sqlite3_bind_text(stmt, 2, url.c_str(), -1, SQLITE_STATIC) != SQLITE_OK) break;
+			if(sqlite3_bind_text(stmt, 3, title.c_str(), -1, SQLITE_STATIC) != SQLITE_OK) break;
+      if(sqlite3_bind_text(stmt, 4, faviconUrl.c_str(), -1, SQLITE_STATIC) != SQLITE_OK) break;
+      if(sqlite3_bind_int(stmt, 5, tab_id) != SQLITE_OK) break;
+			if(sqlite3_step(stmt) != SQLITE_DONE) break;
+      updated = true;
+	} while(0);
 
-	}while(0);
+	if(stmt) sqlite3_finalize(stmt);
 
-	if(select_stmt) sqlite3_finalize(select_stmt);
-
-	// TODO: emit tab_added signal but current no such requirement for web panel
-  return;
+  if(updated)
+    g_signal_emit_by_name(m_browserService, "tab_info_updated", tab_id);
 }
 
 void MeeGoPluginAPI::updateWindowId(int tab_id, int newwin_id)
@@ -581,19 +596,48 @@ void MeeGoPluginAPI::clearAllTabItems()
 void MeeGoPluginAPI::removeTabItem(int tab_id)
 {
   int rc;
+  bool success = false;
   char* errmsg = NULL;
-  if(!m_panel_db) return;
-	
+  if(!m_panel_db || m_browser_closing) return;
+
   DBG("removeTabItem: tab id = %d", tab_id);
 
+  rc = sqlite3_exec(m_panel_db, "BEGIN IMMEDIATE TRANSACTION", 0, 0, &errmsg);
+  if(rc != SQLITE_OK)
+  {
+    g_warning("failed to begin transaction: %s", errmsg);
+    g_free(errmsg);
+    errmsg = NULL;
+    return;
+  }
+
   char* delete_sql = g_strdup_printf("DELETE FROM current_tabs WHERE tab_id=%d", tab_id);
+  char* update_sql = NULL;
   rc = sqlite3_exec(m_panel_db, delete_sql, NULL, NULL, &errmsg);
   if(rc != SQLITE_OK)
   {
     g_warning("Error: failed to exec : %s", errmsg);
     g_free(errmsg);
+  } else {
+    update_sql = g_strdup_printf("UPDATE current_tabs SET tab_id=tab_id-1 WHERE tab_id>%d", tab_id);
+    if(sqlite3_exec(m_panel_db, update_sql, NULL, NULL, &errmsg) != SQLITE_OK) {
+      g_warning("failed to exec %s: %s", update_sql, errmsg);
+      g_free(errmsg);
+      success = false;
+    } else {
+      success = true;
+    }
   }
   g_free(delete_sql);
+  if(update_sql) g_free(update_sql);
+
+  if(success) {
+    sqlite3_exec(m_panel_db, "COMMIT TRANSACTION", NULL, NULL, NULL);
+    g_signal_emit_by_name(m_browserService, "tab_list_updated");
+  } else {
+    sqlite3_exec(m_panel_db, "ROLLBACK TRANACTION", NULL, NULL, NULL);
+  }
+
   return;
 }
 
@@ -664,4 +708,29 @@ void MeeGoPluginAPI::removeBookmarkItem(int64 id)
 	if(stmt) sqlite3_finalize(stmt);
 }
 
+void MeeGoPluginAPI::updateCurrentTab()
+{
+    wrapper_->updateCurrentTab();
+}
+
+void MeeGoPluginAPI::showBrowser(const char *mode, const char *target)
+{
+    wrapper_->showBrowser(mode, target);
+}
+
+void MeeGoPluginAPI::closeTab(int index)
+{
+    wrapper_->closeTab(index);
+}
+
+int MeeGoPluginAPI::getCurrentTabIndex()
+{
+    return wrapper_->getCurrentTabIndex();
+}
+
+void MeeGoPluginAPI::emitBrowserCloseSignal()
+{
+    g_signal_emit_by_name(m_browserService, "browser_closed");  
+    m_browser_closing = true;
+}
 

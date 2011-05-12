@@ -23,6 +23,13 @@
 
 #include "BrowserService.h"
 
+#ifdef EXTENSION_DEBUG
+#include <stdarg.h>
+#define DBG(...) g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, __VA_ARGS__)
+#else
+#define DBG(...)
+#endif
+
 class BrowserServiceWrapper;
 
 class MeeGoPluginAPI
@@ -53,7 +60,7 @@ public:
     void addFavIconItem(std::string url, long long last_update, const unsigned char* data, size_t len );
 
     // Insert a thumbnail for a URL into thumbnails table
-    void addThumbnailItem(std::string url, long long last_update, const unsigned char* data, size_t len);
+    void addThumbnailItem(int tab_id, std::string url, long long last_update, const unsigned char* data, size_t len);
 
     // Insert a tab item into current_tabs table
     void addTabItem(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl);
@@ -63,6 +70,9 @@ public:
 
     // Update the window ID for tab if it is attached to a new window
     void updateWindowId(int tab_id, int win_id);
+
+    // Update Tab item info.
+    void updateTabItem(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl);
 
     //Remove a tab item
     void removeTabItem(int tab_id);
@@ -78,13 +88,21 @@ public:
     // Call extension API to remove a history URL in browser
     gboolean removeUrlByExtension(const char* url);
 
+    // TabManager API
+    void updateCurrentTab();
+    void showBrowser(const char * mode, const char *target);
+    void closeTab(int index);
+    int getCurrentTabIndex();
+    void emitBrowserCloseSignal();
+
 private:
-    void init_browser_service();
     void init_db();
+    void init_browser_service();
 
     BrowserService* m_browserService;
     sqlite3* m_panel_db;
     char*    m_db_dirname;
+    bool     m_browser_closing;
 
     BrowserServiceWrapper* wrapper_;
 };

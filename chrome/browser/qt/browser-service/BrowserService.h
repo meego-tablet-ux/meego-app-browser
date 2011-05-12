@@ -23,7 +23,7 @@ G_BEGIN_DECLS
 
 #define BROWSER_SERVICE_TYPE 			(browser_service_get_type())
 
-#define BROWSER_SERVICE(obj) 			(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+#define BROWSER_SERVICE(self) 			(G_TYPE_CHECK_INSTANCE_CAST((self), \
 		                                 BROWSER_SERVICE_TYPE, \
 		 							     BrowserService))
 
@@ -31,7 +31,7 @@ G_BEGIN_DECLS
 			                             BROWSER_SERVICE_TYPE, \
 										 BrowserServiceClass))
 
-#define IS_BROWSER_SERVICE_TYPE(obj)    (G_TYPE_CHECK_INSTANCE_TYPE((obj), \
+#define IS_BROWSER_SERVICE_TYPE(self)    (G_TYPE_CHECK_INSTANCE_TYPE((self), \
 			                             BROWSER_SERVICE_TYPE))
 
 #define IS_BROWSER_SERVICE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE((klass),\
@@ -45,6 +45,11 @@ enum
 	BOOKMARK_REMOVED_SIGNAL,
 	FAVICON_UPDATED_SIGNAL,
 	THUMBNAIL_UPDATED_SIGNAL,
+  TAB_INFO_UPDATED_SIGNAL,
+  TAB_LIST_UPDATED_SIGNAL,
+  BROWSER_LAUNCHED_SIGNAL,
+  BROWSER_CLOSED_SIGNAL,
+  TAB_MANAGER_LAST_SIGNAL,
 	LAST_SIGNAL
 };
 
@@ -74,6 +79,15 @@ gboolean browser_service_view_item(BrowserService* self, const char* url);
 gboolean browser_service_remove_bookmark(BrowserService* self, const char* id);
 
 gboolean browser_service_remove_url(BrowserService* self, const char* url);
+
+gboolean browser_service_update_current_tab(BrowserService * self, GError **error);
+
+gboolean browser_service_show_browser(BrowserService * self, const char * mode, const char * target);
+
+gboolean browser_service_close_tab(BrowserService * self, int index);
+
+gboolean browser_service_get_current_tab_index(BrowserService * self, int * index);
+
 
 G_END_DECLS
 

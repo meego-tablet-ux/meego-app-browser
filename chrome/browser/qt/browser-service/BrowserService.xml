@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <node name="/com/meego/browser">
 	<interface name="com.meego.browser.BrowserService">
+
+    <method name="showBrowser">
+      <arg name="mode" type="s" direction="in"/>
+      <arg name="target" type="s" direction="in"/>
+    </method>
+
+    <method name="closeTab">
+      <arg name="index" type="i" direction="in"/>
+    </method>
+
+    <method name="getCurrentTabIndex">
+      <arg name="index" type="i" direction="out"/>
+    </method>
 		
 		<method name="removeBookmark">
 			<arg name="id" type="s" />
@@ -43,6 +56,18 @@
 		<signal name="thumbnailUpdated">
 			<arg name="url" type="s" />
 		</signal>
+    
+    <method name="updateCurrentTab">
+    </method>
+    <signal name="tabInfoUpdated">
+      <arg name="index" type="i" direction="out"/>
+    </signal>
+    <signal name="tabListUpdated">
+    </signal>
+    <signal name="browserLaunched">
+    </signal>
+    <signal name="browserClosed">
+    </signal>
 
 	</interface>
 </node>

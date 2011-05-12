@@ -12,6 +12,7 @@
 #include "chrome/browser/ui/meegotouch/bookmark_bubble_qt.h"
 #include "chrome/browser/ui/meegotouch/download_in_progress_dialog_qt.h"
 #include "chrome/browser/ui/meegotouch/popup_list_qt.h"
+#include "chrome/browser/qt/browser-service/BrowserServiceWrapper.h"
 #include <string>
 #include "base/utf_string_conversions.h"
 
@@ -98,8 +99,6 @@
 #include <QOrientationReading>
 #include <QPluginLoader>
 #include <QInputContext>
-
-#include "chrome/browser/qt/browser-service/BrowserServiceWrapper.h"
 
 QTM_USE_NAMESPACE
 
@@ -263,11 +262,11 @@ void BrowserWindowQt::InitWidget()
     sensor->start();
   }
 
-  BrowserServiceWrapper* service = BrowserServiceWrapper::GetInstance();
-  service->Init(browser_.get());
-
   //Init TopSitesCache
   browser_->profile()->GetTopSites();
+
+  BrowserServiceWrapper* service = BrowserServiceWrapper::GetInstance();
+  service->Init(browser_.get());
 }
 
 void BrowserWindowQt::Observe(NotificationType type,

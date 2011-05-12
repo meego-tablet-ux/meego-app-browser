@@ -96,6 +96,13 @@ public:
   void RemoveBookmark(std::string id);
   void SelectTabByUrl(std::string url);
 
+  void updateCurrentTab();
+  void showBrowser(const char * mode, const char *target);
+  void closeTab(int index);
+  int getCurrentTabIndex();
+
+  void AddOpenedTab();
+
   // internal
   void HistoryUrlVisited(
       const history::URLVisitedDetails* details);
@@ -118,7 +125,9 @@ public:
 
   void InitBottomHalf();
   void GetFavIcon(GURL url);
-  void GetThumbnail(TabContents* contents, GURL url);
+  void GetThumbnail(TabContents* contents, GURL url, int index);
+  void OnBrowserClosing();
+
 private:
   void ClearSnapshotList();
 
