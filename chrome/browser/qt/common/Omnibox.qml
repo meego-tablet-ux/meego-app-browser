@@ -42,9 +42,12 @@ Item {
   property bool showStarButton: true
   signal activeFocusChanged(bool activeFocus)
 
+  property int starButtonHeight: 45
+  property int starButtonWidth: 40
+
   Row {
     anchors.fill: parent
-    anchors.margins: 7
+    anchors.margins: 5
     
   Image {
     id: left
@@ -54,8 +57,9 @@ Item {
   }
   BorderImage {
     id: omniBox
-    width: parent.width - 10
+    width: parent.width - left.width - right.width
     height: parent.height
+    z: parent.z + 1 //to avoid hlight overlap by left and right
     anchors.verticalCenter: parent.verticalCenter
     horizontalTileMode: BorderImage.Stretch
     source: "image://themedimage/images/browser/urlinputbar_middle"
@@ -66,7 +70,7 @@ Item {
       width: parent.width
       height: popupHeight
       anchors.top: parent.bottom
-      anchors.topMargin: -8
+      anchors.topMargin: -30 + 5 + 6 // 30: finger.height 5: bottomMargin of omnibox 6: margin below toolbar
       anchors.horizontalCenter: parent.horizontalCenter
       z: 10
     }
@@ -84,11 +88,19 @@ Item {
         id: hlight
         anchors.left: parent.left
         anchors.right: parent.right
+        anchors.leftMargin: -3 // to cover left
+        anchors.rightMargin: -3 // to cover right
         height: parent.height
         border.color: "#2CACE3"
         border.width:3
         radius:5
         visible:false
+    }
+    MouseArea {
+      anchors.fill: parent
+      anchors.topMargin: -5
+      anchors.bottomMargin: -5
+      onPressed: urlTextInput.forceActiveFocus();
     }
     Rectangle{
       id: sslArea
@@ -97,7 +109,7 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       anchors.left: parent.left
       property int widthFix: 16
-      anchors.leftMargin: 5
+      anchors.leftMargin: 7
       anchors.rightMargin: 5
       radius: 5
       smooth: true
@@ -128,20 +140,16 @@ Item {
       anchors.left: sslArea.right
       anchors.right: starButton.left
       anchors.leftMargin: 5
-      anchors.topMargin: 10
       anchors.rightMargin: 5
-      //height: parent.height
       anchors.verticalCenter: parent.verticalCenter
       horizontalAlignment: TextInput.AlignLeft
       selectByMouse: true
       color: "gray"
-      //font.pixelSize: height * 0.7
       font.pixelSize: theme_fontPixelSizeNormal
       property bool isDelete: false
       property bool shouldSelectAll: false
       autoScroll: false
       inputMethodHints: Qt.ImhUrlCharactersOnly
-      z: parent.z+1
 
       Keys.onReturnPressed: {
         autocompleteEditViewModel.returnPressed();
@@ -171,27 +179,20 @@ Item {
         if (activeFocus == true){
           autocompleteEditViewModel.focusGained();
           //starButton.width = 0;
-          //starIcon.width = 0;
           urlTextInput.autoScroll = false;
-	  hlight.visible = true;
-	  left.visible = false;
-	  right.visible = false;
-	  urlTextInput.anchors.leftMargin = 5
+          hlight.visible = true;
         }
         else {
           autocompleteEditViewModel.focusLost();
           if (showStarButton) {
-            starButton.width = starButton.height;
-            starIcon.width = starButton.width;
+            starButton.width = starButtonWidth;
           }
           // let the title text left alignment
           urlTextInput.cursorPosition = 0
           urlTextInput.autoScroll = false;
           // close VKB
           urlTextInput.closeSoftwareInputPanel();
-	  hlight.visible = false;
-	  left.visible = true;
-	  right.visible = true;
+          hlight.visible = false;
         }
         container.activeFocusChanged(activeFocus);
       }
@@ -225,35 +226,29 @@ Item {
               else
                 sslIcon.source="image://themedimage/widgets/apps/browser/close-small"
             }
+            urlTextInput.anchors.leftMargin = 8;
           }
           else{
             sslIcon.width = 0;
             sslTitle.text= "";
             sslArea.widthFix = 0;
+            urlTextInput.anchors.leftMargin = 5;
           }
         }
       }
     }
-    MouseArea {
-      anchors.fill: parent
-      anchors.topMargin: -5
-      anchors.bottomMargin: -5
-      onPressed: urlTextInput.forceActiveFocus();
-    }
     Item {
       id: starButton
       objectName: "starButton"
-      height: parent.height/2
-      width: height
-      anchors.verticalCenter: parent.verticalCenter
+      height: starButtonHeight
+      width: starButtonWidth
       anchors.right: parent.right
-      anchors.leftMargin: 5
-      anchors.rightMargin: 5
+      anchors.rightMargin: -1 * right.width
       Image {
         id: starIcon
-        anchors.fill: parent
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
         source: "image://themedimage/images/browser/icn_favourite_off"
-        fillMode: Image.Tile
         property bool pressed: false
         states: [
           State {
@@ -267,15 +262,13 @@ Item {
         ]
       }
       MouseArea {
-        anchors.right: parent.right
-        width: parent.width*2
-        height: parent.height*2
+        anchors.fill: parent
         onClicked: {
-          var px = 3* width / 4;
+          var px = width/2;
           var py = height;
 
           if (popupDirection == 0) {
-            py = starButton.height
+            py = starButtonHeight - (30/2 - 5 - 6) // 30: finger.height 5: bottomMargin of omnibox 6: margin below toolbar
           } else if (popupDirection == 1) {
             py = py + starButton.height
           }
@@ -284,7 +277,7 @@ Item {
 
            scene.lastMousePos.mouseX = map.x;
            scene.lastMousePos.mouseY = map.y;
-           console.log(map.x, map.y);
+           focus = true;
            browserToolbarModel.starButtonClicked();
         }
         onPressed: starIcon.pressed = true
@@ -301,12 +294,10 @@ Item {
         onShowStarButton: {
           if (!show) {
            //starButton.width = 0;
-           //starIcon.width = 0;
            //container.showStarButton = false;
           }
           else {
-           starButton.width = starButton.height;
-           starIcon.width = starButton.width;
+           starButton.width = starButtonWidth;
            container.showStarButton = true;
           }
         }

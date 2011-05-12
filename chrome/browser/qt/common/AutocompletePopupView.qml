@@ -55,8 +55,8 @@ Item {
   property int textMargin: 16
  
   Image {
-	id: finger
-	source: "image://themedimage/images/popupbox_arrow_top"
+    id: finger
+    source: "image://themedimage/images/popupbox_arrow_top"
     anchors.top: parent.top
     anchors.horizontalCenter: parent.horizontalCenter
   }

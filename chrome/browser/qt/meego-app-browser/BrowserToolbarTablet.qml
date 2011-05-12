@@ -37,7 +37,6 @@ import Qt 4.7
 Item {
     id: container
     width: parent.width
-    height: 50
     anchors.top: parent.top
     opacity: 1
     onCrumbTriggered: scene.crumbTriggered(payload)
@@ -68,7 +67,7 @@ Item {
             when: scene.showtoolbar && !scene.fullscreen && !scene.appmode
             PropertyChanges {
                 target: toolbar
-                height: 50
+                height: 55
                 opacity: 1
             }
         },
@@ -98,7 +97,7 @@ Item {
         id: background
         source: "image://themedimage/images/titlebar_l"
         width: parent.width
-        height: 50
+        height: parent.height
 
         anchors.leftMargin: 10
         anchors.rightMargin: 10
@@ -121,7 +120,7 @@ Item {
         Image {
             id: divider1
             anchors.left: backForwardButton.right
-            height: buttonHeight - 3
+            height: buttonHeight
             source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
@@ -142,7 +141,7 @@ Item {
         Image {
             id: divider2
             anchors.left: reloadButton.right
-            height: buttonHeight - 3
+            height: buttonHeight
             source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
@@ -204,7 +203,7 @@ Item {
         Image {
             id: divider3
             anchors.right: tabButton.left
-            height: buttonHeight - 3
+            height: buttonHeight
             source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
@@ -219,7 +218,7 @@ Item {
         Image {
             id: divider4
             anchors.right: wrenchButton.left
-            height: buttonHeight - 3
+            height: buttonHeight
             source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
         }
 
