@@ -62,7 +62,7 @@ Item {
 
   Column {
     width: 202
-    height: tabsidebarview.height ? borderImage1.height + newtab.height + tabsidebarview.height + sidebarMargin*2 + borderImage2.height : borderImage1.height + newtab.height + tabsidebarview.height + borderImage2.height
+    height: tabsidebarview.height ? borderImage1.height + newtab.height + tabsidebarview.height + 10 + borderImage2.height : borderImage1.height + newtab.height + tabsidebarview.height + borderImage2.height
 
     x: calcX()
     y: up?arrow.y + arrow.height-2:start_y - arrow.height - height +2
@@ -115,10 +115,9 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: newtab.bottom
-        anchors.margins: sidebarMargin
-        maxHeight: maxSideBarHeight - sidebarMargin*2 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
+        anchors.topMargin: 10
+        maxHeight: maxSideBarHeight - 20 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
       }
-
       Connections {
         target: tabSideBarModel
 
