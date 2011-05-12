@@ -84,16 +84,36 @@ Item {
         anchors.rightMargin: 10
         anchors.bottomMargin: 10
         property bool isCurrentTab: false
+        property string thumbnailPath: selectThumbnail (pageType, index, thumbnail)
+        function selectThumbnail (pageType, index, thumbnail) {
+          if (pageType == "newtab") {
+            thumbnails.height = tabContainer.height - titleRect.height
+            newtabBg.visible = true
+            return "image://themedimage/widgets/apps/browser/web-favorite-medium"
+          }
+          thumbnails.height = tabContainer.height
+          newtabBg.visible = false
+          return "image://tabsidebar/thumbnail_" + index + "_" + thumbnail
+        }
         Image {
-          anchors.fill: parent
+          id:thumbnails
+          height: parent.height
+          width: parent.width
+          z: newtabBg.z + 1
           fillMode: Image.PreserveAspectFit
           smooth: true
-          source: "image://tabsidebar/thumbnail_" + index + "_" + thumbnail
+          source: parent.thumbnailPath
         }
         Image {
           id: tabPageBg
           anchors.fill: parent
           source: "image://themedimage/widgets/apps/browser/tabs-border-overlay"
+        }
+        Image {
+          id: newtabBg
+          anchors.fill: parent
+          source: "image://themedimage/widgets/apps/browser/new-tab-background"
+          visible: false
         }
         // title of the tab
         Rectangle{

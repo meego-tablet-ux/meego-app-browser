@@ -58,8 +58,10 @@ class TabItem
   QImage Thumbnail() {return thumbnail_;}
   QString Title() { return title_; }
   int ThumbnailId() { return id_;}
+  QString PageType() { return pageType_; }
 
   void GetThumbnail();
+  void GetPageType();
   void OnThumbnailDataAvailable(
 			      HistoryService::Handle request_handle,
 			      scoped_refptr<RefCountedBytes> jpeg_data);
@@ -72,6 +74,7 @@ class TabItem
   TabListQt* tablist_;
   QString title_;
   QImage thumbnail_;
+  QString pageType_;
   int id_;
 
   // For history requests.
@@ -91,7 +94,8 @@ class TabListQt :  public QAbstractListModel,
 
   enum TabRoles {
     TitleRole = Qt::UserRole + 1,
-    ThumbnailRole
+    ThumbnailRole,
+    PageTypeRole
   };
 
   Browser* browser() {return browser_;}

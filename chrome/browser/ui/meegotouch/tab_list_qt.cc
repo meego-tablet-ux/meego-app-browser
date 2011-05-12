@@ -143,6 +143,14 @@ void TabItem::GetThumbnail()
 
 }
 
+void TabItem::GetPageType()
+{
+  if(tab_contents_->tab_contents()->GetURL().SchemeIs("chrome"))
+    pageType_ = QString("newtab");
+  else
+    pageType_ = QString("normal");
+}
+
 void TabItem::OnThumbnailDataAvailable(
 			      HistoryService::Handle request_handle,
 			      scoped_refptr<RefCountedBytes> jpeg_data) {
@@ -164,6 +172,7 @@ void TabItem::update()
   title_ = QString::fromStdWString(title_str);
 
   GetThumbnail();
+  GetPageType();
 }
 
 
@@ -192,6 +201,7 @@ TabListQt::TabListQt(Browser* browser, BrowserWindow* window):
   QHash<int, QByteArray> roles;
   roles[ThumbnailRole] = "thumbnail";
   roles[TitleRole] = "title";
+  roles[PageTypeRole] = "pageType";
      
   setRoleNames(roles);
 
@@ -273,6 +283,8 @@ QVariant TabListQt::data(const QModelIndex & index, int role) const
     return item->Title();
   else if (role == ThumbnailRole)
     return item->ThumbnailId();
+  else if (role == PageTypeRole)
+    return item->PageType();
   return QVariant();
 }
 
@@ -299,12 +311,9 @@ void TabListQt::createContents()
 
 void TabListQt::insertTab(TabContentsWrapper* tab_contents)
 {
-  if(tab_contents->tab_contents()->GetURL().HostNoBrackets() != std::string("newtab"))
-  {
-    TabItem* item = new TabItem(tab_contents, this);
-    tab_item_map_.insert(tab_contents, item);
-    addTabItem(item);
-  }
+  TabItem* item = new TabItem(tab_contents, this);
+  tab_item_map_.insert(tab_contents, item);
+  addTabItem(item);
 }
 
 void TabListQt::addTabItem(TabItem* item)
