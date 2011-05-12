@@ -242,10 +242,10 @@ class MaxViewModel : public QAbstractListModel {
     GURL getItemURL(int index);
 
   public Q_SLOTS:
-    int getCollapsedState() { return collapsedState; };
-    void setCollapsedState(int state) { collapsedState = state; };
-    bool getCloseButtonState() { return closeButtonState; };
-    void setCloseButtonState(bool state) { closeButtonState = state; };
+    int getCollapsedState() { return collapsedState_; };
+    void setCollapsedState(int state) { collapsedState_ = state; };
+    bool getCloseButtonState() { return closeButtonState_; };
+    void setCloseButtonState(bool state) { closeButtonState_ = state; };
     void openWebPage(int index);
     void removeWebPage(int index);
     QString GetCategoryName();
@@ -258,8 +258,8 @@ class MaxViewModel : public QAbstractListModel {
     QList<ThumbnailEntry*> thumbnailList_;
     QList<FaviconEntry*> faviconList_;
     int returnedImages_;
-    int collapsedState;
-    bool closeButtonState;
+    int collapsedState_;
+    bool closeButtonState_;
     NewTabUIQt* new_tab_;
     QString name_;
     //Add for force reloading image for QML

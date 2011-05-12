@@ -769,8 +769,8 @@ MaxViewModel::MaxViewModel(NewTabUIQt* tab, std::vector<MostVisitedPage*>* data,
         new_tab_(tab),
         updateTimes_(0),
         name_(name),
-        collapsedState(LayoutThumbnails),
-        closeButtonState(true) {
+        collapsedState_(LayoutThumbnails),
+        closeButtonState_(true) {
   QHash<int, QByteArray> roles;
   roles[UrlRule] = "url";
   roles[TitleRule] = "title";
@@ -816,6 +816,10 @@ void MaxViewModel::updateContent(std::vector<MostVisitedPage*>* data) {
             FaviconEntry *favicon = new FaviconEntry(provider, page.url, 
               new_tab_->getProfile(), this);
             faviconList_.push_back(favicon);
+        }
+        // collpased view when empty
+        if(count == 0 && name_==QString(MOST_VISITED)) {
+            setCollapsedState(LayoutCollapsed);
         }
     }
 }
