@@ -42,7 +42,7 @@ Item {
     property alias categoryTitle: title.text
     property alias categoryBottom: category.bottom
     property QtObject gridModel
-    width: maxViewLoader.width
+    width: parent.width
     height: maxViewLoader.height + category.height + getGridTopMargin()
 
     Image {
@@ -57,7 +57,7 @@ Item {
       anchors.top: category.bottom
       anchors.left: parent.left
       anchors.topMargin: getGridTopMargin()
-      width: item.viewWidth
+      width: parent.width
       height: item.viewHeight
       sourceComponent: maxView
     }
@@ -80,6 +80,25 @@ Item {
       }
     }
 
+    function getGridLeftMargin() {
+      if(newtab.width > newtab.height) {
+        if(newtab.width>1200)  //For 1280x800
+           return 53;
+        else if(newtab.width<1000)  //For handset
+          return 32;
+        else			//For 1024x600
+          return 42;
+      }else{
+        if(newtab.width>750)  //For 1280x800
+          return 50;
+        else if(newtab.width<550)  //For handset
+          return 16;
+        else			//For 1024x600
+          return 20;
+      }
+
+    }
+
     Image {
 	id: category
 	anchors.top: parent.top
@@ -92,6 +111,7 @@ Item {
 	    id: arrow
      	    anchors.verticalCenter: title.verticalCenter
 	    anchors.left: parent.left
+	    anchors.leftMargin: getGridLeftMargin()
 	    source: "image://themedimage/images/notes/icn_dropdown_off"
 	}
 	
@@ -185,7 +205,7 @@ Item {
 	    name: "list"
 	    when: collapseState == 3
 	    PropertyChanges { target: maxViewLoader; sourceComponent: listView }
-	    PropertyChanges { target: arrow; rotation: 270 }
+	    PropertyChanges { target: arrow; rotation: 0 }
         }
     ]
 
@@ -194,7 +214,6 @@ Item {
 	id: maxView
 	Item {
             id: maxViewRoot
-	    property int viewWidth: grid.width
 	    property int viewHeight: grid.height
             property int itemWidth: getItemWidth();
             property int itemHeight: getItemHeight();
@@ -281,6 +300,9 @@ Item {
 		id: grid
 		cellWidth: itemWidth + itemHMargin
 		cellHeight: itemHeight + itemVMargin
+                anchors.left: parent.left
+                anchors.leftMargin: sector.getGridLeftMargin()
+                //anchors.horizontalCenter: parent.horizontalCenter
 		width: cellWidth*5
 		height: cellHeight*2
 		delegate: MaxViewDelegate { }
@@ -362,7 +384,6 @@ Item {
     Component {
 	id: miniView
 	Item {
-	    property int viewWidth: list.width
 	    property int viewHeight: list.height
             property int itemWidth: getItemWidth();
             property int itemHeight: getItemHeight();
@@ -446,6 +467,9 @@ Item {
 	    ]
 	    GridView {
 		id: list
+                anchors.left: parent.left
+                anchors.leftMargin: sector.getGridLeftMargin()
+                //anchors.horizontalCenter: parent.horizontalCenter
 		cellWidth: itemWidth + itemHMargin
 		cellHeight: itemHeight + itemVMargin
 		width: cellWidth * 5   //5 coloums
@@ -461,7 +485,6 @@ Item {
     Component {
 	id: listView
 	Item {
-	    property int viewWidth: list.width
 	    property int viewHeight: list.height + list.anchors.topMargin
             property int itemWidth: getItemWidth();
             property int itemHMargin: getItemHMargin();
@@ -519,33 +542,13 @@ Item {
                   return 20;
               }
             }
-
-	    states: [
-		State {
-		    name: "landscape"
-		    when: scene.orientation == 1 || scene.orientation == 3
-		    PropertyChanges {
-			target:list
-			width: (itemWidth + itemHMargin) * 5   //5 coloums
-		    }
-		},
-
-		State {
-		    name: "portrait"
-		    when: scene.orientation == 2 || scene.orientation == 0
-		    PropertyChanges {
-			target: list
-			width: (itemWidth + itemHMargin) * 3   //3 coloums
-		    }
-		}
-	    ]
             
 	    ListView {
 		id: list
                 anchors.topMargin: getListViewTopMargin()
-		width: (itemWidth + itemHMargin) * 5   //5 coloums
+                width: parent.width
 		height: newtab.height - mostVisited.height - line.height - line.anchors.topMargin - category.height - anchors.topMargin
-                //height: 105
+                anchors.left: parent.left
 		orientation: ListView.Vertical
 		delegate: ListViewDelegate { }
 		model: sector.gridModel

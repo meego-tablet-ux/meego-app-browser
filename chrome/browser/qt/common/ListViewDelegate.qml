@@ -35,7 +35,8 @@ import Qt 4.7
 
 Item { 
     id: main
-    width: list.width
+    anchors.left: parent.left
+    width: parent.width
     height: getRowHeight()
 
     function getRowHeight() {
@@ -60,15 +61,14 @@ Item {
       id: sector_bg
       anchors.fill: parent
       fillMode: Image.Stretch
-      source: "image://themedimage/images/browser/new-tab-closed-bar-background"
-      // ToDo: Open this when resource is ready.
-      // visible: index%2 == 0
-      visible: false
+      source: "image://themedimage/widgets/apps/browser/new-tabs-closed-bar-background"
+      visible: index%2 == 0
     }
 
     Image { 
 	id: favIcon
-	anchors.left: parent.left
+        anchors.left: parent.left
+        anchors.leftMargin: sector.getGridLeftMargin()
 	anchors.verticalCenter: parent.verticalCenter
 	source: favicon
 	fillMode: Image.PreserveAspectFit

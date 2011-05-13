@@ -75,15 +75,15 @@ Item {
   MaxViewFrame {
     id: mostVisited
     enableDrag: true
+    width: parent.width
     z:recentlyClosed.z + 1
-    anchors.horizontalCenter: parent.horizontalCenter
   }
 
   MaxViewFrame {
     id: recentlyClosed
     enableDrag: false
+    width: parent.width
     anchors.top: line.bottom 
-    anchors.horizontalCenter: parent.horizontalCenter
   }
 
   Image {

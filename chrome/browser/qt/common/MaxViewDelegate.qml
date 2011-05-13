@@ -65,7 +65,7 @@ Component{
 	      color: "black"
               opacity: 0.8
               width: background.width
-	      height: titleText.height*2
+	      height: titleText.height + 10
               anchors { left: background.left; bottom: background.bottom }
 /*
 	      gradient: Gradient {
