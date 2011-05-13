@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<node name="/com/meego/browser">
+	<interface name="com.meego.browser.BrowserService">
+
+    <method name="showBrowser">
+      <arg name="mode" type="s" direction="in"/>
+      <arg name="target" type="s" direction="in"/>
+    </method>
+
+    <method name="closeTab">
+      <arg name="index" type="i" direction="in"/>
+    </method>
+
+    <method name="getCurrentTabIndex">
+      <arg name="index" type="i" direction="out"/>
+    </method>
+		
+		<method name="removeBookmark">
+			<arg name="id" type="s" />
+		</method>
+
+		<method name="removeUrl">
+			<arg name="url" type="s" />
+		</method>
+
+		<method name="viewItem">
+			<arg name="url"  type="s" />
+		</method>
+
+		<signal name="urlVisited">
+			<arg name="id" type="x"/>
+			<arg name="url" type="s"/>
+			<arg name="title" type="s"/>
+			<arg name="faviconUrl" type="s"/>
+		</signal>
+
+		<signal name="urlRemoved">
+			<arg name="url" type="s" />
+		</signal>
+
+		<signal name="bookmarkUpdated">
+			<arg name="id" type="x"/>
+			<arg name="url" type="s" />
+			<arg name="title" type="s" />
+			<arg name="faviconUrl" type="s" />
+		</signal>
+
+		<signal name="bookmarkRemoved">
+			<arg name="id" type="x"/>
+		</signal>
+
+		<signal name="faviconUpdated">
+			<arg name="url" type="s"/>
+		</signal>
+
+		<signal name="thumbnailUpdated">
+			<arg name="url" type="s" />
+		</signal>
+    
+    <method name="updateCurrentTab">
+    </method>
+    <signal name="tabInfoUpdated">
+      <arg name="index" type="i" direction="out"/>
+    </signal>
+    <signal name="tabListUpdated">
+    </signal>
+    <signal name="browserLaunched">
+    </signal>
+    <signal name="browserClosed">
+    </signal>
+
+	</interface>
+</node>
