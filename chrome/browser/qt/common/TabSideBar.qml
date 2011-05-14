@@ -72,7 +72,7 @@ Item {
       if ((start_x-width/2) < minimumX) {
           return minimumX;
       } else if ((start_x + width/2) > parent.width) {
-          return (start_x + toolbar.buttonWidth/2 - width);
+          return up? (start_x + toolbar.buttonWidth/2 - width):(start_x + toolbarBottom.buttonWidth/2 - width);
       } else {
           return Math.round(start_x-width/2);
       }
