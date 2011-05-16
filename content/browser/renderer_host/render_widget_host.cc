@@ -699,6 +699,7 @@ void RenderWidgetHost::ForwardInputEvent(const WebInputEvent& input_event,
   // |next_mouse_move_| possibly owns |input_event|, so don't use |input_event|
   // after this line.
   next_mouse_move_.reset();
+  next_touch_move_.reset();
 
   StartHangMonitorTimeout(TimeDelta::FromMilliseconds(kHungRendererDelayMs));
 }
@@ -735,6 +736,9 @@ void RenderWidgetHost::RendererExited(base::TerminationStatus status,
   next_mouse_move_.reset();
   mouse_wheel_pending_ = false;
   coalesced_mouse_wheel_events_.clear();
+
+  touch_move_pending_ = false;
+  next_touch_move_.reset();
 
   // Must reset these to ensure that keyboard events work with a new renderer.
   key_queue_.clear();
