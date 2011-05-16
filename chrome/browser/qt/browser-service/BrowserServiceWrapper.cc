@@ -85,6 +85,8 @@ class SnapshotTaker {
       gfx::Size snapshot_size = gfx::Size(512, 320);
  
       RenderViewHost* renderer = contents->render_view_host();
+      if (!renderer)
+        return;
 
       if(renderer) {
         ThumbnailGenerator* generator =  g_browser_process->GetThumbnailGenerator();
