@@ -50,6 +50,7 @@
 #include "content/browser/tab_contents/tab_contents.h"
 #include "content/browser/tab_contents/tab_contents_view.h"
 #include "chrome/browser/ui/window_sizer.h"
+#include "chrome/browser/net/url_fixer_upper.h"
 #include "chrome/common/chrome_switches.h"
 #include "content/common/notification_service.h"
 #include "chrome/common/pref_names.h"
@@ -154,6 +155,19 @@ class BrowserWindowQtImpl : public QObject
       window_(window)
   {
   }
+
+ public Q_SLOTS:
+  void onCalled(const QStringList& parameters)
+  {
+    for (int i = 0 ; i < parameters.size(); i++)
+    {
+      DLOG(INFO) << "BrowserWindowQtImpl::onCalled " << parameters[i].toStdString();
+      window_->browser_->OpenURL(URLFixerUpper::FixupURL(parameters[i].toStdString(), std::string()),
+                                 GURL(), NEW_FOREGROUND_TAB, PageTransition::LINK);
+    }
+  }
+
+
  protected:
   bool eventFilter(QObject *obj, QEvent *event)
   {
@@ -197,6 +211,9 @@ void BrowserWindowQt::InitWidget()
 
   window_ = g_main_window;
   window_->installEventFilter(impl_);
+  bool result = impl_->connect(window_, SIGNAL(call(const QStringList&)),
+                               impl_, SLOT(onCalled(const QStringList&)));
+
   QDeclarativeContext *context = window_->getDeclarativeView()->rootContext();
 
   // Set modal as NULL to avoid QML warnings
