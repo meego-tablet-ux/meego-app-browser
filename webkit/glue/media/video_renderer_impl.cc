@@ -256,54 +256,6 @@ if(/*(wp->paused() == 0) ||*/ subwin){
     //base::TimeDelta time = video_frame->GetDuration();
     return;
 
-#if 0
-    int w_ = WIDTH, h_ = HEIGHT ;
-    /*resize of not while menu is enabled*/
-    if(proxy->menu_on_){
-        /*moving label*/
-        h_ -= 84;
-    }
-   status = vaPutSurface(hw_ctx_display, surface_id, subwin,
-                              0, 0, w, h, /*src*/
-                              0, 0, w_, h_, /*dst*/
-                              NULL, 0,
-                              VA_FRAME_PICTURE | VA_SRC_BT601);
-    if(proxy->menu_on_ && subwin){
-        proxy->PaintControlBar();
-    }
-#endif
-
-#if 0
-}else{
-    /*if paused , just copy to shm, and .*/
-    //("render default\n");
-
-    Display *dTmp = (Display *)video_frame->data_[0];
-
-    int screen = DefaultScreen(dTmp);
-    int root_window = RootWindow(dTmp, screen);
-    Window wTmp = root_window;
-
-    XWindowAttributes attr;
-   XGetWindowAttributes (dTmp, wTmp, &attr);
-    // Creates a pixmap and uploads from the XImage.
-    unsigned long pixmap = XCreatePixmap(dTmp,
-                                         wTmp,
-                                         w,
-                                         h,
-                                         attr.depth);
-    
-    /*CC and Resize*/
-    status = vaPutSurface(hw_ctx_display, surface_id, pixmap,
-                             0, 0, w, h, /*src*/
-                              0, 0, w_, h_, /*dst*/
-                              NULL, 0,
-                              VA_FRAME_PICTURE | VA_SRC_BT601);
-    if(proxy->menu_on_ && subwin){
-        proxy->PaintControlBar();
-    }
-#endif
-
 }else{
     /*if paused , just copy to shm, and .*/
     //("render default\n");
@@ -319,8 +271,8 @@ if(/*(wp->paused() == 0) ||*/ subwin){
     // Creates a pixmap and uploads from the XImage.
     unsigned long pixmap = XCreatePixmap(dTmp,
                                          wTmp,
-                                         w,
-                                        h,
+                                         w_,
+                                         h_,
                                          attr.depth);
     
     /*CC and Resize*/
@@ -332,7 +284,7 @@ if(/*(wp->paused() == 0) ||*/ subwin){
 
    XImage * mXImage;
 
-//#define _Shared_
+#define _Shared_
 #ifdef _Shared_
     static int shared = 0;
     static char* pbuffer = NULL;
