@@ -13,7 +13,7 @@ from xml.dom import minidom
 
 base_commit = "16e43edc265780a01d2b94cba1aefcdad63661bd"
 
-grd_files = [#'chrome/app/generated_resources.grd',
+grd_files = ['chrome/app/generated_resources.grd',
              'chrome/app/chromium_strings.grd']
 
 ts_dir = './ts'

@@ -18,7 +18,7 @@
 # - $SRC/chrome/app/resources/*.xtb
 # - $SRC/webkit/glue/resources/*.xtb
 # and for launchpad contributed strings that already landed:
-# - $SRC/chrome/app/../third_party/launchpad_translations/*.xtb
+# - $SRC/third_party/launchpad_translations/*.xtb
 
 ## the mapping between those keys is done using FingerPrint()
 ## [ taken from grit ] on a stripped version of the untranslated string
@@ -383,11 +383,13 @@ class PotFile(dict):
  Read and write gettext pot files
   """
 
-  def __init__(self, filename, date = None, debug = False):
+  def __init__(self, filename, date = None, debug = False, branch_name = "default", branch_dir = os.getcwd()):
     self.debug = debug
     self.lang = None
     self.filename = filename
     self.tfile = filename + ".new"
+    self.branch_dir = branch_dir
+    self.branch_name = branch_name
     self.template_date = date
     self.translation_date = "YEAR-MO-DA HO:MI+ZONE"
     self.is_pot = True
@@ -397,33 +399,45 @@ class PotFile(dict):
       self.template_date = datetime.utcnow().strftime("%Y-%m-%d %H:%M+0000")
     self.strings = []
 
-  def add_string(self, id, comment, string, translation = ""):
+  def add_string(self, id, comment, string, translation = "", origin = None):
     self.strings.append({ 'id': id, 'comment': comment, 'string': string,
-                          'translation': translation })
+                          'origin': origin, 'translation': translation })
 
   def replace_file_if_newer(self):
-    if os.path.isfile(self.filename) and filecmp.cmp(self.filename, self.tfile) == 1:
-      os.unlink(self.tfile)
+    filename = os.path.join(self.branch_dir, self.filename) if self.branch_dir is not None \
+        else self.filename
+    tfile = os.path.join(self.branch_dir, self.tfile) if self.branch_dir is not None \
+        else self.tfile
+    if os.path.isfile(filename) and filecmp.cmp(filename, tfile) == 1:
+      os.unlink(tfile)
       return 0
     else:
-      os.rename(self.tfile, self.filename)
+      os.rename(tfile, filename)
       return 1
+
+  def get_mtime(self, file):
+    rfile = os.path.join(self.branch_dir, file)
+    if self.debug:
+      print "getmtime(%s) [%s]" % (file, os.path.abspath(rfile))
+    return os.path.getmtime(rfile)
 
   def open(self, mode = "rb", filename = None):
     if filename is not None:
       self.filename = filename
       self.tfile = filename + ".new"
+    rfile = os.path.join(self.branch_dir, self.filename)
+    rtfile = os.path.join(self.branch_dir, self.tfile)
     if self.fd is not None:
       self.close()
     self.fd_mode = mode
     if mode.find("r") != -1:
       if self.debug:
-        print "open %s mode=%s" % (self.filename, mode)
-      self.fd = codecs.open(self.filename, mode, encoding="utf-8")
+        print "open %s [mode=%s] from branch '%s' [%s]" % (self.filename, mode, self.branch_name, os.path.abspath(rfile))
+      self.fd = codecs.open(rfile, mode, encoding="utf-8")
     else:
       if self.debug:
-        print "open %s mode=%s" % (self.tfile, mode)
-      self.fd = codecs.open(self.tfile, mode, encoding="utf-8")
+        print "open %s [mode=%s] from branch '%s' [%s]" % (self.tfile, mode, self.branch_name, os.path.abspath(rtfile))
+      self.fd = codecs.open(rtfile, mode, encoding="utf-8")
 
   def close(self):
     self.fd.close()
@@ -450,7 +464,7 @@ class PotFile(dict):
           string['reference'] = ''
         string['reference'] += s[2:]
         if s[2:].find(" id: ") == 0:
-          string['id'] = s[7:]
+          string['id'] = s[7:].split(' ')[0]
         continue
       if s.find("#.") == 0: # extracted-comments
         if 'extracted' not in string:
@@ -515,17 +529,19 @@ class PotFile(dict):
                #'"Language-Team: %s\\n"\n'
                '"MIME-Version: 1.0\\n"\n'
                '"Content-Type: text/plain; charset=UTF-8\\n"\n'
-               '"Content-Transfer-Encoding: 8bit\\n"\n\n'
-               #% (datetime.fromtimestamp(self.template_date).strftime("%Y-%m-%d %H:%M+0000"),
+               #'"Content-Transfer-Encoding: 8bit\\n"\n\n' % \
+               #  (datetime.fromtimestamp(self.template_date).strftime("%Y-%m-%d %H:%M+0000"),
                #   date, lang_team))
                )
+ 
   def write_footer(self):
     pass
 
   def write_all_strings(self):
     for string in self.strings:
       self.write(u"#. %s\n" % u"\n#. ".join(string['comment'].split("\n")))
-      self.write(u"#: id: %s\n" % string['id'])
+      self.write(u"#: id: %s (used in the following branches: %s)\n" % \
+                   (string['id'], ", ".join(string['origin'])))
       self.write(u'msgid %s\n' % StringCvt().xtb2gettext(string['string']))
       self.write(u'msgstr %s\n\n' % StringCvt().xtb2gettext(string['translation']))
 
@@ -537,7 +553,7 @@ class PotFile(dict):
     return self.close()
 
   def import_file(self):
-    self.mtime = os.path.getmtime(self.filename)
+    self.mtime = self.get_mtime(self.filename)
     self.open()
     while 1:
       string = self.read_string()
@@ -555,6 +571,14 @@ class PotFile(dict):
     comment = comment[:-1] # strip trailing \n
     return comment
 
+  def get_origins(self, data):
+    o = []
+    for ent in sorted(data, lambda x,y: cmp(x['code'], y['code'])):
+      for origin in ent['origin']:
+        if origin not in o:
+          o.append(origin)
+    return o
+
   def import_grd(self, grd):
     imported = 0
     for id in sorted(grd.supported_ids.keys()):
@@ -562,7 +586,9 @@ class PotFile(dict):
         continue
       comment = self.pack_comment(grd.supported_ids[id]['ids'])
       string = grd.supported_ids[id]['ids'][0]['val']
-      self.strings.append({ 'id': id, 'comment': comment, 'string': string, 'translation': '' })
+      origin = self.get_origins(grd.supported_ids[id]['ids'])
+      self.strings.append({ 'id': id, 'comment': comment, 'string': string,
+                            'origin': origin, 'translation': '' })
       imported += 1
     if self.debug:
       print "imported %d strings from the grd template" % imported
@@ -572,8 +598,10 @@ class PoFile(PotFile):
  Read and write gettext po files
   """
 
-  def __init__(self, lang, filename, template, date = None, debug = None):
-    super(PoFile, self).__init__(filename, date = template.template_date, debug = debug)
+  def __init__(self, lang, filename, template, date = None, debug = None,
+               branch_name = "default", branch_dir = os.getcwd()):
+    super(PoFile, self).__init__(filename, date = template.template_date, debug = debug,
+                                 branch_name = branch_name, branch_dir = branch_dir)
     self.template = template
     self.lang = lang
     self.translation_date = date
@@ -588,7 +616,8 @@ class PoFile(PotFile):
       translation = xtb.strings[id] if id in xtb.strings else ""
       comment = self.template.pack_comment(xtb.template.supported_ids[id]['ids'])
       string = xtb.template.supported_ids[id]['ids'][0]['val']
-      self.add_string(id, comment, string, translation)
+      origin = self.get_origins(xtb.template.supported_ids[id]['ids'])
+      self.add_string(id, comment, string, translation, origin)
       imported += 1
     if self.debug:
       print "imported %d translations for lang %s from xtb into po %s" % (imported, self.lang, self.filename)
@@ -597,8 +626,10 @@ class GrdFile(PotFile):
   """
  Read a Grit GRD file (write is not supported)
   """
-  def __init__(self, filename, date = None, lang_mapping = None, debug = None):
-    super(GrdFile, self).__init__(filename, date = date, debug = debug)
+  def __init__(self, filename, date = None, lang_mapping = None, debug = None,
+               branch_name = "default", branch_dir = os.getcwd()):
+    super(GrdFile, self).__init__(filename, date = date, debug = debug,
+                                  branch_name = branch_name, branch_dir = branch_dir)
     self.lang_mapping = lang_mapping
     self.mapped_langs = {}
     self.supported_langs = {}
@@ -606,7 +637,7 @@ class GrdFile(PotFile):
     self.supported_ids_counts = {}
     self.translated_strings = {}
     self.stats = {} # per lang
-    self.debug = 0
+    self.debug = debug
     self._PH_REGEXP = re.compile('(<ph name=")([^"]*)("/>)')
 
   def open(self):
@@ -624,7 +655,7 @@ class GrdFile(PotFile):
   def write_all_strings(self):
     raise Exception("Not implemented!")
 
-  def export_file(self, directory = None, filename = None, langs = None):
+  def export_file(self, directory = None, filename = None, global_langs = None, langs = None):
     fdi = codecs.open(self.filename, 'rb', encoding="utf-8")
     fdo = codecs.open(filename, 'wb', encoding="utf-8")
     # can't use minidom here as the file is manually generated and the
@@ -634,6 +665,7 @@ class GrdFile(PotFile):
     # Let everything else untouched
     tr_found = False
     tr_saved = []
+    tr_has_ifs = False
     pak_found = False
     pak_saved = []
     # langs, sorted by their xtb names
@@ -650,16 +682,28 @@ class GrdFile(PotFile):
         continue
       if line.find('</outputs>') > 0:
         pak_found = False
-        ours = langs[:]
+        ours = global_langs[:]
         chunks = {}
         c = None
+        pak_if = None
+        pak_is_in_if = False
         for l in pak_saved:
           if l.find("<!-- ") > 0:
             c = l
             continue
+          if l.find("<if ") > -1:
+            c = l if c is None else c + l
+            tr_has_ifs = True
+            pak_is_in_if = True
+            continue
+          if l.find("</if>") > -1:
+            c = l if c is None else c + l
+            pak_is_in_if = False
+            continue
           m = re.match(r'.*?<output filename="(.*?)_([^_\.]+)\.(pak|js)" type="(data_package|js_map_format)" lang="(.*?)" />', l)
           if m is not None:
-            x = { 'name': m.group(1), 'ext': m.group(3), 'lang': m.group(5), 'file_lang': m.group(2), 'type': m.group(4), 'line': l }
+            x = { 'name': m.group(1), 'ext': m.group(3), 'lang': m.group(5), 'file_lang': m.group(2),
+                  'type': m.group(4), 'in_if': pak_is_in_if, 'line': l }
             if c is not None:
               x['comment'] = c
               c = None
@@ -670,21 +714,52 @@ class GrdFile(PotFile):
               c = l
             else:
               c += l
+        is_in_if = False
         for lang in sorted(chunks.keys()):
           tlang = lang if lang != 'no' else 'nb'
           while len(ours) > 0 and ((ours[0] == 'nb' and 'no' < tlang) or (ours[0] != 'nb' and ours[0] < tlang)):
+            if ours[0] in chunks:
+              ours = ours[1:]
+              continue
+            if tr_has_ifs and is_in_if is False:
+              fdo.write('    <if expr="pp_ifdef(\'use_third_party_translations\')">\n')
             f = "%s_%s.%s" % (chunks[lang]['name'], ours[0], chunks[lang]['ext'])
-            fdo.write('    <output filename="%s" type="%s" lang="%s" />\n' % (f, chunks[lang]['type'], ours[0]))
+            fdo.write('    %s<output filename="%s" type="%s" lang="%s" />\n' % \
+                          ('  ' if tr_has_ifs else '', f, chunks[lang]['type'], ours[0]))
+            is_in_if = True
+            if tr_has_ifs and chunks[lang]['in_if'] is False:
+              fdo.write('    </if>\n')
+              is_in_if = False
             ours = ours[1:]
           if 'comment' in chunks[lang]:
-            fdo.write(chunks[lang]['comment'])
+            for s in chunks[lang]['comment'].split('\n')[:-1]:
+              if chunks[lang]['in_if'] is True and is_in_if and s.find('<if ') > -1:
+                continue
+              if s.find('<!-- No translations available. -->') > -1:
+                continue
+              fdo.write(s + '\n')
           fdo.write(chunks[lang]['line'])
           ours = ours[1:]
+          is_in_if = chunks[lang]['in_if']
         if len(chunks.keys()) > 0:
           while len(ours) > 0:
             f = "%s_%s.%s" % (chunks[lang]['name'], ours[0], chunks[lang]['ext'])
-            fdo.write('    <output filename="%s" type="data_package" lang="%s" />\n' % (f, ours[0]))
+            if tr_has_ifs and is_in_if is False:
+              fdo.write('    <if expr="pp_ifdef(\'use_third_party_translations\')">\n')
+            fdo.write('    %s<output filename="%s" type="data_package" lang="%s" />\n' % \
+                          ('  ' if tr_has_ifs else '', f, ours[0]))
+            is_in_if = True
             ours = ours[1:]
+          if tr_has_ifs and is_in_if:
+            fdo.write('    </if>\n')
+            is_in_if = False
+        if c is not None:
+          for s in c.split('\n')[:-1]:
+            if s.find('<!-- No translations available. -->') > -1:
+              continue
+            if s.find('</if>') > -1:
+              continue
+            fdo.write(s + '\n')
       if line.find('<translations>') > 0:
         fdo.write(line)
         tr_found = True
@@ -693,23 +768,40 @@ class GrdFile(PotFile):
         tr_found = False
         ours = our_langs[:]
         chunks = {}
+        obsolete = []
         c = None
+        tr_if = None
+        tr_is_in_if = False
         for l in tr_saved:
           if l.find("<!-- ") > 0:
-            c = l
+            c = l if c is None else c + l
+            continue
+          if l.find("<if ") > -1:
+            c = l if c is None else c + l
+            tr_has_ifs = True
+            tr_is_in_if = True
+            continue
+          if l.find("</if>") > -1:
+            c = l if c is None else c + l
+            tr_is_in_if = False
             continue
           m = re.match(r'.*?<file path=".*_([^_]+)\.xtb" lang="(.*?)"', l)
           if m is not None:
-            x = { 'lang': m.group(1), 'line': l }
+            x = { 'lang': m.group(1), 'line': l, 'in_if': tr_is_in_if }
             if c is not None:
               x['comment'] = c
               c = None
             chunks[m.group(1)] = x
+            if m.group(1) not in langs and m.group(1) not in map(lambda t: self.mapped_langs[t]['xtb_file'], langs):
+              obsolete.append(m.group(1))
           else:
             if c is None:
               c = l
             else:
               c += l
+        is_in_if = False
+        # Do we want <if/> in the <translations/> block? (they are only mandatory in the <outputs/> block)
+        want_ifs_in_translations = False
         for lang in sorted(chunks.keys()):
           while len(ours) > 0 and self.mapped_langs[ours[0]]['xtb_file'] < lang:
             if ours[0] not in self.supported_langs:
@@ -717,20 +809,52 @@ class GrdFile(PotFile):
                 print "Skipped export of lang '%s' (most probably a 'po' file without any translated strings)" % ours[0]
               ours = ours[1:]
               continue
+            if ours[0] in obsolete:
+              if self.debug:
+                print "Skipped export of lang '%s' (now obsolete)" % ours[0]
+              ours = ours[1:]
+              continue
             f = os.path.relpath(self.supported_langs[ours[0]], os.path.dirname(self.filename))
-            fdo.write('    <file path="%s" lang="%s" />\n' % (f, ours[0]))
+            if want_ifs_in_translations and tr_has_ifs and is_in_if is False:
+              fdo.write('    <if expr="pp_ifdef(\'use_third_party_translations\')">\n')
+              is_in_if = True
+            fdo.write('    %s<file path="%s" lang="%s" />\n' % ('  ' if want_ifs_in_translations and tr_has_ifs else '', f, ours[0]))
+            if tr_has_ifs and chunks[lang]['in_if'] is False:
+              if want_ifs_in_translations:
+                fdo.write('    </if>\n')
+              is_in_if = False
             ours = ours[1:]
           if 'comment' in chunks[lang]:
-            fdo.write(chunks[lang]['comment'])
-          fdo.write(chunks[lang]['line'])
+            for s in chunks[lang]['comment'].split('\n')[:-1]:
+              if chunks[lang]['in_if'] is True and is_in_if and s.find('<if ') > -1:
+                continue
+              if s.find('<!-- No translations available. -->') > -1:
+                continue
+              fdo.write(s + '\n')
+          if lang not in obsolete:
+            fdo.write(chunks[lang]['line'])
           ours = ours[1:]
+          is_in_if = chunks[lang]['in_if']
         while len(ours) > 0:
           if ours[0] in self.supported_langs:
             f = os.path.relpath(self.supported_langs[ours[0]], os.path.dirname(self.filename))
-            fdo.write('    <file path="%s" lang="%s" />\n' % (f, ours[0]))
+            if want_ifs_in_translations and tr_has_ifs and is_in_if is False:
+              fdo.write('    <if expr="pp_ifdef(\'use_third_party_translations\')">\n')
+              is_in_if = True
+            fdo.write('    %s<file path="%s" lang="%s" />\n' % ('  ' if want_ifs_in_translations and tr_has_ifs else '', f, ours[0]))
           elif self.debug:
             print "Skipped lang %s with no translated strings" % ours[0]
           ours = ours[1:]
+        if is_in_if:
+          fdo.write('    </if>\n')
+          is_in_if = False
+        if c is not None:
+          for s in c.split('\n')[:-1]:
+            if s.find('<!-- No translations available. -->') > -1:
+              continue
+            if s.find('</if>') > -1:
+              continue
+            fdo.write(s + '\n')
       if tr_found:
         tr_saved.append(line)
         continue
@@ -796,6 +920,35 @@ class GrdFile(PotFile):
     self.stats[lang]['skipped_lang'] += skipped_lang
     self.stats[lang]['mandatory_linux'] += mandatory_linux
 
+  def merge_template(self, template, newer_preferred = True):
+    """ merge strings from 'template' into self (the master template).
+    If the string differs, prefer the new one when newer_preferred is set """
+    for id in template.supported_ids:
+      if id not in self.supported_ids:
+        if self.debug:
+          print "merged code %s (id %s) from branch '%s' from %s" % \
+              (template.supported_ids[id]['ids'][0]['code'], id,
+               template.supported_ids[id]['ids'][0]['origin'][0], template.filename)
+        self.supported_ids[id] = template.supported_ids[id]
+      else:
+        for ent in template.supported_ids[id]['ids']:
+          found = False
+          for ent2 in self.supported_ids[id]['ids']:
+            if ent2['code'] != ent['code']:
+              continue
+            found = True
+            ent2['origin'].append(ent['origin'][0])
+            if ent['test'] != ent2['test'] or \
+                  ent['desc'] != ent2['desc']:
+              if newer_preferred:
+                ent2['test'] = ent['test'] 
+                ent2['desc'] = ent['desc'] 
+          if not found:
+            if self.debug:
+              print "adding new ids code '%s' from branch '%s' for string id %s" % \
+                  (ent['code'], template.supported_ids[id]['ids'][0]['origin'][0], id)
+            self.supported_ids[id]['ids'].append(ent)
+
   def add_translation(self, lang, id, translation):
     if id not in self.supported_ids:
       if self.debug:
@@ -803,7 +956,7 @@ class GrdFile(PotFile):
       return
     self.supported_ids[id]['lang'][lang] = translation
 
-  def merge_translations(self, lang, xtb):
+  def merge_translations(self, lang, xtb, master_xtb = None, newer_preferred = True):
     if lang not in self.supported_langs:
       self.supported_langs[lang] = xtb.filename
     for id in xtb.strings:
@@ -816,8 +969,15 @@ class GrdFile(PotFile):
         continue
       if 'lang' not in self.supported_ids[id]:
         self.supported_ids[id]['lang'] = {}
-      self.update_stats(lang, translated_upstream = 1)
-      self.supported_ids[id]['lang'][lang] = xtb.strings[id]
+      if lang in self.supported_ids[id]['lang']:
+        # already have a translation for this string
+        if newer_preferred and xtb.strings[id] != self.supported_ids[id]['lang'][lang]:
+          self.supported_ids[id]['lang'][lang] = xtb.strings[id]
+      else:
+        self.update_stats(lang, translated_upstream = 1)
+        self.supported_ids[id]['lang'][lang] = xtb.strings[id]
+        if master_xtb is not None:
+          master_xtb.strings[id] = xtb.strings[id]
 
   def read_string(self, node, test = None):
     desc = node.getAttribute('desc')
@@ -863,7 +1023,8 @@ class GrdFile(PotFile):
     if id not in self.supported_ids:
       self.supported_ids[id] = { 'ids': [] }
     self.supported_ids[id]['ids'].append({ 'code': name, 'desc': desc,
-                                    'val': val, 'test': test })
+                                           'val': val, 'test': test,
+                                           'origin': [ self.branch_name ] })
 
   def read_strings(self, node, test = None):
     for n in node.childNodes:
@@ -882,12 +1043,120 @@ class GrdFile(PotFile):
       print "unknown tag (<%s> type %s): ''%s''" % \
           (n.nodeName, n.nodeType, n.toxml())
 
-  def import_file(self):
-    self.supported_langs = {}
-    self.mtime = os.path.getmtime(self.filename)
+  def import_json_file(self, filename):
+    # unlike its name seems to indicate, this file is definitely not a json file.
+    # It's a python object, dumped in a file. It means it's far easier to parse
+    # because there's no extra unescaping to do on all the strings. It also
+    # means we can't use the json module
+    rfile = os.path.join(self.branch_dir, filename)
     if self.debug:
-      print "minidom.parse(%s)" % self.filename
-    dom = minidom.parse(self.filename)
+      print "parse_json('%s') [%s]" % (filename, rfile)
+    fd = open(rfile, "rb")
+    data = fd.read()
+    fd.close()
+    vars = { '__builtins__': { 'True': True, 'False': False } } # prevent eval from using the real current globals
+    data = eval(data, vars)
+    # Check if this is a format we support
+    if 'policy_definitions' in data and len(data['policy_definitions']) > 0 and \
+          'caption' not in data['policy_definitions'][0]:
+      # most probably Chromium v9. It used 'annotations' instead of 'caption'
+      # Not worth supporting that, all the strings we need in v9 are already in
+      # the grd file. Skip this json file
+      if self.debug:
+        print "Found older unsupported json format. Skipped"
+      return
+    if 'messages' in data:
+      for msg in data['messages']:
+        self.read_policy('IDS_POLICY_' + msg.upper(),
+                         data['messages'][msg]['desc'],
+                         data['messages'][msg]['text'])
+    if 'policy_definitions' in data:
+      for policy in data['policy_definitions']:
+        name = 'IDS_POLICY_' + policy['name'].upper()
+        if policy['type'] in [ 'main', 'int', 'string', 'list' ]:
+          # caption
+          self.read_policy(name + '_CAPTION',
+                           "Caption of the '%s' policy." % policy['name'],
+                           policy['caption'])
+          # label (optional)
+          if 'label' in policy:
+            self.read_policy(name + '_LABEL',
+                             "Label of the '%s' policy." % policy['name'],
+                             policy['label'])
+          # desc
+          self.read_policy(name + '_DESC',
+                           "Description of the '%s' policy." % policy['name'],
+                           policy['desc'])
+          continue
+        if policy['type'] == 'group':
+          # group caption
+          self.read_policy(name + '_CAPTION',
+                           "Caption of the group of '%s' related policies." % name,
+                           policy['caption'])
+          # group label (optional)
+          if 'label' in policy:
+            self.read_policy(name + '_LABEL',
+                             "Label of the group of '%s' related policies." % name,
+                             policy['label'])
+          # group desc
+          self.read_policy(name + '_DESC',
+                           "Description of the group of '%s' related policies." % name,
+                           policy['desc'])
+          for spolicy in policy['policies']:
+            sname = 'IDS_POLICY_' + spolicy['name'].upper()
+            # desc
+            self.read_policy(sname + '_DESC',
+                             "Description of the '%s' policy." % spolicy['name'],
+                             spolicy['desc'])
+            # label (optional)
+            if 'label' in spolicy:
+              self.read_policy(sname + '_LABEL',
+                               "Label of the '%s' policy." % spolicy['name'],
+                               spolicy['label'])
+            # caption
+            self.read_policy(sname + '_CAPTION',
+                             "Caption of the '%s' policy." % spolicy['name'],
+                             spolicy['caption'])
+            if spolicy['type'] in [ 'int-enum', 'string-enum' ]:
+              # only caption
+              for item in spolicy['items']:
+                self.read_policy('IDS_POLICY_ENUM_' + item['name'].upper() + '_CAPTION',
+                                 "Label in a '%s' dropdown menu for selecting a '%s' of '%s'" % \
+                                   (policy['name'], spolicy['name'], item['name']),
+                                 item['caption'])
+          continue
+        assert False, "Policy type '%s' not supported" % policy['type']
+
+  def read_policy(self, name, desc, text):
+    xml = '<x><message name="%s" desc="%s">\n%s\n</message></x>' % (name, desc, text)
+    dom = minidom.parseString(xml)
+    self.read_strings(dom.getElementsByTagName('x')[0])
+
+  def _add_xtb(self, node):
+    if node.nodeName != 'file':
+      return
+    path = node.getAttribute('path')
+    m = re.match(r'.*_([^_]+)\.xtb', path)
+    flang = m.group(1)
+    lang = node.getAttribute('lang')
+    tlang = lang
+    if self.lang_mapping is not None and lang in self.lang_mapping:
+      if self.debug:
+        print "# mapping lang '%s' to '%s'" % (lang, self.lang_mapping[lang])
+      tlang = self.lang_mapping[lang]
+    tlang = tlang.replace('-', '_')
+    self.supported_langs[lang] = os.path.normpath(os.path.join(os.path.dirname(self.filename), path))
+    self.translated_strings[lang] = {}
+    self.mapped_langs[lang] = { 'xtb_file': flang, 'gettext': tlang }
+
+  def import_file(self):
+    filename = os.path.join(self.branch_dir, self.filename) if self.branch_dir is not None \
+        else self.filename
+    self.supported_langs = {}
+    self.mtime = self.get_mtime(self.filename)
+    if self.debug:
+      print "minidom.parse(%s)" % filename
+    dom = minidom.parse(filename)
     grit = dom.getElementsByTagName('grit')[0]
     for node in grit.childNodes:
       if node.nodeName == '#text' or node.nodeName == '#comment':
@@ -899,29 +1168,38 @@ class GrdFile(PotFile):
       if node.nodeName == 'translations':
         # collect the supported langs by scanning the list of xtb files
         for n in node.childNodes:
-          if n.nodeName != 'file':
+          if n.nodeName == 'if':
+            for nn in n.childNodes:
+              self._add_xtb(nn)
             continue
-          path = n.getAttribute('path')
-          m = re.match(r'.*_([^_]+)\.xtb', path)
-          flang = m.group(1)
-          lang = n.getAttribute('lang')
-          tlang = lang
-          if self.lang_mapping is not None and lang in self.lang_mapping:
-            if self.debug:
-              print "# mapping lang '%s' to '%s'" % (lang, self.lang_mapping[lang])
-            tlang = self.lang_mapping[lang]
-          tlang = tlang.replace('-', '_')
-          self.supported_langs[lang] = os.path.normpath(os.path.join(os.path.dirname(self.filename), path))
-          self.translated_strings[lang] = {}
-          self.mapped_langs[lang] = { 'xtb_file': flang, 'gettext': tlang }
+          self._add_xtb(n)
         continue
       if node.nodeName == 'release':
         for n in node.childNodes:
           if n.nodeName == '#text' or n.nodeName == '#comment':
             # comments, skip
             continue
-          if n.nodeName == 'structures' or n.nodeName == 'includes':
+          if n.nodeName == 'includes':
             # skip, nothing for us here
+            continue
+          if n.nodeName == 'structures':
+            for sn in n.childNodes:
+              if sn.nodeName != 'structure':
+                continue
+              type = sn.getAttribute('type')
+              if type == 'dialog':
+                # nothing for us here
+                continue
+              name = sn.getAttribute('name')
+              file = sn.getAttribute('file')
+              if type == 'policy_template_metafile':
+                # included file containing the strings that are usually in the <messages> tree.
+                fname = os.path.normpath(os.path.join(os.path.dirname(self.filename), file))
+                self.import_json_file(fname)
+                continue
+              else:
+                if self.debug:
+                  print "unknown <structure> type found ('%s') in %s" % (type, self.filename)
             continue
           if n.nodeName == 'messages':
             self.read_strings(n)
@@ -935,8 +1213,10 @@ class XtbFile(PoFile):
  Read and write a Grit XTB file
   """
 
-  def __init__(self, lang, filename, grd, date = None, debug = None):
-    super(XtbFile, self).__init__(lang, filename, grd, date = date, debug = debug)
+  def __init__(self, lang, filename, grd, date = None, debug = None,
+               branch_name = "default", branch_dir = os.getcwd()):
+    super(XtbFile, self).__init__(lang, filename, grd, date = date, debug = debug,
+                                  branch_name = branch_name, branch_dir = branch_dir)
     self.template = grd
     self.strings = {}
     self.strings_updated = 0
@@ -944,6 +1224,7 @@ class XtbFile(PoFile):
     self.strings_order = [] # needed to recreate xtb files in a similar order :(
 
   def add_translation(self, id, string):
+    assert id in self.template.supported_ids, "'%s' is not in supported_ids (file=%s)" % (id, self.filename)
     if string[-1:] == '\n' and self.template.supported_ids[id]['ids'][0]['val'][-1:] != '\n':
       # prevent the `msgid' and `msgstr' entries do not both end with '\n' error
       if self.debug:
@@ -991,15 +1272,28 @@ class XtbFile(PoFile):
     imported = 0
     for m in re.finditer('<translation id="(.*?)">(.*?)</translation>',
                          file, re.S):
+      if m.group(1) not in self.template.supported_ids:
+        if self.debug:
+          print "found a translation for obsolete string id %s in upstream xtb %s" % (m.group(1), self.filename)
+        continue
       self.add_translation(m.group(1), m.group(2))
       imported += 1
     for m in re.finditer('<translationbundle lang="(.*?)">', file):
       lang = m.group(1)
-      assert self.template.mapped_langs[self.lang]['xtb_file'] == lang, \
-          "bad lang mapping for '%s' while importing %s" % (lang, self.filename)
+      if self.lang in self.template.mapped_langs:
+        assert self.template.mapped_langs[self.lang]['xtb_file'] == lang, \
+            "bad lang mapping for '%s' while importing %s" % (lang, self.filename)
+      else:
+        tlang = lang
+        if self.template.lang_mapping is not None and lang in self.template.lang_mapping:
+          if self.debug:
+            print "# mapping lang '%s' to '%s'" % (lang, self.template.lang_mapping[lang])
+          tlang = self.template.lang_mapping[lang]
+        tlang = tlang.replace('-', '_')
+        self.template.mapped_langs[lang] = { 'xtb_file': lang, 'gettext': tlang }
     if self.debug:
       print "imported %d strings from the xtb file into lang '%s'" % (imported, self.lang)
-    self.mtime = os.path.getmtime(self.filename)
+    self.mtime = self.get_mtime(self.filename)
 
 ###
 
@@ -1007,12 +1301,14 @@ class Converter(dict):
   """
   Given a grd template and its xtb translations,
   a/ exports gettext pot template and po translations,
+     possibly by merging grd/xtb files from multiple branches
   or 
   b/ imports and merges some gettext po translations,
   and exports xtb translations
   """
 
-  def __init__(self, template_filename, lang_mapping = None, date = None, debug = False, html_output = False):
+  def __init__(self, template_filename, lang_mapping = None, date = None, debug = False,
+               html_output = False, branches = None):
     self.debug = debug
     self.translations = {}
     self.errors = 0
@@ -1022,17 +1318,23 @@ class Converter(dict):
     self.file_mapping = {}
     self.html_output = html_output
     self.stats = {}
+    self.branches = branches if branches is not None else [ { 'branch': 'default', 'dir': os.getcwd(), 'grd': template_filename } ]
 
     # read a grd template from a file
-    self.template = GrdFile(template_filename, date, lang_mapping = self.lang_mapping, debug = self.debug)
-    self.file_mapping['grd'] = { 'src': template_filename }
+    self.template = GrdFile(self.branches[0]['grd'], date, lang_mapping = self.lang_mapping, debug = self.debug,
+                            branch_name = self.branches[0]['branch'], branch_dir = self.branches[0]['dir'])
+    self.file_mapping['grd'] = { 'src': self.branches[0]['grd'],
+                                 'branches': { self.branches[0]['branch']: self.branches[0]['dir'] } }
     self.template.import_file()
     self.template_pot = None
     for lang, file in zip(self.template.get_supported_langs(),
                           self.template.get_supported_lang_filenames()):
       # also read all the xtb files referenced by this grd template
-      xtb = XtbFile(lang, file, self.template, date = os.path.getmtime(file), debug = self.debug)
-      self.file_mapping['lang_' + lang] = { 'src': file }
+      rfile = os.path.join(self.branches[0]['dir'] , file)
+      xtb = XtbFile(lang, file, self.template, date = self.template.get_mtime(file), debug = self.debug,
+                    branch_name = self.branches[0]['branch'], branch_dir = self.branches[0]['dir'])
+      self.file_mapping['lang_' + lang] = { 'src': file,
+                                            'branches': { self.branches[0]['branch']: self.branches[0]['dir'] } }
       self.stats[lang] = { 'strings': self.template.get_supported_strings_count(lang),
                            'translated_upstream': 0,
                            'changed_in_gettext': 0,
@@ -1041,6 +1343,31 @@ class Converter(dict):
       xtb.import_file()
       self.template.merge_translations(lang, xtb)
       self.translations[lang] = xtb
+    # read other grd templates
+    if len(self.branches) > 1:
+      for branch in self.branches[1:]:
+        if self.debug:
+          print "merging %s from branch '%s' from %s" % (branch['grd'], branch['branch'], branch['dir'])
+        template = GrdFile(branch['grd'], date, lang_mapping = self.lang_mapping, debug = self.debug,
+                           branch_name = branch['branch'], branch_dir = branch['dir'])
+        self.file_mapping['grd']['branches'][branch['branch']] = branch['dir']
+        template.import_file()
+        self.template.merge_template(template, newer_preferred = False)
+        for lang, file in zip(template.get_supported_langs(),
+                              template.get_supported_lang_filenames()):
+          xtb = XtbFile(lang, file, self.template, date = template.get_mtime(file), debug = self.debug,
+                        branch_name = branch['branch'], branch_dir = branch['dir'])
+          if 'lang_' + lang not in self.file_mapping:
+            self.file_mapping['lang_' + lang] = { 'src': file, 'branches': {} }
+          self.file_mapping['lang_' + lang]['branches'][branch['branch']] = branch['dir']
+          # TODO: stats
+          xtb.import_file()
+          if lang not in self.translations:
+            if self.debug:
+              print "Add lang '%s' as master xtb for alt branch '%s'" % (lang, branch['branch'])
+            self.translations[lang] = xtb
+          self.template.merge_translations(lang, xtb, master_xtb = self.translations[lang],
+                                           newer_preferred = False)
 
   def export_gettext_files(self, directory):
     name = os.path.splitext(os.path.basename(self.template.filename))[0]
@@ -1084,7 +1411,9 @@ class Converter(dict):
       return
     if not os.path.isdir(directory):
       os.makedirs(directory, 0755)
-    self.template.export_file(filename = grd_dst, langs = langs)
+    # 'langs' may contain langs for which this template no longer have translations for.
+    # They need to be dropped from the grd file
+    self.template.export_file(filename = grd_dst, global_langs = langs, langs = self.translations.keys())
     self.file_mapping['grd']['dst'] = grd_dst
     self.file_mapping['grd']['dir'] = directory[:-len(os.path.dirname(self.template.filename)) - 1]
     for lang in self.translations:
@@ -1114,7 +1443,7 @@ class Converter(dict):
     and launchpad translations, or to merge strings from another project
     (like webkit) """
     po = PoFile(self.template.mapped_langs[lang]['gettext'], filename, self.template,
-                date = os.path.getmtime(filename), debug = self.debug)
+                date = self.template.get_mtime(filename), debug = self.debug)
     po.import_file()
     # no need to continue if there are no translation in this po
     translated_count = 0
@@ -1126,9 +1455,9 @@ class Converter(dict):
         print "No translation found for lang %s in %s" % (lang, filename)
       return
     if lang not in self.translations:
-      # assuming the filename should be <template_dirname>/../third_party/launchpad_translations/<template_name>_<lang>.xtb
+      # assuming the filename should be <template_dirname>/../../third_party/launchpad_translations/<template_name>_<lang>.xtb
       tname = os.path.splitext(os.path.basename(self.template.filename))[0]
-      f = os.path.normpath(os.path.join(os.path.dirname(self.template.filename), '../third_party/launchpad_translations',
+      f = os.path.normpath(os.path.join(os.path.dirname(self.template.filename), '../../third_party/launchpad_translations',
                        tname + '_' + self.template.mapped_langs[lang]['xtb_file'] + '.xtb'))
       self.translations[lang] = XtbFile(lang, f, self.template, date = po.mtime, debug = self.debug)
       self.template.supported_langs[lang] = f # *sigh*
@@ -1235,15 +1564,44 @@ class Converter(dict):
           if self.compare_translations(self.template.supported_ids[id]['lang'][lang],
                                        string['translation'], id, lang):
             continue # it's the same
+          if id in self.translations[lang].strings:
+            # already added from a previously merged gettext po file
+            if self.debug:
+              print "already added from a previously merged gettext po file for" + \
+                  " template %s %s id %s in lang %s: %s" % \
+                  (self.template.branch_name, self.template.filename,
+                   id, lang, repr(string['translation']))
+            # compare
+            if self.compare_translations(self.translations[lang].strings[id],
+                                         string['translation'], id, lang):
+              continue # it's the same
+            # update it..
           if self.debug:
-            print "updated string for id %s in lang %s: %s" % (id, lang, repr(string['translation']))
+            print "updated string for template %s %s id %s in lang %s: %s" % \
+                (self.template.branch_name, self.template.filename, id, lang,
+                 repr(string['translation']))
           self.template.update_stats(lang, updated = 1)
           self.translations[lang].strings[id] = string['translation']
           self.translations[lang].strings_updated += 1
+        elif id in self.translations[lang].strings:
+          # already added from a previously merged gettext po file
+          if self.debug:
+            print "already added from a previously merged gettext po file for" + \
+                "template %s %s id %s in lang %s: %s" % \
+                (self.template.branch_name, self.template.filename,
+                 id, lang, repr(string['translation']))
+          # compare
+          if self.compare_translations(self.translations[lang].strings[id],
+                                       string['translation'], id, lang):
+            continue # it's the same
+          # update it..
+          self.translations[lang].strings[id] = string['translation']
         else:
           # add
           if self.debug:
-            print "add new string for id %s in lang %s: %s" % (id, lang, repr(string['translation']))
+            print "add new string for template %s %s id %s in lang %s: %s" % \
+                (self.template.branch_name, self.template.filename,
+                 id, lang, repr(string['translation']))
           self.template.update_stats(lang, new = 1)
           self.translations[lang].strings[id] = string['translation']
           self.translations[lang].strings_new += 1
@@ -1256,7 +1614,7 @@ class Converter(dict):
     directory = os.path.join(directory, template_name)
     if not os.path.isdir(directory):
       if self.debug:
-         print "WARN: Launchpad didn't export anything for template '%s'" % template_name
+         print "WARN: Launchpad didn't export anything for template '%s' [%s]" % (template_name, directory)
       return
     for file in os.listdir(directory):
       base, ext = os.path.splitext(file)
@@ -1308,6 +1666,8 @@ class Converter(dict):
     patch = codecs.open(os.path.join(directory, "translations-" + template_name + ".patch"),
                         "wb", encoding="utf-8")
     for e in sorted(self.file_mapping.keys()):
+      if 'dst' not in self.file_mapping[e]:
+        self.file_mapping[e]['dst'] = None
       if self.file_mapping[e]['src'] is not None and \
             self.file_mapping[e]['dst'] is not None and \
             filecmp.cmp(self.file_mapping[e]['src'], self.file_mapping[e]['dst']) == True:
@@ -1316,7 +1676,7 @@ class Converter(dict):
       if self.file_mapping[e]['src'] is not None:
         fromfile  = "old/" + self.file_mapping[e]['src']
         tofile    = "new/" + self.file_mapping[e]['src']
-        fromdate  = datetime.fromtimestamp(os.path.getmtime(
+        fromdate  = datetime.fromtimestamp(self.template.get_mtime(
             self.file_mapping[e]['src'])).strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
         fromlines = codecs.open(self.file_mapping[e]['src'], 'rb', encoding="utf-8").readlines()
       else:
@@ -1325,7 +1685,7 @@ class Converter(dict):
         fromdate  = datetime.fromtimestamp(0).strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
         fromlines = ""
       if self.file_mapping[e]['dst'] is not None:
-        todate  = datetime.fromtimestamp(os.path.getmtime(
+        todate  = datetime.fromtimestamp(self.template.get_mtime(
             self.file_mapping[e]['dst'])).strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
         tolines = codecs.open(self.file_mapping[e]['dst'], 'rb', encoding="utf-8").readlines()
       else:
@@ -1337,6 +1697,8 @@ class Converter(dict):
       s = ''.join(diff)
       # fix the diff so that older patch (<< 2.6) don't fail on new files
       s = re.sub(r'@@ -1,0 ', '@@ -0,0 ', s)
+      # ..and make sure patch is able to detect a patch removing files
+      s = re.sub(r'(@@ \S+) \+1,0 @@', '\\1 +0,0 @@', s)
       patch.writelines(s)
       if s[-1:] != '\n':
         patch.write("\n\\ No newline at end of file\n")
@@ -1352,6 +1714,7 @@ class Converter(dict):
     # FIXME: this is mostly a copy of GrdFile::export_file()
     pak_found = False
     pak_saved = []
+    has_ifs = False
     for line in fdi.readlines():
       if re.match(r'.*?<output filename=".*?" type="(data_package|js_map_format)"', line):
         pak_found = True
@@ -1362,13 +1725,25 @@ class Converter(dict):
         ours = langs[:]
         chunks = {}
         c = None
+        pak_if = None
+        pak_is_in_if = False
         for l in pak_saved:
           if l.find("<!-- ") > 0:
             c = l
             continue
+          if l.find("<if ") > -1:
+            c = l if c is None else c + l
+            has_ifs = True
+            pak_is_in_if = True
+            continue
+          if l.find("</if>") > -1:
+            c = l if c is None else c + l
+            pak_is_in_if = False
+            continue
           m = re.match(r'.*?<output filename="(.*?)_([^_\.]+)\.(pak|js)" type="(data_package|js_map_format)" lang="(.*?)" />', l)
           if m is not None:
-            x = { 'name': m.group(1), 'ext': m.group(3), 'lang': m.group(5), 'file_lang': m.group(2), 'type': m.group(4), 'line': l }
+            x = { 'name': m.group(1), 'ext': m.group(3), 'lang': m.group(5), 'file_lang': m.group(2),
+                  'type': m.group(4), 'in_if': pak_is_in_if, 'line': l }
             if c is not None:
               x['comment'] = c
               c = None
@@ -1379,21 +1754,49 @@ class Converter(dict):
               c = l
             else:
               c += l
+        is_in_if = False
         for lang in sorted(chunks.keys()):
           tlang = lang if lang != 'no' else 'nb'
           while len(ours) > 0 and ((ours[0] == 'nb' and 'no' < tlang) or (ours[0] != 'nb' and ours[0] < tlang)):
+            if has_ifs and is_in_if is False:
+              fdo.write('    <if expr="pp_ifdef(\'use_third_party_translations\')">\n')
             f = "%s_%s.%s" % (chunks[lang]['name'], ours[0], chunks[lang]['ext'])
-            fdo.write('    <output filename="%s" type="%s" lang="%s" />\n' % (f, chunks[lang]['type'], ours[0]))
+            fdo.write('    %s<output filename="%s" type="%s" lang="%s" />\n' % \
+                        ('  ' if has_ifs else '', f, chunks[lang]['type'], ours[0]))
+            is_in_if = True
+            if has_ifs and chunks[lang]['in_if'] is False:
+              fdo.write('    </if>\n')
+              is_in_if = False
             ours = ours[1:]
           if 'comment' in chunks[lang]:
-            fdo.write(chunks[lang]['comment'])
+            for s in chunks[lang]['comment'].split('\n')[:-1]:
+              if chunks[lang]['in_if'] is True and is_in_if and s.find('<if ') > -1:
+                continue
+              if s.find('<!-- No translations available. -->') > -1:
+                continue
+              fdo.write(s + '\n')
           fdo.write(chunks[lang]['line'])
           ours = ours[1:]
+          is_in_if = chunks[lang]['in_if']
         if len(chunks.keys()) > 0:
           while len(ours) > 0:
             f = "%s_%s.%s" % (chunks[lang]['name'], ours[0], chunks[lang]['ext'])
-            fdo.write('    <output filename="%s" type="data_package" lang="%s" />\n' % (f, ours[0]))
+            if has_ifs and is_in_if is False:
+              fdo.write('    <if expr="pp_ifdef(\'use_third_party_translations\')">\n')
+            fdo.write('    %s<output filename="%s" type="data_package" lang="%s" />\n' % \
+                        ('  ' if has_ifs else '', f, ours[0]))
+            is_in_if = True
             ours = ours[1:]
+          if has_ifs and is_in_if:
+            fdo.write('    </if>\n')
+            is_in_if = False
+        if c is not None:
+          for s in c.split('\n')[:-1]:
+            if s.find('<!-- No translations available. -->') > -1:
+              continue
+            if s.find('</if>') > -1:
+              continue
+            fdo.write(s + '\n')
       if pak_found:
         pak_saved.append(line)
         continue
@@ -1409,33 +1812,57 @@ class Converter(dict):
     fd.close()
     r = data[data.find("'locales':"):]
     olangs = sorted(re.findall("'(.*?)'", r[r.find('['):r.find(']')]))
-    if nlangs == olangs:
-      return
+    # check for an optional use_third_party_translations list of locales
+    tpt = data.find('use_third_party_translations==1')
+    if tpt > 0:
+      tpt += data[tpt:].find("'locales':")
+      r = data[tpt:]
+      tptlangs = sorted(re.findall("'(.*?)'", r[r.find('['):r.find(']')]))
+      if nlangs == sorted(tptlangs + olangs):
+        return tptlangs
+    else:  
+      if nlangs == olangs:
+        return []
     # check if we need to only activate some whitelisted new langs
     xlangs = None
+    nnlangs = [ x for x in nlangs if x not in olangs ]
     if whitelisted_new_langs is not None:
-      xlangs = [ x for x in nlangs if x not in olangs and x not in whitelisted_new_langs ]
-      nlangs = [ x for x in nlangs if x in olangs or x in whitelisted_new_langs ]
+      if tpt > 0:
+        nlangs = [ x for x in nlangs if x not in olangs and x in whitelisted_new_langs ]
+      else:
+        xlangs = [ x for x in nlangs if x not in olangs and x not in whitelisted_new_langs ]
+        nlangs = [ x for x in nlangs if x in olangs or x in whitelisted_new_langs ]
+    elif tpt > 0:
+      nlangs = [ x for x in nlangs if x not in olangs ]
+
     # we need a patch
-    pos = data.find("'locales':")
-    begin = data[pos:]
-    end = data[:pos + begin.find('\n')]
-    ndata = end[:]
+    if tpt > 0:
+      pos = tpt + data[tpt:].find('[')
+      end = data[:pos + 1]
+      ndata = end[:]
+    else:
+      pos = data.find("'locales':")
+      begin = data[pos:]
+      end = data[:pos + begin.find('\n')]
+      ndata = end[:]
+    end = data[pos + data[pos:].find(']'):]
 
     # list of langs, by chunks of 10
-    chunks = map(lambda i: nlangs[i:i + 10], xrange(0, len(nlangs), 10))
-    ndata += '\n'
-    for chunk in chunks:
-      ndata += "      '%s',\n" % "', '".join(chunk)
-    ndata += '    '
+    if len(nlangs) > 10:
+      chunks = map(lambda i: nlangs[i:i + 10], xrange(0, len(nlangs), 10))
+      ndata += '\n'
+      for chunk in chunks:
+        ndata += "      %s'%s',\n" % ('    ' if tpt > 0 else '', "', '".join(chunk))
+      ndata += '    %s' % '    ' if tpt > 0 else ''
+    else:
+      ndata += "'%s'" % "', '".join(nlangs)
 
-    end = data[pos + data[pos:].find(']'):]
     ndata += end
 
     # write the patch
     fromfile  = "old/" + build_gyp_file
     tofile    = "new/" + build_gyp_file
-    fromdate  = datetime.fromtimestamp(os.path.getmtime(build_gyp_file)).strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
+    fromdate  = datetime.fromtimestamp(self.template.get_mtime(build_gyp_file)).strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
     fromlines = [ x for x in re.split('(.*\n?)', data) if x != '' ]
     todate    = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
     tolines   = [ x for x in re.split('(.*\n?)', ndata) if x != '' ]
@@ -1453,7 +1880,7 @@ class Converter(dict):
       # add it to the patch
       fromfile  = "old/" + grd
       tofile    = "new/" + grd
-      fromdate  = datetime.fromtimestamp(os.path.getmtime(grd)).strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
+      fromdate  = datetime.fromtimestamp(self.template.get_mtime(grd)).strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
       fromlines = codecs.open(grd, 'rb', encoding="utf-8").readlines()
       todate    = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f000 +0000")
       tolines   = codecs.open(grd_out, 'rb', encoding="utf-8").readlines()
@@ -1462,6 +1889,7 @@ class Converter(dict):
       patch.writelines(''.join(diff))
       os.unlink(grd_out)
     patch.close()
+    return nnlangs
 
 def process_grd_diff(grd_diff):
   print 'process_grd_diff ' + str(grd_diff)
@@ -1494,7 +1922,7 @@ def process_grd_diff(grd_diff):
 
 def usage():
   print """
-Usage: %s [options] grd_file [more_grd_files]
+Usage: %s [options] [grd_file [more_grd_files]]
 
   Convert Chromium translation files (grd/xtb) into gettext files (pot/po) and back
 
@@ -1502,10 +1930,24 @@ Usage: %s [options] grd_file [more_grd_files]
     -d | --debug      debug mode
     -v | --verbose    verbose mode
     -h | --help       this help screen
+
     --export-gettext dir
                       export pot/po gettext files to dir
-    --import-gettext dir
-                      import pot/po gettext files from dir
+
+    --import-gettext dir[,dir2][...]
+                      import gettext pot/po files from those directories.
+                      Directories must be ordered from the oldest to
+                      the freshest. Only strings different from the grit
+                      (upstream) translations are considered.
+
+    --import-grit-branch name:dir:grd1[,grd2,...]]
+                      import the Grit files for this branch from this
+                      directory. --import-grit-branch could be used several
+                      times, and then, branches must be specified from the
+                      freshest (trunk) to the more stable ones.
+                      The default value is trunk:<cwd>
+                      Note: must not be used along with --export-grit
+
     --export-grit dir
                       export grd/xtb grit files to dir
 
@@ -1538,6 +1980,14 @@ Usage: %s [options] grd_file [more_grd_files]
                       and last date of both the upstream branch and
                       launchpad export. optionally used in the html output
 
+    --landable-templates template1[,template2][...]
+                      comma separated list of templates that are landable upstream
+                      for all langs
+
+    --unlandable-templates template1[,template2][...]
+                      comma separated list of templates that are not landable upstream,
+                      even for new langs
+
     --test-strcvt     run the grit2gettext2grit checker
     --test-conditions run the conditions evaluation checker
 
@@ -1548,10 +1998,10 @@ if '__main__' == __name__:
   try:
     opts, args = getopt.getopt(sys.argv[1:], "dhv",
                                [ "test-strcvt", "test-conditions", "debug", "verbose", "help", "copy-grit=",
-                                 "export-gettext=", "import-gettext=", "export-grit=",
+                                 "import-grit-branch=", "export-gettext=", "import-gettext=", "export-grit=",
                                  "create-patches=", "build-gyp-file=", "other-grd-files=",
-                                 "whitelisted-new-langs=", "html-output", "json-branches-info=",
-                                 "grd-diff="])
+                                 "landable-templates=", "unlandable-templates=",
+                                 "whitelisted-new-langs=", "html-output", "json-branches-info=", "grd-diff="])
   except getopt.GetoptError, err:
     print str(err)
     usage()
@@ -1572,6 +2022,9 @@ if '__main__' == __name__:
   other_grd_files = []
   whitelisted_new_langs = None
   grd_diff = None
+  landable_templates = []
+  unlandable_templates = []
+  branches       = None
   for o, a in opts:
     if o in ("-v", "--verbose"):
       verbose = True
@@ -1580,10 +2033,19 @@ if '__main__' == __name__:
       sys.exit()
     elif o in ("-d", "--debug"):
       debug = True
+    elif o == "--import-grit-branch":
+      if branches is None:
+        branches = {}
+      branch, dir, grds = a.split(':')
+      for grd in grds.split(','):
+        name = os.path.basename(grd)
+        if name not in branches:
+          branches[name] = []
+        branches[name].append({ 'branch': branch, 'dir': dir, 'grd': grd })
     elif o == "--export-gettext":
       export_gettext = a
     elif o == "--import-gettext":
-      import_gettext = a
+      import_gettext = a.split(",")
     elif o == "--export-grit":
       export_grit = a
     elif o == "--copy-grit":
@@ -1600,6 +2062,10 @@ if '__main__' == __name__:
       html_output = True
     elif o == "--json-branches-info":
       json_info = a
+    elif o == "--landable-templates":
+      landable_templates = a.split(",")
+    elif o == "--unlandable-templates":
+      unlandable_templates = a.split(",")
     elif o == "--test-strcvt":
       StringCvt().test()
       sys.exit()
@@ -1611,8 +2077,12 @@ if '__main__' == __name__:
     else:
       assert False, "unhandled option"
       
-  if len(args) == 0:
-    print "Please specify at least one grd file"
+  if branches is None and len(args) != 0:
+    branches = {}
+    for arg in args:
+      branches[os.path.basename(arg)] = [ { 'branch': 'default', 'dir': os.getcwd(), 'grd': arg } ]
+  if branches is None:
+    print "Please specify at least one grd file or use --import-grit-branch"
     usage()
     sys.exit(2)
 
@@ -1682,6 +2152,9 @@ th, td {
 td.d {
   font-size: 90%;
   text-align: right;
+}
+td.n {
+  background: #FFA;
 }
 .lang {
   font-weight: bold;
@@ -1804,32 +2277,37 @@ function time_delta(date, e) {
 
   if grd_diff:
     process_grd_diff(grd_diff)
-  
-  prefix = os.path.commonprefix(args)
+
+  prefix = os.path.commonprefix([ branches[x][0]['grd'] for x in branches.keys() ])
   changes = 0
   langs = []
   mapped_langs = {}
   cvts = {}
-  for grd in args:
-    cvts[grd] = Converter(grd, lang_mapping = lang_mapping, debug = debug, html_output = html_output)
+  for grd in branches.keys():
+    cvts[grd] = Converter(branches[grd][0]['grd'], lang_mapping = lang_mapping, debug = debug, html_output = html_output,
+                          branches = branches[grd])
 
     if cvts[grd].get_supported_strings_count() == 0:
       if debug:
         print "no string found in %s" % grd
       if export_grit is not None and copy_grit is None:
-        shutil.copy2(grd, os.path.join(export_grit, os.path.dirname(grd)[len(prefix):])) 
+        directory =  os.path.join(export_grit, os.path.dirname(branches[grd][0]['grd'])[len(prefix):])
+        if not os.path.isdir(directory):
+          os.makedirs(directory, 0755)
+        shutil.copy2(branches[grd][0]['grd'], directory)
       continue
 
     if copy_grit is not None:
       cvts[grd].copy_grit_files(copy_grit)
 
+    if import_gettext is not None:
+      for directory in import_gettext:
+        cvts[grd].import_gettext_po_files(directory)
+        langs.extend(cvts[grd].translations.keys())
+
     if export_gettext is not None:
       cvts[grd].export_gettext_files(export_gettext)
       changes += cvts[grd].template_changes + cvts[grd].translations_changes
-
-    if import_gettext is not None:
-      cvts[grd].import_gettext_po_files(import_gettext)
-      langs.extend(cvts[grd].translations.keys())
 
   # as we need to add all supported langs to the <outputs> section of all grd files,
   # we have to wait for all the 'po' files to be imported and merged before we export
@@ -1844,18 +2322,19 @@ function time_delta(date, e) {
   r = {}
   langs = sorted([ r.setdefault(e, e) for e in langs if e not in r ])
 
-  for grd in args:
+  for grd in branches.keys():
     if export_grit is not None:
-      cvts[grd].export_grit_files(os.path.join(export_grit, os.path.dirname(grd)[len(prefix):]), langs)
+      cvts[grd].export_grit_files(os.path.join(export_grit, os.path.dirname(branches[grd][0]['grd'])[len(prefix):]), langs)
       for lang in cvts[grd].template.mapped_langs:
         mapped_langs[lang] = cvts[grd].template.mapped_langs[lang]['gettext']
       if create_patches is not None:
         cvts[grd].create_patches(create_patches)
 
   # patch the build/common.gypi file if we have to
+  nlangs = None
   if create_patches is not None and build_gyp_file is not None:
-    cvts[args[0]].create_build_gyp_patch(create_patches, build_gyp_file, other_grd_files, langs,
-                                         whitelisted_new_langs)
+    nlangs = cvts[branches.keys()[0]].create_build_gyp_patch(create_patches, build_gyp_file, other_grd_files, langs,
+                                                  whitelisted_new_langs)
 
   if create_patches is None:
     # no need to display the stats
@@ -1899,18 +2378,18 @@ function time_delta(date, e) {
 """ % (binfo['upstream']['url'], binfo['upstream']['revision'], binfo['upstream']['date'],
        binfo['launchpad-export']['url'], binfo['launchpad-export']['revision'],
        binfo['launchpad-export']['date'], now)
-    html_js += "time_delta('%s', '%s');\n" % (binfo['upstream']['date'], 'em-u')
-    html_js += "time_delta('%s', '%s');\n" % (binfo['launchpad-export']['date'], 'em-lp')
-    html_js += "time_delta('%s', '%s');\n" % (now, 'em-now')
+      html_js += "time_delta('%s', '%s');\n" % (binfo['upstream']['date'], 'em-u')
+      html_js += "time_delta('%s', '%s');\n" % (binfo['launchpad-export']['date'], 'em-lp')
+      html_js += "time_delta('%s', '%s');\n" % (now, 'em-now')
     print """
 <div id="stats">
 <table border="0">
 <tr><th rowspan="2">Rank</th><th rowspan="2">Lang</th><th colspan='5'>TOTAL</th><th colspan='5'>"""
     print ("</th><th colspan='5'>".join([ "%s (<a href='http://git.chromium.org/gitweb/?p=chromium.git;a=history;f=%s;hb=HEAD'>+</a>)" \
-                                            % (os.path.splitext(os.path.basename(grd))[0], grd) \
-                                            for grd in args ])) + "</th></tr><tr>"
+                                            % (os.path.splitext(grd)[0], branches[grd][0]['grd']) \
+                                            for grd in sorted(branches.keys()) ])) + "</th></tr><tr>"
     j = 0
-    for grd in [ 'TOTAL' ] + args:
+    for grd in [ 'TOTAL' ] + sorted(branches.keys()):
       print """
 <th>Status</th>
 <th><div id='%s_t%d' class='progress_bar'></th>
@@ -1933,15 +2412,15 @@ function time_delta(date, e) {
                |     |    |    |    |
                V     V    V    V    V"""
     print "-- lang --  " + \
-      '     '.join([ (" %s " % os.path.splitext(os.path.basename(grd))[0]).center(25, "-") \
-                       for grd in [ 'TOTAL' ] + args ])
+      '     '.join([ (" %s " % os.path.splitext(grd)[0]).center(25, "-") \
+                       for grd in [ 'TOTAL' ] + sorted(branches.keys()) ])
   totals = {}
   for lang in langs:
     klang = lang
     if lang == 'nb':
       klang = 'no'
     totals[klang] = { 'total': 0, 'missing': 0, 'translated_upstream': 0, 'new': 0, 'updated': 0, 'lskipped': 0 }
-    for grd in args:
+    for grd in branches.keys():
       tot, lskipped = cvts[grd].template.get_supported_strings_count(klang)
       totals[klang]['lskipped'] += lskipped
       totals[klang]['total'] += tot
@@ -1956,6 +2435,7 @@ function time_delta(date, e) {
   rank = 0
   p_rank = 0
   p_score = -1
+  t_landable = 0
   for lang in sorted(totals, lambda x, y: cmp("%05d %05d %s" % (totals[x]['missing'], totals[x]['total'] - totals[x]['updated'] - totals[x]['new'], x),
                                               "%05d %05d %s" % (totals[y]['missing'], totals[y]['total'] - totals[y]['updated'] - totals[y]['new'], y))):
     if lang == 'en-US':
@@ -1985,18 +2465,28 @@ function time_delta(date, e) {
            totals[lang]['missing'], totals[lang]['translated_upstream'],
            totals[lang]['new'], totals[lang]['updated'])
     j = 0
-    for grd in args:
+    for grd in sorted(branches.keys()):
       j += 1
+      tplt = os.path.splitext(grd)[0].replace('_', '-')
       total, lskipped = cvts[grd].template.get_supported_strings_count(lang)
       if lang in cvts[grd].template.stats:
         missing = total - cvts[grd].template.stats[lang]['translated_upstream'] - \
             cvts[grd].template.stats[lang]['new'] - cvts[grd].template.stats[lang]['updated']
         if html_output:
+          if len(unlandable_templates) == 0 and len(landable_templates) == 0:
+            landable = False
+          else:
+            landable = (nlangs is not None and lang in nlangs and tplt not in unlandable_templates) or \
+              (nlangs is not None and lang not in nlangs and tplt in landable_templates)
+          if landable:
+            t_landable += cvts[grd].template.stats[lang]['new'] + cvts[grd].template.stats[lang]['updated']
           s += "<td><div id='%s_%d' class='progress_bar'></div></td>" % (rlang, j)
-          s += "<td class='d'>%d</td><td class='d'>%d</td><td class='d'>%d</td><td class='d'>%d</td>" % \
+          s += "<td class='d'>%d</td><td class='d'>%d</td><td class='d%s'>%d</td><td class='d%s'>%d</td>" % \
               (missing,
                cvts[grd].template.stats[lang]['translated_upstream'],
+               " n" if landable and cvts[grd].template.stats[lang]['new'] > 0 else "",
                cvts[grd].template.stats[lang]['new'],
+               " n" if landable and cvts[grd].template.stats[lang]['updated'] > 0 else "",
                cvts[grd].template.stats[lang]['updated'])
           html_js += "progress_bar('%s_%d', %d, %d, %d, %d);\n" % \
               (rlang, j, missing,
@@ -2004,8 +2494,12 @@ function time_delta(date, e) {
                cvts[grd].template.stats[lang]['new'],
                cvts[grd].template.stats[lang]['updated'])
         else:
+          if float(total) > 0:
+            pct = 100.0 * float(total - missing) / float(total)
+          else:
+            pct = 0
           s += "     %3d%%  %4d %4d %4d %4d" % \
-              (100.0 * float(total - missing) / float(total), missing,
+              (pct, missing,
                cvts[grd].template.stats[lang]['translated_upstream'],
                cvts[grd].template.stats[lang]['new'],
                cvts[grd].template.stats[lang]['updated'])
@@ -2022,14 +2516,20 @@ function time_delta(date, e) {
       s += "</tr>"
     print s
   if html_output:
+    landable_sum = ""
+    if t_landable > 0:
+       landable_sum = """<p>
+<div name='landable'>
+<table border="0"><tr><td class="d n">%d strings are landable upstream</td></tr></table></div>
+""" % t_landable
     print """\
 </table>
-</div>
+%s</div>
 </div>
 <script type="text/javascript" language="javascript">
 %s
 </script>
 </body>
-</html>""" % html_js
+</html>""" % (landable_sum, html_js)
   exit(1 if changes > 0 else 0)
 
