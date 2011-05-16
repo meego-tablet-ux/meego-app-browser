@@ -24,8 +24,6 @@
         'safe_browsing_report_proto',
         'syncapi',
         'theme_resources',
-        '../native_client/src/trusted/desc/desc.gyp:nrd_xfer',
-        '../native_client/src/trusted/service_runtime/service_runtime.gyp:sel',
         'userfeedback_proto',
         '../app/app.gyp:app_resources',
         '../build/temp_gyp/googleurl.gyp:googleurl',
@@ -3564,6 +3562,8 @@
           'dependencies': [
             '../native_client/src/trusted/plugin/plugin.gyp:ppGoogleNaClPluginChrome',
             '../native_client/src/trusted/platform_qualify/platform_qualify.gyp:platform_qual_lib',
+            '../native_client/src/trusted/desc/desc.gyp:nrd_xfer',
+            '../native_client/src/trusted/service_runtime/service_runtime.gyp:sel',
           ],
         }],
 
