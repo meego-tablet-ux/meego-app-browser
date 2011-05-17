@@ -178,46 +178,74 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
   bool appmode = false;
   QString appUrl = "";
 
+  char ** passDownArgv = new char* [2*argc-1];
+  if(argc>0)
+    passDownArgv[0] = argv[0];
+  int passDownArgc = 1;
+  char * cdataTag = "--cdata";
 
   for (int i=1; i<argc; i++)
   {
     QString s(argv[i]);
-    if (s == "--opengl")
+    if(s.startsWith("-"))
     {
-      opengl = true;
+      passDownArgv[passDownArgc] = argv[i];
+      passDownArgc++;
+      if (s == "--opengl")
+      {
+        opengl = true;
+      }
+      else if (s == "--fullscreen")
+      {
+        fullscreen = true;
+      }
+      else if (s == "--cmd")
+      {
+        passDownArgv[passDownArgc] = argv[i+1];
+        passDownArgc++;
+        cmd = QString(argv[++i]);
+      }
+      else if (s == "--cdata")
+      {
+        passDownArgv[passDownArgc] = argv[i+1];
+        passDownArgc++;
+        cdata = QString(argv[++i]);
+      }
+      else if (s == "--width")
+      {
+        passDownArgv[passDownArgc] = argv[i+1];
+        passDownArgc++;
+        width = atoi (argv[++i]);
+      }
+      else if (s == "--height")
+      {
+        passDownArgv[passDownArgc] = argv[i+1];
+        passDownArgc++;
+        height = atoi (argv[++i]);
+      }
+      else if (s.startsWith("--app"))
+      {
+        appmode = true;
+        int equalPos = s.indexOf("=",0);
+        //now directly pass down --app=url to chromium core, let them deal with it
+        appUrl = s.remove(0,equalPos+1);
+      }
     }
-    else if (s == "--fullscreen")
+    else
     {
-      fullscreen = true;
-    }
-    else if (s == "--cmd")
-    {
-      cmd = QString(argv[++i]);
-    }
-    else if (s == "--cdata")
-    {
-      cdata = QString(argv[++i]);
-    }
-    else if (s == "--width")
-    {
-      width = atoi (argv[++i]);
-    }
-    else if (s == "--height")
-    {
-      height = atoi (argv[++i]);
-    }
-    else if (s.startsWith("--app"))
-    {
-      appmode = true;
-      int equalPos = s.indexOf("=",0);
-      //now directly pass down --app=url to chromium core, let them deal with it
-      appUrl = s.remove(0,equalPos+1);
+      //it's a url
+      //add "--cdata" before url
+      passDownArgv[passDownArgc] = cdataTag;
+      passDownArgc++;
+      passDownArgv[passDownArgc] = argv[i];
+      passDownArgc++;
     }
   }
 
+
   g_launcher_app = new LauncherApp(argc, argv);
   g_launcher_app->setApplicationName(QString("meego-app-browser"));
-  g_launcher_app->dbusInit(argc, argv);
+  g_launcher_app->dbusInit(passDownArgc, passDownArgv);
 
   initAtoms ();
 
@@ -240,6 +268,7 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
       break;
     }
   }    
+  delete[] passDownArgv;
 }
 
 void FiniQmlLauncher(const std::string process_type)
