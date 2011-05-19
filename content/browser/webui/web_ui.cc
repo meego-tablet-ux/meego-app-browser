@@ -41,7 +41,11 @@ WebUI::WebUI(TabContents* contents)
     : hide_favicon_(false),
       force_bookmark_bar_visible_(false),
       focus_location_bar_by_default_(false),
+#if defined(TOOLKIT_MEEGOTOUCH)
+      should_hide_url_(true),
+#else
       should_hide_url_(false),
+#endif
       link_transition_type_(PageTransition::LINK),
       bindings_(BindingsPolicy::WEB_UI),
       register_callback_overwrites_(false),
