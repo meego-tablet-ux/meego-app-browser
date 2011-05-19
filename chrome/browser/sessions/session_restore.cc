@@ -416,7 +416,7 @@ class SessionRestoreImpl : public NotificationObserver {
         browser_(browser),
         synchronous_(synchronous),
         clobber_existing_window_(false),
-        always_create_tabbed_browser_(false),
+        always_create_tabbed_browser_(always_create_tabbed_browser),
         urls_to_open_(urls_to_open),
         restore_started_(base::TimeTicks::Now()) {
   }
