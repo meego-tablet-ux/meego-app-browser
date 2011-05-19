@@ -623,9 +623,11 @@ void RenderViewContextMenuSimple::AppendPageItems() {
   menu_model_.AddItemWithStringId(IDC_SAVE_PAGE,
                                   IDS_CONTENT_CONTEXT_SAVEPAGEAS);
   menu_model_.AddSeparator();
-  menu_model_.AddItemWithStringId(IDC_ZOOM_PLUS, IDS_ZOOM_PLUS);
-  menu_model_.AddItemWithStringId(IDC_ZOOM_NORMAL, IDS_ZOOM_NORMAL);
-  menu_model_.AddItemWithStringId(IDC_ZOOM_MINUS, IDS_ZOOM_MINUS);
+
+  // Comment out the following 3 actions in context menu
+  // menu_model_.AddItemWithStringId(IDC_ZOOM_PLUS, IDS_ZOOM_PLUS);
+  // menu_model_.AddItemWithStringId(IDC_ZOOM_NORMAL, IDS_ZOOM_NORMAL);
+  // menu_model_.AddItemWithStringId(IDC_ZOOM_MINUS, IDS_ZOOM_MINUS);
 }
 
 void RenderViewContextMenuSimple::AppendFrameItems() {
