@@ -1,0 +1,21 @@
+This sample shows how to use browser DBus API to 
+manage tabs.
+
+The main GUI window allows you to open browser in
+3 modes:
+* URL mode    - Open the given url in a new tab
+* Search mode - Search the given target in a new tab
+                with default search engine configured
+                in browser
+* Tab mode    - Parse the given target as tab id and 
+                switch it in browser
+
+ The text box on left side will print the DBus signal
+ name emitted from browser.
+
+ In addition, the thumbnail of a tab can also be 
+ display for demo. 
+
+
+
+

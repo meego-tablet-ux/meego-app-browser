@@ -596,6 +596,7 @@ void BrowserServiceWrapper::showBrowser(const char *mode, const char *target)
       {
         browser_->SelectTabContentsAt(index, true);
       }
+      return;
     }
 
     if (!strcmp(mode, "gotourl")) {
