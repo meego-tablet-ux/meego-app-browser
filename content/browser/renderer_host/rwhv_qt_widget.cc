@@ -1875,6 +1875,8 @@ QGraphicsObject* RWHVQtWidget::GetWebViewItem()
 
   if (!webview_item) {
     Browser* browser = BrowserList::GetLastActive();
+    if (!browser)
+      return NULL;
     BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
     QDeclarativeView *view = browser_window->DeclarativeView();
     webview_item = view->rootObject()->findChild<QDeclarativeItem*>("webView");
@@ -1893,6 +1895,8 @@ QGraphicsObject* RWHVQtWidget::GetViewportItem()
 
   if (!viewport_item) {
     Browser* browser = BrowserList::GetLastActive();
+    if (!browser)
+      return NULL;
     BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
     QDeclarativeView *view = browser_window->DeclarativeView();
     viewport_item = view->rootObject()->findChild<QDeclarativeItem*>("innerContent");
