@@ -39,9 +39,9 @@ void FindBarController::Show() {
     MaybeSetPrepopulateText();
 
     find_tab_helper->set_find_ui_active(true);
-    find_bar_->Show(true);
   }
-  find_bar_->SetFocusAndSelection();
+  find_bar_->Show(true);
+//  find_bar_->SetFocusAndSelection();
 }
 
 void FindBarController::EndFindSession(SelectionAction action) {
@@ -96,7 +96,7 @@ void FindBarController::ChangeTabContents(TabContentsWrapper* contents) {
     // visible state. We also want to reset the window location so that
     // we don't surprise the user by popping up to the left for no apparent
     // reason.
-    find_bar_->Show(false);
+    //find_bar_->Show(false);
   }
 
   UpdateFindBarForCurrentResult();

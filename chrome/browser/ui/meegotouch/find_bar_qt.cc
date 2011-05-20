@@ -129,7 +129,7 @@ void FindBarQt::Close() {
 }
 
 void FindBarQt::SetFocusAndSelection() {
-  Show(true);   ///\todo 1. remove hard code of animate state
+  //Show(true);   ///\todo 1. remove hard code of animate state
                 ///\todo 2. Is this the proper way to simply show for this function?
   // StoreOutsideFocus();
   // gtk_widget_grab_focus(text_entry_);
