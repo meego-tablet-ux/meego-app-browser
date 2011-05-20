@@ -155,6 +155,13 @@ class BrowserWindowQtImpl : public QObject
       window_(window)
   {
   }
+  void HideAllPanel()
+  {
+     emit hideAllPanel();
+  }
+ 
+ Q_SIGNALS:
+   void hideAllPanel();
 
  public Q_SLOTS:
   void onCalled(const QStringList& parameters)
@@ -219,6 +226,7 @@ void BrowserWindowQt::InitWidget()
   // Set modal as NULL to avoid QML warnings
   bool fullscreen = false;
   context->setContextProperty("is_fullscreen", fullscreen);
+  context->setContextProperty("browserWindow", impl_);
 
   LauncherApp *app = static_cast<LauncherApp *>(qApp);
   QString mainQml = app->applicationName() + "/main.qml";
@@ -372,6 +380,7 @@ void BrowserWindowQt::TabDetachedAt(TabContentsWrapper* contents, int index) {
       infobar_container_->ChangeTabContents(NULL);
   //  contents_container_->DetachTabContents(contents);
   //  UpdateDevToolsForContents(NULL);
+  impl_->HideAllPanel();
 }
 
 void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
@@ -410,6 +419,14 @@ void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
     
   UpdateToolbar(new_contents, true);
   contents_container_->SetTabContents(new_contents->tab_contents());
+
+  impl_->HideAllPanel();
+}
+
+void BrowserWindowQt::TabInsertedAt(TabContentsWrapper* contents,
+                             int index,
+                             bool foreground){
+  impl_->HideAllPanel();
 }
 
 LocationBar* BrowserWindowQt::GetLocationBar() const

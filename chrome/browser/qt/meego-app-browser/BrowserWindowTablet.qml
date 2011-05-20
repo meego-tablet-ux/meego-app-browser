@@ -132,7 +132,23 @@ Item {
             }
         }
     }
-
+/*
+    Connections {
+      target: browserWindow
+      onHideAllPanel: {
+        downloadsLoader.source = "";
+        bookmarkManagerLoader.source = "";
+        tabSideBarLoader.source = "";
+        historyLoader.source = "";
+        dialogLoader.source = "";
+        selectFileDialogLoader.source = "";
+//          popupListLoader.sourceComponent = undefined;
+//          contextLoader.sourceComponent = undefined;
+//        wrenchmenushown = false;
+        bubbleLoader.source = "";
+     }
+   }
+*/
     // private
     Item {
         id: privateData

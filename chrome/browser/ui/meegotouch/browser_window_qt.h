@@ -167,6 +167,9 @@ class BrowserWindowQt : //public MApplicationWindow,
                              TabContentsWrapper* new_contents,
                              int index,
                              bool user_gesture) ;
+  virtual void TabInsertedAt(TabContentsWrapper* contents,
+                             int index,
+                             bool foreground);
   virtual void TabStripEmpty() {DNOTIMPLEMENTED();};
 
   LauncherWindow* window() {return window_;};
