@@ -476,7 +476,7 @@ bool ThumbnailGenerator::ShouldUpdateThumbnail(Profile* profile,
   if (!HistoryService::CanAddURL(url))
     return false;
 
-#if defined(TOOLKIT_MEEGOTOUCH)
+#if !defined(TOOLKIT_MEEGOTOUCH)
   // Skip if the top sites list is full, and the URL is not known.
   if (top_sites->IsFull() && !top_sites->IsKnownURL(url))
     return false;

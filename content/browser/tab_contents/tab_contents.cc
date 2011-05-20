@@ -506,6 +506,16 @@ bool TabContents::ShouldDisplayURL() {
     return true;
   }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  // Hide all urls with chrome and about scheme for branding issue.
+  if (entry && (entry->url().SchemeIs(chrome::kChromeUIScheme) ||
+                entry->url().SchemeIs(chrome::kAboutScheme) ||
+                entry->url().SchemeIs(chrome::kChromeInternalScheme) ||
+                entry->url().SchemeIs(chrome::kChromeDevToolsScheme)))
+    return false;
+  else
+    return true;
+#else
   // We always display the URL for non-WebUI URLs to prevent spoofing.
   if (entry && !content::WebUIFactory::Get()->HasWebUIScheme(entry->url()))
     return true;
@@ -514,6 +524,7 @@ bool TabContents::ShouldDisplayURL() {
   if (web_ui)
     return !web_ui->should_hide_url();
   return true;
+#endif
 }
 
 SkBitmap TabContents::GetFavicon() const {

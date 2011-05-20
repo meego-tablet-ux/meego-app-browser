@@ -103,6 +103,12 @@ const string16& NavigationEntry::GetTitleForDisplay(
       title = title.substr(slashpos + 1);
   }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  if(url_.scheme() == chrome::kChromeUIScheme) {
+     title = EmptyString16();
+  }
+#endif
+
   ui::ElideString(title, content::kMaxTitleChars, &cached_display_title_);
   return cached_display_title_;
 }
