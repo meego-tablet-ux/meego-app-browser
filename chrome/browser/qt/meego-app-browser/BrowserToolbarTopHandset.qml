@@ -112,6 +112,28 @@ Item {
       z: 10
       anchors.right: closeButton.left
       anchors.left: backForwardButton.right
+      state: "normal"
+      onActiveFocusChanged: {
+        if (activeFocus == true){
+          if (!showqmlpanel)
+            state = "expand";
+        } else {
+            state = "normal";
+        }
+      }
+      states: [
+        State{
+          name: "normal"
+            PropertyChanges{ target:omniboxcontainer; anchors.left:backForwardButton.right }
+            PropertyChanges{ target:backForwardButton; opacity:1 }
+          },
+        State{
+          name: "expand"
+            PropertyChanges{ target:omniboxcontainer; anchors.left:parent.left }
+            PropertyChanges{ target:backForwardButton; opacity:0 }
+        }
+     ]
+
     }
 
     CloseButton {

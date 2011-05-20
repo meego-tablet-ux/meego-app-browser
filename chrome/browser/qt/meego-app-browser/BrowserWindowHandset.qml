@@ -85,6 +85,11 @@ Item {
     property bool showtoolbar: true
     property bool showbookmarkbar: true
     property bool hasfindbar: false
+ 
+    //align QML panel behaviour, such as BookmarkManager, DownloadManager.
+    property bool showqmlpanel: false 
+    property string panelstring: ""
+
     property alias findbar: findBarLoader.item
     property bool wrenchmenushown: false
     property alias showsearch: toolbar.showsearch
@@ -292,20 +297,26 @@ Item {
         Connections {
             target: findBarModel
             onShow: {
+              if (!showqmlpanel) {
                 findBarLoader.source = "FindBar.qml"
-                findbar.parent = innerContent 
-//                findbar.width = isLandscapeView()? outerContent.width / 2 - 20 : outerContent.width - 20
-
-                var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height + infobarLoader.height + bookmarkBarLoader.height)
-                var ix = innerContent.width / 2
-                var ih = 50
-                findbar.x = ix
-                findbar.width = ix
-                findbar.height = ih
-                findbar.z = innerContent.z + 1
-                findbar.showfindbar = true
+                findbar.parent = toolbar
+                findbar.x = toolbar.x
+                findbar.y = toolbar.y
+                findbar.width = toolbar.width
+                findbar.height = toolbar.height
+                findbar.z = toolbar.z + 1
                 hasfindbar = true
-                findBarModel.positionUpdated(ix, mappedPos.y, ix, ih);
+                findbar.showfindbar = true
+                findBarModel.positionUpdated(toolbar.x, toolbar.y, toolbar.width, toolbar.height);
+              } else {
+                if (hasfindbar) {
+                  findbar.showfindbar = false
+                  hasfindbar = false
+                  findBarLoader.source = ""
+                }
+                if (downloadsLoader.item)
+                  downloadsLoader.item.textFocus = true;
+              }
             }
         }
 
@@ -360,8 +371,14 @@ Item {
         Connections {
           target: downloadsObject
           onShow: {
+            var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
             downloadsLoader.source = "Downloads.qml"
+
+            downloadsLoader.item.initx = mappedPos.x
+            downloadsLoader.item.inity = mappedPos.y
             downloadsLoader.item.showed = true
+            showqmlpanel = true
+            panelstring  = downloadTitle
             downloadsLoader.item.parent = outerContent
           }
         }
@@ -377,22 +394,22 @@ Item {
 	          clip: true
         }
 */
- Flickable {
-     id: innerContent
-     anchors.left: outerContent.left
-     anchors.top: infobarLoader.bottom
-     height:outerContent.height - toolbar.height - infobarLoader.height - bookmarkBarLoader.height
-     width: outerContent.width
-     contentWidth: webview.width
-     contentHeight: webview.height
-     objectName: "innerContent"
-     boundsBehavior: Flickable.DragOverBounds
-     clip:true
-     Item {
-       id: webview
-       objectName: "webView"
-     }
- }
+    Flickable {
+      id: innerContent
+      anchors.left: outerContent.left
+      anchors.top: infobarLoader.bottom
+      height:outerContent.height - toolbar.height - infobarLoader.height - bookmarkBarLoader.height
+      width: outerContent.width
+      contentWidth: webview.width
+      contentHeight: webview.height
+      objectName: "innerContent"
+      boundsBehavior: Flickable.DragOverBounds
+      clip:true
+      Item {
+        id: webview
+        objectName: "webView"
+      }
+    }
 
     ScrollBar {
       id: innerContentVerticalBar
@@ -463,6 +480,14 @@ Item {
     }
 
     states: [
+        State {
+          name: "hidepanel"
+          when: !showqmlpanel
+          PropertyChanges {
+            target: downloadsLoader.item
+            showed: false
+          }
+        },
         State {
             name: "landscape"
             when: scene.orientation == 1

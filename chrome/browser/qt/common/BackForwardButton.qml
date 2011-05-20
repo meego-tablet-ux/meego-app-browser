@@ -59,7 +59,7 @@ Item {
     states: [
       State {
         name: "popupShown"
-          when: popup.showed
+          when: popup.showed && !showqmlpanel
           PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_forward_dn"
@@ -68,7 +68,7 @@ Item {
       // backward inactive icon
       State {
         name: "backInactiveUnpressed"
-        when: kind == 0 && !active && !backForwardIcon.pressed
+        when: ((kind == 0 && !active) || showqmlpanel) && !backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_button_up"
@@ -77,7 +77,7 @@ Item {
       },
       State {
         name: "backActiveUnpressed"
-        when: kind == 0 && active && !backForwardIcon.pressed
+        when: ((kind == 0 && active) || showqmlpanel) && !backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_button_up"
@@ -86,7 +86,7 @@ Item {
       // backward active icon
       State {
         name: "backPressed"
-        when: kind == 0 && backForwardIcon.pressed
+        when: (kind == 0 || showqmlpanel) && backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_button_dn"
@@ -94,7 +94,7 @@ Item {
       },
       State {
         name: "forwardUnpressed"
-        when: kind == 1 && !backForwardIcon.pressed
+        when: kind == 1 && !backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_forward_button_up"
@@ -103,7 +103,7 @@ Item {
       // forward icon
       State {
         name: "forwardPressed"
-        when: kind == 1 && backForwardIcon.pressed
+        when: kind == 1 && backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_forward_button_dn"
@@ -111,7 +111,7 @@ Item {
       },
       State {
         name: "backForwardUnpressed"
-          when: kind == 2 && !backForwardIcon.pressed
+          when: kind == 2 && !backForwardIcon.pressed && !showqmlpanel
           PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_forward_up"
@@ -120,7 +120,7 @@ Item {
       // backforward icon
       State {
         name: "backForwardPressed"
-          when: kind == 2 && backForwardIcon.pressed
+          when: kind == 2 && backForwardIcon.pressed && !showqmlpanel
           PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_forward_dn"
@@ -133,19 +133,27 @@ Item {
     onPressed: backForwardIcon.pressed = true
     onReleased: backForwardIcon.pressed = false
     onClicked: {
-      console.log("back-forward button is tapped")
-      // open the history stack in a flyout
-      var map = mapToItem(scene, width / 2, height / 3 * 2);
-      scene.lastMousePos.mouseX = map.x;
-      scene.lastMousePos.mouseY = map.y;
-      browserToolbarModel.bfButtonTapped()
+      if (!showqmlpanel) {
+        console.log("back-forward button is tapped")
+        // open the history stack in a flyout
+        var map = mapToItem(scene, width / 2, height / 3 * 2);
+        scene.lastMousePos.mouseX = map.x;
+        scene.lastMousePos.mouseY = map.y;
+        browserToolbarModel.bfButtonTapped();
+      } else {
+        showqmlpanel = false;
+      }
     }
     onPressAndHold: {
-      // the same behavior with 'tap' gesture
-      var map = mapToItem(scene, width / 2, height / 3 * 2);
-      scene.lastMousePos.mouseX = map.x;
-      scene.lastMousePos.mouseY = map.y;
-      browserToolbarModel.bfButtonTappedAndHeld()
+      if (!showqmlpanel) {
+        // the same behavior with 'tap' gesture
+        var map = mapToItem(scene, width / 2, height / 3 * 2);
+        scene.lastMousePos.mouseX = map.x;
+        scene.lastMousePos.mouseY = map.y;
+        browserToolbarModel.bfButtonTappedAndHeld();
+      } else {
+        showqmlpanel = false;
+      }
     }
   }
 }

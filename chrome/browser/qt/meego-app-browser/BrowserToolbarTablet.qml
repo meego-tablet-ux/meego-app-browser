@@ -152,11 +152,12 @@ Item {
             anchors.right: divider3.left
             anchors.left: divider2.right
 	    state: "normal"
-            onActiveFocusChanged: {
+            onActiveFocusChanged: { 
                 if (activeFocus == true){
 //                    omniboxcontainer.anchors.left = divider1.right
 //		    omniboxcontainer.anchors.right = divider4.left
-		    state = "expand";
+                    if (!showqmlpanel)
+		      state = "expand";
                 } else {
 //                    omniboxcontainer.anchors.left = divider2.right
 //		    omniboxcontainer.anchors.right = divider3.left
@@ -167,8 +168,7 @@ Item {
 		State{
 		    name: "normal"
 		    PropertyChanges{ target:omniboxcontainer; anchors.left:divider2.right }
-		    //PropertyChanges{ targets: [ backForwardButton, divider1, reloadButton, divider2 ]; opacity: 1 }
-		    PropertyChanges{ target:divider1; opacity:1 }
+                    PropertyChanges{ target:divider1; opacity:1 }
 		    PropertyChanges{ target:backForwardButton; opacity:1 }
 		    PropertyChanges{ target:divider2; opacity:1 }
 		    PropertyChanges{ target:reloadButton; opacity:1 }

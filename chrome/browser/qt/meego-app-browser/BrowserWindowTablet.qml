@@ -75,6 +75,11 @@ Item {
     property bool showtoolbar: true
     property bool showbookmarkbar: false
     property bool hasfindbar: false
+    
+    //align QML panel behaviour, such as BookmarkManager, DownloadManager.
+    property bool showqmlpanel: false 
+    property string panelstring: ""
+
     property alias findbar: findBarLoader.item
     property alias showsearch: toolbar.showsearch
     property alias toolbarheight: toolbar.height
@@ -328,7 +333,7 @@ Item {
             target: bookmarkBarListModel
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
             onOpenBookmarkManager: {
-                bookmarkManagerLoader.source = "BookmarkList.qml"
+              bookmarkManagerLoader.source = "BookmarkList.qml"
             }
         }
         Connections {
@@ -343,6 +348,7 @@ Item {
         Connections {
             target: findBarModel
             onShow: {
+              if (!showqmlpanel) {
                 findBarLoader.source = "FindBar.qml"
                 findbar.parent = toolbar
                 findbar.x = toolbar.x
@@ -353,6 +359,15 @@ Item {
                 hasfindbar = true
                 findbar.showfindbar = true
                 findBarModel.positionUpdated(toolbar.x, toolbar.y, toolbar.width, toolbar.height);
+              } else {
+                if (hasfindbar) {
+                  findbar.showfindbar = false
+                  hasfindbar = false
+                  findBarLoader.source = ""
+                }
+                if (downloadsLoader.item)
+                  downloadsLoader.item.textFocus = true;
+              }
             }
         }
         
@@ -390,8 +405,15 @@ Item {
         Connections {
           target: downloadsObject
           onShow: {
+            var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
             downloadsLoader.source = "Downloads.qml"
+
+            downloadsLoader.item.initx = mappedPos.x
+            downloadsLoader.item.inity = mappedPos.y
+
             downloadsLoader.item.showed = true
+            showqmlpanel = true
+            panelstring  = downloadTitle
             downloadsLoader.item.parent = outerContent
           }
         }
@@ -488,6 +510,14 @@ Item {
     }
 
     states: [
+        State {
+          name: "hidepanel"
+          when: !showqmlpanel
+          PropertyChanges {
+            target: downloadsLoader.item
+            showed: false
+          }
+        },
         State {
             name: "landscape"
             when: scene.orientation == 1

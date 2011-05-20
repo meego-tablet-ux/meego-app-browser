@@ -192,7 +192,12 @@ Item {
         
         MouseArea {
           anchors.fill: parent
-          onClicked: tabSideBarModel.go(index)
+          onClicked: {
+            if (showqmlpanel) {
+              showqmlpanel = false;
+            } 
+            tabSideBarModel.go(index)
+          } 
         }
 
         states: [

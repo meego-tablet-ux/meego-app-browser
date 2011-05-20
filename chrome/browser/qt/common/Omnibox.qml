@@ -36,7 +36,6 @@ import Qt 4.7
 Item {
   id: container
   height: parent.height
-
   property int popupHeight: 300
   property int popupDirection: 0
   property bool showStarButton: true
@@ -63,7 +62,6 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     horizontalTileMode: BorderImage.Stretch
     source: "image://themedimage/images/browser/urlinputbar_middle"
-
     Loader {
       id: autocompletePopupLoader
 //      width: scene.isLandscapeView() ? parent.width : toolbar.width * 0.9
@@ -100,12 +98,16 @@ Item {
       anchors.fill: parent
       anchors.topMargin: -5
       anchors.bottomMargin: -5
-      onPressed: urlTextInput.forceActiveFocus();
+      onPressed: {
+        if (!showqmlpanel) 
+          urlTextInput.forceActiveFocus();
+      }
     }
     Rectangle{
       id: sslArea
       height: parent.height - 10
-      width:  sslIcon.width+sslTitle.paintedWidth + widthFix
+      width:  {!showqmlpanel ? sslIcon.width+sslTitle.paintedWidth + widthFix:0}
+      opacity: {!showqmlpanel ? 1:0}
       anchors.verticalCenter: parent.verticalCenter
       anchors.left: parent.left
       property int widthFix: 16
@@ -135,6 +137,20 @@ Item {
       }
    }
     TextInput {
+      id: panelTitle
+      anchors.left: sslArea.right
+      anchors.right: starButton.left
+      anchors.leftMargin: 5
+      anchors.rightMargin: 5
+      anchors.verticalCenter: parent.verticalCenter
+      horizontalAlignment: TextInput.AlignLeft
+      color: "gray"
+      opacity: {!showqmlpanel ? 0:1}
+      text: panelstring
+      activeFocusOnPress: false
+      font.pixelSize: theme_fontPixelSizeNormal
+    }
+    TextInput {
       id: urlTextInput
       objectName: "urlTextInput"
       anchors.left: sslArea.right
@@ -145,12 +161,12 @@ Item {
       horizontalAlignment: TextInput.AlignLeft
       selectByMouse: true
       color: "gray"
+      opacity: {!showqmlpanel ? 1:0}
       font.pixelSize: theme_fontPixelSizeNormal
       property bool isDelete: false
       property bool shouldSelectAll: false
       autoScroll: false
       inputMethodHints: Qt.ImhUrlCharactersOnly
-
       Keys.onReturnPressed: {
         autocompleteEditViewModel.returnPressed();
       }
@@ -199,7 +215,7 @@ Item {
       Connections {
         target: autocompleteEditViewModel
         onSetFocus: urlTextInput.forceActiveFocus()
-        onSetText: {urlTextInput.text = text;}
+        onSetText: urlTextInput.text = text;
         onSetSelection: urlTextInput.select(start, end);
         onSelectAll: {
           if (urlTextInput.text.length > 0) {
@@ -241,7 +257,8 @@ Item {
       id: starButton
       objectName: "starButton"
       height: starButtonHeight
-      width: starButtonWidth
+      width: {!showqmlpanel? starButtonWidth:0}
+      opacity: {!showqmlpanel? 1:0}
       anchors.right: parent.right
       anchors.rightMargin: -1 * right.width
       Image {
@@ -306,7 +323,8 @@ Item {
     Item {
         id: "processIndicator"
         height: parent.height/2
-        width: height
+        width: {!showqmlpanel ? height:0}
+        opacity: {!showqmlpanel ? 1:0}
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         anchors.leftMargin: 5

@@ -49,7 +49,7 @@ Item {
     states: [
       State {
         name: "reloadPressed"
-        when: reloadIcon.pressed && !loading
+        when: reloadIcon.pressed && !loading && !showqmlpanel
         PropertyChanges {
           target: reloadIcon
           source: "image://themedimage/images/browser/icn_refresh_dn"
@@ -57,7 +57,7 @@ Item {
       },
      State {
          name: "reloadUnPressed"
-         when: !reloadIcon.pressed && !loading
+         when: !reloadIcon.pressed && !loading || showqmlpanel
          PropertyChanges {
              target: reloadIcon
              source: "image://themedimage/images/browser/icn_refresh_up"
@@ -65,7 +65,7 @@ Item {
      }, 
     State {
         name: "stopPressed"
-        when: reloadIcon.pressed && loading
+        when: reloadIcon.pressed && loading && !showqmlpanel
         PropertyChanges {
             target: reloadIcon
             source: "image://themedimage/images/browser/icn_stop_dn"
@@ -73,7 +73,7 @@ Item {
     }, 
     State {
         name: "stopUnPressed"
-        when: !reloadIcon.pressed && loading
+        when: !reloadIcon.pressed && loading && !showqmlpanel
         PropertyChanges {
             target: reloadIcon
             source: "image://themedimage/images/browser/icn_stop_up"
@@ -84,7 +84,10 @@ Item {
   }
   MouseArea {
     anchors.fill: parent
-    onClicked: browserToolbarModel.reloadButtonClicked()
+    onClicked: {
+      if (!showqmlpanel)
+        browserToolbarModel.reloadButtonClicked()
+    }
     onPressed: reloadIcon.pressed = true
     onReleased: reloadIcon.pressed = false
   }

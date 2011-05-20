@@ -38,9 +38,17 @@ import Qt.labs.gestures 2.0
 Item {
   id: downloadsContainer//; width: 640; height: 480
   property variant model: downloadsObject
-  anchors.fill: parent
+  property int initx: 0
+  property int inity: 0
+  property alias textFocus: searchEdit.textFocus
+  parent: outerContent
+  //anchors.fill: parent
+  width: parent.width
+  height: {!scene.fullscreen ? parent.height - y: parent.height}
   property bool showed: false
-  z: 10
+  z: 0
+  x: {!scene.fullscreen ? initx:0}
+  y: {!scene.fullscreen ? inity:0}
   opacity: 0
 
   GestureArea {
@@ -66,7 +74,7 @@ Item {
   Rectangle {
     id: controlContainer
     width: parent.width
-    height: 50
+    height: 100
     anchors.top: parent.top
     anchors.topMargin: 10
     Image {
@@ -75,68 +83,34 @@ Item {
       fillMode: Image.Stretch
       source: "image://themedimage/images/bg_application_p"
     }
-
-    Image {
-      id: back
-      height: parent.height
-      width: height
-      anchors.left: parent.left
-      property bool pressed: false
-      source: "image://themedimage/images/icn_toolbar_back_button_up"
-      states: [
-        State {
-          name: "backPressed"
-          when: back.pressed
-          PropertyChanges {
-            target: back
-            source: "image://themedimage/images/icn_toolbar_back_button_dn"
-          }
-        }
-      ]
-      MouseArea {
-        anchors.fill: parent
-        onClicked: { 
-          downloadsContainer.showed = false;
-          back.pressed = false; 
-        }
-        onPressed: {
-          back.pressed = true;
-        }
-      }
-    }
-
     Text {
       id: head
-      height: parent.height
+      height: 50
       text: downloadTitle
-      anchors.left: back.right
-      anchors.verticalCenter: parent.verticalCenter
-      verticalAlignment:Text.AlignVCenter
+      anchors {top: parent.top; left: parent.left; leftMargin: 10;} 
       font { bold: true; pixelSize: 28 }
     }
- 
-    TextEntry {
-      id: searchEdit
-      height: head.height*4/5
-      anchors { left: head.right; leftMargin: 5; right: clearAll.left; rightMargin: 5; verticalCenter: back.verticalCenter }
-      defaultText: downloadSearch
-      onTextChanged: {
-        downloadsContainer.model.textChanged(text);
-      }
-    }
+
     Text {
       id: clearAll
-      height: parent.height
-      anchors.right: parent.right
-      anchors.rightMargin: 10
-      anchors.verticalCenter: parent.verticalCenter
-      verticalAlignment:Text.AlignVCenter
+      height: 50
+      anchors {top: parent.top; right: parent.right; rightMargin: 10;}
       text: downloadClearAll
       color: "blue"
       font { bold: true; pixelSize: 20;underline:true; }
       MouseArea {
         anchors.fill: parent
         onClicked: { downloadsContainer.model.clearAllItem()}
+      }
+    }
+ 
+    TextEntry {
+      id: searchEdit
+      width: parent.width/2
+      anchors { left: parent.left; leftMargin: 10; top: head.bottom;  bottom:parent.bottom; bottomMargin: 5;}
+      defaultText: downloadSearch
+      onTextChanged: {
+        downloadsContainer.model.textChanged(text);
       }
     }
   }
