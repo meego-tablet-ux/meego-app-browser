@@ -363,6 +363,12 @@ FilePath ShellIntegration::GetDesktopShortcutFilename(const GURL& url) {
 }
 
 // static
+#if defined(TOOLKIT_MEEGOTOUCH)
+std::string ShellIntegration::GetDesktopFileContents(
+    const std::string& template_contents, const GURL& url,
+    const std::string& extension_id, const string16& title,
+    const std::string& icon_name, int size ) {
+#else
 std::string ShellIntegration::GetDesktopFileContents(
     const std::string& template_contents,
     const std::string& app_name,
@@ -370,6 +376,7 @@ std::string ShellIntegration::GetDesktopFileContents(
     const std::string& extension_id,
     const string16& title,
     const std::string& icon_name) {
+#endif
   // See http://standards.freedesktop.org/desktop-entry-spec/latest/
   // Although not required by the spec, Nautilus on Ubuntu Karmic creates its
   // launchers with an xdg-open shebang. Follow that convention.
@@ -425,7 +432,8 @@ std::string ShellIntegration::GetDesktopFileContents(
 #if defined(TOOLKIT_MEEGOTOUCH)
       char* home_dir = getenv ("HOME");
       std::string final_icon(home_dir);
-      final_icon += "/.local/share/icons/hicolor/16x16/apps/" + icon_name + ".png";
+      final_icon += "/.local/share/icons/hicolor/" + base::IntToString(size) + "x" + base::IntToString(size);
+      final_icon += "/apps/" + icon_name + ".png";
       output_buffer += StringPrintf("Icon=%s\n", final_icon.c_str());
 #else
       output_buffer += StringPrintf("Icon=%s\n", icon_name.c_str());
@@ -460,6 +468,12 @@ void ShellIntegration::CreateDesktopShortcut(
 
   std::string app_name =
       web_app::GenerateApplicationNameFromInfo(shortcut_info);
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  std::string contents = GetDesktopFileContents(
+      shortcut_template, shortcut_info.url, shortcut_info.extension_id,
+      shortcut_info.title, icon_name, shortcut_info.favicon.width() );
+#else
   std::string contents = GetDesktopFileContents(
       shortcut_template,
       app_name,
@@ -467,6 +481,7 @@ void ShellIntegration::CreateDesktopShortcut(
       shortcut_info.extension_id,
       shortcut_info.title,
       icon_name);
+#endif
 
   if (shortcut_info.create_on_desktop)
     CreateShortcutOnDesktop(shortcut_filename, contents);

@@ -9,7 +9,9 @@
 #include "base/compiler_specific.h"
 
 // Size (along each axis) of the favicon.
-#if defined(TOUCH_UI)
+#if defined(TOOLKIT_MEEGOTOUCH)
+const int kFaviconSize = 256;
+#elif defined(TOUCH_UI)
 const int kFaviconSize = 32;
 #else
 const int kFaviconSize = 16;

@@ -95,6 +95,12 @@ class ShellIntegration {
   // Returns contents for .desktop file based on |template_contents|, |url|
   // and |title|. The |template_contents| should be contents of .desktop file
   // used to launch Chrome.
+#if defined(TOOLKIT_MEEGOTOUCH)
+  static std::string GetDesktopFileContents(
+      const std::string& template_contents, const GURL& url,
+      const std::string& extension_id, const string16& title,
+      const std::string& icon_name, int size);
+#else
   static std::string GetDesktopFileContents(
       const std::string& template_contents,
       const std::string& app_name,
@@ -102,6 +108,7 @@ class ShellIntegration {
       const std::string& extension_id,
       const string16& title,
       const std::string& icon_name);
+#endif
 
   static void CreateDesktopShortcut(const ShortcutInfo& shortcut_info,
                                     const std::string& shortcut_template);
