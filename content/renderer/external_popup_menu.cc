@@ -23,10 +23,10 @@ void ExternalPopupMenu::show(const WebKit::WebRect& bounds) {
 
   //transform it to scaled coordinate system
   WebKit::WebRect scaled = bounds;
-  scaled.x *= render_view_->scale();
-  scaled.y *= render_view_->scale();
-  scaled.width *= render_view_->scale();
-  scaled.height *= render_view_->scale();
+  scaled.x *= render_view_->x_scale();
+  scaled.y *= render_view_->y_scale();
+  scaled.width *= render_view_->x_scale();
+  scaled.height *= render_view_->y_scale();
   popup_params.bounds = scaled;
   popup_params.item_height = popup_menu_info_.itemHeight;
   popup_params.item_font_size = popup_menu_info_.itemFontSize;

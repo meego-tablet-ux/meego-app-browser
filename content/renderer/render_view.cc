@@ -1663,9 +1663,9 @@ void RenderView::showContextMenu(
   // TODO(jcivelli): http://crbug.com/45160 This prevents us from saving large
   //                 data encoded images.  We should have a way to save them.
   // the point should be scaled with scale
-  params.x *= scale();
+  params.x *= x_scale();
   params.x += 1;
-  params.y *= scale();
+  params.y *= y_scale();
   params.y += 1;
   if (params.src_url.spec().size() > content::kMaxURLChars)
     params.src_url = GURL();
@@ -2932,7 +2932,7 @@ void RenderView::didChangeContentsSize(WebFrame* frame, const WebSize& size) {
     Send(new ViewHostMsg_DidContentsSizeChanged(routing_id_,
                                                 size));
     size_ = size;
-    size_.Scale(scale_, scale_);
+    size_.Scale(x_scale_, y_scale_);
     webwidget_->setViewportSize(size);
   }
 }

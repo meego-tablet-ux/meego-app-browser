@@ -101,7 +101,8 @@ RenderWidget::RenderWidget(RenderThreadBase* render_thread,
       animation_update_pending_(false),
       animation_task_posted_(false),
       resize_to_contents_(true),
-      scale_(1.0),
+      x_scale_(1.0),
+      y_scale_(1.0),
       seq_(0)
 {
   RenderProcess::current()->AddRefProcess();
@@ -463,11 +464,12 @@ void RenderWidget::OnQueryElementAreaAt(const gfx::Point& pos,
 
 void RenderWidget::OnSetScaleFactor(double factor)
 {
-  if(scale_ == factor) return;
+  if(x_scale_ == factor) return;
 
   double flatten_factor = flatScaleByStep(factor);
-  size_.Scale(flatten_factor/scale_, flatten_factor/scale_);
-  scale_ = flatten_factor;
+  size_.Scale(flatten_factor/x_scale_, flatten_factor/y_scale_);
+  x_scale_ = flatten_factor;
+  y_scale_ = x_scale_;
   paint_aggregator_.ClearPendingUpdate();
 }
 
@@ -519,7 +521,7 @@ void RenderWidget::PaintRect(const gfx::Rect& update_rect,
                  update_rect.y() == 0 ? 0 : update_rect.y() - 1,
                  update_rect.width() + 2, update_rect.height() + 2);
 
-  DLOG(INFO) << "RenderWidget::PaintRect scale " << scale_
+  DLOG(INFO) << "RenderWidget::PaintRect scale " << x_scale_
              << " " << rect.x()
              << " " << rect.y()
              << " " << rect.width()
@@ -532,7 +534,7 @@ void RenderWidget::PaintRect(const gfx::Rect& update_rect,
 
   canvas->save();
 
-  canvas->scale(scale_, scale_);
+  canvas->scale(x_scale_, y_scale_);
 
 
   // Bring the canvas into the coordinate system of the paint rect.
@@ -748,7 +750,7 @@ void RenderWidget::DoDeferredUpdate() {
   canvas_bounds.set_y(floorY);
   canvas_bounds.set_width(canvas_bounds.width() + incX );
   canvas_bounds.set_height(canvas_bounds.height() + incY );
-  canvas_bounds.Scale(scale_, scale_);
+  canvas_bounds.Scale(x_scale_, y_scale_);
   DLOG(INFO) << "bounds after scale " << canvas_bounds.x() << " " << canvas_bounds.y() << " " << canvas_bounds.width() << " " << canvas_bounds.height();
 
   // Compositing the page may disable accelerated compositing.
@@ -821,7 +823,7 @@ void RenderWidget::DoDeferredUpdate() {
     SkBitmap bitmap = canvas->getTopPlatformDevice().accessBitmap(true);
     QImage image = SkBitmap2Image(bitmap);
     DLOG(INFO) << "canvas bounds [x, y, w, h] = " << canvas_bounds.x() << " " << canvas_bounds.y() << " " << canvas_bounds.width() << " " << canvas_bounds.height();
-    DLOG(INFO) << "scale is: " << scale_;
+    DLOG(INFO) << "scale is: " << x_scale_;
     DLOG(INFO) << "canvas image size [w, h] = " << image.width() << ", " << image.height();
 
     image.save(file_name);
@@ -839,8 +841,8 @@ void RenderWidget::DoDeferredUpdate() {
   }
 
   gfx::Rect scaled_bounds = canvas_bounds;
-  scaled_bounds.set_x(canvas_bounds.x() * scale_);
-  scaled_bounds.set_y(canvas_bounds.y() * scale_);
+  scaled_bounds.set_x(canvas_bounds.x() * x_scale_);
+  scaled_bounds.set_y(canvas_bounds.y() * y_scale_);
   // sending an ack to browser process that the paint is complete...
   ViewHostMsg_UpdateRect_Params params;
   params.bitmap = dib_id;
@@ -1163,8 +1165,8 @@ void RenderWidget::OnMsgPaintTile(const TransportDIB::Handle& dib_handle,
     return;
 
   gfx::Rect origin_bounds(rect);
-  gfx::Rect update(rect.x() / scale_, rect.y() / scale_,
-                   rect.width() / scale_ + 2, rect.height() / scale_ + 2);
+  gfx::Rect update(rect.x() / x_scale_, rect.y() / y_scale_,
+                   rect.width() / x_scale_ + 2, rect.height() / y_scale_ + 2);
   gfx::Rect bounds = pixmap_rect;
 
   scoped_ptr<skia::PlatformCanvas> canvas(
@@ -1210,8 +1212,8 @@ void RenderWidget::OnMsgPaintTile(const TransportDIB::Handle& dib_handle,
 #endif
 
     gfx::Rect scaled_bounds = bounds;
-    scaled_bounds.set_x(bounds.x() * scale_);
-    scaled_bounds.set_y(bounds.y() * scale_);
+    scaled_bounds.set_x(bounds.x() * x_scale_);
+    scaled_bounds.set_y(bounds.y() * y_scale_);
     Send(new ViewHostMsg_PaintTile_ACK(routing_id_, seq_, tag, origin_bounds, scaled_bounds));
 }
 
@@ -1233,7 +1235,10 @@ void RenderWidget::OnMsgPaintAtSize(const TransportDIB::Handle& dib_handle,
     return;
   }
 
-  if (page_size.IsEmpty() || desired_size.IsEmpty()) {
+
+  gfx::Size canvas_size = preferred_contents_size_;
+
+  if (canvas_size.IsEmpty() || desired_size.IsEmpty()) {
     // If one of these is empty, then we just return the dib we were
     // given, to avoid leaking it.
     Send(new ViewHostMsg_PaintAtSize_ACK(routing_id_, tag, desired_size));
@@ -1245,7 +1250,6 @@ void RenderWidget::OnMsgPaintAtSize(const TransportDIB::Handle& dib_handle,
   scoped_ptr<TransportDIB> paint_at_size_buffer(
       TransportDIB::CreateWithHandle(dib_handle));
 
-  gfx::Size canvas_size = page_size;
   float x_scale = static_cast<float>(desired_size.width()) /
                   static_cast<float>(canvas_size.width());
   float y_scale = static_cast<float>(desired_size.height()) /
@@ -1273,21 +1277,29 @@ void RenderWidget::OnMsgPaintAtSize(const TransportDIB::Handle& dib_handle,
 
   canvas->save();
   // Add the scale factor to the canvas, so that we'll get the desired size.
-  canvas->scale(SkFloatToScalar(x_scale), SkFloatToScalar(y_scale));
+  //canvas->scale(SkFloatToScalar(x_scale), SkFloatToScalar(y_scale));
+  double old_x_scale = x_scale_;
+  double old_y_scale = y_scale_;
+  x_scale_ = x_scale;
+  y_scale_ = y_scale;
 
-  // Have to make sure we're laid out at the right size before
-  // rendering.
-  gfx::Size old_size = webwidget_->size();
-  webwidget_->resize(page_size);
   webwidget_->layout();
 
   // Paint the entire thing (using original bounds, not scaled bounds).
   PaintRect(orig_bounds, orig_bounds.origin(), canvas.get());
   canvas->restore();
 
-  // Return the widget to its previous size.
-  webwidget_->resize(old_size);
+  DLOG(INFO) << "OnMsgPaintAtSize canvas_size "
+             << " " << canvas_size.width()
+             << " " << canvas_size.height()
+             << " orig_bounds " << orig_bounds.width()
+             << " " << orig_bounds.height()
+             << " desired_size " << desired_size.width()
+             << " " << desired_size.height();
 
+  x_scale_ = old_x_scale;
+  y_scale_ = old_y_scale;
+  
   Send(new ViewHostMsg_PaintAtSize_ACK(routing_id_, tag, bounds.size()));
 }
 

@@ -135,7 +135,8 @@ class RenderWidget : public IPC::Channel::Listener,
   virtual void Close();
 
   // return current scale factor 
-  double scale() { return scale_; }
+  double x_scale() { return x_scale_; }
+  double y_scale() { return y_scale_; }
 
  protected:
   // Friend RefCounted so that the dtor can be non-public. Using this class
@@ -335,7 +336,8 @@ class RenderWidget : public IPC::Channel::Listener,
   bool resize_to_contents_;
   gfx::Size preferred_contents_size_;
   gfx::Size contents_size_;
-  double scale_;
+  double x_scale_;
+  double y_scale_;
   unsigned int seq_;
 
   // The TransportDIB that is being used to transfer an image to the browser.
