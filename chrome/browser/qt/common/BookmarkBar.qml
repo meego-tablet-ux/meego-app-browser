@@ -36,8 +36,10 @@ import Qt 4.7
 Item {
   id: container
   property alias model: view.model
-  property int itemMaxWidth: 150
+  property int itemMaxWidth: 200
   property int itemMinWidth: 60
+  property int containerHeight: 55
+  property int titleFontSize: 13
   parent: outerContent
   width: parent.width
   states: [
@@ -55,7 +57,7 @@ Item {
       when: scene.showbookmarkbar && !scene.fullscreen
       PropertyChanges {
         target: bookmarkBarLoader
-          height: 45
+          height: containerHeight
           opacity: 1
       }
     }
@@ -74,18 +76,15 @@ Item {
   ]
   */
 
-  Rectangle {
+  BorderImage {
     id: bookmarkcontainer
     height: parent.height
     width: parent.width
-    clip: true
     opacity:1
-    Image {
-      id: bookmarkbackground
-      anchors.fill: parent
-      fillMode: Image.Tile
-      source: "image://themedimage/images/browser/bg_bookmarkbar"
-    }
+    source: "images://themedimage/widgets/apps/browser/bookmark-bar-background"
+    border { left:8; right:8; bottom:0; top:0 }
+    horizontalTileMode: BorderImage.Repeat
+    verticalTileMode: BorderImage.Repeat
     Text {
       id: instruction
       color: "gray"
@@ -100,61 +99,40 @@ Item {
     }
     Component {
       id: bookmarkDelegate
-      Rectangle {
+      BorderImage {
         id: bookmarkitem
         property bool pressed: false
         property bool active: true
         opacity: active ? 1.0 : 0.5
         width:{
-          if(length*25 > container.itemMaxWidth) 
+          if(length*13 + 18*2 > container.itemMaxWidth) 
              container.itemMaxWidth;
-          else if (length*25 < container.itemMinWidth) 
+          else if (length*13 + 18*2 < container.itemMinWidth) 
              container.itemMinWidth;
           else
-             length*25;
+             length*13 + 18*2;
         } 
-        height: parent.height - 12
-        radius: 20 
-        anchors.verticalCenter: parent.verticalCenter
-        clip: true
-
-        gradient: Gradient {
-          GradientStop { position: bookmarkitem.pressed ? 1.0 : 0.0; color: "lightgray" }
-          GradientStop { position: bookmarkitem.pressed ? 0.0 : 1.0; color: "gray" }
-        }
-
-        Image {
-          id: borderleft
-          source: "image://themedimage/images/browser/btn_bookmarkitem_left"
-          anchors.left: parent.left
-          height: parent.height
-          width: 15
-        }
-        Image {
-           id: bordermiddle
-           anchors.left: borderleft.right
-           anchors.right: borderright.left
-           source: "image://themedimage/images/browser/btn_bookmarkitem_middle"
-           height: parent.height
-        }
-        Image {
-          id: borderright
-          anchors.right: parent.right
-          source: "image://themedimage/images/browser/btn_bookmarkitem_right"
-          height: parent.height
-          width:15
-        }
-
+        height: parent.height - 16
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 8
+        anchors.bottomMargin: 8
+        source: "image://themedimage/widgets/apps/browser/bookmark-bar-item-background"
+        border { left:19; right:19; top:0; bottom:0 }
+        horizontalTileMode: BorderImage.Repeat
+        verticalTileMode: BorderImage.Stretch
         Text {
           id: texttitle
           anchors.fill: parent
-          anchors.leftMargin: 10
-          anchors.rightMargin: 10
-          color: "black"
+          anchors.leftMargin: 18
+          anchors.rightMargin: 18
+          color: "#383838"
           elide: Text.ElideRight
           verticalAlignment: Text.AlignVCenter
           horizontalAlignment: Text.AlignHCenter
-          font.pixelSize: theme_fontPixelSizeNormal 
+          font.pixelSize: titleFontSize
+          font.bold: false
+          font.family: "Droid Sans"
           text: title
           wrapMode: Text.NoWrap
           clip: true
@@ -176,9 +154,9 @@ Item {
       id: view
       anchors.fill: parent
       boundsBehavior: Flickable.DragOverBounds
-      anchors.leftMargin: 5
-      anchors.rightMargin: 5
-      spacing: 10
+      anchors.leftMargin: 10
+      anchors.rightMargin: 10
+      spacing: 8
       delegate: bookmarkDelegate
       model: bookmarkBarModel
       focus: true
