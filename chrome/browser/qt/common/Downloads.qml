@@ -38,17 +38,11 @@ import Qt.labs.gestures 2.0
 Item {
   id: downloadsContainer//; width: 640; height: 480
   property variant model: downloadsObject
-  property int initx: 0
-  property int inity: 0
+  anchors.fill: parent
+  property int headTextPixel: 21
   property alias textFocus: searchEdit.textFocus
-  parent: outerContent
   property bool showed: false
-  z: 0
-  x: {!scene.fullscreen ? initx:0}
-  y: {!scene.fullscreen ? inity:0}
   opacity: 0
-  width: parent.width
-  height: {!scene.fullscreen ? parent.height - y: parent.height}
 
   GestureArea {
     anchors.fill: parent
@@ -86,8 +80,8 @@ Item {
       id: head
       height: 50
       text: downloadTitle
-      anchors {top: parent.top; left: parent.left; leftMargin: 10;} 
-      font { bold: true; pixelSize: 28 }
+      anchors {top: parent.top; left: parent.left; leftMargin: 20;} 
+      font { pixelSize: headTextPixel }
     }
 
     Text {
@@ -106,7 +100,7 @@ Item {
     TextEntry {
       id: searchEdit
       width: parent.width/2
-      anchors { left: parent.left; leftMargin: 10; top: head.bottom;  bottom:parent.bottom; bottomMargin: 5;}
+      anchors { left: parent.left; leftMargin: 20; top: head.bottom;  bottom:parent.bottom; bottomMargin: 10;}
       defaultText: downloadSearch
       onTextChanged: {
         downloadsContainer.model.textChanged(text);

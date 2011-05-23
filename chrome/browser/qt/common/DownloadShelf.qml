@@ -68,7 +68,7 @@ Item {
           id: downloadItemdatePortrait
           color: "black"
           elide: Text.ElideRight
-          font.bold: true
+ //         font.bold: true
           font.pixelSize: 20
           height: {isLandscapeView() || show_date != 1?0:30}
           opacity: {isLandscapeView() || show_date != 1? 0:1}
@@ -79,7 +79,7 @@ Item {
           anchors.top: downloadItemdatePortrait.bottom
           color: "black"
           elide: Text.ElideRight
-          font.bold: true
+ //        font.bold: true
           font.pixelSize: 20
           width: {isLandscapeView()?125:0}
           opacity: {isLandscapeView()?1:0}

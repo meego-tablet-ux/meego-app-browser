@@ -1,6 +1,6 @@
  /****************************************************************************
  **
- ** Copyright (c) 2010 Intel Corporation.
+ ** Copyright (c) <2010> Intel Corporation.
  ** All rights reserved.
  **
  ** Redistribution and use in source and binary forms, with or without
@@ -137,8 +137,10 @@ Item {
     Connections {
       target: browserWindow
       onHideAllPanel: {
-        downloadsLoader.source = "";
-        bookmarkManagerLoader.source = "";
+        if (downloadsLoader.item)
+          downloadsLoader.source = "";
+        if (bookmarkManagerLoader.item)
+          bookmarkManagerLoader.source = "";
         tabSideBarLoader.source = "";
         historyLoader.source = "";
         dialogLoader.source = "";
@@ -329,7 +331,7 @@ Item {
           anchors.top: toolbar.bottom
           anchors.topMargin: bookmarkBarLoader.height
           width: parent.width
-          z: 5
+          z: content.z       
         }
         Connections {
           target: infobarContainerModel
@@ -345,9 +347,10 @@ Item {
             property int inity: 0
             x: {!scene.fullscreen ? initx:0}
             y: {!scene.fullscreen ? inity:0}
-            z: toolbar.z 
+            z: toolbar.z - 1  
             width: parent.width
             height: {!scene.fullscreen ? parent.height - y: parent.height}
+            opacity: {showqmlpanel ? 1:0}
 
             Loader {
                 id: bookmarkManagerLoader
@@ -360,15 +363,17 @@ Item {
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
             onOpenBookmarkManager: {
               var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
+              bookmarkManagerLoader.opacity = 1
               bookmarkManagerLoader.source = "BookmarkList.qml"
               bookmarkManagerLoader.item.portrait = !isLandscapeView()
-              bookmarkManagerLoader.item.opacity = 1
               bookmarkManagerHolder.initx = mappedPos.x
               bookmarkManagerHolder.inity = mappedPos.y
               showqmlpanel = true
               panelstring  = bookmarkManagerTitle
-              if (downloadsLoader.item)
+              if (downloadsLoader.item) {
                 downloadsLoader.item.showed = false
+                downloadsLoader.opacity = 0
+              }
             }
         }
         Connections {
@@ -434,26 +439,36 @@ Item {
                 tabSideBarLoader.source = "" 
             }
         }
-
-        Loader {
-            id: downloadsLoader
+        Window {
+            // Wrapper window item to make TopItem bring in by Downloads.qml to work correctly
+            id: downloadsHolder
+            property int initx: 0
+            property int inity: 0
+            x: {!scene.fullscreen ? initx:0}
+            y: {!scene.fullscreen ? inity:0}
+            z: toolbar.z - 1 
+            width: parent.width
+            height: {!scene.fullscreen ? parent.height - y: parent.height}
+            opacity: {showqmlpanel ? 1:0}
+            Loader {
+              id: downloadsLoader
+              anchors.fill: parent
+            } 
         }
-
         Connections {
           target: downloadsObject
           onShow: {
             var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
+            downloadsLoader.opacity = 1
             downloadsLoader.source = "Downloads.qml"
-
-            downloadsLoader.item.initx = mappedPos.x
-            downloadsLoader.item.inity = mappedPos.y
-
+            downloadsHolder.initx = mappedPos.x
+            downloadsHolder.inity = mappedPos.y
             downloadsLoader.item.showed = true
             showqmlpanel = true
             panelstring  = downloadTitle
-            downloadsLoader.item.parent = outerContent
-            if (bookmarkManagerLoader.item)
-              bookmarkManagerLoader.item.opacity = 0
+            if (bookmarkManagerLoader.item) {
+              bookmarkManagerLoader.opacity = 0
+            }
           }
         }
 
@@ -549,18 +564,6 @@ Item {
     }
 
     states: [
-        State {
-          name: "hidepanel"
-          when: !showqmlpanel
-          PropertyChanges {
-            target: downloadsLoader.item
-            showed: false
-          }
-          PropertyChanges {
-            target: bookmarkManagerLoader.item
-            opacity: 0
-          }
-        },
         State {
             name: "landscape"
             when: scene.orientation == 1

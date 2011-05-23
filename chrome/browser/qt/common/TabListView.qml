@@ -195,6 +195,7 @@ Item {
           onClicked: {
             if (showqmlpanel) {
               showqmlpanel = false;
+              console.log("clicked");
             } 
             tabSideBarModel.go(index)
           } 

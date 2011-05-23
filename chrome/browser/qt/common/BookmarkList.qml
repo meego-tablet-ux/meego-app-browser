@@ -139,32 +139,6 @@ Item {
     }
 
     Item {
-      id: backButton
-      anchors { left: headTextContainer.right; leftMargin: bmGlobal.leftMargin; verticalCenter: headTextContainer.verticalCenter }
-      width: 36; height: head.height*2
-      property bool pressed: false
-      Image {
-        id: backButtonIcon
-        anchors.centerIn: parent
-        height: parent.height
-        source: "image://themedimage/images/icn_toolbar_back_button_up"
-        states: State {
-          when: backButton.pressed
-          PropertyChanges {
-            target: backButtonIcon
-            source: "image://themedimage/images/icn_toolbar_back_button_dn"
-          }
-        }
-      }
-    }
-    MouseArea {
-      anchors.fill: backButton
-      onPressed: backButton.pressed = true
-      onReleased: backButton.pressed = false
-      onClicked: bookmarkBarListModel.backButtonTapped()
-    }
-
-    Item {
       id: headTextContainer
       anchors { left: parent.left; leftMargin: bmGlobal.leftMargin; top: parent.top }
       width:head.width; height: headTextHeight
