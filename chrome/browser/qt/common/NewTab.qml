@@ -108,7 +108,11 @@ Item {
             newtab.source = "image://themedimage/widgets/common/button/button-default-pressed"
           }
         }
-        onReleased: { mouse.accepted = true; if (newtab.newTabEnabled) tabSideBarModel.newTab()}
+        onReleased: { 
+          showqmlpanel = false;
+          mouse.accepted = true; 
+          if (newtab.newTabEnabled) tabSideBarModel.newTab();
+        }
     }
   }
 }

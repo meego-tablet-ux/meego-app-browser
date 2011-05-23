@@ -133,7 +133,7 @@ Item {
             }
         }
     }
-/*
+
     Connections {
       target: browserWindow
       onHideAllPanel: {
@@ -145,11 +145,12 @@ Item {
         selectFileDialogLoader.source = "";
 //          popupListLoader.sourceComponent = undefined;
 //          contextLoader.sourceComponent = undefined;
-//        wrenchmenushown = false;
+//          wrenchmenushown = false;
         bubbleLoader.source = "";
+        showqmlpanel = false;
      }
    }
-*/
+
     // private
     Item {
         id: privateData
@@ -339,8 +340,15 @@ Item {
 
         Window {
             // Wrapper window item to make TopItem bring in by bookmarklist.qml to work correctly
-            anchors.fill: parent
-            z: toolbar.z + 1
+            id: bookmarkManagerHolder
+            property int initx: 0
+            property int inity: 0
+            x: {!scene.fullscreen ? initx:0}
+            y: {!scene.fullscreen ? inity:0}
+            z: toolbar.z 
+            width: parent.width
+            height: {!scene.fullscreen ? parent.height - y: parent.height}
+
             Loader {
                 id: bookmarkManagerLoader
                 anchors.fill: parent
@@ -351,8 +359,16 @@ Item {
             target: bookmarkBarGridModel
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
             onOpenBookmarkManager: {
+              var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
               bookmarkManagerLoader.source = "BookmarkList.qml"
-                bookmarkManagerLoader.item.portrait = !isLandscapeView()
+              bookmarkManagerLoader.item.portrait = !isLandscapeView()
+              bookmarkManagerLoader.item.opacity = 1
+              bookmarkManagerHolder.initx = mappedPos.x
+              bookmarkManagerHolder.inity = mappedPos.y
+              showqmlpanel = true
+              panelstring  = bookmarkManagerTitle
+              if (downloadsLoader.item)
+                downloadsLoader.item.showed = false
             }
         }
         Connections {
@@ -386,6 +402,8 @@ Item {
                 }
                 if (downloadsLoader.item)
                   downloadsLoader.item.textFocus = true;
+                if (bookmarkManagerLoader.item)
+                  bookmarkManagerLoader.item.textFocus = true;
               }
             }
         }
@@ -434,6 +452,8 @@ Item {
             showqmlpanel = true
             panelstring  = downloadTitle
             downloadsLoader.item.parent = outerContent
+            if (bookmarkManagerLoader.item)
+              bookmarkManagerLoader.item.opacity = 0
           }
         }
 
@@ -535,6 +555,10 @@ Item {
           PropertyChanges {
             target: downloadsLoader.item
             showed: false
+          }
+          PropertyChanges {
+            target: bookmarkManagerLoader.item
+            opacity: 0
           }
         },
         State {

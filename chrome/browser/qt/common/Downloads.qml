@@ -42,14 +42,13 @@ Item {
   property int inity: 0
   property alias textFocus: searchEdit.textFocus
   parent: outerContent
-  //anchors.fill: parent
-  width: parent.width
-  height: {!scene.fullscreen ? parent.height - y: parent.height}
   property bool showed: false
   z: 0
   x: {!scene.fullscreen ? initx:0}
   y: {!scene.fullscreen ? inity:0}
   opacity: 0
+  width: parent.width
+  height: {!scene.fullscreen ? parent.height - y: parent.height}
 
   GestureArea {
     anchors.fill: parent

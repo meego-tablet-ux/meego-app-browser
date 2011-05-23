@@ -87,7 +87,7 @@ Item {
   property int headTextPixel: 21
   property int headTextHeight: 50
   property int headHeight: 115
-
+  property alias textFocus: searchBox.textFocus
 
   Item {
     id: bmGlobal
