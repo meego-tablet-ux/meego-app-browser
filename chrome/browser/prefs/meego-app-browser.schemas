@@ -1,0 +1,124 @@
+<gconfschemafile>
+  <schemalist>
+    <schema>
+      <key>/schemas/apps/browser/PageOpenedOnStartup</key>
+      <applyto>/apps/browser/PageOpenedOnStartup</applyto>
+      <owner>browser</owner>
+      <type>int</type>
+      <default>2</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/NewTabIsHomePage</key>
+      <applyto>/apps/browser/NewTabIsHomePage</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/HomePage</key>
+      <applyto>/apps/browser/HomePage</applyto>
+      <owner>browser</owner>
+      <type>string</type>
+      <default>http://meego.com/</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/ShowBookmarkBar</key>
+      <applyto>/apps/browser/ShowBookmarkBar</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/SavePassword</key>
+      <applyto>/apps/browser/SavePassword</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/DefaultSearchEngine</key>
+      <applyto>/apps/browser/DefaultSearchEngine</applyto>
+      <owner>browser</owner>
+      <type>string</type>
+      <default>Google</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/AllowJavascript</key>
+      <applyto>/apps/browser/AllowJavascript</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/AllowCookies</key>
+      <applyto>/apps/browser/AllowCookies</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/AllowImages</key>
+      <applyto>/apps/browser/AllowImages</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/AllowPopup</key>
+      <applyto>/apps/browser/AllowPopup</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/NeedClearBrowsingData</key>
+      <applyto>/apps/browser/NeedClearBrowsingData</applyto>
+      <owner>browser</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/apps/browser/Status</key>
+      <applyto>/apps/browser/Status</applyto>
+      <owner>browser</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short/>
+      </locale>
+    </schema>
+  </schemalist>
+</gconfschemafile>
