@@ -84,7 +84,10 @@ Component {
       width: wrapper.width; height: wrapper.height
       x: wrapper.x - tree.contentX; y: wrapper.y - tree.contentY
       color: level==0 ? "#ecf5f9" : "transparent"
-      Rectangle { height: 1; color: "#d0d0d0"; anchors { top: wrapperItem.bottom; left: parent.left; right: parent.right } }
+
+      Rectangle {               height: 1; color: "#fcfcfc"; anchors { bottom: wibottom.top;       left: parent.left; right: parent.right } }
+      Rectangle { id: wibottom; height: 1; color: "#e6e7e8"; anchors { bottom: wrapperItem.bottom; left: parent.left; right: parent.right } }
+
       Item {
         id: levelMargin //(level>5?6:level)*50 + 5
         width: level==0 ? 5 : (level>5?5:level-1)*50 + 5
@@ -115,18 +118,19 @@ Component {
       }
       states: [
         State { name: "active"; when: bmGlobal.dragging && treeMouseArea.currentId == bookmarkId;
-          PropertyChanges { target: wrapperItem; y: treeMouseArea.mouseY - height/2; }},
+          PropertyChanges { target: wrapperItem; y: treeMouseArea.mouseY - height/2; }
+          PropertyChanges { target: dragImage; source: "image://themedimage/widgets/common/drag-handle/drag-handle-active" }},
         State { name: "leafNode"; when: !hasChildren;
           PropertyChanges { target: openElement; visible: false; } 
           PropertyChanges { target: openContainer; visible: true; } },
         State { name: "openedNode"; when: (hasChildren)&&(isOpened);
           PropertyChanges { target: openContainer; visible: false; } 
           PropertyChanges { target: openElement; visible: true; }
-          PropertyChanges { target: openImage; source: "image://themedimage/images/browser/btn_findbar_next" } },
+          PropertyChanges { target: openImage; source: "image://themedimage/icons/toolbar/go-up" } },
         State { name: "closedNode"; when: (hasChildren)&&(!isOpened);
           PropertyChanges { target: openContainer; visible: false; } 
           PropertyChanges { target: openElement; visible: true; }
-          PropertyChanges { target: openImage; source: "image://themedimage/images/browser/btn_findbar_prev" } }
+          PropertyChanges { target: openImage; source: "image://themedimage/icons/toolbar/go-down-up" } }
       ]
       Rectangle { 
         id: openContainer
@@ -150,12 +154,17 @@ Component {
           }
         }
       }
+      //Rectangle { color: "lightblue"
       Item {
         id: dragElement
         visible: level!=0
         height: parent.height; width: height
-        anchors { right: parent.right; rightMargin: bmGlobal.leftMargin; verticalCenter: parent.verticalCenter }
-        Image { source: "image://themedimage/images/browser/icn_toolbar_back_forward_up" }
+        anchors { verticalCenter: parent.verticalCenter; right: parent.right; } //rightMargin: bmGlobal.leftMargin; }
+        Image { 
+          id: dragImage; 
+          anchors.centerIn: parent
+          source: "image://themedimage/widgets/common/drag-handle/drag-handle" 
+        }
       }
 
       Behavior on x {

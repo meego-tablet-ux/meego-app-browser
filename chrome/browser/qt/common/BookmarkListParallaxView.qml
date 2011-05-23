@@ -94,22 +94,6 @@ Item {
     Swipe {}
   }
 
-  Image {
-    id: selectorPad
-    width: parent.width
-    height: 20
-    anchors.top: selectorContainer.bottom
-    source: "image://themedimage/images/bg_application_p"
-  }
-
-  Image {
-    id: leftPad
-    height: parent.height
-    width: 10
-    anchors.top: selectorContainer.bottom
-    source: "image://themedimage/images/bg_application_p"
-  }
-
   Rectangle { color: "white"; anchors { top: parent.top; bottom: parent.bottom; left: selectorContainer.right; right: parent.right; } }
   Item {
     id: listContainer
@@ -136,16 +120,15 @@ Item {
     }
   }
 
-  Rectangle { id: listShadow; color: "#d1dce0"; width: 1; anchors { top: parent.top; bottom: parent.bottom; right: selectorContainer.right } }
   Item {
     id: selectorContainer
-    property int iSize: 60
-    property int iSpace: 20
     width: parent.width/4; height: parent.height
     anchors { left: parent.left; top: parent.top }
-    Rectangle {
+    //Rectangle { color: "#e5e5e5"
+    Image {
       anchors.fill: selectorContainer
-      color: "#e5e5e5"
+      source: "image://themedimage/images/bg_application_p"
+//      source: "image://themedimage/widgets/apps/browser/bookmark-manager-background"//; smooth: true
     }
     ListView {
       id: selector
@@ -153,15 +136,16 @@ Item {
       interactive: false
 
       Image {
-        id: arrow; source: "../../../chrome/browser/qt/common/arrow.png"; smooth: true
+        id: shadowtab; 
+        source: "image://themedimage/widgets/apps/browser/bookmark-manager-shadow-tab"//; smooth: true
         anchors { right: selector.right }
         y: 8
-        Behavior on y { NumberAnimation { duration: 250; } }
+        Behavior on y { NumberAnimation { duration: 150; } }
       }
 
       currentIndex: parallaxView.currentIndex
       onCurrentIndexChanged: {
-        arrow.y = currentIndex * bmGlobal.listHeight + 8
+        shadowtab.y = currentIndex * bmGlobal.listHeight + 8
         parallaxView.currentIndex = currentIndex
       }
 

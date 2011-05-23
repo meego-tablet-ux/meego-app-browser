@@ -105,7 +105,7 @@ Item {
     Item {
       width: bmGlobal.listHeight //\TODO dragElement.width
       height: bmGlobal.listHeight*tree.count
-      anchors { top: parent.top; right: parent.right; rightMargin: bmGlobal.leftMargin }
+      anchors { top: parent.top; right: parent.right }//; rightMargin: bmGlobal.leftMargin }
       MouseArea {
         id: treeMouseArea
         //anchors.fill: parent
