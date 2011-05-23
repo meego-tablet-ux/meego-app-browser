@@ -95,6 +95,16 @@ WebUI* NewWebUI<ExtensionWebUI>(TabContents* contents, const GURL& url) {
 // when invoked for a particular tab - see NewWebUI<ExtensionWebUI>.
 static WebUIFactoryFunction GetWebUIFactoryFunction(Profile* profile,
                                                     const GURL& url) {
+#if defined(TOOLKIT_MEEGOTOUCH)
+  ExtensionService* service = profile ? profile->GetExtensionService() : NULL;
+  if (service && service->ExtensionBindingsAllowed(url))
+    return &NewWebUI<ExtensionWebUI>;
+
+  if (url.host() == chrome::kChromeUINewTabHost) {
+    return &NewWebUI<BlankUI>;
+  }
+  return NULL;
+#else
   if (url.host() == chrome::kChromeUIDialogHost)
     return &NewWebUI<ConstrainedHtmlUI>;
 
@@ -126,11 +136,7 @@ static WebUIFactoryFunction GetWebUIFactoryFunction(Profile* profile,
   // tab page.
   if (url.host() == chrome::kChromeUINewTabHost ||
       url.SchemeIs(chrome::kChromeInternalScheme)){
-#if !defined(TOOLKIT_MEEGOTOUCH)
     return &NewWebUI<NewTabUI>;
-#else
-    return &NewWebUI<BlankUI>;
-#endif
   }
 
   // Give about:about a generic Web UI so it can navigate to pages with Web UIs.
@@ -233,6 +239,7 @@ static WebUIFactoryFunction GetWebUIFactoryFunction(Profile* profile,
     return &NewWebUI<ConstrainedHtmlUI>;
 
   return NULL;
+#endif
 }
 
 }  // namespace

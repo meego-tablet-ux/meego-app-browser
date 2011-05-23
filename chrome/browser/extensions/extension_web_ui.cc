@@ -238,7 +238,13 @@ void ExtensionWebUI::RegisterUserPrefs(PrefService* prefs) {
 
 // static
 bool ExtensionWebUI::HandleChromeURLOverride(GURL* url, Profile* profile) {
+#if !defined(TOOLKIT_MEEGOTOUCH)
   if (!url->SchemeIs(chrome::kChromeUIScheme))
+#else
+  // chrome://bookmarks is handled by extension.
+  if (!url->SchemeIs(chrome::kChromeUIScheme) || 
+       url->host() == chrome::kChromeUIBookmarksHost )
+#endif
     return false;
 
   const DictionaryValue* overrides =

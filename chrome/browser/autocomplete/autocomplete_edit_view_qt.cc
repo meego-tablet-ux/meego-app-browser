@@ -315,6 +315,7 @@ void AutocompleteEditViewQt::Update(const TabContents* contents) {
   // Disallow to change URL for chrome page, for tabs limit
   if (contents)
   {
+/*
     if ((contents->GetURL().SchemeIs("chrome") ||
          contents->GetURL().SchemeIs("chrome-extension")) &&
         contents->GetURL().HostNoBrackets() != "newtab")
@@ -325,6 +326,8 @@ void AutocompleteEditViewQt::Update(const TabContents* contents) {
     {
       impl_->SetReadOnly(false);
     }
+*/
+    impl_->SetReadOnly(false);
   }
 }
 
