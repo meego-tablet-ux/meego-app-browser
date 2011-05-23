@@ -91,6 +91,7 @@ Item {
     property string panelstring: ""
 
     property alias findbar: findBarLoader.item
+    property alias bookmarklist: bookmarkManagerLoader.item
     property bool wrenchmenushown: false
     property alias showsearch: toolbar.showsearch
     property alias toolbarheight: toolbar.height
@@ -323,7 +324,7 @@ Item {
             }
         }
         Connections {
-            target: bookmarkOthersListModel
+            target: bookmarkOthersGridModel
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
         }
 
@@ -556,6 +557,10 @@ Item {
                 width: scene.width / 2
                 x: scene.width / 2
             }
+            PropertyChanges {
+                target: bookmarklist
+                portrait: false
+            }
         },
 
         State {
@@ -581,6 +586,10 @@ Item {
                 width: scene.width / 2
                 x: scene.width / 2
             }
+            PropertyChanges {
+                target: bookmarklist
+                portrait: false
+            }
         },
 
         State {
@@ -605,6 +614,10 @@ Item {
                 width: scene.height / 2
                 x: scene.height / 2
             }
+            PropertyChanges {
+                target: bookmarklist
+                portrait: true 
+            }
         },
 
         State {
@@ -628,6 +641,10 @@ Item {
                 target: findbar
                 width: scene.height / 2
                 x: scene.height / 2
+            }
+            PropertyChanges {
+                target: bookmarklist
+                portrait: true 
             }
         }
     ]

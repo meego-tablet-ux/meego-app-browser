@@ -140,7 +140,7 @@ Component {
             tree.model.openBookmarkItem(bookmarkId);
           }
           onPressAndHold: {
-            var map = mapToItem(bookmarkListRoot, mouseX, mouseY);
+            var map = mapToItem(parallax, mouseX, mouseY);
             bmGlobal.idxHasMenu = tree.indexAt(map.x-tree.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
             bmGlobal.idHasMenu = bookmarkId
             bmGlobal.currentTitle = title
