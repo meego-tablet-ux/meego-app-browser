@@ -2018,6 +2018,22 @@ QRect RWHVQtWidget::GetVisibleRect()
   QRectF viewport_rect = viewprot_item->boundingRect();
   itemRect = itemRect.intersected(viewport_rect);
 
+  if (itemRect.height() < viewport_rect.height())
+  {
+    if (itemRect.top() == 0.0)
+      itemRect.setTop(itemRect.bottom() - viewport_rect.height());
+    else
+      itemRect.setBottom(itemRect.top() + viewport_rect.height());
+  }
+  else if (itemRect.width() < viewport_rect.width())
+  {
+    if (itemRect.left() == 0.0)
+      itemRect.setRight(itemRect.left() - viewport_rect.width());
+    else
+      itemRect.setLeft(itemRect.right() + viewport_rect.width());
+
+  }
+
   if (pinch_completing_)
   {
     itemRect = QRectF(-pending_webview_rect_.x(), -pending_webview_rect_.y(), itemRect.width(), itemRect.height());

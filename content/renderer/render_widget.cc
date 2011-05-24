@@ -913,6 +913,11 @@ void RenderWidget::didInvalidateRect(const WebRect& rect) {
   // The invalidated rect might be outside the bounds of the view.
   //gfx::Rect view_rect(size_);
   //gfx::Rect damaged_rect = view_rect.Intersect(rect);
+  DLOG(INFO) << "rect " << rect.x
+             << " " << rect.y
+             << " " << rect.width
+             << " " << rect.height;
+
   DLOG(INFO) << "visible_rect " << visible_rect_.x()
              << " " << visible_rect_.y()
              << " " << visible_rect_.width()

@@ -198,6 +198,7 @@ private:
   float contents_scale_;
 
   QRect cached_tiles_rect_;
+  gfx::Rect visible_rect_;
 
   bool pending_scaling_;
 

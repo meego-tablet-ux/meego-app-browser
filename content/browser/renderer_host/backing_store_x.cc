@@ -959,16 +959,18 @@ void BackingStoreX::AdjustTiles(bool recreatedAll)
              << " " << cached_tiles_rect.width()
              << " " << cached_tiles_rect.height();
 
-  if (cached_tiles_rect_ != cached_tiles_rect)
+  gfx::Rect visible_rect = render_widget_host_->view()->GetVisibleRect();
+
+  if (visible_rect_ != visible_rect)
   {
-    cached_tiles_rect_ = cached_tiles_rect;
+    visible_rect_ = visible_rect;
 
     QRect mapped = MapToContents(cached_tiles_rect);
     gfx::Rect mapped_tiles_rect(mapped.x(),
                                 mapped.y(),
                                 mapped.width(),
                                 mapped.height());
-    gfx::Rect visible_rect = render_widget_host_->view()->GetVisibleRect();
+    
     QRect qrect(visible_rect.x(),
                 visible_rect.y(),
                 visible_rect.width(),
@@ -981,7 +983,7 @@ void BackingStoreX::AdjustTiles(bool recreatedAll)
     
     render_widget_host_->SetVisibleRect(mapped_tiles_rect,
                                         mapped_contents_rect);
-  }
+   }
 
   // Create tiles
   QVector<scoped_refptr<Tile> > visible_tiles;
