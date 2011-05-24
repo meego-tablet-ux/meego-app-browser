@@ -774,7 +774,6 @@ void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect, bool anima
 
     if (caret_rect.y()*scale_ > (web_y + middle_height)) {
       y = middle_height + caret_rect.y()*scale_*(factor-1);
-      qCritical() << "scroll up";
     } else if (caret_rect.y()*scale_ < web_y) {
       y = (caret_rect.y()*scale_-50)*factor > 0? (caret_rect.y()*scale_-50)*factor:0;
     } 
@@ -788,7 +787,6 @@ void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect, bool anima
     topLeft_ = QPointF(-x, -3000);
     //Pinch
     pinch_start_pos_ = QPointF(-web_x, -web_y);
-    qCritical() << -web_x << "  " << -web_y;
     pinch_scale_factor_ = factor;
     pending_scale_ = scale_*factor;
     //setting the pinch_center_
@@ -834,7 +832,7 @@ void RWHVQtWidget::scrollAndZoomForTextInput(const QRect& caret_rect, bool anima
     viewport_item->setProperty("contentX", QVariant(caret_rect.x()*scale_-80>0? caret_rect.x()*scale_-80:0));
   } else if(caret_rect.x()*scale_ > web_x + web_width) {
     viewport_item->setProperty("contentX", QVariant(web_x + 50));
-  } 
+  }
 }
 
 void RWHVQtWidget::imeCancelComposition() {
@@ -1951,7 +1949,7 @@ void RWHVQtWidget::DidBecomeSelected()
   QGraphicsObject* viewport = GetViewportItem();
   if(viewport) {
     viewport->setProperty("contentX", QVariant(flickable_content_pos_.x()));
-    viewport->setProperty("contentY", QVariant(flickable_content_pos_.y()));
+    viewport->setProperty("contentY", QVariant(flickable_content_pos_.y())); 
   }
 }
 
@@ -2038,8 +2036,10 @@ void RWHVQtWidget::SetScrollPosition(const gfx::Point& scrollPosition)
 {
   QGraphicsObject* viewport = GetViewportItem();
   if(viewport) {
-    viewport->setProperty("contentX", QVariant(scrollPosition.x() * scale()));
-    viewport->setProperty("contentY", QVariant(scrollPosition.y() * scale()));
+    if (!is_enabled_) {
+      viewport->setProperty("contentX", QVariant(scrollPosition.x() * scale()));
+      viewport->setProperty("contentY", QVariant(scrollPosition.y() * scale()));
+    }
   }
 }
 
