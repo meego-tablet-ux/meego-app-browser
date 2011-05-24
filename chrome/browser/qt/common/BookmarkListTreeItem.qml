@@ -93,10 +93,17 @@ Component {
         width: level==0 ? 5 : (level>5?5:level-1)*50 + 5
         anchors { left: parent.left; leftMargin: bmGlobal.leftMargin; verticalCenter: parent.verticalCenter }
       }
-      Text {
+      //Rectangle { color: "lightblue"
+      Item {
         id: titleElement
-        text: title
+        height: parent.height; width: dragElement.x-levelMargin.x+levelMargin.width
         anchors { left: levelMargin.right; verticalCenter: parent.verticalCenter }
+        Text {
+          text: title
+          anchors.verticalCenter: parent.verticalCenter
+          width: parent.width
+          elide: Text.ElideRight
+        }
       }
       //Rectangle { color: "lightgreen"
       Item {
