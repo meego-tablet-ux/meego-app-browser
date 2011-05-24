@@ -208,7 +208,6 @@ class BrowserWindowQt : //public MApplicationWindow,
   scoped_ptr<DialogQt> dialog_;
   scoped_ptr<SelectFileDialogQtImpl> select_file_dialog_;
   scoped_ptr<FullscreenExitBubbleQt> fullscreen_exit_bubble_;
-  scoped_ptr<FindBarQt> find_bar_;
   scoped_ptr<BookmarkBarQt> bookmark_bar_;
   scoped_ptr<BookmarkOthersQt> bookmark_others_;
   scoped_ptr<BookmarkBubbleQt> bookmark_bubble_;
@@ -217,6 +216,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   scoped_ptr<NewTabUIQt> new_tab_;
   scoped_ptr<DownloadsQtHandler> download_handler_;
   scoped_ptr<PopupListQt> web_popuplist_;
+  FindBarQt* find_bar_; // It will be automatically freed by find bar controller
 
   BrowserWindowQtImpl* impl_;
   NotificationRegistrar registrar_;  

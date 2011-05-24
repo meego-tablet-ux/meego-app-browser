@@ -257,7 +257,7 @@ void BrowserWindowQt::InitWidget()
   bookmark_bar_.reset(new BookmarkBarQt(this, browser_->profile(), browser_.get()));
   bookmark_others_.reset(new BookmarkOthersQt(this, browser_->profile(), browser_.get()));
   infobar_container_.reset(new InfoBarContainerQt(browser_->profile(), this));
-  find_bar_.reset(new FindBarQt(browser_.get(), this));
+  find_bar_ = new FindBarQt(browser_.get(), this);
   new_tab_.reset(new NewTabUIQt(browser_.get(), this));
   bookmark_bubble_.reset(new BookmarkBubbleQt(this, browser_.get(), browser_->profile()));
   web_popuplist_.reset(new PopupListQt(this));
@@ -509,7 +509,7 @@ void BrowserWindowQt::ShowDownloads()
 
 FindBarQt* BrowserWindowQt::GetFindBar()
 {
-  return find_bar_.get();
+  return find_bar_;
 }
 
 SelectFileDialogQtImpl* BrowserWindowQt::GetSelectFileDialog()
