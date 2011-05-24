@@ -33,15 +33,25 @@ class QtPluginContainerManager {
 
   // Takes an update from WebKit about a plugin's position and side and moves
   // the plugin accordingly.
-  void MovePluginContainer(const WebPluginGeometry& move, gfx::Point& view_rect);
+  void MovePluginContainer(const WebPluginGeometry& move, gfx::Point& view_offset);
+
+  // When the web page been scrolled in a flickable container. the windowed plugin
+  // need to update it's position accordingly.
+  void RelocatePluginContainers(gfx::Point& offset);
 
   void Hide();
 
   void Show();
 
  private:
+  // Compare to the public version, this internal one do not save the move info
+  void MovePluginContainer(QWidget* widget, const WebPluginGeometry& move, gfx::Point& view_offset);
+
   // Maps a plugin XID to the corresponding container widget.
   QWidget* MapIDToWidget(gfx::PluginWindowHandle id);
+
+  // Maps a plugin XID to the corresponding container widget's geometry.
+  WebPluginGeometry* MapIDToGeometry(gfx::PluginWindowHandle id);
 
   // Maps a container widget to the corresponding plugin XID.
   gfx::PluginWindowHandle MapWidgetToID(QWidget* widget);
@@ -56,6 +66,10 @@ class QtPluginContainerManager {
   // A map that associates plugin containers to the plugin XID.
   typedef std::map<gfx::PluginWindowHandle, QWidget*> PluginWindowToWidgetMap;
   PluginWindowToWidgetMap plugin_window_to_widget_map_;
+
+  // A map that store the plugin gemeotry for relocate usage.
+  typedef std::map<gfx::PluginWindowHandle, WebPluginGeometry*> PluginWindowToGeometryMap;
+  PluginWindowToGeometryMap plugin_window_to_geometry_map_;
 };
 
 }  // namespace npapi

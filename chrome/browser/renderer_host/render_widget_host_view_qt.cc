@@ -72,8 +72,8 @@ RenderWidgetHostViewQt::~RenderWidgetHostViewQt() {
 }
 
 void RenderWidgetHostViewQt::InitAsChild() {
+  scene_pos_ = gfx::Point(0, 0);
   view_ = new RWHVQtWidget(this);
-
   view_->show();
 }
 void RenderWidgetHostViewQt::InitAsPopup(
@@ -190,11 +190,27 @@ void RenderWidgetHostViewQt::MovePluginWindows(
 #if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
   if (!view_)
     return;
+
   QPointF offset = view_->scenePos();
-  gfx::Point view_offset(int(offset.x()), int(offset.y()));
+  scene_pos_ = gfx::Point(int(offset.x()), int(offset.y()));
+
   for (size_t i = 0; i < moves.size(); ++i) {
-    plugin_container_manager_.MovePluginContainer(moves[i], view_offset);
+    plugin_container_manager_.MovePluginContainer(moves[i], scene_pos_);
   }
+#endif
+}
+
+void RenderWidgetHostViewQt::ScenePosChanged() {
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
+  if (!view_)
+      return;
+  QPointF offset = view_->scenePos();
+  if ( (scene_pos_.x() == int(offset.x())) && (scene_pos_.y() == int(offset.y())) )
+      return;
+
+  scene_pos_ = gfx::Point(int(offset.x()), int(offset.y()));
+  plugin_container_manager_.RelocatePluginContainers(scene_pos_);
+
 #endif
 }
 

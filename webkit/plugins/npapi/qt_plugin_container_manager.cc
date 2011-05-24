@@ -59,6 +59,9 @@ QWidget* QtPluginContainerManager::CreatePluginContainer(
   
   plugin_window_to_widget_map_.insert(std::make_pair(id, container));
 
+  WebPluginGeometry *geo = new struct WebPluginGeometry();
+  plugin_window_to_geometry_map_.insert(std::make_pair(id, geo));
+
   return NULL;
 }
 
@@ -70,6 +73,7 @@ void QtPluginContainerManager::DestroyPluginContainer(
   //  gtk_widget_destroy(widget);
 
   plugin_window_to_widget_map_.erase(id);
+  plugin_window_to_geometry_map_.erase(id);
   
   DNOTIMPLEMENTED();
 }
@@ -94,9 +98,8 @@ void QtPluginContainerManager::Hide()
 }
 
 void QtPluginContainerManager::MovePluginContainer(
-    const WebPluginGeometry& move, gfx::Point& view_offset) {
+    QWidget *widget, const WebPluginGeometry& move, gfx::Point& view_offset) {
   DCHECK(host_widget_);
-  QWidget *widget = MapIDToWidget(move.window);
   if (!widget)
     return;
 
@@ -110,52 +113,35 @@ void QtPluginContainerManager::MovePluginContainer(
   if (!move.rects_valid)
     return;
 
-  /*
-  GdkRectangle clip_rect = move.clip_rect.ToGdkRectangle();
-  GdkRegion* clip_region = gdk_region_rectangle(&clip_rect);
-  gfx::SubtractRectanglesFromRegion(clip_region, move.cutout_rects);
-  gdk_window_shape_combine_region(widget->window, clip_region, 0, 0);
-  gdk_region_destroy(clip_region);
-  */
-  
-  // Update the window position.  Resizing is handled by WebPluginDelegate.
-  // TODO(deanm): Verify that we only need to move and not resize.
-  // TODO(evanm): we should cache the last shape and position and skip all
-  // of this business in the common case where nothing has changed.
   int current_x, current_y;
-
-  // Until the above TODO is resolved, we can grab the last position
-  // off of the GtkFixed with a bit of hackery.
-  /*
-  GValue value = {0};
-  g_value_init(&value, G_TYPE_INT);
-  gtk_container_child_get_property(GTK_CONTAINER(host_widget_), widget,
-                                   "x", &value);
-  current_x = g_value_get_int(&value);
-  gtk_container_child_get_property(GTK_CONTAINER(host_widget_), widget,
-                                   "y", &value);
-  current_y = g_value_get_int(&value);
-  g_value_unset(&value);
-
-  if (move.window_rect.x() != current_x ||
-      move.window_rect.y() != current_y) {
-    // Calling gtk_fixed_move unnecessarily is a no-no, as it causes the
-    // parent window to repaint!
-    gtk_fixed_move(GTK_FIXED(host_widget_),
-                   widget,
-                   move.window_rect.x(),
-                   move.window_rect.y());
-  }
-
-  gtk_plugin_container_set_size(widget,
-                                move.window_rect.width(),
-                                move.window_rect.height());
-  */
   widget->setGeometry(move.window_rect.x() + view_offset.x(), move.window_rect.y() + view_offset.y(),
                       move.window_rect.width(), move.window_rect.height());
   
   DNOTIMPLEMENTED() << " " << move.window << " " << move.window_rect.x() << "+" << move.window_rect.y() << "+"
-                   << move.window_rect.width() << "x" << move.window_rect.height();
+                   << move.window_rect.width() << "x" << move.window_rect.height()
+                   << " - offset = " << view_offset.x() << "-" << view_offset.y();
+}
+
+void QtPluginContainerManager::MovePluginContainer(
+    const WebPluginGeometry& move, gfx::Point& view_offset) {
+  QWidget *widget = MapIDToWidget(move.window);
+  if (!widget)
+    return;
+
+  if (move.rects_valid) {
+    WebPluginGeometry *saved_geo = MapIDToGeometry(move.window);
+    *saved_geo = move;
+    MovePluginContainer(widget, move, view_offset);
+  }
+}
+
+void QtPluginContainerManager::RelocatePluginContainers(gfx::Point& offset)
+{
+  PluginWindowToGeometryMap::const_iterator i = plugin_window_to_geometry_map_.begin();
+
+  for (; i != plugin_window_to_geometry_map_.end(); ++i) {
+    MovePluginContainer(MapIDToWidget(i->first), *(i->second), offset);
+  }
 }
 
 QWidget* QtPluginContainerManager::MapIDToWidget(
@@ -181,6 +167,18 @@ gfx::PluginWindowHandle QtPluginContainerManager::MapWidgetToID(
   LOG(ERROR) << "Request for id for unknown widget";
   return 0;
 }
+
+WebPluginGeometry* QtPluginContainerManager::MapIDToGeometry(
+    gfx::PluginWindowHandle id) {
+  PluginWindowToGeometryMap::const_iterator i =
+      plugin_window_to_geometry_map_.find(id);
+  if (i != plugin_window_to_geometry_map_.end())
+    return i->second;
+
+  LOG(ERROR) << "Request for geometry for unknown window id " << id;
+  return NULL;
+}
+
 
 // static
 /*

@@ -96,6 +96,8 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void DidBackingStorePaint(const gfx::Rect& rect);
 
   virtual void PaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect);
+
+  virtual void ScenePosChanged();
   ////////////////////////////////////////////////////////////
 #endif
 
@@ -185,6 +187,8 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   gfx::Size contents_size_;
 
   webkit::npapi::QtPluginContainerManager plugin_container_manager_;
+
+  gfx::Point scene_pos_;
 
   unsigned int webkit_node_info_;
 };

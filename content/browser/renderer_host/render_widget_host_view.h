@@ -99,6 +99,9 @@ class RenderWidgetHostView {
   virtual void DidBackingStorePaint(const gfx::Rect& rect) {}
   
   virtual void PaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect) {}
+
+  virtual void ScenePosChanged() {}
+
   ////////////////////////////////////////////
 #endif
 

@@ -178,7 +178,7 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   installed_filter_ = false;
 
   connect(this, SIGNAL(sizeAdjusted()), this, SLOT(onSizeAdjusted()));
-  
+
   pinchEmulationEnabled = false;
   pinch_completing_ = false;
   scale_ = pending_scale_ = kNormalContentsScale;

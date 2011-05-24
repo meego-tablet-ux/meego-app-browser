@@ -36,6 +36,11 @@ class TabContentsContainerQtImpl: public QObject
     container_->ViewportSizeChanged();
   }
 
+  void contentPosChanged()
+  {
+    container_->ContentPosChanged();
+  }
+
  private:
   TabContentsContainerQt* container_; 
 };
@@ -67,6 +72,10 @@ void TabContentsContainerQt::Init() {
     impl_ = new TabContentsContainerQtImpl(this);
     impl_->connect(viewport_item_, SIGNAL(widthChanged()), impl_, SLOT(viewportSizeChanged()));
     impl_->connect(viewport_item_, SIGNAL(heightChanged()), impl_, SLOT(viewportSizeChanged()));
+
+    impl_->connect(viewport_item_, SIGNAL(contentXChanged()), impl_, SLOT(contentPosChanged()));
+    impl_->connect(viewport_item_, SIGNAL(contentYChanged()), impl_, SLOT(contentPosChanged()));
+
   }
 }
 
@@ -89,6 +98,17 @@ void TabContentsContainerQt::ViewportSizeChanged()
       gfx::Size size(int(contentRect.width()), int(contentRect.height()));
       DLOG(INFO) << "ViewportSizeChanged " << size.width() << ", " << size.height();
       host_view->SetPreferredSize(size);
+    }
+  }
+}
+
+void TabContentsContainerQt::ContentPosChanged()
+{
+  if (tab_contents_) {
+    RenderWidgetHostView* host_view = tab_contents_->GetRenderWidgetHostView();
+    if (host_view)
+    {
+      host_view->ScenePosChanged();
     }
   }
 }

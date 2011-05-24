@@ -44,6 +44,7 @@ class TabContentsContainerQt : public NotificationObserver
   void OrientationStart();
   void OrientationEnd();
   
+  void ContentPosChanged();
  private:
   // Add or remove observers for events that we care about.
   void AddObservers();
