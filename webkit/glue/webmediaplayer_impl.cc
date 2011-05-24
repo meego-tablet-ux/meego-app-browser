@@ -48,6 +48,7 @@ using WebKit::WebSize;
 #include <va/va_x11.h>
 
 Window subwin ;
+unsigned long hwPixmap ;
 extern Display *mDisplay ;
 extern unsigned int CodecID ;
 #endif
@@ -792,8 +793,10 @@ bool WebMediaPlayerImpl::Initialize(
   proxy_->last_frame_ = 0;
   proxy_->curTime_ = 0;
   proxy_->duration_ = 1;
+  hwPixmap = 0;
    
 #endif
+
 
   return true;
 }
@@ -801,6 +804,9 @@ bool WebMediaPlayerImpl::Initialize(
 WebMediaPlayerImpl::~WebMediaPlayerImpl() {
   Destroy();
 
+  if((mDisplay != NULL) && hwPixmap){
+    XFreePixmap(mDisplay, hwPixmap);
+  }
   // Finally tell the |main_loop_| we don't want to be notified of destruction
   // event.
   if (main_loop_) {

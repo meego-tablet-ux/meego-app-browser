@@ -24,6 +24,7 @@
 
 #include <X11/X.h>
 extern Window subwin;
+extern unsigned long hwPixmap ;
 //extern double GetTick(void);
 extern int shmkey;
 /*_DEV2_H264_*/
@@ -268,12 +269,15 @@ if(/*(wp->paused() == 0) ||*/ subwin){
 
    XWindowAttributes attr;
     XGetWindowAttributes (dTmp, wTmp, &attr);
+    unsigned long pixmap = hwPixmap;
     // Creates a pixmap and uploads from the XImage.
-    unsigned long pixmap = XCreatePixmap(dTmp,
+    if(hwPixmap == 0){
+        pixmap = hwPixmap = XCreatePixmap(dTmp,
                                          wTmp,
                                          w_,
                                          h_,
                                          attr.depth);
+    }
     
     /*CC and Resize*/
     status = vaPutSurface(hw_ctx_display, surface_id, pixmap,
@@ -333,7 +337,7 @@ if(/*(wp->paused() == 0) ||*/ subwin){
        pSrc += mXImage->bytes_per_line;
     }
 
-    XFreePixmap(dTmp, pixmap);
+    //XFreePixmap(dTmp, pixmap);
 }/*not full screen ?*/
 
     return;
