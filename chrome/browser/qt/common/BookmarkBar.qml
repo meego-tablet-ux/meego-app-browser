@@ -81,7 +81,7 @@ Item {
     height: parent.height
     width: parent.width
     opacity:1
-    source: "images://themedimage/widgets/apps/browser/bookmark-bar-background"
+    source: "image://themedimage/widgets/apps/browser/bookmark-bar-background"
     border { left:8; right:8; bottom:0; top:0 }
     horizontalTileMode: BorderImage.Repeat
     verticalTileMode: BorderImage.Repeat
