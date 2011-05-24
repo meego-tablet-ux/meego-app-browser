@@ -33,7 +33,6 @@
 
 import Qt 4.7
 import MeeGo.Components 0.1
-import Qt.labs.gestures 2.0
 
 Item {
     id: container
@@ -42,15 +41,6 @@ Item {
 
     function show() {
         jsDialog.show()
-    }
-
-    GestureArea {
-      anchors.fill: parent
-      Tap {}
-      TapAndHold {}
-      Pan {}
-      Pinch {}
-      Swipe {}
     }
 
     // create ModalDialog:
