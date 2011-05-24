@@ -1934,6 +1934,10 @@ void RWHVQtWidget::SetWebViewSize()
   if (!webview)
     return;
   
+  //If host view is hidden, no need to update
+  //size of web view.
+  if(hostView() && hostView()->is_hidden_) return;
+
   webview->setProperty("width", QVariant(size().width()));
   webview->setProperty("height", QVariant(size().height()));
   DLOG(INFO) << "set Web View size " << size().width() << " "
