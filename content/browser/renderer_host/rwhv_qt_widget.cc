@@ -68,6 +68,20 @@ static const int kScrollDuration = 200;
 static const int SelectionHandlerRadius = 30;
 static const int SelectionHandlerRadiusSquare = (SelectionHandlerRadius * SelectionHandlerRadius);
 
+// Copied from third_party/WebKit/Source/WebCore/page/EventHandler.cpp
+//
+// Match key code of composition keydown event on windows.
+// IE sends VK_PROCESSKEY which has value 229;
+//
+// Please refer to following documents for detals:
+// - Virtual-Key Codes
+//   http://msdn.microsoft.com/en-us/library/ms645540(VS.85).aspx
+// - How the IME System Works
+//   http://msdn.microsoft.com/en-us/library/cc194848.aspx
+// - ImmGetVirtualKey Function
+//   http://msdn.microsoft.com/en-us/library/dd318570(VS.85).aspx
+const int kCompositionEventKeyCode = 229;
+
 // it might be a little over design to transfer gesture type from enum to int
 // but just make sure we won't have any trouble later on custom gesture type.
 static int toGestureFlag(Qt::GestureType type)
@@ -457,7 +471,6 @@ void RWHVQtWidget::onKeyPressReleaseEvent(QKeyEvent* event)
 {
   NativeWebKeyboardEvent nwke(event);
   hostView()->ForwardKeyboardEvent(nwke);
-
   ///\todo: Webkit need a keydown , char, keyup event to input a key,
   ///so we send keypress event a second time while modify it to a char event.
   ///Need to fix this when we take Input method into account.
@@ -468,6 +481,15 @@ void RWHVQtWidget::onKeyPressReleaseEvent(QKeyEvent* event)
     hostView()->ForwardKeyboardEvent(nwke);
   }
   event->accept();
+}
+
+void RWHVQtWidget::SendFakeCompositionKeyEvent(
+    WebKit::WebInputEvent::Type type) {
+  NativeWebKeyboardEvent fake_event;
+  fake_event.windowsKeyCode = kCompositionEventKeyCode;
+  fake_event.skip_in_browser = true;
+  fake_event.type = type;
+  host_view_->ForwardKeyboardEvent(fake_event);
 }
 
 void RWHVQtWidget::inputMethodEvent(QInputMethodEvent *event)
@@ -485,7 +507,6 @@ void RWHVQtWidget::inputMethodEvent(QInputMethodEvent *event)
  *\todo 3. need to dealing with rare case that im event not arrive with correct sequence.
  *\todo 4. need to handle QInputMethodEvent.replacementLength and QInputMethodEvent.replacementStart
 */
-
   attributes = event->attributes();
   for (int i = 0; i < attributes.size(); ++i) {
     const QInputMethodEvent::Attribute& a = attributes.at(i);
@@ -505,9 +526,12 @@ void RWHVQtWidget::inputMethodEvent(QInputMethodEvent *event)
   if (replacement_length)
     DNOTIMPLEMENTED();
 
-  if (!commit_string.isEmpty())
+  if (!commit_string.isEmpty()) {
+    SendFakeCompositionKeyEvent(WebKit::WebInputEvent::RawKeyDown);
     hostView()->GetRenderWidgetHost()->ImeConfirmComposition(
         commit_string.utf16());
+    SendFakeCompositionKeyEvent(WebKit::WebInputEvent::KeyUp);
+  }
 
   if (!preedit.isEmpty()) {
     ///\todo no ImeSetComposition
@@ -515,6 +539,7 @@ void RWHVQtWidget::inputMethodEvent(QInputMethodEvent *event)
     //    preedit.utf16(), cursor_pos, -1, -1);
   } else {
     hostView()->GetRenderWidgetHost()->ImeCancelComposition();
+  //  hostView()->GetRenderWidgetHost()->ImeConfirmComposition();
   }
 }
 
@@ -678,7 +703,6 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
     << std::endl;
 
   cursor_rect_ = QRect(caret_rect.x(), caret_rect.y(), caret_rect.width(), caret_rect.height());
-
   QInputContext *ic = qApp->inputContext();
   // FIXME: if we got unconfirmed composition text, and we try to move cursor
   // from one text entry to another, the unconfirmed composition text will be cancelled

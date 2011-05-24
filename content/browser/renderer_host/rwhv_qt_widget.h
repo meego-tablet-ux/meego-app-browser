@@ -151,6 +151,7 @@ protected Q_SLOTS:
   void pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture);
 
   void doubleTapAction(const QPointF&);
+  // only scroll and zoom on first input method update.
   void scrollAndZoomForTextInput(const QRect& caret_rect, bool animation);
   // selection
   SelectionHandlerID findSelectionHandler(int x, int y);
@@ -160,13 +161,15 @@ protected Q_SLOTS:
 
   void setViewportInteractive(bool interactive);
 
+  // Sends a fake composition key event with specified event type. A composition
+  // key event is a key event with special key code 229.
+  void SendFakeCompositionKeyEvent(WebKit::WebInputEvent::Type type);
+
   // Whether the input method is enabled by webkit or not.
   // It shall be set to false when an imUpdateStatus message with control ==
   // IME_DISABLE is received, and shall be set to true if control ==
   // IME_COMPLETE_COMPOSITION or IME_MOVE_WINDOWS.
   bool im_enabled_;
-
-  // only scroll and zoom on first input method update.
 
   int im_cursor_pos_;
   std::string im_selection_;
