@@ -182,7 +182,7 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
   if(argc>0)
     passDownArgv[0] = argv[0];
   int passDownArgc = 1;
-  char * cdataTag = "--cdata";
+  char* cdataTag = strdup("--cdata");
 
   for (int i=1; i<argc; i++)
   {
@@ -267,7 +267,8 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
       loader.instance();
       break;
     }
-  }    
+  }
+  free(cdataTag);
   delete[] passDownArgv;
 }
 
