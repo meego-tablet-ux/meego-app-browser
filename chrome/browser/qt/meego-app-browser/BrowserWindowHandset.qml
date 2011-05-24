@@ -346,6 +346,7 @@ Item {
                 hasfindbar = true
                 findbar.showfindbar = true
                 findBarModel.positionUpdated(toolbar.x, toolbar.y, toolbar.width, toolbar.height);
+                findbar.textentry.textFocus = true
               } else {
                 if (hasfindbar) {
                   findbar.showfindbar = false

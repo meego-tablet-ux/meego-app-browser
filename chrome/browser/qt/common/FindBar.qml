@@ -38,11 +38,7 @@ import Qt.labs.gestures 2.0
 Item {
   id: container
   property bool showfindbar: false
-//  anchors.top: innerContent.top
-//  parent: innerContent
-//  anchors.right: parent.right
-//  width: innerContent.width/2
-//  x: innerContent.width/2
+  property alias textentry: findboxcontainer
   GestureArea {
     anchors.fill: parent
     Tap {}
