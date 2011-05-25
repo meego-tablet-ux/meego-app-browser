@@ -510,5 +510,3 @@ void RenderWidgetHostViewQt::DidBackingStorePaint(const gfx::Rect& rect)
     view_->update(rect.x(), rect.y(), rect.width(), rect.height());
   }
 }
-
-#include "moc_render_widget_host_view_qt.cc"

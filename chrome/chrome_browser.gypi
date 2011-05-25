@@ -4315,21 +4315,6 @@
                 ],
               },
               {
-                'action_name': 'moc_render_widget_host_view_qt.cc',
-                'inputs': [
-                  'browser/renderer_host/render_widget_host_view_qt.cc',
-                ],
-                'outputs': [
-                  'browser/renderer_host/moc_render_widget_host_view_qt.cc',
-                ],
-                'action': [
-                  'moc',
-                  '<(_inputs)',
-                  '-o',
-                  '<(_outputs)',
-                ],
-              },
-              {
                 'action_name': 'moc_phantom_tab_manager.h',
                 'inputs': [
                   'browser/tabs/phantom_tab_manager.cc',
