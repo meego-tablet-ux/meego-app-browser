@@ -108,7 +108,6 @@ Item {
       anchors { top: parent.top; right: parent.right }//; rightMargin: bmGlobal.leftMargin }
       MouseArea {
         id: treeMouseArea
-        //anchors.fill: parent
         anchors.fill:parent
 
         acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -136,7 +135,7 @@ Item {
           index = tree.indexAt(mouseX, mouseY)
           if (treeMouseArea.currentId != -1 && index != -1 && index != newIndex) {
             //model.moving(newIndex, newIndex = index) // This wouldn't affect model until moveDone() called
-            console.log("hdq...... move", newIndex, "-->", index, "id of ", model.id(newIndex), model.id(index));
+            console.log("hdq...... move", newIndex, "-->", index, "id of", model.id(newIndex), model.id(index));
             model.moveDone(newIndex, index, model.id(newIndex), model.id(newIndex = index))
           }
         }

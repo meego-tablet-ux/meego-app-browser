@@ -205,6 +205,8 @@ BrowserWindowQt::~BrowserWindowQt()
 
   delete impl_;
   browser_->tabstrip_model()->RemoveObserver(this);
+
+  delete bookmarklist_data_;
 }
 
 QDeclarativeView* BrowserWindowQt::DeclarativeView()
@@ -254,8 +256,9 @@ void BrowserWindowQt::InitWidget()
   dialog_.reset(new DialogQt(this));
   select_file_dialog_.reset(new SelectFileDialogQtImpl(this));
   fullscreen_exit_bubble_.reset(new FullscreenExitBubbleQt(this, false));
-  bookmark_bar_.reset(new BookmarkBarQt(this, browser_->profile(), browser_.get()));
-  bookmark_others_.reset(new BookmarkOthersQt(this, browser_->profile(), browser_.get()));
+  bookmarklist_data_ = new BookmarkListData();
+  bookmark_bar_.reset(new BookmarkBarQt(this, browser_->profile(), browser_.get(), bookmarklist_data_));
+  bookmark_others_.reset(new BookmarkOthersQt(this, browser_->profile(), browser_.get(), bookmarklist_data_));
   infobar_container_.reset(new InfoBarContainerQt(browser_->profile(), this));
   find_bar_ = new FindBarQt(browser_.get(), this);
   new_tab_.reset(new NewTabUIQt(browser_.get(), this));

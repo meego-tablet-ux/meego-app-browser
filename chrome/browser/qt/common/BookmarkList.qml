@@ -99,6 +99,7 @@ Item {
     property int idHasMenu: -1
     property string currentTitle: ""
     property string currentUrl: ""
+    property string currentFolderName: ""
     property variant currentModel
     property bool gridShow: false
     property int listHeight: 55
@@ -132,6 +133,7 @@ Item {
     id: topContainer
     width: parent.width
     height: headHeight
+    MouseArea { anchors.fill: parent; onClicked: bmItemEditDialog.show() }
     Image {
       anchors.fill: parent
       source: "image://themedimage/images/bg_application_p"
@@ -173,14 +175,13 @@ Item {
     id: bmItemDeleteDialog
     title: qsTr("Delete bookmark")
     acceptButtonText: qsTr("Delete")
-    //acceptButtonImage: "image://meegotheme/widgets/common/button/button-negative"
-    //acceptButtonImagePressed: "image://meegotheme/widgets/common/button/button-negative-pressed"
+    acceptButtonImage:        "image://themedimage/widgets/common/button/button-negative"
+    acceptButtonImagePressed: "image://themedimage/widgets/common/button/button-negative-pressed"
     cancelButtonText: qsTr("Cancel")
     content: Text {
       text: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
-      //text: qsTr("Are you sure you want to delete " + bmGlobal.currentTitle.toString().substring(0,30) + " id is " + bmGlobal.idxHasMenu + "\"?");
       anchors.fill: parent
-      anchors.margins: 20
+      anchors.margins: bmGlobal.leftMargin
       wrapMode: Text.WordWrap
     }
     onAccepted: {
@@ -190,33 +191,109 @@ Item {
 
   property string tmpTitle: ""
   property string tmpUrl: ""
-  ModalDialog {
+  property int tmpFolderIdx: -1
+  BookmarkListEditDialog {
     id: bmItemEditDialog
+    h: folderGroup.expanded ? innerHeight+folderHeight : innerHeight
     title: qsTr("Edit bookmark"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"");
-    acceptButtonText: qsTr("Save")
-    cancelButtonText: qsTr("Cancel")
+    showCancelButton: false
+    showAcceptButton: false
+    property int innerHeight: 330
+    property int folderHeight: 100
+    buttonRow: Row {
+      id: row
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 10
+      Button {
+        id: buttonDone
+        text: qsTr("Done")
+        bgSourceUp: "image://themedimage/widgets/common/button/button-default"
+        bgSourceDn: "image://themedimage/widgets/common/button/button-default-pressed"
+        onClicked: {
+          if (tmpFolderIdx != -1) bmGlobal.currentModel.folderChanged(bmGlobal.idHasMenu, tmpFolderIdx)
+          if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.idHasMenu, tmpTitle);
+          if (tmpUrl != "") bmGlobal.currentModel.urlChanged(bmGlobal.idHasMenu, tmpUrl);
+          bmItemEditDialog.hide()
+        }
+      }
+      Item { height: 10; width: bmItemEditDialog.width - buttonDone.width - buttonCancel.width - buttonDelete.width - 70 } // wedge
+      Button {
+        id: buttonCancel
+        text: qsTr("Cancel")
+        anchors.verticalCenter: parent.verticalCenter
+        onClicked: {
+          bmItemEditDialog.rejected()
+          bmItemEditDialog.hide()
+        }
+      }
+      Button {
+        id: buttonDelete
+        anchors.verticalCenter: parent.verticalCenter
+        text: qsTr("Delete")
+        bgSourceUp: "image://themedimage/widgets/common/button/button-negative"
+        bgSourceDn: "image://themedimage/widgets/common/button/button-negative-pressed"
+        onClicked: {
+          bmItemEditDialog.hide()
+          bmItemDeleteDialog.show()
+        }
+      }
+    }
     content: Item {
       id: bmContent
-      anchors.fill: parent
+      width: parent.width
       TextEntry {
         id: titleEditor
-        anchors { top: bmContent.top; topMargin: 20; left: bmContent.left; leftMargin: 20; }
-        width: parent.width - 40; height: 50; focus: true
+        anchors { top: bmContent.top; topMargin: bmGlobal.leftMargin/2; left: bmContent.left; leftMargin: bmGlobal.leftMargin; }
+        width: parent.width - bmGlobal.leftMargin*2; height: 50; focus: true
         //defaultText: bmGlobal.currentTitle
         text: bmGlobal.currentTitle
         onTextChanged: tmpTitle = text
       }
       TextEntry {
         id: urlEditor
-        anchors { top: titleEditor.bottom; topMargin: 20; left: titleEditor.left }
+        anchors { top: titleEditor.bottom; topMargin: bmGlobal.leftMargin/2; left: titleEditor.left }
         width: titleEditor.width; height: titleEditor.height; focus: true
         text: bmGlobal.currentUrl
         onTextChanged: tmpUrl = text
       }
-    }
-    onAccepted: {
-      if (tmpTitle != "") bmGlobal.currentModel.titleChanged(bmGlobal.idHasMenu, tmpTitle);
-      if (tmpUrl != "")   bmGlobal.currentModel.urlChanged(bmGlobal.idHasMenu, tmpUrl);
+      BookmarkListGroupBox {
+        id: folderGroup
+        anchors { top: urlEditor.bottom; topMargin: bmGlobal.leftMargin/2; left: bmContent.left; leftMargin: 16 }
+        infoText: bmGlobal.currentFolderName
+        width: titleEditor.width + 8
+        innerHeight: 100
+        itemHeight: 50
+        loader.sourceComponent: folderCombo
+        Component {
+          id: folderCombo
+          ListView {
+            id: view
+            interactive: false
+            delegate: Column {
+              id: folderItem
+              Text {
+                text: modelData
+                width: titleEditor.width
+                height: folderGroup.itemHeight
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
+                color: "#909090"
+                MouseArea {
+                  anchors.fill: parent
+                  onClicked: {
+                    bmGlobal.currentFolderName = modelData;
+                    folderGroup.state = "elapsed"
+                    tmpFolderIdx = index
+                  }
+                }
+              }
+            }
+            model: bookmarkAllFolders
+            focus: true
+            orientation: ListView.Vertical
+          }
+        }
+      }
     }
   }
 }

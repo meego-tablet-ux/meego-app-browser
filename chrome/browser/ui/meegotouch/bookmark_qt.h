@@ -56,6 +56,17 @@ class BookmarkQtTreeImpl;
 class BookmarkQtFilterProxyModel;
 class BookmarkListMenuModel; 
 
+class BookmarkListData {
+public:
+  BookmarkListData() {}
+  ~BookmarkListData() {}
+
+  QStringList all_folders_title_;
+  QList<int64> all_folders_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(BookmarkListData);
+};
+
 class BookmarkImageProvider : public QDeclarativeImageProvider
 {
 public:
@@ -94,8 +105,8 @@ private:
 class BookmarkItem {
 
 public:
-  BookmarkItem(Browser* browser, QString& title, QString& url, int64 id)
-    : browser_(browser), title_(title), url_(url), id_(id),
+  BookmarkItem(Browser* browser, QString& title, QString& url, int64 id, BookmarkNode::Type type)
+    : browser_(browser), title_(title), url_(url), id_(id), type_(type),
       folder_id_(-1), level_(0), isOpened_(false)
   {}
 
@@ -110,7 +121,7 @@ public:
   inline bool hasChildren() const { return !children_.empty(); }
   int level_;
   bool isOpened_;
-  QList<BookmarkItem *> children_;
+  QList<BookmarkItem*> children_;
 
   void title(QString t) { title_ = t; }
   void url(QString u) { url_ = u; }
@@ -136,6 +147,7 @@ public:
     return (id_ == bookmark.id_);
   }
 
+  BookmarkNode::Type type_;
   QString root_type_;
   QString title_;
   QString url_;
@@ -149,8 +161,8 @@ protected:
 class BookmarkGridItem : public BookmarkItem {
 
 public:
-  BookmarkGridItem(Browser* browser, BookmarkQtGridImpl* model, QString& title, QString& url, int64 id)
-    : BookmarkItem(browser, title, url, id),
+  BookmarkGridItem(Browser* browser, BookmarkQtGridImpl* model, QString& title, QString& url, int64 id, BookmarkNode::Type type)
+    : BookmarkItem(browser, title, url, id, type),
       model_(model)
     {}
   ~BookmarkGridItem() {}
@@ -172,7 +184,7 @@ class BookmarkQt : //public AnimationDelegate,
 {
 public:
   explicit BookmarkQt(BrowserWindowQt* window,
-                      Profile* profile, Browser* browser,
+                      Profile* profile, Browser* browser, BookmarkListData* data,
                       const QString& anotherFolder);
   virtual ~BookmarkQt();
 
@@ -210,7 +222,7 @@ public:
   void titleChanged(QString id, QString title);
   void urlChanged(QString id, QString url);
 
-  void GetBookmarkProperties(const BookmarkNode* node, QString& title, QString &url, int64& id);
+  void GetBookmarkProperties(const BookmarkNode* node, QString& title, QString &url, int64& id, BookmarkNode::Type& type);
 
   virtual void BookmarkModelBeingDeleted(BookmarkModel* model);
   virtual void BookmarkNodeAdded(BookmarkModel* model,
@@ -243,13 +255,15 @@ public:
   void moveBookmarkInModel(const BookmarkNode *old_parent, 
                            const BookmarkNode *new_parent, int from, int to);
   void moveBookmarkInModel(int from, int to);
-  bool moveBookmarkInModel(QString from, QString to, QList<BookmarkItem *>& bookmarks);
+  bool moveBookmarkInModel(QString from, QString to, QList<BookmarkItem*> &bookmarks, bool directed=true);
 
   void HideBookmarkManager();
   void PopupMenu(gfx::Point p); 
  
   void CreateAllBookmarkListItems();
   void RemoveAllBookmarkListItems();
+
+  BookmarkListData* data_;
 
 protected:
   Profile* profile_;
@@ -268,9 +282,9 @@ protected:
   BookmarkQtTreeImpl* tree_impl_; 
   BookmarkQtFilterProxyModel* grid_filter_;
   BookmarkQtFilterProxyModel* tree_filter_;
+  BookmarkListMenuModel* bookmark_menu_;
 
   QString another_folder_name_;
-  BookmarkListMenuModel* bookmark_menu_;
 
   DISALLOW_COPY_AND_ASSIGN(BookmarkQt);
 };
@@ -279,7 +293,7 @@ class BookmarkOthersQt : public BookmarkQt
 {
 public:
   explicit BookmarkOthersQt(BrowserWindowQt* window,
-                            Profile* profile, Browser* browser);
+                            Profile* profile, Browser* browser, BookmarkListData* data);
   virtual ~BookmarkOthersQt();
   virtual const BookmarkNode* GetParent();
 
@@ -293,7 +307,7 @@ class BookmarkBarQt : public BookmarkQt,
                       public NotificationObserver
 {
 public:
-  explicit BookmarkBarQt(BrowserWindowQt* window, Profile* profile, Browser* browser);
+  explicit BookmarkBarQt(BrowserWindowQt* window, Profile* profile, Browser* browser, BookmarkListData* data);
   virtual ~BookmarkBarQt();
 
   virtual const BookmarkNode* GetParent();
@@ -392,9 +406,10 @@ public:
   enum BookmarkRoles {
     TitleRole = Qt::UserRole + 1,
     UrlRole,
-    RTypeRole,
+    TypeRole,
     LengthRole,
     IdRole,
+    FolderNameRole,
     LevelRole,
     IsOpenedRole,
     HasChildrenRole
@@ -410,8 +425,8 @@ public:
   bool removeBookmark(BookmarkItem *bookmark);
   bool removeBookmark(const BookmarkNode *node);
 
-  bool updateBookmark(BookmarkItem *bookmark, int index);
-  bool updateBookmark(int index, QString title, QString url, int64 id);
+  //bool updateBookmark(BookmarkItem *bookmark, int index);
+  bool updateBookmark(int i, QString t, QString u, int64 is, BookmarkNode::Type type);
 
   void clear();
 
@@ -422,6 +437,8 @@ public:
 
   void Show();
   void Hide();
+
+  QList<BookmarkItem*> bookmarks_;
 
 Q_SIGNALS:
   void show();
@@ -443,10 +460,13 @@ public Q_SLOTS:
   int level(int index) { return bookmarks_[index]->level_; }
   virtual void openItem(int idx) {}
   virtual void closeItem(int idx){} 
+  virtual void folderChanged(QString id, int folder_idx){ 
+    DLOG(INFO)<<__PRETTY_FUNCTION__<<" hdq move "<<id.toStdString()<<" to folder "<<bookmark_qt_->data_->all_folders_id_[folder_idx];
+    bookmark_qt_->moveBookmarkInModel(id, QString::number(bookmark_qt_->data_->all_folders_id_[folder_idx]), bookmarks_, false);
+  }
 
 protected:
   BookmarkQt* bookmark_qt_;
-  QList<BookmarkItem *> bookmarks_;
 
 private:
   Q_DISABLE_COPY(BookmarkQtImpl);
@@ -520,16 +540,15 @@ class BookmarkQtTreeImpl : public BookmarkQtImpl
 public:
   BookmarkQtTreeImpl(BookmarkQt* bookmark_qt, QObject *parent = 0);
   virtual ~BookmarkQtTreeImpl() { clear(); }
-  //QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-  int rowCount(const QModelIndex &parent = QModelIndex()) const;
+  //int rowCount(const QModelIndex &parent = QModelIndex()) const;
 
   bool removeBookmark(const BookmarkNode *node);
 
   void openBookmarkItem(int index);
   void PopupMenu(int x, int y);
 
-  bool addBookmarkToFolder(BookmarkItem *bookmark, const BookmarkNode* parent);
-  bool updateBookmarkById(BookmarkItem *bookmark, int64 id);
+  bool addBookmarkToFolder(BookmarkItem *bookmark, const BookmarkNode* parent, int idx);
+  bool updateBookmarkById(QString title, QString url, int64 id);
 
 public Q_SLOTS:
   void remove(QString id);
@@ -600,6 +619,8 @@ public Q_SLOTS:
 
   void openItem(int idx) { impl_->openItem(toSource(idx)); }
   void closeItem(int idx){ impl_->closeItem(toSource(idx)); } 
+
+  void folderChanged(QString id, int folder_idx) { impl_->folderChanged(id, folder_idx); }
 
 private:
   //BookmarkQtGridImpl *impl_;

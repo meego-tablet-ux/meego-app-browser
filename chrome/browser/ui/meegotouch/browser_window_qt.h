@@ -219,7 +219,9 @@ class BrowserWindowQt : //public MApplicationWindow,
   scoped_ptr<NewTabUIQt> new_tab_;
   scoped_ptr<DownloadsQtHandler> download_handler_;
   scoped_ptr<PopupListQt> web_popuplist_;
+
   FindBarQt* find_bar_; // It will be automatically freed by find bar controller
+  BookmarkListData* bookmarklist_data_; // The bookmark data shared between bookmark_bar_ and bookmark_others_
   scoped_ptr<CrashTabQt> crash_tab_;
 
   BrowserWindowQtImpl* impl_;

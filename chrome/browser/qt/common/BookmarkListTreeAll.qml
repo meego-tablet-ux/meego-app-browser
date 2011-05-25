@@ -76,6 +76,7 @@ import MeeGo.Components 0.1
 import Qt.labs.gestures 2.0
 
 Rectangle {
+  id: parallax
   property alias model: treeContainer.model
   color: "white"
   BookmarkListTreeContainer {

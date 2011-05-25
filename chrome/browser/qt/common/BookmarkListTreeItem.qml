@@ -78,7 +78,7 @@ import Qt.labs.gestures 2.0
 Component {
   Item {
     id: wrapper
-    height: bmGlobal.listHeight; width: tree.width //960//barRoot.width //tree.width
+    height: bmGlobal.listHeight; width: tree.width
     Rectangle {
       id: wrapperItem; parent: tree //treeMouseArea
       width: wrapper.width; height: wrapper.height
@@ -137,27 +137,35 @@ Component {
         State { name: "closedNode"; when: (hasChildren)&&(!isOpened);
           PropertyChanges { target: openContainer; visible: false; } 
           PropertyChanges { target: openElement; visible: true; }
-          PropertyChanges { target: openImage; source: "image://themedimage/icons/toolbar/go-down-up" } }
+          PropertyChanges { target: openImage; source: "image://themedimage/icons/toolbar/go-down" } }
       ]
-      Rectangle { 
+      //Rectangle { color: "lightblue"
+      Item {
         id: openContainer
-        color: "transparent"
         anchors { left: parent.left; right: dragElement.left; }
         height: parent.height
         MouseArea {
           anchors.fill: parent
           onClicked: {
-            console.log("hdq will open id", bookmarkId);
-            tree.model.openBookmarkItem(bookmarkId);
+            if (0 == type) {
+              console.log("hdq will open id", bookmarkId);
+              tree.model.openBookmarkItem(bookmarkId);
+            } else {
+              console.log("hdq will expand/collapse folder", bookmarkId);
+              (isOpened) ? bookmarkAllTreesModel.closeItem(index) : bookmarkAllTreesModel.openItem(index)
+            }
           }
           onPressAndHold: {
-            var map = mapToItem(parallax, mouseX, mouseY);
-            //bmGlobal.idxHasMenu = tree.indexAt(map.x-tree.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
-            bmGlobal.idHasMenu = bookmarkId
-            bmGlobal.currentTitle = title
-            bmGlobal.currentUrl = url
-            tree.model.popupMenu(map.x, map.y)
-            console.log("hdq press and hold on ", map.x, map.y, "id is ",bookmarkId)
+            if (0 == type || 1 == type) { // only show menu for URL and FOLDER, not for permanent nodes
+              var map = mapToItem(parallax, mouseX, mouseY);
+              //bmGlobal.idxHasMenu = tree.indexAt(map.x-tree.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
+              bmGlobal.idHasMenu = bookmarkId
+              bmGlobal.currentTitle = title
+              bmGlobal.currentUrl = url
+              bmGlobal.currentFolderName = folderName
+              tree.model.popupMenu(map.x, map.y)
+              console.log("hdq press and hold on ", map.x, map.y, "id is ",bookmarkId)
+            }
           }
         }
       }
