@@ -185,7 +185,7 @@ Item {
       wrapMode: Text.WordWrap
     }
     onAccepted: {
-      bmGlobal.currentModel.remove(bmGlobal.idxHasMenu)
+      bmGlobal.currentModel.remove(bmGlobal.idHasMenu)
     }
   }
 

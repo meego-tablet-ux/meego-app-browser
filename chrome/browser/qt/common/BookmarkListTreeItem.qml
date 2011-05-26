@@ -152,12 +152,12 @@ Component {
           }
           onPressAndHold: {
             var map = mapToItem(parallax, mouseX, mouseY);
-            bmGlobal.idxHasMenu = tree.indexAt(map.x-tree.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
+            //bmGlobal.idxHasMenu = tree.indexAt(map.x-tree.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
             bmGlobal.idHasMenu = bookmarkId
             bmGlobal.currentTitle = title
             bmGlobal.currentUrl = url
             tree.model.popupMenu(map.x, map.y)
-            console.log("hdq press and hold on idx ", bmGlobal.idxHasMenu, map.x, map.y, "id is ",bookmarkId)
+            console.log("hdq press and hold on ", map.x, map.y, "id is ",bookmarkId)
           }
         }
       }

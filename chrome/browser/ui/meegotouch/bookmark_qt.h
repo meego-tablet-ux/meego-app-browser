@@ -236,6 +236,7 @@ public:
   void openBookmarkItem(int index); 
   void openBookmarkItem(int64 folder_id, int index);
   void removeBookmarkInModel(int index);
+  void removeBookmarkInModel(QString id);
   void removeBookmarkInModel(int64 folder_id, int index);
   void MoveToAnotherFolder(int index);
 
@@ -430,7 +431,7 @@ public Q_SLOTS:
   virtual void openBookmarkItem(int index);
   void backButtonTapped(); // back button in Bookmark Manager
 
-  virtual void remove(int index) {}
+  virtual void remove(QString id) {}
   virtual int64 id(int index) { return -1; }
   virtual void moving(int from, int to) {}
   virtual void moveDone(int from, int to) {}
@@ -492,7 +493,7 @@ public:
   void PopupMenu(int x, int y);
 
 public Q_SLOTS:
-  void remove(int index);
+  void remove(QString id);
   int64 id(int index) { return bookmarks_[index]->id_; }
   void moving(int from, int to);
   void moveDone(int from, int to);
@@ -531,7 +532,7 @@ public:
   bool updateBookmarkById(BookmarkItem *bookmark, int64 id);
 
 public Q_SLOTS:
-  void remove(int index);
+  void remove(QString id);
   int64 id(int index){ return bookmarks_[index]->id_; }
   void moving(int from, int to);
  // void moveDone(int from, int to);
@@ -584,7 +585,7 @@ public Q_SLOTS:
   void textChanged(QString text);
 
   int id(int idx)        { return impl_->id(toSource(idx)); }
-  void remove(int idx)          { impl_->remove(toSource(idx)); }
+  void remove(QString id)       { impl_->remove(id); }
   void moving(int from, int to) { impl_->moving(toSource(from), toSource(to)); }
   void moveDone(int from, int to){impl_->moveDone(toSource(from), toSource(to)); }
   void moveDone(int f, int t, QString from, QString to){impl_->moveDone(toSource(f), toSource(t), from, to); }

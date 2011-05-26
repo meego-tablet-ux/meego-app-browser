@@ -368,6 +368,12 @@ void BookmarkQt::removeBookmarkInModel(int index) {
   removeBookmarkInModel(GetParent()->id(), index);
 }
 
+void BookmarkQt::removeBookmarkInModel(QString id) {
+  const BookmarkNode* node = model_->GetNodeByID(id.toLong());
+  int idx = GetParent()->GetIndexOf(node);
+  removeBookmarkInModel(idx);
+}
+
 // Moving children under different parent
 void BookmarkQt::moveBookmarkInModel(const BookmarkNode *old_parent,
                                      const BookmarkNode *new_parent,
@@ -1074,9 +1080,9 @@ QVariant BookmarkQtGridImpl::data(const QModelIndex& index, int role) const {
   return BookmarkQtImpl::data(index, role);
 }
 
-void BookmarkQtGridImpl::remove(int index) {
+void BookmarkQtGridImpl::remove(QString id) {
   //beginResetModel();
-  bookmark_qt_->removeBookmarkInModel(index);
+  bookmark_qt_->removeBookmarkInModel(id);
   //endResetModel();
 }
 
@@ -1217,19 +1223,20 @@ void BookmarkQtTreeImpl::closeItem(int idx) {
   endRemoveRows();
 }
 
-void BookmarkQtTreeImpl::remove(int index) {
+void BookmarkQtTreeImpl::remove(QString id) {
   int fpos, bpos;
-  int64 bid = bookmarks_[index]->id_;
-  int64 fid = bookmarks_[index]->folder_id_;
+  int64 bid = id.toLong();
+  if (!BookmarkList::index(bookmarks_, bid, bpos)) return;
+  int64 fid = bookmarks_[bpos]->folder_id_;
   // If this item has no folder
   if (-1 == fid || !BookmarkList::index(bookmarks_, fid, fpos)) {
-    bookmark_qt_->removeBookmarkInModel(index);
+    bookmark_qt_->removeBookmarkInModel(id);
     return;
   }
 
   // else find it's real index
   if (!BookmarkList::index(bookmarks_[fpos]->children_, bid, bpos)) {
-    DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" bookmark item not found in children! "<<bookmarks_[index]->title_.toStdString();
+    DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" bookmark item not found in children! "<<bookmarks_[fpos]->title_.toStdString();
     return;
   }
 
