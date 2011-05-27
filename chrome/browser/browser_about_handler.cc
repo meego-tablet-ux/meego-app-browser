@@ -1263,6 +1263,9 @@ GURL RemapAboutURL(const std::string& url_prefix, const GURL& url) {
 // -----------------------------------------------------------------------------
 
 bool WillHandleBrowserAboutURL(GURL* url, Profile* profile) {
+#if defined(TOOLKIT_MEEGOTOUCH)
+  return false;
+#endif
   // We only handle about: schemes.
   if (!url->SchemeIs(chrome::kAboutScheme))
     return false;

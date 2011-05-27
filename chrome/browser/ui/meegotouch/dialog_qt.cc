@@ -137,8 +137,8 @@ void DialogQtImpl::OnButtonClicked(int number, QString input1, QString input2, b
  **/
 DialogQtModel::DialogQtModel(DialogQt::DLG_TYPE flag, bool isSuppress, const char* title, const char* content,
                         const char* defaultPrompt, bool isBeforeUnload)
-		: isSuppress_(isSuppress), title_(QString(title)), type_(flag),
-		  content_(QString(content)), defaultPrompt_(QString(defaultPrompt)) {
+		: isSuppress_(isSuppress), title_(QString::fromUtf8(title)), type_(flag),
+		  content_(QString::fromUtf8(content)), defaultPrompt_(QString::fromUtf8(defaultPrompt)) {
     
     suppressOption_ = QString::fromUtf8(l10n_util::GetStringUTF8(
         			IDS_JAVASCRIPT_MESSAGEBOX_SUPPRESS_OPTION).c_str());
