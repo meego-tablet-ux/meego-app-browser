@@ -92,9 +92,9 @@ Item {
   }
 
   Connections {
-    target: bookmarkBarListModel
+    target: bmGlobal.portrait ? bookmarkBarListModel : grid.model   // connects with menu->filter_
 //    onMoveToAnother: { grid.model.moveToAnotherFolder(bmGlobal.idxHasMenu); }
-    onOpenItem: { grid.model.openBookmarkItem(bmGlobal.idHasMenu); }
+    onOpenItemInNewTab: { grid.model.openBookmarkItem(bmGlobal.idHasMenu); }
     onRemoveItem: {
       bmItemDeleteDialog.show()
       bmGlobal.currentModel = grid.model

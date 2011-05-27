@@ -94,12 +94,12 @@ Component{
                         onPressAndHold: {
                           var map = mapToItem(bookmarkListRoot, mouseX, mouseY);
                           //map.y-=115;
-                          bmGlobal.idxHasMenu = grid.indexAt(map.x-parallax.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
+                          //bmGlobal.idxHasMenu = grid.indexAt(map.x-parallax.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
                           bmGlobal.idHasMenu = gridId
                           bmGlobal.currentTitle = title
                           bmGlobal.currentUrl = url
                           grid.model.popupMenu(map.x, map.y)
-                          console.log("hdq press and hold ", bmGlobal.idxHasMenu, map.x, map.y, gridId)
+                          console.log("hdq press and hold ", map.x, map.y, gridId)
                         }
                     }
                 }

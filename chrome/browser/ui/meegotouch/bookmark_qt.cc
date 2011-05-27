@@ -149,7 +149,7 @@ BookmarkQt::BookmarkQt(BrowserWindowQt* window,
   tree_impl_ = new BookmarkQtTreeImpl(this);
   grid_filter_ = new BookmarkQtFilterProxyModel(grid_impl_);
   tree_filter_ = new BookmarkQtFilterProxyModel(tree_impl_);
-  bookmark_menu_ = new BookmarkListMenuModel(tree_filter_);
+  bookmark_menu_ = new BookmarkListMenuModel(grid_filter_, tree_filter_);
 }
 
 BookmarkQt::~BookmarkQt() {
@@ -359,6 +359,7 @@ void BookmarkQt::openBookmarkItem(int index) {
 }
 
 void BookmarkQt::removeBookmarkInModel(int64 folder_id, int index) {
+  if (index == -1) return;
   const BookmarkNode* parent = model_->GetNodeByID(folder_id);
   const BookmarkNode* nodeFrom = parent->GetChild(index);
   model_->Remove(parent, index);
@@ -371,6 +372,7 @@ void BookmarkQt::removeBookmarkInModel(int index) {
 void BookmarkQt::removeBookmarkInModel(QString id) {
   const BookmarkNode* node = model_->GetNodeByID(id.toLong());
   int idx = GetParent()->GetIndexOf(node);
+  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq will remove "<<node->GetTitle()<<" in "<<GetParent()->id();
   removeBookmarkInModel(idx);
 }
 
@@ -378,6 +380,7 @@ void BookmarkQt::removeBookmarkInModel(QString id) {
 void BookmarkQt::moveBookmarkInModel(const BookmarkNode *old_parent,
                                      const BookmarkNode *new_parent,
                                      int from, int to) {
+  if (from == -1 && to == -1) return;
   DLOG(INFO)<<"hdq 3. move folder("<<old_parent->id()<<")'s "<<from<<" to folder("<<new_parent->id()<<")'s "<<to;
   if (old_parent->id() == new_parent->id()
       && to > from) to++; //   && (from+1) == to) to++;
@@ -476,6 +479,7 @@ bool BookmarkQt::moveBookmarkInModel(QString from, QString to, QList<BookmarkIte
 
 // move the NO.index item to the end of another folder
 void BookmarkQt::MoveToAnotherFolder(int index) {
+  if (index == -1) return;
   const BookmarkNode* anotherParent = model_->GetBookmarkBarNode();
   if (anotherParent == GetParent())
     anotherParent = model_->other_node();
@@ -1082,6 +1086,7 @@ QVariant BookmarkQtGridImpl::data(const QModelIndex& index, int role) const {
 
 void BookmarkQtGridImpl::remove(QString id) {
   //beginResetModel();
+  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq grid will remove "<<id.toStdString()<<" in folder "<<bookmark_qt_->GetParent()->id();
   bookmark_qt_->removeBookmarkInModel(id);
   //endResetModel();
 }
@@ -1426,9 +1431,10 @@ void BookmarkQtFilterProxyModel::backButtonTapped() {
 ////////////////////////////////////////////////////////////////////////////////
 // BookmarkListMenuModel
 
-BookmarkListMenuModel::BookmarkListMenuModel(BookmarkQtFilterProxyModel* filter)
+BookmarkListMenuModel::BookmarkListMenuModel(BookmarkQtFilterProxyModel* gfilter,
+                                             BookmarkQtFilterProxyModel* tfilter)
     : ALLOW_THIS_IN_INITIALIZER_LIST(ui::SimpleMenuModel(this)),
-      filter_(filter) {
+      gfilter_(gfilter), tfilter_(tfilter) {
 //  Build();
 }
 
@@ -1458,9 +1464,12 @@ bool BookmarkListMenuModel::GetAcceleratorForCommandId(
 void BookmarkListMenuModel::ExecuteCommand(int command_id) {
   switch (command_id) {
 //    case IDC_BOOKMARK_MOVETO: filter_->MoveToAnother(); break;
-    case IDC_BOOKMARK_OPEN:   filter_->OpenItemInNewTab();   break;
-    case IDC_BOOKMARK_EDIT:   filter_->EditItem();   break;
-    case IDC_BOOKMARK_REMOVE: filter_->RemoveItem(); break;
+    case IDC_BOOKMARK_OPEN:   gfilter_->OpenItemInNewTab();   
+                              tfilter_->OpenItemInNewTab();   break;
+    case IDC_BOOKMARK_EDIT:   gfilter_->EditItem();   
+                              tfilter_->EditItem();   break;
+    case IDC_BOOKMARK_REMOVE: gfilter_->RemoveItem(); 
+                              tfilter_->RemoveItem(); break;
     default:
       LOG(WARNING) << "Received Unimplemented Command: " << command_id;
       break;

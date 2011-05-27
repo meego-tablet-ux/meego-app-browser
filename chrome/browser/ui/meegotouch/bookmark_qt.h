@@ -611,8 +611,9 @@ private:
 
 class BookmarkListMenuModel : public ui::SimpleMenuModel,
                               public ui::SimpleMenuModel::Delegate {
- public:
-  BookmarkListMenuModel(BookmarkQtFilterProxyModel *filter); //ui::AcceleratorProvider* provider, Browser* browser);
+public:
+  BookmarkListMenuModel(BookmarkQtFilterProxyModel *gfilter,
+                        BookmarkQtFilterProxyModel *tfilter); //ui::AcceleratorProvider* provider, Browser* browser);
   virtual ~BookmarkListMenuModel(){};
   void Build(const QString& anotherFolder);
 
@@ -623,8 +624,9 @@ class BookmarkListMenuModel : public ui::SimpleMenuModel,
                                           ui::Accelerator* accelerator);
   virtual void ExecuteCommand(int command_id);
 
- private:
-  BookmarkQtFilterProxyModel* filter_;
+private:
+  BookmarkQtFilterProxyModel* gfilter_;
+  BookmarkQtFilterProxyModel* tfilter_;
 //  ui::AcceleratorProvider* provider_;  // weak
 //  Browser* browser_;  // weak
 //

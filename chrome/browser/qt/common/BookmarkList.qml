@@ -95,12 +95,11 @@ Item {
     property bool dragging: false
     property bool exiting: false
     property bool exitDone: false
-    property int idxHasMenu: -1
+    //property int idxHasMenu: -1
     property int idHasMenu: -1
     property string currentTitle: ""
     property string currentUrl: ""
     property variant currentModel
-//    property bool gridShow: true
     property bool gridShow: false
     property int listHeight: 55
     property int leftMargin: 20
