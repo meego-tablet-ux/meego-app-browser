@@ -58,24 +58,29 @@ bool BrowserDataInfo::closeTab(int index)
 
 void BrowserDataInfo::openBrowser(BrowserDataInfo::OpenMode mode, const QString &target)
 {
+    QString browser_path;
+    QStringList arguments;
+
+    char* env = getenv("BROWSER");
+    if(env) browser_path = env;
+    else browser_path = "/usr/bin/meego-app-browser";
+
     if(isBrowserRunning()) {
         m_interface->showBrowser(mode == URL_MODE ? "gotourl" :
                                  mode == SEARCH_MODE ? "search" : "selecttab", target);
     }else {
-        QStringList arguments;
         if (mode == BrowserDataInfo::URL_MODE)
             arguments.append(target);
         else if (mode == BrowserDataInfo::SEARCH_MODE)
             arguments.append("? " + target);
-        else
+        else {
+            foreach(TabInfo i, m_dataInfoList) {
+              arguments << i.url;
+            }
             m_showTabWithIndex = target.toInt();
-        char* browser_path = getenv("BROWSER");
-        if(browser_path) {
-          QProcess::startDetached(browser_path, arguments);
-        } else {
-          QProcess::startDetached("/usr/bin/meego-app-browser", arguments);
         }
     }
+    QProcess::startDetached(browser_path, arguments);
 }
 
 void BrowserDataInfo::updateCurrentTab()
