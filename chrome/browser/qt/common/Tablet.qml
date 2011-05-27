@@ -69,6 +69,27 @@ BrowserWindowTablet {
   }
 
   Loader {
+    id: crashTabLoader
+    z: 100
+  }
+
+  Connections {
+    target: browserCrashTabObject
+    onDismiss: { 
+      crashTabLoader.sourceComponent = undefined; 
+    }
+    onPopup: {
+      scene.showCrashTabModal(crashTabLoader, browserCrashTabObject);
+    }
+  }
+  function showCrashTabModal(loader, model){
+    loader.parent = screenlayer
+    loader.width = parent.width
+    loader.height = parent.height
+    loader.source = "CrashTabModal.qml"
+  }
+  
+  Loader {
     id: dialogLoader
     z: 100
   }

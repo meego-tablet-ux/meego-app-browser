@@ -261,7 +261,8 @@ void BrowserWindowQt::InitWidget()
   new_tab_.reset(new NewTabUIQt(browser_.get(), this));
   bookmark_bubble_.reset(new BookmarkBubbleQt(this, browser_.get(), browser_->profile()));
   web_popuplist_.reset(new PopupListQt(this));
-  
+  crash_tab_.reset(new CrashTabQt(this));
+
   DownloadManager* dlm = browser_->profile()->GetDownloadManager();
   download_handler_.reset(new DownloadsQtHandler(this, browser_.get(), dlm));
 
@@ -505,6 +506,10 @@ void BrowserWindowQt::ShowBookmarkBubble(const GURL& url, bool already_bookmarke
 void BrowserWindowQt::ShowDownloads()
 {
   download_handler_->Show();
+}
+
+void BrowserWindowQt::ShowCrashTab( ){
+  crash_tab_->Popup();
 }
 
 FindBarQt* BrowserWindowQt::GetFindBar()

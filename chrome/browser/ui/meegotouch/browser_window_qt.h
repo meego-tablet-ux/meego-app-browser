@@ -30,6 +30,7 @@
 #include "chrome/browser/ui/meegotouch/bookmark_bubble_qt.h"
 #include "chrome/browser/ui/meegotouch/downloads_handler_qt.h"
 #include "chrome/browser/ui/meegotouch/find_bar_qt.h"
+#include "chrome/browser/ui/meegotouch/crash_tab_qt.h"
 
 class LauncherWindow;
 class QDeclarativeView;
@@ -50,6 +51,7 @@ class FullscreenExitBubbleQt;
 class DialogQtResultListener;
 class BrowserWindowQtImpl;
 class DownloadsQtHandler;
+class CrashTabQt;
 //
 // An implementation of BrowserWindow for QT.
 // Cross-platform code will interact with this object when
@@ -140,6 +142,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   virtual void ShowPageMenu() {DNOTIMPLEMENTED();};
   virtual void ShowAppMenu() {DNOTIMPLEMENTED();};
   virtual void ShowDownloads();
+  virtual void ShowCrashTab();
   // No key accelerators
   virtual bool PreHandleKeyboardEvent(const NativeWebKeyboardEvent& event,
                                       bool* is_keyboard_shortcut) {/*DNOTIMPLEMENTED();*/ return false;};
@@ -217,6 +220,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   scoped_ptr<DownloadsQtHandler> download_handler_;
   scoped_ptr<PopupListQt> web_popuplist_;
   FindBarQt* find_bar_; // It will be automatically freed by find bar controller
+  scoped_ptr<CrashTabQt> crash_tab_;
 
   BrowserWindowQtImpl* impl_;
   NotificationRegistrar registrar_;  

@@ -135,6 +135,13 @@ void TabContentsViewQt::SetPageTitle(const std::wstring& title) {
 void TabContentsViewQt::OnTabCrashed(base::TerminationStatus status,
                                       int error_code) {
   DNOTIMPLEMENTED();
+  LOG(INFO)<<__FUNCTION__;
+  if( tab_contents() != NULL ) {
+    tab_contents()->Activate();
+    Browser* browser = BrowserList::GetLastActive();
+    BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+    browser_window->ShowCrashTab();
+  }
 }
 
 void TabContentsViewQt::SizeContents(const gfx::Size& size) {

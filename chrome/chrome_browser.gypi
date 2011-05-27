@@ -2823,6 +2823,8 @@
         'browser/ui/meegotouch/browser_window_qt.cc',
         'browser/ui/meegotouch/bookmark_bubble_qt.cc',
         'browser/ui/meegotouch/bookmark_bubble_qt.h',
+        'browser/ui/meegotouch/crash_tab_qt.cc',
+        'browser/ui/meegotouch/crash_tab_qt.h',
         'browser/ui/meegotouch/bookmark_editor_qt.cc',
         'browser/ui/meegotouch/bookmark_qt.cc',
         'browser/ui/meegotouch/bookmark_qt.h',
@@ -4396,6 +4398,21 @@
                 ],
                 'outputs': [
                   'browser/ui/meegotouch/moc_bookmark_bubble_qt.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'moc_crash_tab_qt.h',
+                'inputs': [
+                  'browser/ui/meegotouch/crash_tab_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_crash_tab_qt.cc',
                 ],
                 'action': [
                   'moc',

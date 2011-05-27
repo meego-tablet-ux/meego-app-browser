@@ -229,6 +229,15 @@ be available for now. -->
       <message name="IDS_SESSION_CRASHED_VIEW_MESSAGE" desc="Message shown when the last session didn't exit cleanly.">
         MeeGo Browser didn't shut down correctly. To reopen the pages you had open, click Restore.
       </message>
+      <message name="IDS_CRASH_TAB_HEAD_CONTENT" desc="Title shown when the tab crashed or was killed.">
+        Oops, error!
+      </message>
+      <message name="IDS_CRASH_TAB_BODY_CONTENT" desc="Body message shown when the tab crashed or was killed.">
+        Something went wrong while displaying this webpage. To continue press Reload or go to another page.
+      </message>
+      <message name="IDS_CRASH_TAB_CLOSE_BUTTON_CONTENT" desc="Closed button title shown when the tab crashed or was killed.">
+        Close Tab
+      </message>
       <!-- Browser Window Title Format -->
       <message name="IDS_BROWSER_WINDOW_TITLE_FORMAT" desc="The format for titles displayed in tabs and popup windows">
         <ph name="PAGE_TITLE">$1<ex>Google</ex></ph> - Chromium
