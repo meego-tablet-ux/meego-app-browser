@@ -402,6 +402,8 @@
         'webkitclient_impl.h',
         'webmediaplayer_impl.h',
         'webmediaplayer_impl.cc',
+        'hwfmenu_qt.h',
+        'hwfmenu_qt.cc',
         'webmenuitem.cc',
         'webmenuitem.h',
         'webmenurunner_mac.h',
@@ -458,6 +460,23 @@
             '<!@(<(pkg-config) --libs-only-l libva libva-x11)',
             ],
           },
+          'actions': [
+            {
+              'action_name': 'moc_hwfmenu_qt.cc',
+              'inputs': [
+                'hwfmenu_qt.h',
+              ],
+              'outputs': [
+                'moc_hwfmenu_qt.cc',
+              ],
+              'action': [
+                'moc',
+                '<(_inputs)',
+                '-o',
+                '<(_outputs)',
+              ],
+            },
+          ],
         }],
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
           'dependencies': [

@@ -116,18 +116,22 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
 #if defined (TOOLKIT_MEEGOTOUCH)
 // _FULLSCREEN_
 /*_DEV2_H264_*/
-    void PaintPlayButton(int play);
-    void PaintFlush();
-    void PaintControlBar();
     bool Paused() {return webmediaplayer_->paused();}
     Window CreateSubWindow();
     void H264PaintFullScreen(void) ;
     WebMediaPlayerImpl* GetMediaPlayer() { return webmediaplayer_;}
 
-#define WIDTH 1280
-#define HEIGHT 800
-    long long curTime_ ; /*in s*/
-    long long duration_; /*in s*/
+#define UXQMLAR_MEDIA_PAUSE (1)
+#define UXQMLAR_MEDIA_PLAY (0)
+#define UXQMLAR_MEDIA_SEEK (4)
+#define UXQMLAR_MEDIA_FFORWARD (2)
+#define UXQMLAR_MEDIA_FBACKWARD (3)
+#define UXQMLAR_MEDIA_VOLUME (5)
+#define UXQMLAR_MEDIA_FULLSCREENQUIT (9)
+
+#define WIDTH (1280)
+#define HEIGHT (800)
+
     bool menu_on_;
     bool last_frame_;
 /*_DEV2_H264_*/
