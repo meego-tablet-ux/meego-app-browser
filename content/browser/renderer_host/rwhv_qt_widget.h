@@ -113,7 +113,7 @@ protected Q_SLOTS:
   void onSizeAdjusted();
   void onAnimationFinished();
   void onDoubleTapped();
-  void onClicked();
+  void deliverMouseClickEvent();
  private:
 
   typedef enum {
@@ -128,7 +128,9 @@ protected Q_SLOTS:
   QGraphicsObject* GetViewportItem();
   
   bool shouldDeliverMouseMove();
+  bool shouldDeliverDoubleClick();
   void deliverMousePressEvent();
+  void deliverMouseDoubleClickEvent();
   bool setDoingGesture(Qt::GestureType);
   bool clearDoingGesture(Qt::GestureType);
   bool isDoingGesture();
@@ -238,6 +240,15 @@ protected Q_SLOTS:
   // double tap
   bool is_doing_double_tap_;
   QPropertyAnimation* scale_animation_;
+
+  // double click (forward to WebKit)
+  bool double_click_;
+  WebKit::WebMouseEvent last_mouse_press_event_;
+  WebKit::WebMouseEvent last_mouse_release_event_;
+
+  WebKit::WebTouchEvent touch_start_event_;
+  WebKit::WebTouchEvent touch_end_event_;
+
 
   // Current scale factor
   qreal scale_;

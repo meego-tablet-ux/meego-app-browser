@@ -121,7 +121,9 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   hold_paint_ = false;
   is_inputtext_selection_ = false;
   is_scrolling_scrollable_ = false;
-
+  //double click (forward to WebKit)
+  double_click_ = false;
+  
   // double tap
   is_doing_double_tap_ = false;
    
@@ -181,7 +183,7 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   scale_ = pending_scale_ = kNormalContentsScale;
 
   delay_for_click_timer_ = new QTimer(this);
-  connect(delay_for_click_timer_, SIGNAL(timeout()), this, SLOT(onClicked()));
+  connect(delay_for_click_timer_, SIGNAL(timeout()), this, SLOT(deliverMouseClickEvent()));
 
   //vkb height 
   vkb_height_ = 0;
@@ -622,9 +624,19 @@ bool RWHVQtWidget::shouldDeliverMouseMove()
     return false;
 
   return (node_info & (WebKit::WebWidget::NODE_INFO_IS_EMBEDDED_OBJECT
-                       | WebKit::WebWidget::NODE_INFO_IS_EDITABLE));
+                       | WebKit::WebWidget::NODE_INFO_IS_EDITABLE
+                       | WebKit::WebWidget::NODE_INFO_HAS_MOUSEMOVE_LISTENER));
 }
 
+bool RWHVQtWidget::shouldDeliverDoubleClick()
+{
+  int node_info = hostView()->webkit_node_info_;
+
+  if (hostView()->IsPopup())
+    return false;
+
+  return (node_info & WebKit::WebWidget::NODE_INFO_HAS_DOUBLECLICK_LISTENER);
+}
 
 // check whether we delive touch move by emulating from mouse move 
 bool RWHVQtWidget::shouldDeliverTouchMove()
@@ -887,7 +899,6 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       " shouldDeliverTouchMove = " << shouldDeliverTouchMove() <<
       " inScrollableArea = " << inScrollableArea() <<
       std::endl;
-
 #if 0
   // Anyone need the touch move event?
   WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
@@ -909,13 +920,18 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
     hostView()->host_->ForwardTouchEvent(touchEvent);
   } else if (shouldDeliverMouseMove()) {
+
     setViewportInteractive(false);
     // although it may be forwarded to plugin, but it's okay to set this flag
     is_inputtext_selection_ = true;
- 
+
     // send out mouse press event, if it hadn't been sent out.
     deliverMousePressEvent();
-
+    
+    if (delay_for_click_timer_->isActive()) {
+      delay_for_click_timer_->stop();
+    }
+   
     WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
     if(hostView()->host_)
       hostView()->host_->ForwardMouseEvent(mouseEvent);
@@ -949,8 +965,8 @@ done:
 void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
 
-  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
-
+  touch_start_event_ = EventUtilQt::ToWebTouchEvent(event, scale());
+  cancel_next_mouse_release_event_ = false;
   if (!hostView()->IsPopup()) {
 
     setFocusPolicy(Qt::StrongFocus);
@@ -970,13 +986,23 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
       qreal length = QLineF(event->pos(), m_dbclkHackPos).length();
       if (length < 40) {
         DLOG(INFO) << "WE HIT A DOUBLE CLICK " << length << std::endl;
-        if (!isDoingGesture() && !is_enabled_) {
-          doubleTapAction(event->pos());
+        if (!shouldDeliverDoubleClick()) {
+          if (!isDoingGesture() && !is_enabled_) {
+            doubleTapAction(event->pos());
+            if (delay_for_click_timer_->isActive()) {
+              delay_for_click_timer_->stop();
+            }
+            cancel_next_mouse_release_event_ = true;
+          }
+        } else {
+            // save for double click usage.
+          last_mouse_press_event_ = mouse_press_event_;
+          last_mouse_release_event_ = mouse_release_event_;
+          double_click_ = true;
           if (delay_for_click_timer_->isActive()) {
-            delay_for_click_timer_->stop();
+              delay_for_click_timer_->stop();
           }
         }
-        return;
       }
     }
 
@@ -1000,16 +1026,15 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
   // we send a touch event first to give user a visual feedback on mouse down,
   // but do not do actual mouse down works
   if(hostView()->host_) {
-    hostView()->host_->ForwardTouchEvent(touchEvent);
-
     // Then query the node under current pos
     hostView()->host_->QueryNodeAtPosition(static_cast<int>(event->pos().x() / scale()),
         static_cast<int>(event->pos().y() / scale()));
 
+    // hostView()->host_->ForwardTouchEvent(touch_start_event_);    
+    
     // Finally, save the mouse press event for later usage
     mouse_press_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
     mouse_press_event_delivered_ = false;
-    cancel_next_mouse_release_event_ = false;
 
     //QGraphicsItem* mouseGrabber = controller->mouseGrabberItem();
 
@@ -1045,8 +1070,8 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     m_dbclkHackPos       = event->pos();
   }
 */
-  WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
-// we don't do normal mouse release event when modifing selection
+  touch_end_event_ = EventUtilQt::ToWebTouchEvent(event, scale());
+  // we don't do normal mouse release event when modifing selection
   if (is_modifing_selection_) {
     CommitSelection();
     is_modifing_selection_ = false;
@@ -1055,9 +1080,14 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     goto done;
   }
 
-// we send a touch event first to give user a visual feedback on mouse up
-  if(hostView()->host_)
-    hostView()->host_->ForwardTouchEvent(touchEvent);
+    // This is to avoid two bugs in Google Map
+    // 1. if send touch event before mousemove event, drag map would become stunk.
+    // 2. if send touch event before tapAndHold gesture, context menu would disappear 
+    //    when touch release event send. it's hard to trigger button on context menu
+  if (hostView()->host_ && !(shouldDeliverDoubleClick() || shouldDeliverMouseMove())) {
+     hostView()->host_->ForwardTouchEvent(touch_start_event_);
+     hostView()->host_->ForwardTouchEvent(touch_end_event_);
+  }
 
   // we clear the TapAndHoldGesture here to prevent a PanGesture been invoked upon the same 
   // touch event of tapAndHoldGesture
@@ -1073,20 +1103,23 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if(hostView()->host_) {
       hostView()->host_->ForwardMouseEvent(mouse_release_event_);
     }
-
     delay_for_click_timer_->stop();
     goto done;
   }
 
 
-// If no gesture is going on, it means that we are doing a short click
+  // If no gesture is going on, it means that we are doing a short click
   if (!cancel_next_mouse_release_event_) {
     if (!delay_for_click_timer_->isActive()) {
-    // send out mouse press event, if it hadn't been sent out.
-    deliverMousePressEvent();
-    // send out mouse release event
-    mouse_release_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
-    delay_for_click_timer_->start(350); 
+      mouse_release_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
+      if (double_click_) {
+        // send out double click event
+        deliverMouseDoubleClickEvent();
+        double_click_ = false;
+      } else {
+        // delay 350ms to send out click event
+        delay_for_click_timer_->start(350); 
+      }
     }  else {
       delay_for_click_timer_->stop();
     }
@@ -1101,11 +1134,17 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     setViewportInteractive(true);
   }
 
+  if (shouldDeliverMouseMove()) {
+    setViewportInteractive(true);
+  }
+
+
   if (is_scrolling_scrollable_)
   {
     is_scrolling_scrollable_ = false;
     setViewportInteractive(true);
   }
+
 done:
   event->accept();
 }
@@ -1117,12 +1156,33 @@ void RWHVQtWidget::CommitSelection() {
   rvh->CommitSelection();
 }
 
-void RWHVQtWidget::onClicked()
+void RWHVQtWidget::deliverMouseClickEvent()
 {
   // send out mouse press and release event in pair
   deliverMousePressEvent();
   if(hostView()->host_) {
+    last_mouse_release_event_ = mouse_release_event_;
     hostView()->host_->ForwardMouseEvent(mouse_release_event_);
+    if (delay_for_click_timer_->isActive()) {
+      delay_for_click_timer_->stop();
+    }
+  }
+}
+
+void RWHVQtWidget::deliverMouseDoubleClickEvent()
+{
+  // send out first click.
+  if(hostView()->host_) {
+    hostView()->host_->ForwardMouseEvent(last_mouse_press_event_);
+    hostView()->host_->ForwardMouseEvent(last_mouse_release_event_);
+  }
+  // send out second click.
+  mouse_press_event_ = EventUtilQt::ToWebMouseDoubleClickEvent(mouse_press_event_);
+  if(hostView()->host_) {
+    hostView()->host_->ForwardMouseEvent(mouse_press_event_);
+    hostView()->host_->ForwardMouseEvent(mouse_release_event_);
+  }
+  if (delay_for_click_timer_->isActive()) {
     delay_for_click_timer_->stop();
   }
 }

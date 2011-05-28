@@ -24,6 +24,11 @@ class EventUtilQt {
  public:
 
   /*!
+   * \brief Convert WebKit::WebMouseEvent to WebKit::WebMouseEvent(with clickCount = 2)
+   */
+  static WebKit::WebMouseEvent ToWebMouseDoubleClickEvent(const WebKit::WebMouseEvent);
+
+  /*!
    * \brief Convert QGraphicsSceneMouseEvent to WebKit::WebMouseEvent
    */
   static WebKit::WebMouseEvent ToWebMouseEvent(const QGraphicsSceneMouseEvent*, double scale = 1.0);

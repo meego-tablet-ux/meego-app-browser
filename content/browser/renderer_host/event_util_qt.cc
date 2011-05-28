@@ -33,6 +33,25 @@ static int qtModifiersToWebEventModifiers(Qt::KeyboardModifiers qt_modifiers)
   return modifiers;
 }
 
+// Switch general mouse event to special mouse event for double click
+WebKit::WebMouseEvent EventUtilQt::ToWebMouseDoubleClickEvent(const WebKit::WebMouseEvent wevent)
+{
+  WebKit::WebMouseEvent result;
+  result.timeStampSeconds = wevent.timeStampSeconds;
+  result.modifiers = wevent.modifiers;
+  result.x = wevent.x;
+  result.y = wevent.y;
+  result.windowX = wevent.windowX;
+  result.windowY = wevent.windowY;
+  result.globalX = wevent.globalX;
+  result.globalY = wevent.globalY;
+  result.type = wevent.type;
+  result.button = wevent.button;
+  //clickCount = 2 means double click   
+  result.clickCount = 2;
+  return result;
+}
+
 WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(const QGraphicsSceneMouseEvent *qevent, double scale)
 {
   WebKit::WebMouseEvent result;
@@ -71,7 +90,6 @@ WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(const QGraphicsSceneMouseEven
   else if ((qevent->button() == Qt::RightButton) || (qevent->buttons() & Qt::RightButton))
     result.button = WebKit::WebMouseEvent::ButtonRight;
 
-  // any usage for clickCount?
   result.clickCount = 1;
 
   return result;
@@ -116,7 +134,6 @@ WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(QEvent::Type type,
   else if (button == Qt::RightButton)
     result.button = WebKit::WebMouseEvent::ButtonRight;
 
-  // any usage for clickCount?
   result.clickCount = 1;
 
   return result;
@@ -345,4 +362,3 @@ WebKit::WebTouchEvent EventUtilQt::ToWebTouchEvent(const QGraphicsSceneMouseEven
 
   return result;
 }
-
