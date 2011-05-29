@@ -274,13 +274,18 @@ void BrowserServiceWrapper::TabInsertedAt(TabContentsWrapper* contents,
                                           int index,
                                           bool foreground) {
   TabContents* content = contents->tab_contents();
-  GURL url = content->GetURL();
+  const GURL& url = content->GetURL();
 //  if (url.HostNoBrackets() == "newtab")
 //      return;
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
                           backend_, &BrowserServiceBackend::AddTabItemImpl,
                           index, 0, url.spec(), UTF16ToUTF8(content->GetTitle()),
                           url.HostNoBrackets()));
+
+  MessageLoop::current()->PostDelayedTask(FROM_HERE,
+                                          factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail,
+                                                                     content, url, index),
+                                          3000);
 }
 
 void BrowserServiceBackend::AddTabItemImpl(int tab_id, int win_id, std::string url, std::string title, std::string faviconUrl)
@@ -306,10 +311,28 @@ void BrowserServiceWrapper::TabClosingAt(TabStripModel* tab_strip_model,
                                          int index) {
 }
 
+void BrowserServiceWrapper::TabDeselected(TabContents* content)
+{
+  if(content)
+  {
+    const GURL& url = content->GetURL();
+    TabStripModel* model = browser_->tabstrip_model();
+    int index = model->GetWrapperIndex(content);
+    MessageLoop::current()->PostTask(FROM_HERE,
+        factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail,content, url, index));
+  }
+}
+
 void BrowserServiceWrapper::TabSelectedAt(TabContentsWrapper* old_contents,
                                                 TabContentsWrapper* new_contents,
                                                 int index,
                                                 bool user_gesture) {
+  TabContents* content = new_contents->tab_contents();
+
+  const GURL& url = content->GetURL();
+ 
+  MessageLoop::current()->PostTask(FROM_HERE,
+      factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail, content, url, index));
 }
 
 void BrowserServiceWrapper::TabMoved(TabContentsWrapper* contents,
@@ -361,16 +384,27 @@ void BrowserServiceBackend::AddFavIconItemImpl(GURL url, scoped_refptr<RefCounte
                           png_data->front(), png_data->size());
 }
 
-void BrowserServiceWrapper::GetThumbnail(TabContents* contents, GURL url, int index)
+void BrowserServiceWrapper::GetThumbnail(TabContents* contents, const GURL& url, int index)
 {
-  // We use new method to get thumbnail here for higher qulity for web panel.
+  // Make sure the thumbail capturing is not so frequent
+  // We set time interval between two capturing action is 5s
+  qint64 new_timestamp = QDateTime::currentMSecsSinceEpoch();
+
+  if(url2timestamp_.contains(url)) {
+    qint64 old_timestamp = url2timestamp_[url];
+    if(new_timestamp - old_timestamp < 5000) return;
+  }
+  
+  url2timestamp_[url] = new_timestamp;
+   // We use new method to get thumbnail here for higher qulity for web panel.
   SnapshotTaker* taker = new SnapshotTaker(backend_, url, index);
   taker->SnapshotOnContents(contents);
   snapshotList_.push_back(taker);
 }
 
-void BrowserServiceWrapper::GetFavIcon(GURL url)
+void BrowserServiceWrapper::GetFavIcon(const GURL& url)
 {
+  // Get favicon for the given url
   FaviconService* favicon_service =
       browser_->profile()->GetFaviconService(Profile::EXPLICIT_ACCESS);
   if (favicon_service)
@@ -380,7 +414,6 @@ void BrowserServiceWrapper::GetFavIcon(GURL url)
         NewCallback(this, &BrowserServiceWrapper::OnFaviconDataAvailable));
     consumer_.SetClientData(favicon_service, handle, new GURL(url));
   }
-
 }
 
 void BrowserServiceWrapper::AddOpenedTab()
@@ -395,12 +428,15 @@ void BrowserServiceWrapper::AddOpenedTab()
 void BrowserServiceWrapper::TabChangedAt(TabContentsWrapper* contents,
                                          int index,
                                          TabChangeType change_type) {
-  TabContents* content = contents->tab_contents();
+  TabStripModel* model = browser_->tabstrip_model();
 
-  GURL url = content->GetURL();
+  // Ignore changes if the tab is not selected
+  if(model->selected_index() != index) return;
   
-  if (change_type != TabStripModelObserver::ALL)
-      return;
+  TabContents* content = contents->tab_contents();
+  if(content->is_loading()) return;
+
+  const GURL& url = content->GetURL();
 
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
       backend_, &BrowserServiceBackend::TabChangedAtImpl,
@@ -413,7 +449,6 @@ void BrowserServiceWrapper::TabChangedAt(TabContentsWrapper* contents,
   MessageLoop::current()->PostDelayedTask(FROM_HERE,
                                           factory_.NewRunnableMethod(&BrowserServiceWrapper::GetFavIcon, url),
                                           500);
-
   HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
   hs->QueryURL(content->GetURL(), true, &consumer_,
                NewCallback(this, &BrowserServiceWrapper::AddURLItem));

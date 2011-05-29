@@ -434,7 +434,7 @@ void MeeGoPluginAPI::updateURLInfo(std::string url, std::string title, std::stri
 void MeeGoPluginAPI::addThumbnailItem(int tab_id, std::string url, long long last_update, const unsigned char* blob, size_t len)
 {
   if(!m_panel_db) return;
-	
+
   // Build filename for thumbnail
   char* csum = g_compute_checksum_for_string (G_CHECKSUM_MD5, url.c_str(), -1);
   char* filename = g_strconcat(csum, ".jpg", NULL);

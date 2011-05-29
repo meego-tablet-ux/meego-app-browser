@@ -26,6 +26,7 @@
 #include "content/browser/browser_thread.h"
 #include "googleurl/src/gurl.h"
 #include <QList>
+#include <QMap>
 
 class BrowserServiceBackend;
 class SnapshotTaker;
@@ -49,6 +50,7 @@ public:
   virtual void TabClosingAt(TabStripModel* tab_strip_model,
 			    TabContentsWrapper* contents, int index);
   virtual void TabDetachedAt(TabContentsWrapper* contents, int index);
+  virtual void TabDeselected(TabContents* content);
   virtual void TabSelectedAt(TabContentsWrapper* old_contents,
                              TabContentsWrapper* new_contents,
                              int index,
@@ -124,8 +126,8 @@ public:
     history::FaviconData favicon);
 
   void InitBottomHalf();
-  void GetFavIcon(GURL url);
-  void GetThumbnail(TabContents* contents, GURL url, int index);
+  void GetThumbnail(TabContents* contents, const GURL& url, int index);
+  void GetFavIcon(const GURL &url);
   void OnBrowserClosing();
 
 private:
@@ -143,5 +145,7 @@ private:
   CancelableRequestConsumerTSimple<GURL*> consumer_;
 
   QList<SnapshotTaker*> snapshotList_;
+
+  QMap<GURL, qint64> url2timestamp_; 
 };
 #endif
