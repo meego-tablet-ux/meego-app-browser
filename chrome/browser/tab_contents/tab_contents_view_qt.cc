@@ -46,6 +46,7 @@ TabContentsView* TabContentsView::Create(TabContents* tab_contents) {
 TabContentsViewQt::TabContentsViewQt(TabContents* tab_contents)
     : TabContentsView(tab_contents),
       container_(new QGraphicsWidget),
+      rwhv_(NULL),
       rwhv_view_(NULL) {
 }
 
@@ -84,11 +85,17 @@ RenderWidgetHostView* TabContentsViewQt::CreateViewForWidget(
   RenderWidgetHostViewQt* view = new RenderWidgetHostViewQt(render_container_host);
   view->InitAsChild();
   
-  rwhv_view_ = view->GetNativeView();
+  gfx::NativeView rwhv_view = view->GetNativeView();
+  InsertIntoContentArea(rwhv_view);
+  //rwhv_view_ = view->GetNativeView();
 
-  InsertIntoContentArea(rwhv_view_);
+  //InsertIntoContentArea(rwhv_view_);
 
-  rwhv_ = view;
+  if (!render_container_host->GetInterstitial()) {
+    rwhv_view_ = rwhv_view;
+    rwhv_ = view;
+  }
+  //rwhv_ = view;
   
   return view;
 }

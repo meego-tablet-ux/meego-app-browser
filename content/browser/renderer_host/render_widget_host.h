@@ -425,6 +425,9 @@ class RenderWidgetHost : public IPC::Channel::Listener,
 
   void SetVisibleRect(const gfx::Rect& cached_tiles_rect,
                       const gfx::Rect& visible_contents_rect);
+
+  void SetInterstitial(bool interstitial) { interstitial_ = interstitial; }
+  bool GetInterstitial() { return interstitial_; }
   ////////////////////////////////////////////////
 #endif
 
@@ -747,6 +750,9 @@ class RenderWidgetHost : public IPC::Channel::Listener,
 
   // The last scroll offset of the render widget.
   gfx::Point last_scroll_offset_;
+#if defined(TOOLKIT_MEEGOTOUCH)
+  bool interstitial_;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(RenderWidgetHost);
 };

@@ -206,7 +206,7 @@ Item {
         MouseArea {
 			id: mouseArea
           anchors.fill: parent
-          //onClicked: scene.statusBarTriggered()
+          onClicked: scene.statusBarTriggered()
 
 			property int firstY: 0
 			property int firstX: 0
