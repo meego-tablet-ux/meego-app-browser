@@ -124,9 +124,14 @@ Component {
         }
       }
       states: [
+        // searching
+        State { name: "insearch"; when: bmGlobal.hasSearchText;
+          PropertyChanges { target: dragImage; visible: false; width: 0 }},
+        // dragging
         State { name: "active"; when: bmGlobal.dragging && treeMouseArea.currentId == bookmarkId;
           PropertyChanges { target: wrapperItem; y: treeMouseArea.mouseY - height/2; }
           PropertyChanges { target: dragImage; source: "image://themedimage/widgets/common/drag-handle/drag-handle-active" }},
+        // folder & leaves
         State { name: "leafNode"; when: !hasChildren;
           PropertyChanges { target: openElement; visible: false; } 
           PropertyChanges { target: openContainer; visible: true; } },

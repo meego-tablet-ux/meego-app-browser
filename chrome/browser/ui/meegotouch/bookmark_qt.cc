@@ -329,9 +329,8 @@ BookmarkGridItem* BookmarkOthersQt::CreateBookmarkGridItem(const BookmarkNode* n
   return item;
 }
 
-void BookmarkQt::openBookmarkItem(int64 folder_id, int index) {
-  const BookmarkNode* parent = model_->GetNodeByID(folder_id);
-  const BookmarkNode* node = parent->GetChild(index);
+void BookmarkQt::openBookmarkItem(QString id) {
+  const BookmarkNode* node = model_->GetNodeByID(id.toLong());
   page_navigator_ = browser_->GetSelectedTabContents();
   DCHECK(node);
   DCHECK(node->is_url());
@@ -351,6 +350,13 @@ void BookmarkQt::openBookmarkItem(int64 folder_id, int index) {
   UserMetrics::RecordAction(UserMetricsAction("ClickedBookmarkBarURLButton"),
                             profile_);
 */
+}
+
+void BookmarkQt::openBookmarkItem(int64 folder_id, int index) {
+  const BookmarkNode* parent = model_->GetNodeByID(folder_id);
+  const BookmarkNode* node = parent->GetChild(index);
+  page_navigator_ = browser_->GetSelectedTabContents();
+  openBookmarkItem(node->id());
 }
 
 void BookmarkQt::openBookmarkItem(int index) { 
@@ -1067,9 +1073,9 @@ int BookmarkQtImpl::rowCount(const QModelIndex& parent) const {
   return bookmarks_.count();
 }
 
-void BookmarkQtImpl::openBookmarkItem(int index) {
+void BookmarkQtImpl::openBookmarkItem(QString id) {
   bookmark_qt_->HideBookmarkManager();
-  bookmark_qt_->openBookmarkItem(index);
+  bookmark_qt_->openBookmarkItem(id);
 }
 
 void BookmarkQtImpl::backButtonTapped() {
@@ -1303,30 +1309,6 @@ void BookmarkQtTreeImpl::urlChanged(QString id, QString url) {
   bookmark_qt_->urlChanged(id, url); 
 }
 
-void BookmarkQtTreeImpl::openBookmarkItem(int index) {
-  int fpos, bpos;
-  int64 bid = bookmarks_[index]->id_;
-  int64 fid = bookmarks_[index]->folder_id_;
-  DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" fid "<<fid<<" bid "<<bid;
-  // If this item has no folder
-  if (-1 == fid || !BookmarkList::index(bookmarks_, fid, fpos)) {
-    BookmarkQtImpl::openBookmarkItem(index);
-    return;
-  }
-
-  // else find it's real index
-  if (!BookmarkList::index(bookmarks_[fpos]->children_, bid, bpos)) {
-    DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" bookmark item not found in children! "<<bookmarks_[index]->title_.toStdString();
-    return;
-  }
-
-  // open bookmark
-  DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" will open "<<bookmarks_[index]->title_.toStdString()
-      << " fid "<<fid<<" real pos "<<bpos;
-  bookmark_qt_->HideBookmarkManager();
-  bookmark_qt_->openBookmarkItem(fid, bpos);
-}
-
 void BookmarkQtTreeImpl::PopupMenu(int x, int y) {
   gfx::Point p(x,y);
   bookmark_qt_->PopupMenu(p);
@@ -1431,11 +1413,7 @@ BookmarkQtFilterProxyModel::BookmarkQtFilterProxyModel(BookmarkQtImpl *impl, QOb
 }
 
 void BookmarkQtFilterProxyModel::openBookmarkItem(QString id) { 
-  DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" will open bookmark "<<id.toStdString()
-    <<" impl idx "<<impl_->idx(id.toLong())<<" source idx "<<toSource(impl_->idx(id.toLong()));
-  if (-1 == impl_->idx(id.toLong()) || 
-      -1 == toSource(impl_->idx(id.toLong()))) return;
-  impl_->openBookmarkItem(toSource(impl_->idx(id.toLong()))); 
+  impl_->openBookmarkItem(id);
 }
 
 void BookmarkQtFilterProxyModel::popupMenu(int x, int y) { 

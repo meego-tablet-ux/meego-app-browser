@@ -246,6 +246,7 @@ public:
   virtual BookmarkGridItem* CreateBookmarkGridItem(const BookmarkNode* node) = 0;
 
   void openBookmarkItem(int index); 
+  void openBookmarkItem(QString id);
   void openBookmarkItem(int64 folder_id, int index);
   void removeBookmarkInModel(int index);
   void removeBookmarkInModel(QString id);
@@ -445,7 +446,7 @@ Q_SIGNALS:
   void hide();
 
 public Q_SLOTS:
-  virtual void openBookmarkItem(int index);
+  virtual void openBookmarkItem(QString id);
   void backButtonTapped(); // back button in Bookmark Manager
 
   virtual void remove(QString id) {}
@@ -521,7 +522,6 @@ public Q_SLOTS:
   void titleChanged(QString id, QString title);
   void urlChanged(QString id, QString url);
   void moveToAnotherFolder(int index) { bookmark_qt_->MoveToAnotherFolder(index); }
-  void clicked(int64 id) { openBookmarkItem(idx(id)); }
 
 private:
   BookmarkImageProvider provider_;
@@ -544,7 +544,6 @@ public:
 
   bool removeBookmark(const BookmarkNode *node);
 
-  void openBookmarkItem(int index);
   void PopupMenu(int x, int y);
 
   bool addBookmarkToFolder(BookmarkItem *bookmark, const BookmarkNode* parent, int idx);
@@ -560,8 +559,6 @@ public Q_SLOTS:
   void titleChanged(QString id, QString title);
   void urlChanged(QString id, QString url);
   void moveToAnotherFolder(int index) { bookmark_qt_->MoveToAnotherFolder(index); }
-
-  void clicked(int64 id) { openBookmarkItem(idx(id)); }
 
   void openItem(int numIndex);
   void closeItem(int numIndex);

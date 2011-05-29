@@ -105,6 +105,7 @@ Item {
     property int listHeight: 55
     property int leftMargin: 20
     property real parallaxWidthFactor: 0.75
+    property bool hasSearchText: searchBox.text != ""
   }
 
   MouseArea {
@@ -127,6 +128,7 @@ Item {
     width: parent.width; height: parent.height - topContainer.height
     anchors { top: topContainer.bottom }
     source: portrait ? "BookmarkListTreeAll.qml" : bmGlobal.gridShow ? "BookmarkListGridList.qml" : "BookmarkListTreeList.qml"
+    onLoaded: textChange(searchBox.text)
   }
 
   Item {
@@ -157,18 +159,20 @@ Item {
       height: headHeight - headTextHeight - bottomMargin
       anchors { top: headTextContainer.bottom; left: parent.left; leftMargin: bmGlobal.leftMargin } //verticalCenter: backButton.verticalCenter }
       defaultText: bookmarkManagerSearchHolder
-      onTextChanged: {
-        if (portrait) {
-          listLoader.item.model.textChanged(text);
-        } else {
-          listLoader.item.barContainer.model.textChanged(text);
-          listLoader.item.othersContainer.model.textChanged(text);
-        }
-      }
+      onTextChanged: textChange(text)
     }
 
     Rectangle {            color: "#bac4c8"; height: 1; anchors { bottom: wedge.top;           left: parent.left; right: parent.right } }
     Rectangle { id: wedge; color: "#ebebeb"; height: 1; anchors { bottom: topContainer.bottom; left: parent.left; right: parent.right } }
+  }
+
+  function textChange(text) {
+    if (portrait) {
+      listLoader.item.model.textChanged(text);
+    } else {
+      listLoader.item.barContainer.model.textChanged(text);
+      listLoader.item.othersContainer.model.textChanged(text);
+    }
   }
 
   ModalDialog {
