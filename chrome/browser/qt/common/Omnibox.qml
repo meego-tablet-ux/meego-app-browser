@@ -105,18 +105,22 @@ Item {
     }
     Rectangle{
       id: sslArea
-      height: parent.height - 10
+      height: parent.height - 12
       width:  {!showqmlpanel ? sslIcon.width+sslTitle.paintedWidth + widthFix:0}
       opacity: {!showqmlpanel ? 1:0}
       anchors.verticalCenter: parent.verticalCenter
       anchors.left: parent.left
       property int widthFix: 16
-      anchors.leftMargin: 7
+      anchors.leftMargin: 10
       anchors.rightMargin: 5
       radius: 5
       smooth: true
-      Image {
+      BorderImage {
         id: sslBackground
+        border.left: 6
+        border.top: 0
+        border.bottom: 0
+        border.right: 6
         anchors.fill: parent
         smooth: true
       }
@@ -126,7 +130,7 @@ Item {
         width: height
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 5
+        anchors.leftMargin: 7
       }
       Text{
         id:sslTitle
@@ -134,6 +138,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: theme_fontPixelSizeNormal
         anchors.leftMargin: 3
+        anchors.rightMargin: 3
       }
    }
     TextInput {
@@ -228,14 +233,14 @@ Item {
           if(state){
             sslIcon.width = sslIcon.height;
             sslTitle.text = domain;
-            sslArea.widthFix = 16
+            sslArea.widthFix = domain=="" ? 16 : 20
             if (state == 1){
-              sslArea.border.color = "#1da611";
+              sslBackground.source = "image://themedimage/widgets/apps/browser/ssl-safe-url-background"
               sslTitle.color = "#1da611";
               sslIcon.source="image://themedimage/widgets/apps/browser/ssl-safe"
             }
             else{
-              sslArea.border.color = "#d42f2f";
+              sslBackground.source = "image://themedimage/widgets/apps/browser/ssl-unsafe-url-background"
               sslTitle.color = "#d42f2f";
               if (state ==2)
                 sslIcon.source="image://themedimage/widgets/apps/browser/close-small"

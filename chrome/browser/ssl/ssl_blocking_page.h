@@ -56,11 +56,11 @@ class SSLBlockingPage : public InterstitialPage {
   // Note: there can be up to 5 strings in |extra_info|.
   static void SetExtraInfo(DictionaryValue* strings,
                            const std::vector<string16>& extra_info);
-
+  void Show();
+  virtual void CommandReceived(const std::string& command);
  protected:
   // InterstitialPage implementation.
   virtual std::string GetHTMLContents();
-  virtual void CommandReceived(const std::string& command);
   virtual void UpdateEntry(NavigationEntry* entry);
   virtual void Proceed();
   virtual void DontProceed();

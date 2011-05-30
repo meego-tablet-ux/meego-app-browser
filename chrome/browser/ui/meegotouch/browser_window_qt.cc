@@ -261,6 +261,7 @@ void BrowserWindowQt::InitWidget()
   bookmark_others_.reset(new BookmarkOthersQt(this, browser_->profile(), browser_.get(), bookmarklist_data_));
   infobar_container_.reset(new InfoBarContainerQt(browser_->profile(), this));
   find_bar_ = new FindBarQt(browser_.get(), this);
+  ssl_dialog_.reset(new SSLDialogQt(this));
   new_tab_.reset(new NewTabUIQt(browser_.get(), this));
   bookmark_bubble_.reset(new BookmarkBubbleQt(this, browser_.get(), browser_->profile()));
   web_popuplist_.reset(new PopupListQt(this));
@@ -518,6 +519,11 @@ void BrowserWindowQt::ShowCrashTab( ){
 FindBarQt* BrowserWindowQt::GetFindBar()
 {
   return find_bar_;
+}
+
+SSLDialogQt* BrowserWindowQt::GetSSLDialogQt()
+{
+  return ssl_dialog_.get();
 }
 
 SelectFileDialogQtImpl* BrowserWindowQt::GetSelectFileDialog()

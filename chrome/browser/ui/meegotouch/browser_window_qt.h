@@ -31,6 +31,7 @@
 #include "chrome/browser/ui/meegotouch/downloads_handler_qt.h"
 #include "chrome/browser/ui/meegotouch/find_bar_qt.h"
 #include "chrome/browser/ui/meegotouch/crash_tab_qt.h"
+#include "chrome/browser/ui/meegotouch/ssl_dialog_qt.h"
 
 class LauncherWindow;
 class QDeclarativeView;
@@ -52,6 +53,7 @@ class DialogQtResultListener;
 class BrowserWindowQtImpl;
 class DownloadsQtHandler;
 class CrashTabQt;
+class SSLDialogQt;
 //
 // An implementation of BrowserWindow for QT.
 // Cross-platform code will interact with this object when
@@ -189,6 +191,8 @@ class BrowserWindowQt : //public MApplicationWindow,
   SelectFileDialogQtImpl* GetSelectFileDialog();
   PopupListQt* GetWebPopupList();
 
+  SSLDialogQt* GetSSLDialogQt();
+
  protected:
   bool CanClose();
   virtual void DestroyBrowser();
@@ -219,6 +223,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   scoped_ptr<NewTabUIQt> new_tab_;
   scoped_ptr<DownloadsQtHandler> download_handler_;
   scoped_ptr<PopupListQt> web_popuplist_;
+  scoped_ptr<SSLDialogQt> ssl_dialog_;
 
   FindBarQt* find_bar_; // It will be automatically freed by find bar controller
   BookmarkListData* bookmarklist_data_; // The bookmark data shared between bookmark_bar_ and bookmark_others_

@@ -81,6 +81,7 @@ Item {
     property string panelstring: ""
 
     property alias findbar: findBarLoader.item
+    property alias ssldialog: sslDialogLoader.item
     property alias bookmarklist: bookmarkManagerLoader.item
     property alias showsearch: toolbar.showsearch
     property alias toolbarheight: toolbar.height
@@ -339,7 +340,13 @@ Item {
             infobarLoader.source = "InfoBarContainer.qml"
           }
         }
-
+        Loader {
+          id: sslDialogLoader
+          anchors.horizontalCenter: innerContent.horizontalCenter
+          anchors.verticalCenter: innerContent.verticalCenter
+          source: "SslDialog.qml"
+          z: 20
+        }
         Window {
             // Wrapper window item to make TopItem bring in by bookmarklist.qml to work correctly
             id: bookmarkManagerHolder

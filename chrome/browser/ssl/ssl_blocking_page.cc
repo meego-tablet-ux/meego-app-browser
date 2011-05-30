@@ -9,9 +9,11 @@
 #include "base/string_piece.h"
 #include "base/utf_string_conversions.h"
 #include "base/values.h"
+#include "chrome/browser/browser_list.h"
 #include "chrome/browser/dom_operation_notification_details.h"
 #include "chrome/browser/ssl/ssl_cert_error_handler.h"
 #include "chrome/browser/ssl/ssl_error_info.h"
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/common/jstemplate_builder.h"
 #include "content/browser/cert_store.h"
 #include "content/browser/renderer_host/render_process_host.h"
@@ -92,6 +94,11 @@ std::string SSLBlockingPage::GetHTMLContents() {
 
   strings.SetString("textdirection", base::i18n::IsRTL() ? "rtl" : "ltr");
 
+  Browser* browser = BrowserList::GetLastActive();
+  BrowserWindowQt* window = (BrowserWindowQt*)browser->window();
+  SSLDialogQt* sslDialog = window->GetSSLDialogQt();
+  sslDialog->SetDetails(&strings);
+
   base::StringPiece html(
       ResourceBundle::GetSharedInstance().GetRawDataResource(resource_id));
 
@@ -113,6 +120,15 @@ void SSLBlockingPage::UpdateEntry(NavigationEntry* entry) {
       NotificationService::NoDetails());
 }
 
+void SSLBlockingPage::Show()
+{
+  Browser* browser = BrowserList::GetLastActive();
+  BrowserWindowQt* window = (BrowserWindowQt*)browser->window();
+  SSLDialogQt* sslDialog = window->GetSSLDialogQt();
+  sslDialog->SetPageHandler(this);
+  InterstitialPage::Show();
+  sslDialog->Show();
+}
 void SSLBlockingPage::CommandReceived(const std::string& command) {
   if (command == "1") {
     Proceed();

@@ -2876,6 +2876,8 @@
         'browser/ui/meegotouch/select_file_dialog_qt.h',
         'browser/ui/meegotouch/moc_select_file_dialog_qt.cc',
         'browser/ui/meegotouch/ssl_client_certificate_selector_qt.cc',
+        'browser/ui/meegotouch/ssl_dialog_qt.h',
+        'browser/ui/meegotouch/ssl_dialog_qt.cc',
         'browser/ui/meegotouch/status_tray_qt.cc',
         'browser/ui/meegotouch/tab_list_qt.cc',
         'browser/ui/meegotouch/tab_list_qt.h',
@@ -4525,7 +4527,22 @@
                   '-o',
                   '<(_outputs)',
                 ],
-              },                                                          
+              },
+              {
+                'action_name': 'ssl_dialog_qt.cc',
+                'inputs': [
+                  'browser/ui/meegotouch/ssl_dialog_qt.cc',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_ssl_dialog_qt.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
               {
                 'action_name': 'moc_back_forward_button_qt.h',
                 'inputs': [
