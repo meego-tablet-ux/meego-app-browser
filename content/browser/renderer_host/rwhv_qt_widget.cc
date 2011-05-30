@@ -1030,7 +1030,7 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
     hostView()->host_->QueryNodeAtPosition(static_cast<int>(event->pos().x() / scale()),
         static_cast<int>(event->pos().y() / scale()));
 
-    // hostView()->host_->ForwardTouchEvent(touch_start_event_);    
+    hostView()->host_->ForwardTouchEvent(touch_start_event_);    
     
     // Finally, save the mouse press event for later usage
     mouse_press_event_ = EventUtilQt::ToWebMouseEvent(event, scale());
@@ -1084,8 +1084,8 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     // 1. if send touch event before mousemove event, drag map would become stunk.
     // 2. if send touch event before tapAndHold gesture, context menu would disappear 
     //    when touch release event send. it's hard to trigger button on context menu
-  if (hostView()->host_ && !(shouldDeliverDoubleClick() || shouldDeliverMouseMove())) {
-     hostView()->host_->ForwardTouchEvent(touch_start_event_);
+  if (hostView()->host_ /*&& !(shouldDeliverDoubleClick() || shouldDeliverMouseMove())*/) {
+//     hostView()->host_->ForwardTouchEvent(touch_start_event_);
      hostView()->host_->ForwardTouchEvent(touch_end_event_);
   }
 
