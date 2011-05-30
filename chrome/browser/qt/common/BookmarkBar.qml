@@ -140,7 +140,7 @@ Item {
         MouseArea {
           anchors.fill: parent
           onClicked: {
-            container.model.openBookmarkItem(index);
+            container.model.openBookmarkItem(bookmarkId);
           }
           onPressed: parent.pressed = true
           onReleased: parent.pressed = false
