@@ -38,18 +38,15 @@ Item {
   // Call c++ methods to open the clicked page and decide whether to show
   // historybar and listen to signals from c++ to update its showness
   id: container
-  // default height is 150
-  property int rectHeight: 200
-  //width: parent.width
+  // default height is 135
+  property int rectHeight: 135
   height: rectHeight
   anchors.left: parent.left
   anchors.right: parent.right
 
   // default margin is 5
   property int commonMargin: 5
-
-  anchors.leftMargin: commonMargin
-  anchors.rightMargin: commonMargin
+  property int innerCommonMargin: 1
 
   // delegate to show thumbnail of each web page in the history list
   Component {
@@ -57,66 +54,66 @@ Item {
     Item {
       id: innerItem
 
-      height: historyView.itemHeight 
-      width: historyView.itemWidth  
+      height: 114 
+      width: 180
 
       // flag to indicate whether the current item is the highlighted one in the list
       property bool isCurrent: false
       Rectangle {
         id: historyItem
-        height: parent.height - 4 * commonMargin
-        //color: "#383838"
-        border.width: 4
+        height: parent.height
+        border.width: innerCommonMargin
         border.color: "grey"
 
-        width: parent.width - 2 * commonMargin
+        width: parent.width
         anchors.fill: parent
-        anchors.margins: commonMargin
-
-        anchors {
-            leftMargin: commonMargin
-            rightMargin: commonMargin
-            topMargin: commonMargin * 2
-            bottomMargin: commonMargin * 2
-        }
-
-        Image {
-            id: bg
-            anchors.fill: parent
-            source: "image://themedimage/images/browser/bg_favouritesoverlay"
-        }
+        anchors.margins: innerCommonMargin
 
         Rectangle {
             id: image 
-            height: parent.height * 0.7 - 2 * commonMargin    
-            width: parent.width - 4 * commonMargin
+            height: parent.height - historyTitle.height - innerCommonMargin
+            width:  parent.width - innerCommonMargin 
 
             anchors.top: parent.top
             anchors.left: parent.left
-            anchors.leftMargin: 2 * commonMargin
-            anchors.topMargin: 2 * commonMargin
-            Image {                        
+            anchors.leftMargin: innerCommonMargin
+            anchors.topMargin: innerCommonMargin
+
+            Image {
+              height: parent.height
+              width: parent.width                      
               id: thumbImage               
               source: thumbSrc             
-              fillMode: Image.PreserveAspectFit
               smooth: true
-              anchors.fill: parent
             }
         }
+
+        Rectangle {
+            id: historyTitle
+            height: 30
+            width: parent.width - innerCommonMargin
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left	
+            anchors.leftMargin: innerCommonMargin
+            Image {
+              id: textBg
+              source: "image://themedimage/widgets/apps/browser/tabs-background"
+              anchors.fill: parent
+            }
             Text {
-              id: historyTitle
-              height: parent.height * 0.3   
-              width: parent.width 
-              anchors.bottom: parent.bottom
+              id: titleText
+              width: parent.width - 20
+              x: 10
+              y: 7
+              font.pointSize: 10
               text: title
               clip: true
-              //anchors.fill: parent
-              color: "white"
+              color: "#ffffff"
               elide: Text.ElideRight
-              verticalAlignment: Text.AlignVCenter
-              horizontalAlignment: Text.AlignHCenter
               wrapMode: Text.NoWrap
-            }
+            }     
+        }
+
           MouseArea {
             anchors.fill: parent
             onClicked: {
@@ -145,23 +142,38 @@ Item {
         PropertyChanges {
           target: historyItem
           radius: 2
-          border.width: 6
+          border.width: 1
           border.color: "#2CACE3"
         }
+	PropertyChanges {
+	  target: titleText
+	  color: "#383838"
+	}
+	PropertyChanges {
+	  target: historyTitle
+	  color: "white"
+	}
+	PropertyChanges {
+	  target: textBg
+	  source: "image://themedimage/widgets/apps/browser/tabs-background-active"
+	}
       }
     }
   }
+
   ListView {
     id: historyView
     anchors.fill: parent
-    spacing: 1
+    spacing: 5
+    anchors.topMargin: commonMargin*2
+    anchors.bottomMargin: commonMargin*2
     delegate: historyItemDelegate
     model: historyStackModel
     focus: true
     clip: true
     currentIndex: 0
     property real itemHeight: height
-    property real itemWidth: height * 1.2
+    property real itemWidth: innerItem.width
     orientation: ListView.Horizontal
     // only interactive when items are full of container
     interactive: itemWidth * count < container.width ? false : true
