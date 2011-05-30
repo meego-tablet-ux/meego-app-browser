@@ -100,9 +100,6 @@ RenderWidgetHost::RenderWidgetHost(RenderProcessHost* process,
       text_direction_canceled_(false),
       suppress_next_char_events_(false),
       scale_factor_(1.0f) {
-#if defined(TOOLKIT_MEEGOTOUCH)
-      interstitial_ = false;
-#endif
   if (routing_id_ == MSG_ROUTING_NONE)
     routing_id_ = process_->GetNextRoutingID();
 
