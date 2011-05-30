@@ -45,19 +45,22 @@ TabContentsView* TabContentsView::Create(TabContents* tab_contents) {
 
 TabContentsViewQt::TabContentsViewQt(TabContents* tab_contents)
     : TabContentsView(tab_contents),
-      container_(new QGraphicsWidget),
-      rwhv_view_(NULL) {
+      container_(new QGraphicsWidget) {
 }
 
 void TabContentsViewQt::OnResize()
 {
-  LOG(INFO) << "rwhv_view_ size changed to = " << rwhv_view_->geometry().width()
-             << ", " << rwhv_view_->geometry().height();
-  LOG(INFO) << "TabContentsViewQt::widget size changed to =" << container_->geometry().width()
-             << ", " << container_->geometry().height();
   RenderWidgetHostView* rwhv = tab_contents()->GetRenderWidgetHostView();
-  if (rwhv)
+  if (rwhv) {
+    gfx::NativeView rwhv_view = rwhv->GetNativeView();
+    LOG(INFO) << "rwhv_view size changed to = "
+              << rwhv_view->geometry().width()
+              << ", " << rwhv_view->geometry().height();
+    LOG(INFO) << "TabContentsViewQt::widget size changed to ="
+              << container_->geometry().width()
+              << ", " << container_->geometry().height();
     rwhv->SetSize(gfx::Size(container_->geometry().width(), container_->geometry().height()));
+  }
 }
 
 
@@ -83,13 +86,7 @@ RenderWidgetHostView* TabContentsViewQt::CreateViewForWidget(
     RenderWidgetHost* render_container_host) {
   RenderWidgetHostViewQt* view = new RenderWidgetHostViewQt(render_container_host);
   view->InitAsChild();
-  
-  rwhv_view_ = view->GetNativeView();
-
-  InsertIntoContentArea(rwhv_view_);
-
-  rwhv_ = view;
-  
+  InsertIntoContentArea(view->GetNativeView());
   return view;
 }
 
@@ -105,7 +102,10 @@ gfx::NativeView TabContentsViewQt::GetNativeView() const {
 
 gfx::NativeView TabContentsViewQt::GetContentNativeView() const {
   // get native view of RenderWidgetHostView
-  return rwhv_view_;
+  RenderWidgetHostView *rwhv = tab_contents()->GetRenderWidgetHostView();
+  if (!rwhv)
+    return NULL;
+  return rwhv->GetNativeView();
 }
 
 gfx::NativeWindow TabContentsViewQt::GetTopLevelNativeWindow() const {
@@ -160,13 +160,14 @@ void TabContentsViewQt::Focus() {
       tab_contents()->interstitial_page()->Focus();
     } else {
       gfx::NativeView widget = GetContentNativeView();
-      if (widget)
-	widget->setFocus();
-      QGraphicsItem *parent = widget->parentItem();
-      while (parent) {
-	if (parent->flags() & QGraphicsItem::ItemIsFocusScope)
-	  parent->setFocus(Qt::OtherFocusReason);
-	parent = parent->parentItem();
+      if (widget) {
+        widget->setFocus();
+        QGraphicsItem *parent = widget->parentItem();
+        while (parent) {
+          if (parent->flags() & QGraphicsItem::ItemIsFocusScope)
+            parent->setFocus(Qt::OtherFocusReason);
+            parent = parent->parentItem();
+        }
       }
     }
 }

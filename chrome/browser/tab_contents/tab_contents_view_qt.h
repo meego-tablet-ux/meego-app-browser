@@ -89,9 +89,6 @@ class TabContentsViewQt : public TabContentsView,
  private:
   QGraphicsWidget* container_;
 
-  RenderWidgetHostViewQt* rwhv_;
-
-  QGraphicsWidget* rwhv_view_;
   gfx::Size requested_size_;
 
   scoped_ptr<RenderViewContextMenuQt> context_menu_;
