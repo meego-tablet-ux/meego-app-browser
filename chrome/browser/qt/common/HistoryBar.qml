@@ -41,7 +41,7 @@ Item {
     property bool showed: false
 	property int itemCount: 0
 	property int commonMargin: 5
-	property int showWidth: (itemCount * 180 + commonMargin * itemCount) < parent.width ? itemCount * 180 + commonMargin * itemCount: parent.width
+	property int showWidth: (itemCount * 180 + commonMargin * (itemCount + 1)) < parent.width ? itemCount * 180 + commonMargin * (itemCount + 1): parent.width
     //property alias historyBarY: historyBar.y
     z: 10
     opacity: 0
@@ -59,7 +59,7 @@ Item {
       id: historyContainer
       anchors.left: parent.left
       anchors.right: parent.right
-      anchors.top: parent.top //finger.bottom
+      anchors.top: parent.top 
       anchors.topMargin: 55
       height: historyBar.height
       z: parent.z

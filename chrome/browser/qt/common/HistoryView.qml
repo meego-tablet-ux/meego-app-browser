@@ -167,6 +167,7 @@ Item {
     spacing: 5
     anchors.topMargin: commonMargin*2
     anchors.bottomMargin: commonMargin*2
+    anchors.leftMargin: commonMargin
     delegate: historyItemDelegate
     model: historyStackModel
     focus: true
