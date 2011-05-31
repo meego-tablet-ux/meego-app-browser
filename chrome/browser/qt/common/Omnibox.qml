@@ -335,16 +335,19 @@ Item {
         anchors.leftMargin: 5
         anchors.rightMargin: 5
         visible: false
+
+   	    Timer {
+	         id: indicatorTimer
+           interval: 200
+           repeat: true
+           onTriggered: { indicator.rotation = (indicator.rotation + 45)%360; }
+ 	      }
+
         Image {
             id: indicator
             anchors.fill: parent
-            source: "image://themedimage/images/browser/busy"; 
-            NumberAnimation on rotation { 
-                from: 0; 
-                to: 360; 
-                loops: Animation.Infinite; 
-                duration: 2000 
-            }
+            source: "image://themedimage/images/browser/busy";
+            rotation: 0 
         }
         Connections {
             target: browserToolbarModel
@@ -352,11 +355,13 @@ Item {
                 if(is_loading){
                     processIndicator.visible = true;
                     starButton.visible = false;
+                    indicatorTimer.start();
                     urlTextInput.anchors.right = processIndicator.left
                 }
                 else{
                     processIndicator.visible = false;
                     starButton.visible = true;
+                    indicatorTimer.stop();
                     urlTextInput.anchors.right = starButton.left
                 }
             }
