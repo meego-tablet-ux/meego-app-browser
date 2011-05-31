@@ -47,6 +47,7 @@
 #include "chrome/common/chrome_switches.h"
 #include "chrome/common/url_constants.h"
 #include "grit/generated_resources.h"
+#include "grit/chromium_strings.h"
 #include "net/base/registry_controlled_domain.h"
 #include "ui/base/l10n/l10n_util.h"
 
@@ -211,6 +212,9 @@ TabListQt::TabListQt(Browser* browser, BrowserWindow* window):
   context->setContextProperty("tabSideBarModel", this);
   QString newtab = QString::fromStdWString(UTF16ToWide(l10n_util::GetStringUTF16(IDS_TAB_CXMENU_NEWTAB)));
   context->setContextProperty("newtabtitle", newtab);
+
+  QString overLimitContent = QString::fromStdWString(UTF16ToWide(l10n_util::GetStringUTF16(IDS_TAB_OVER_LIMIT_CONTENT)));
+  context->setContextProperty("overLimitContent", overLimitContent);
 
   context->engine()->addImageProvider(QLatin1String("tabsidebar"), this);
 

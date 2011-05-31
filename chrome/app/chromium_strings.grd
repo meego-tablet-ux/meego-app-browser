@@ -238,6 +238,9 @@ be available for now. -->
       <message name="IDS_CRASH_TAB_CLOSE_BUTTON_CONTENT" desc="Closed button title shown when the tab crashed or was killed.">
         Close Tab
       </message>
+      <message name="IDS_TAB_OVER_LIMIT_CONTENT" desc="The content was displayed when tabs reached the maximum value.">
+        Please close one of the tabs to open a new one
+      </message>
       <!-- Browser Window Title Format -->
       <message name="IDS_BROWSER_WINDOW_TITLE_FORMAT" desc="The format for titles displayed in tabs and popup windows">
         <ph name="PAGE_TITLE">$1<ex>Google</ex></ph> - Chromium

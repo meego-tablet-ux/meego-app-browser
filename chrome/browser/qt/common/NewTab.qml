@@ -69,7 +69,7 @@ Item {
       }
       PropertyChanges{
         target: textDisplay
-        text: "Please close one of the<br>tabs to open a new one"
+        text: overLimitContent
         font.pixelSize: 13
         color: "#383838"
         font.bold: true
@@ -87,7 +87,7 @@ Item {
     anchors.fill : parent
     property bool newTabEnabled: true
 
-    Text {
+    TextEdit {
       id: textDisplay
       width: parent.width
       height: parent.height
@@ -95,6 +95,8 @@ Item {
       anchors.horizontalCenter: parent.horizontalCenter
       verticalAlignment: Text.AlignVCenter
       horizontalAlignment: Text.AlignHCenter
+      readOnly: true
+      wrapMode: TextEdit.WordWrap
       font.pixelSize: theme_fontPixelSizeNormal
       font.family: theme_fontFamily
       font.bold: false
