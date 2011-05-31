@@ -54,6 +54,11 @@ class WebPluginPageDelegate {
 
   // The WebCookieJar to use for this plugin.
   virtual WebKit::WebCookieJar* GetCookieJar() = 0;
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  virtual WebKit::WebRect PluginFullScreenRect() = 0;
+
+#endif
 };
 
 }  // namespace npapi

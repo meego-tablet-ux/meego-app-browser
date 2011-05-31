@@ -109,6 +109,7 @@ RenderWidget::RenderWidget(RenderThreadBase* render_thread,
 {
   RenderProcess::current()->AddRefProcess();
   WebKit::WebWidget::setUseExternalPopupMenus(true);
+  fs_plugin_win_size_ = gfx::Size(0, 0);
   DCHECK(render_thread_);
 }
 
@@ -183,6 +184,7 @@ void RenderWidget::CompleteInit(gfx::NativeViewId parent_hwnd,
   host_window_ = parent_hwnd;
   compositing_surface_ = compositing_surface;
 
+  GetFSPluginWinSize();
   Send(new ViewHostMsg_RenderViewReady(routing_id_));
 }
 
@@ -215,6 +217,7 @@ bool RenderWidget::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_SetPreferredSize, OnSetPreferredSize)
     IPC_MESSAGE_HANDLER(ViewMsg_PaintTile, OnMsgPaintTile)
     IPC_MESSAGE_HANDLER(ViewMsg_QueryElementAreaAt, OnQueryElementAreaAt);
+    IPC_MESSAGE_HANDLER(ViewMsg_SetFSPluginWinSize, OnSetFSPluginWinSize);
 #endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
@@ -278,6 +281,16 @@ void RenderWidget::OnSetPreferredSize(const gfx::Size& new_size)
   webwidget_->setPreferredContentsSize(new_size);
 }
 
+gfx::Size RenderWidget::GetFSPluginWinSize()
+{
+    Send(new ViewHostMsg_GetFSPluginWinSize(routing_id_,&fs_plugin_win_size_));
+    return fs_plugin_win_size_;
+}
+
+void RenderWidget::OnSetFSPluginWinSize(const gfx::Size& new_size)
+{
+  fs_plugin_win_size_ = new_size;
+}
 
 void RenderWidget::OnResize(const gfx::Size& new_size,
                             const gfx::Rect& resizer_rect) {

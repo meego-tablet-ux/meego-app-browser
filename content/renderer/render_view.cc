@@ -3157,6 +3157,24 @@ WebCookieJar* RenderView::GetCookieJar() {
   return &cookie_jar_;
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+WebRect RenderView::PluginFullScreenRect() {
+
+  DNOTIMPLEMENTED() << " pw.w-h = " << fs_plugin_win_size_.width() << "-" << fs_plugin_win_size_.height();
+  if ((fs_plugin_win_size_.width() > 0) && (fs_plugin_win_size_.height() > 0))
+      return WebRect(0, 0, fs_plugin_win_size_.width(), fs_plugin_win_size_.height());
+
+  // fall back to preferredContentsSize
+  WebSize pc_size(0, 0);
+
+  if (webview()) {
+    pc_size = webview()->preferredContentsSize();
+  }
+
+  return WebRect(0, 0, pc_size.width, pc_size.height);
+}
+#endif
+
 void RenderView::SyncNavigationState() {
   if (!webview())
     return;

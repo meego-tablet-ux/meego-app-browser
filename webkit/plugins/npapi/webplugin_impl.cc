@@ -284,6 +284,16 @@ void WebPluginImpl::updateGeometry(
   for (size_t i = 0; i < cutout_rects.size(); ++i)
     new_geometry.cutout_rects.push_back(cutout_rects[i]);
 
+
+#if 1
+  // for windowed mode
+  if (window_ && page_delegate_) {
+    WebRect fs_rect = page_delegate_->PluginFullScreenRect();
+    new_geometry.window_rect = fs_rect;
+  }
+
+#endif
+
   // Only send DidMovePlugin if the geometry changed in some way.
   if (window_ &&
       page_delegate_ &&

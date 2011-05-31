@@ -426,6 +426,8 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void SetVisibleRect(const gfx::Rect& cached_tiles_rect,
                       const gfx::Rect& visible_contents_rect);
   ////////////////////////////////////////////////
+
+  void SetFSPluginWinSize(const gfx::Size& ws);
 #endif
 
   void set_ignore_input_events(bool ignore_input_events) {
@@ -563,6 +565,7 @@ class RenderWidgetHost : public IPC::Channel::Listener,
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   void OnMsgQueryNodeAtPositionACK(unsigned int node_info);
+  void OnMsgGetFSPluginWinSize(gfx::Size *result);
 #endif
 
   // Paints the given bitmap to the current backing store at the given location.

@@ -595,6 +595,9 @@ class RenderView : public RenderWidget,
   virtual void DidStartLoadingForPlugin();
   virtual void DidStopLoadingForPlugin();
   virtual WebKit::WebCookieJar* GetCookieJar();
+#if defined(TOOLKIT_MEEGOTOUCH)
+  virtual WebKit::WebRect PluginFullScreenRect();
+#endif
 
   // Please do not add your stuff randomly to the end here. If there is an
   // appropriate section, add it there. If not, there are some random functions

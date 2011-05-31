@@ -217,6 +217,8 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
                         OnMsgQueryNodeAtPositionACK)
     IPC_MESSAGE_HANDLER(ViewHostMsg_DidContentsSizeChanged,
                         OnMsgDidContentsSizeChanged)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_GetFSPluginWinSize,
+                        OnMsgGetFSPluginWinSize)
 #endif
 
     IPC_MESSAGE_UNHANDLED(handled = false)
@@ -819,6 +821,11 @@ void RenderWidgetHost::SetVisibleRect(const gfx::Rect& cached_tiles_rect,
   Send(new ViewMsg_SetVisibleRect(routing_id(), cached_tiles_rect, visible_contents_rect));
 }
 
+void RenderWidgetHost::SetFSPluginWinSize(const gfx::Size& ws)
+{
+  Send(new ViewMsg_SetFSPluginWinSize(routing_id(), ws));
+}
+
 double RenderWidgetHost::GetScaleFactor() const
 {
   return scale_factor_;
@@ -934,6 +941,12 @@ void RenderWidgetHost::RendererIsResponsive() {
   if (is_unresponsive_) {
     is_unresponsive_ = false;
     NotifyRendererResponsive();
+  }
+}
+
+void RenderWidgetHost::OnMsgGetFSPluginWinSize(gfx::Size *result) {
+  if (view_) {
+    *result = view_->GetFSPluginWindowSize();
   }
 }
 

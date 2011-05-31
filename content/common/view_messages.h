@@ -1444,6 +1444,9 @@ IPC_SYNC_MESSAGE_ROUTED1_1(ViewHostMsg_GetWindowRect,
                            gfx::NativeViewId /* window */,
                            gfx::Rect /* Out: Window location */)
 
+IPC_SYNC_MESSAGE_ROUTED0_1(ViewHostMsg_GetFSPluginWinSize,
+                           gfx::Size /* Out: Window size */)
+
 IPC_MESSAGE_ROUTED1(ViewHostMsg_SetCursor,
                     WebCursor)
 

@@ -98,7 +98,12 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void PaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect);
 
   virtual void ScenePosChanged();
-  ////////////////////////////////////////////////////////////
+
+  gfx::Size CalPluginWindowSize();
+  virtual gfx::Size GetFSPluginWindowSize();
+
+  void SetPluginWindowSize();
+ ////////////////////////////////////////////////////////////
 #endif
 
   gfx::NativeView native_view() const {return view_;}

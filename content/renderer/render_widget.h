@@ -229,6 +229,10 @@ class RenderWidget : public IPC::Channel::Listener,
   void OnQueryElementAreaAt(const gfx::Point& pos,
                                         const gfx::Size& size,
                                         gfx::Rect* rect);
+  void OnSetFSPluginWinSize(const gfx::Size& new_size);
+
+  gfx::Size GetFSPluginWinSize();
+
  #endif
 
   // Override point to notify derived classes that a paint has happened.
@@ -336,6 +340,7 @@ class RenderWidget : public IPC::Channel::Listener,
   bool resize_to_contents_;
   gfx::Size preferred_contents_size_;
   gfx::Size contents_size_;
+  gfx::Size fs_plugin_win_size_;
   double x_scale_;
   double y_scale_;
   unsigned int seq_;

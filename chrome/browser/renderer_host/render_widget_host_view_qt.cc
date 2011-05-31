@@ -44,6 +44,7 @@
 #include "webkit/plugins/npapi/webplugin.h"
 
 #define MEEGO_ENABLE_WINDOWED_PLUGIN
+#define MEEGO_FORCE_FULLSCREEN_PLUGIN
 
 // static
 RenderWidgetHostView* RenderWidgetHostView::CreateViewForWidget(
@@ -191,8 +192,10 @@ void RenderWidgetHostViewQt::MovePluginWindows(
   if (!view_)
     return;
 
+#if !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
   QPointF offset = view_->scenePos();
   scene_pos_ = gfx::Point(int(offset.x()), int(offset.y()));
+#endif
 
   for (size_t i = 0; i < moves.size(); ++i) {
     plugin_container_manager_.MovePluginContainer(moves[i], scene_pos_);
@@ -200,7 +203,50 @@ void RenderWidgetHostViewQt::MovePluginWindows(
 #endif
 }
 
+gfx::Size RenderWidgetHostViewQt::CalPluginWindowSize() {
+
+  gfx::Size pw_size(0, 0);
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  int reserved_width = 0;
+  int reserved_height = 50;
+
+  QSize resolution;
+
+  if (view_ && view_->scene()) {
+    QWidget *root_win = view_->scene()->views().at(0);
+    resolution = root_win->size();
+  } else {
+    resolution = qApp->desktop()->size();
+  }
+
+  pw_size = gfx::Size(resolution.width() - reserved_width, resolution.height() - reserved_height);
+  return pw_size;
+#endif
+}
+
+gfx::Size RenderWidgetHostViewQt::GetFSPluginWindowSize() {
+  return CalPluginWindowSize();
+}
+
+void RenderWidgetHostViewQt::SetPluginWindowSize() {
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  if (!host_)
+      return;
+
+  gfx::Size pw_size = CalPluginWindowSize();
+  host_->SetFSPluginWinSize(pw_size);
+  DNOTIMPLEMENTED() << "width-height=" << pw_size.width() << "-" << pw_size.height();
+#endif
+}
+
 void RenderWidgetHostViewQt::ScenePosChanged() {
+
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  //ignore scene pos change since we don't use it
+  //when we force windowed plugin into fullscreen
+  return;
+#endif
+
 #if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
   if (!view_)
       return;

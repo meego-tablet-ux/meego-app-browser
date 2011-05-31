@@ -346,6 +346,9 @@ IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorCursorPosition,
 IPC_MESSAGE_ROUTED1(ViewMsg_SetPreferredSize,
                     gfx::Size /* new_size */)
 
+IPC_MESSAGE_ROUTED1(ViewMsg_SetFSPluginWinSize,
+                    gfx::Size /* new_size */)
+
 IPC_MESSAGE_ROUTED5(ViewMsg_PaintTile,
                     TransportDIB::Handle /* dib_handle */,
                     unsigned int /* seq */,

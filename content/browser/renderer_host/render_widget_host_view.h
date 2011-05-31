@@ -102,6 +102,8 @@ class RenderWidgetHostView {
 
   virtual void ScenePosChanged() {}
 
+  virtual gfx::Size GetFSPluginWindowSize() {}
+
   ////////////////////////////////////////////
 #endif
 
