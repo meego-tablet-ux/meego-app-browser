@@ -1127,6 +1127,10 @@ const char kExposePrivateExtensionApi[]   = "expose-private-extension-api";
 const char kTouchDevices[]                  = "touch-devices";
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+// Disables the webui with scheme "chrome://" and "about:"
+const char kDisableChromeWebUi[]            = "disable-special-pages";
+#endif
 
 // -----------------------------------------------------------------------------
 // DO NOT ADD YOUR CRAP TO THE BOTTOM OF THIS FILE.

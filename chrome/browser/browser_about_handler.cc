@@ -38,6 +38,9 @@
 #include "chrome/browser/ui/webui/chrome_url_data_manager.h"
 #include "chrome/common/about_handler.h"
 #include "chrome/common/chrome_paths.h"
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "chrome/common/chrome_switches.h"
+#endif
 #include "chrome/common/chrome_version_info.h"
 #include "chrome/common/jstemplate_builder.h"
 #include "chrome/common/net/gaia/google_service_auth_error.h"
@@ -1264,7 +1267,8 @@ GURL RemapAboutURL(const std::string& url_prefix, const GURL& url) {
 
 bool WillHandleBrowserAboutURL(GURL* url, Profile* profile) {
 #if defined(TOOLKIT_MEEGOTOUCH)
-  return false;
+  if(CommandLine::ForCurrentProcess()->HasSwitch(switches::kDisableChromeWebUi))
+    return false;
 #endif
   // We only handle about: schemes.
   if (!url->SchemeIs(chrome::kAboutScheme))
