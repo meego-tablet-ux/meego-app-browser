@@ -103,7 +103,7 @@ Item {
     interactive: treeMouseArea.currentId == -1
     //Rectangle { color: "green"
     Item {
-      width: bmGlobal.listHeight //\TODO dragElement.width
+      width: parent.width //bmGlobal.listHeight //\TODO dragElement.width
       height: bmGlobal.listHeight*tree.count
       anchors { top: parent.top; right: parent.right }//; rightMargin: bmGlobal.leftMargin }
       MouseArea {
