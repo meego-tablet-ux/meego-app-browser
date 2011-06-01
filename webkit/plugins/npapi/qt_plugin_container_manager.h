@@ -9,8 +9,13 @@
 
 #include "ui/gfx/native_widget_types.h"
 #include "ui/gfx/point.h"
+#include "ui/gfx/size.h"
+
+#define MEEGO_FORCE_FULLSCREEN_PLUGIN
 
 class QWidget;
+
+static const int FullScreenPluginCloseBarHeight = 40;
 
 namespace webkit {
 namespace npapi {
@@ -20,7 +25,7 @@ struct WebPluginGeometry;
 // Helper class that creates and manages plugin containers (GtkSocket).
 class QtPluginContainerManager {
  public:
-  QtPluginContainerManager() : host_widget_(NULL) { }
+  QtPluginContainerManager() : host_widget_(NULL) { fs_win_size_.SetSize(0, 0); }
 
   // Sets the widget that will host the plugin containers. Must be a GtkFixed.
   void set_host_widget(QWidget *widget) { host_widget_ = widget; }
@@ -39,8 +44,10 @@ class QtPluginContainerManager {
   // need to update it's position accordingly.
   void RelocatePluginContainers(gfx::Point& offset);
 
-  void Hide();
+  int FSPluginCloseBarHeight() { return FullScreenPluginCloseBarHeight; }
+  int SetFSWindowSize(gfx::Size new_size) { fs_win_size_ = new_size; }
 
+  void Hide();
   void Show();
 
  private:
@@ -70,6 +77,8 @@ class QtPluginContainerManager {
   // A map that store the plugin gemeotry for relocate usage.
   typedef std::map<gfx::PluginWindowHandle, WebPluginGeometry*> PluginWindowToGeometryMap;
   PluginWindowToGeometryMap plugin_window_to_geometry_map_;
+
+  gfx::Size fs_win_size_;
 };
 
 }  // namespace npapi

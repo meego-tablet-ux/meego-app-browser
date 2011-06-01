@@ -44,7 +44,6 @@
 #include "webkit/plugins/npapi/webplugin.h"
 
 #define MEEGO_ENABLE_WINDOWED_PLUGIN
-#define MEEGO_FORCE_FULLSCREEN_PLUGIN
 
 // static
 RenderWidgetHostView* RenderWidgetHostView::CreateViewForWidget(
@@ -203,12 +202,7 @@ void RenderWidgetHostViewQt::MovePluginWindows(
 #endif
 }
 
-gfx::Size RenderWidgetHostViewQt::CalPluginWindowSize() {
-
-  gfx::Size pw_size(0, 0);
-#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
-  int reserved_width = 0;
-  int reserved_height = 50;
+gfx::Size RenderWidgetHostViewQt::CalFSWinSize() {
 
   QSize resolution;
 
@@ -218,6 +212,21 @@ gfx::Size RenderWidgetHostViewQt::CalPluginWindowSize() {
   } else {
     resolution = qApp->desktop()->size();
   }
+
+  return gfx::Size(resolution.width(), resolution.height());
+}
+
+
+gfx::Size RenderWidgetHostViewQt::CalPluginWindowSize() {
+
+  gfx::Size pw_size(0, 0);
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  int reserved_width = 0;
+  int reserved_height = plugin_container_manager_.FSPluginCloseBarHeight();
+
+  gfx::Size resolution;
+
+  resolution = CalFSWinSize();
 
   pw_size = gfx::Size(resolution.width() - reserved_width, resolution.height() - reserved_height);
   return pw_size;
@@ -466,6 +475,7 @@ void RenderWidgetHostViewQt::CreatePluginContainer(
     plugin_container_manager_.set_host_widget(view_->scene()->views().at(0));
   LOG(ERROR) << "view scene " << view_->scene();
 
+  plugin_container_manager_.SetFSWindowSize(CalFSWinSize());
   plugin_container_manager_.CreatePluginContainer(id);
 #endif
 }

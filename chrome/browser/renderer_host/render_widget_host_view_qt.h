@@ -100,6 +100,8 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void ScenePosChanged();
 
   gfx::Size CalPluginWindowSize();
+  gfx::Size CalFSWinSize();
+
   virtual gfx::Size GetFSPluginWindowSize();
 
   void SetPluginWindowSize();

@@ -12,7 +12,7 @@
 #include <QX11EmbedContainer>
 #include <QGraphicsProxyWidget>
 
-#include <QLabel>
+#include <QPushButton>
 
 #include "base/logging.h"
 #include "webkit/plugins/npapi/webplugin.h"
@@ -51,11 +51,27 @@ QWidget* QtPluginContainerManager::CreatePluginContainer(
   DNOTIMPLEMENTED() << "PluginWindowHandle " << id;
 
   DCHECK(host_widget_);
+
+  QWidget *window = NULL;
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  QWidget *fs_window = new QWidget(host_widget_);
+  QPushButton *button = new QPushButton("Close", fs_window);
+
+  fs_window->setGeometry(0, 0, fs_win_size_.width(), fs_win_size_.height());
+  button->setGeometry(0, fs_win_size_.height() - FSPluginCloseBarHeight(), fs_win_size_.width(), FSPluginCloseBarHeight());
+
+  window = fs_window;
+  window->show();
+
+  QX11EmbedContainer *container = new QX11EmbedContainer(fs_window);
+#else
   QX11EmbedContainer *container = new QX11EmbedContainer(host_widget_);
+  window = container;
+#endif
+
   container->embedClient(id);
-  //QLabel *container = new QLabel("just a test");
-  
   container->show();
+  window->show();
   
   plugin_window_to_widget_map_.insert(std::make_pair(id, container));
 
@@ -116,7 +132,6 @@ void QtPluginContainerManager::MovePluginContainer(
   int current_x, current_y;
   widget->setGeometry(move.window_rect.x() + view_offset.x(), move.window_rect.y() + view_offset.y(),
                       move.window_rect.width(), move.window_rect.height());
-  
   DNOTIMPLEMENTED() << " " << move.window << " " << move.window_rect.x() << "+" << move.window_rect.y() << "+"
                    << move.window_rect.width() << "x" << move.window_rect.height()
                    << " - offset = " << view_offset.x() << "-" << view_offset.y();
