@@ -91,6 +91,7 @@ Item {
     property string panelstring: ""
 
     property alias findbar: findBarLoader.item
+    property alias ssldialog: sslDialogLoader.item
     property alias bookmarklist: bookmarkManagerLoader.item
     property bool wrenchmenushown: false
     property alias showsearch: toolbar.showsearch
@@ -286,7 +287,33 @@ Item {
             infobarLoader.source = "InfoBarContainer.qml"
           }
         }
-
+        Loader {
+          id: sslDialogLoader
+          anchors.horizontalCenter: innerContent.horizontalCenter
+          anchors.verticalCenter: innerContent.verticalCenter
+          source: ""
+          z: 20
+        }
+        Connections {
+          target: sslDialogModel
+          onShow: {
+            sslDialogLoader.source = "SslDialog.qml"
+            ssldialog.msgHeadline =  headline
+            ssldialog.msgDescription = description
+            ssldialog.msgMoreInfo = moreInfo
+            ssldialog.msgYesButton = buttonYes
+            ssldialog.msgNoButton = buttonNo
+            ssldialog.errorType = error;
+            ssldialog.visible = true
+            ssldialog.focus =  true
+            ssldialog.show()
+          }
+          onHide: {
+            ssldialog.visible = false
+            ssldialog.hide()
+          }
+        }
+        
         Window {
             // Wrapper window item to make TopItem bring in by bookmarklist.qml to work correctly
             id: bookmarkManagerHolder

@@ -13,6 +13,14 @@ Item {
   property string msgMoreInfo: ""
   property string msgYesButton: ""
   property string msgNoButton: ""
+
+  property bool errorType: false
+  function show(){
+    myDialog.show()
+  }
+  function hide(){
+    myDialog.hide()
+  }
   ModalDialog {
     id: myDialog
 
@@ -53,26 +61,22 @@ Item {
       sslDialogModel.noButtonClicked()
     }
   }
-  Connections {
-    target: sslDialogModel
-    onShow: {
-      container.msgHeadline =  headline
-      container.msgDescription = description
-      //container.msgMoreInfo = moreInfo
-      container.msgNoButton = buttonNo
-      if(!error) {
-        container.msgYesButton = buttonYes
-        myDialog.showAcceptButton  = true
+  states: [
+    State{
+      name: "error"
+      when: errorType
+      PropertyChanges {
+        target: myDialog
+        showAcceptButton: false
       }
-      else
-        myDialog.showAcceptButton  = false
-      container.visible = true
-      container.focus =  true
-      myDialog.show()
+    },
+    State{
+      name: "warning"
+      when: !errorType
+      PropertyChanges {
+        target: myDialog
+        showAcceptButton: true
+      }
     }
-    onHide: {
-      container.visible = false
-      myDialog.hide()
-    }
-  }
+  ]
 }

@@ -344,8 +344,27 @@ Item {
           id: sslDialogLoader
           anchors.horizontalCenter: innerContent.horizontalCenter
           anchors.verticalCenter: innerContent.verticalCenter
-          source: "SslDialog.qml"
+          source: ""
           z: 20
+        }
+        Connections {
+          target: sslDialogModel
+          onShow: {
+            sslDialogLoader.source = "SslDialog.qml"
+            ssldialog.msgHeadline =  headline
+            ssldialog.msgDescription = description
+            ssldialog.msgMoreInfo = moreInfo
+            ssldialog.msgYesButton = buttonYes
+            ssldialog.msgNoButton = buttonNo
+            ssldialog.errorType = error;
+            ssldialog.visible = true
+            ssldialog.focus =  true
+            ssldialog.show()
+          }
+          onHide: {
+            ssldialog.visible = false
+            ssldialog.hide()
+          }
         }
         Window {
             // Wrapper window item to make TopItem bring in by bookmarklist.qml to work correctly
