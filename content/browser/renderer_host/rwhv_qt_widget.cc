@@ -2099,9 +2099,9 @@ QRect RWHVQtWidget::GetVisibleRect()
   else if (itemRect.width() < viewport_rect.width())
   {
     if (itemRect.left() == 0.0)
-      itemRect.setRight(itemRect.left() - viewport_rect.width());
+      itemRect.setLeft(itemRect.right() - viewport_rect.width());
     else
-      itemRect.setLeft(itemRect.right() + viewport_rect.width());
+      itemRect.setRight(itemRect.left() + viewport_rect.width());
 
   }
 
