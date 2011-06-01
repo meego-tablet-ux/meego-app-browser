@@ -94,11 +94,12 @@ Item {
     fillMode: Image.Stretch
     source: "image://themedimage/images/bg_application_p"
 
-    Rectangle {
+    Image{
       width: parent.width
-      height: 1
+      height: 2
+      fillMode: Image.Stretch
       anchors.bottom: parent.bottom
-      color: "lightGray"
+      source: "image://themedimage/widgets/common/menu/menu-item-separator"
     }
   }
  
