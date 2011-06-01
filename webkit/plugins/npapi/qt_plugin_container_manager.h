@@ -15,12 +15,25 @@
 
 class QWidget;
 
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+class QPushButton;
+#endif
+
 static const int FullScreenPluginCloseBarHeight = 40;
 
 namespace webkit {
 namespace npapi {
 
 struct WebPluginGeometry;
+
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+struct FSPluginWidgets{
+  FSPluginWidgets() : top_window(NULL), close_btn(NULL) {}
+  ~FSPluginWidgets();
+  QWidget *top_window;
+  QPushButton *close_btn;
+};
+#endif
 
 // Helper class that creates and manages plugin containers (GtkSocket).
 class QtPluginContainerManager {
@@ -77,6 +90,12 @@ class QtPluginContainerManager {
   // A map that store the plugin gemeotry for relocate usage.
   typedef std::map<gfx::PluginWindowHandle, WebPluginGeometry*> PluginWindowToGeometryMap;
   PluginWindowToGeometryMap plugin_window_to_geometry_map_;
+
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  // A map that store the fullscreen plugin related widgets.
+  typedef std::map<gfx::PluginWindowHandle, FSPluginWidgets*> PluginWindowToFSWidgetsMap;
+  PluginWindowToFSWidgetsMap plugin_window_to_fswidgets_map_;
+#endif
 
   gfx::Size fs_win_size_;
 };

@@ -20,6 +20,14 @@
 namespace webkit {
 namespace npapi {
 
+FSPluginWidgets::~FSPluginWidgets()
+{
+  NOTIMPLEMENTED();
+  delete top_window;
+  //close_btn should be the child of top_window, so not need to delete explicitly
+}
+
+
 QWidget* QtPluginContainerManager::CreatePluginContainer(
     gfx::PluginWindowHandle id) {
   /*
@@ -57,6 +65,11 @@ QWidget* QtPluginContainerManager::CreatePluginContainer(
   QWidget *fs_window = new QWidget(host_widget_);
   QPushButton *button = new QPushButton("Close", fs_window);
 
+  FSPluginWidgets *fs_widgets = new FSPluginWidgets();
+  fs_widgets->top_window = fs_window;
+  fs_widgets->close_btn = button;
+  plugin_window_to_fswidgets_map_.insert(std::make_pair(id, fs_widgets));
+
   fs_window->setGeometry(0, 0, fs_win_size_.width(), fs_win_size_.height());
   button->setGeometry(0, fs_win_size_.height() - FSPluginCloseBarHeight(), fs_win_size_.width(), FSPluginCloseBarHeight());
 
@@ -90,7 +103,18 @@ void QtPluginContainerManager::DestroyPluginContainer(
 
   plugin_window_to_widget_map_.erase(id);
   plugin_window_to_geometry_map_.erase(id);
-  
+
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+//  PluginWindowToFSWidgetsMap::iterator iter = plugin_window_to_fswidgets_map_.find(id);
+//  if (iter != plugin_window_to_fswidgets_map_.end()) {
+//    FSPluginWidgets* fs_widgets = iter.second();
+//    delete fs_widgets->top_window;
+//    delete fs_widgets->close_btn;
+//  }
+  NOTIMPLEMENTED();
+  plugin_window_to_fswidgets_map_.erase(id);
+#endif
+
   DNOTIMPLEMENTED();
 }
 

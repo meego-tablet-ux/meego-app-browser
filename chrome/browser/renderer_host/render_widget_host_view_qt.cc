@@ -42,6 +42,7 @@
 #include "chrome/browser/renderer_host/render_widget_host_view_qt.h"
 #include "chrome/browser/ui/meegotouch/qt_util.h"
 #include "webkit/plugins/npapi/webplugin.h"
+#include "webkit/plugins/npapi/qt_plugin_container_manager.h"
 
 #define MEEGO_ENABLE_WINDOWED_PLUGIN
 
@@ -66,9 +67,11 @@ RenderWidgetHostViewQt::RenderWidgetHostViewQt(RenderWidgetHost* widget_host)
       webkit_node_info_(0),
       view_(NULL) {
   host_->set_view(this);
+  plugin_container_manager_ = new webkit::npapi::QtPluginContainerManager();
 }
 
 RenderWidgetHostViewQt::~RenderWidgetHostViewQt() {
+    delete plugin_container_manager_;
 }
 
 void RenderWidgetHostViewQt::InitAsChild() {
@@ -197,7 +200,7 @@ void RenderWidgetHostViewQt::MovePluginWindows(
 #endif
 
   for (size_t i = 0; i < moves.size(); ++i) {
-    plugin_container_manager_.MovePluginContainer(moves[i], scene_pos_);
+    plugin_container_manager_->MovePluginContainer(moves[i], scene_pos_);
   }
 #endif
 }
@@ -222,7 +225,7 @@ gfx::Size RenderWidgetHostViewQt::CalPluginWindowSize() {
   gfx::Size pw_size(0, 0);
 #if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
   int reserved_width = 0;
-  int reserved_height = plugin_container_manager_.FSPluginCloseBarHeight();
+  int reserved_height = plugin_container_manager_->FSPluginCloseBarHeight();
 
   gfx::Size resolution;
 
@@ -264,7 +267,7 @@ void RenderWidgetHostViewQt::ScenePosChanged() {
       return;
 
   scene_pos_ = gfx::Point(int(offset.x()), int(offset.y()));
-  plugin_container_manager_.RelocatePluginContainers(scene_pos_);
+  plugin_container_manager_->RelocatePluginContainers(scene_pos_);
 
 #endif
 }
@@ -373,7 +376,7 @@ void RenderWidgetHostViewQt::RenderViewGone(base::TerminationStatus status,
   Destroy();
 #if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
   //TODO: plugin
-  plugin_container_manager_.set_host_widget(NULL);
+  plugin_container_manager_->set_host_widget(NULL);
 #endif
 }
 
@@ -472,18 +475,18 @@ void RenderWidgetHostViewQt::CreatePluginContainer(
   if(!view_)
     return;
   if(view_->scene())
-    plugin_container_manager_.set_host_widget(view_->scene()->views().at(0));
+    plugin_container_manager_->set_host_widget(view_->scene()->views().at(0));
   LOG(ERROR) << "view scene " << view_->scene();
 
-  plugin_container_manager_.SetFSWindowSize(CalFSWinSize());
-  plugin_container_manager_.CreatePluginContainer(id);
+  plugin_container_manager_->SetFSWindowSize(CalFSWinSize());
+  plugin_container_manager_->CreatePluginContainer(id);
 #endif
 }
 
 void RenderWidgetHostViewQt::DestroyPluginContainer(
     gfx::PluginWindowHandle id) {
 #if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
-  plugin_container_manager_.DestroyPluginContainer(id);
+  plugin_container_manager_->DestroyPluginContainer(id);
 #endif
 }
 

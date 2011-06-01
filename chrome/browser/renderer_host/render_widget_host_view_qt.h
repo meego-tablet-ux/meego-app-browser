@@ -13,10 +13,15 @@
 #include "base/time.h"
 #include "content/browser/renderer_host/render_widget_host_view.h"
 #include "ui/gfx/native_widget_types.h"
-#include "webkit/plugins/npapi/qt_plugin_container_manager.h"
 #include "webkit/glue/webcursor.h"
 #include "webkit/glue/webmenuitem.h"
 #include "ui/gfx/rect.h"
+
+namespace webkit {
+namespace npapi {
+  class QtPluginContainerManager;
+}
+}
 
 static const int kMaxWindowWidth = 4000;
 static const int kMaxWindowHeight = 4000;
@@ -193,7 +198,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
 
   gfx::Size contents_size_;
 
-  webkit::npapi::QtPluginContainerManager plugin_container_manager_;
+  webkit::npapi::QtPluginContainerManager* plugin_container_manager_;
 
   gfx::Point scene_pos_;
 
