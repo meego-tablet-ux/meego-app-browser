@@ -121,7 +121,7 @@ public:
   inline bool hasChildren() const { return !children_.empty(); }
   int level_;
   bool isOpened_;
-  QList<BookmarkItem*> children_;
+  QList<BookmarkItem*> children_; // only store pointers, actually pointing to the same ones in the list
 
   void title(QString t) { title_ = t; }
   void url(QString u) { url_ = u; }
@@ -256,7 +256,7 @@ public:
   void moveBookmarkInModel(const BookmarkNode *old_parent, 
                            const BookmarkNode *new_parent, int from, int to);
   void moveBookmarkInModel(int from, int to);
-  bool moveBookmarkInModel(QString from, QString to, QList<BookmarkItem*> &bookmarks, bool directed=true);
+  bool moveBookmarkInList(QString from, QString to, QList<BookmarkItem*> &bookmarks, bool directed=false, bool up=false);
 
   void HideBookmarkManager();
   void PopupMenu(gfx::Point p); 
@@ -451,6 +451,7 @@ public Q_SLOTS:
 
   virtual void remove(QString id) {}
   virtual int64 id(int index) { return -1; }
+  virtual void premove() {}
   virtual void moving(int from, int to) {}
   virtual void moveDone(int from, int to) {}
   virtual void moveDone(int f, int t, QString from, QString to) {}
@@ -459,11 +460,11 @@ public Q_SLOTS:
   virtual void urlChanged(QString id, QString url) {}
   virtual void moveToAnotherFolder(int idx) {}
   int level(int index) { return bookmarks_[index]->level_; }
-  virtual void openItem(int idx) {}
-  virtual void closeItem(int idx){} 
+  virtual void expand(int idx) {}
+  virtual void collapse(int idx, bool checkopen = true){} 
   virtual void folderChanged(QString id, int folder_idx){ 
     DLOG(INFO)<<__PRETTY_FUNCTION__<<" hdq move "<<id.toStdString()<<" to folder "<<bookmark_qt_->data_->all_folders_id_[folder_idx];
-    bookmark_qt_->moveBookmarkInModel(id, QString::number(bookmark_qt_->data_->all_folders_id_[folder_idx]), bookmarks_, false);
+    bookmark_qt_->moveBookmarkInList(id, QString::number(bookmark_qt_->data_->all_folders_id_[folder_idx]), bookmarks_);
   }
 
 protected:
@@ -539,7 +540,7 @@ class BookmarkQtTreeImpl : public BookmarkQtImpl
   Q_OBJECT
 public:
   BookmarkQtTreeImpl(BookmarkQt* bookmark_qt, QObject *parent = 0);
-  virtual ~BookmarkQtTreeImpl() { clear(); }
+  virtual ~BookmarkQtTreeImpl(); 
   //int rowCount(const QModelIndex &parent = QModelIndex()) const;
 
   bool removeBookmark(const BookmarkNode *node);
@@ -548,22 +549,26 @@ public:
 
   bool addBookmarkToFolder(BookmarkItem *bookmark, const BookmarkNode* parent, int idx);
   bool updateBookmarkById(QString title, QString url, int64 id);
+  bool dragging_;
 
 public Q_SLOTS:
   void remove(QString id);
   int64 id(int index){ return bookmarks_[index]->id_; }
+  void premove();
   void moving(int from, int to);
- // void moveDone(int from, int to);
+  // void moveDone(int from, int to);
   void moveDone(int f, int t, QString from, QString to);
 
   void titleChanged(QString id, QString title);
   void urlChanged(QString id, QString url);
   void moveToAnotherFolder(int index) { bookmark_qt_->MoveToAnotherFolder(index); }
 
-  void openItem(int numIndex);
-  void closeItem(int numIndex);
+  void expand(int numIndex);
+  void collapse(int numIndex, bool checkopen = true);
 
 private:
+  bool up_; // the last moving direction
+  QList<BookmarkItem*> memento_;
   Q_DISABLE_COPY(BookmarkQtTreeImpl);
 };
 
@@ -602,6 +607,7 @@ public Q_SLOTS:
 
   int id(int idx)        { return impl_->id(toSource(idx)); }
   void remove(QString id)       { impl_->remove(id); }
+  void premove() { impl_->premove(); }
   void moving(int from, int to) { impl_->moving(toSource(from), toSource(to)); }
   void moveDone(int from, int to){impl_->moveDone(toSource(from), toSource(to)); }
   void moveDone(int f, int t, QString from, QString to){impl_->moveDone(toSource(f), toSource(t), from, to); }
@@ -614,8 +620,8 @@ public Q_SLOTS:
   void moveToAnotherFolder(int idx) { impl_->moveToAnotherFolder(toSource(idx)); }
   int level(int idx) { return impl_->level(toSource(idx)); }
 
-  void openItem(int idx) { impl_->openItem(toSource(idx)); }
-  void closeItem(int idx){ impl_->closeItem(toSource(idx)); } 
+  void expand(int idx) { impl_->expand(toSource(idx)); }
+  void collapse(int idx){ impl_->collapse(toSource(idx)); } 
 
   void folderChanged(QString id, int folder_idx) { impl_->folderChanged(id, folder_idx); }
 

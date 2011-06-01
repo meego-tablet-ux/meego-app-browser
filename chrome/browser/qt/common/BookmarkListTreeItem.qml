@@ -119,7 +119,7 @@ Component {
           anchors.fill: parent
           onClicked: {
             console.log("hdq folder icon clicked ", isOpened, index);
-            (isOpened) ? bookmarkAllTreesModel.closeItem(index) : bookmarkAllTreesModel.openItem(index)
+            (isOpened) ? bookmarkAllTreesModel.collapse(index) : bookmarkAllTreesModel.expand(index)
           }
         }
       }
@@ -157,7 +157,7 @@ Component {
               tree.model.openBookmarkItem(bookmarkId);
             } else {
               console.log("hdq will expand/collapse folder", bookmarkId);
-              (isOpened) ? bookmarkAllTreesModel.closeItem(index) : bookmarkAllTreesModel.openItem(index)
+              (isOpened) ? bookmarkAllTreesModel.collapse(index) : bookmarkAllTreesModel.expand(index)
             }
           }
           onPressAndHold: {

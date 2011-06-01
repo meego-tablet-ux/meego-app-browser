@@ -246,10 +246,12 @@ void BookmarkQt::BookmarkNodeAdded(BookmarkModel* model,
 //  grid_impl_->addBookmark(*griditem, index);
   griditem->RequestImg(index);
 
-  BookmarkItem* item = CreateBookmarkItem(node);
-  item->folder_id_ = parent->id();
-  item->level_ = 1;
-  tree_impl_->addBookmark(item, index);
+  if (!tree_impl_->dragging_) {
+    BookmarkItem* item = CreateBookmarkItem(node);
+    item->folder_id_ = parent->id();
+    item->level_ = 1;
+    tree_impl_->addBookmark(item, index);
+  }
 }
 
 void BookmarkQt::BookmarkNodeRemoved(BookmarkModel* model,
@@ -388,7 +390,8 @@ void BookmarkQt::moveBookmarkInModel(const BookmarkNode *old_parent,
       || !old_parent->is_folder() || !new_parent->is_folder()) return;
   DLOG(INFO)<<"hdq 3. move folder("<<old_parent->id()<<")'s "<<from<<" to folder("<<new_parent->id()<<")'s "<<to;
   if (old_parent->id() == new_parent->id()
-      && to > from) to++; //   && (from+1) == to) to++;
+  //    && to > from) to++; 
+     && (from+1) == to) to++;
   DLOG(INFO)<<"hdq 3.1 ==> folder("<<old_parent->id()<<")'s "<<from<<" to folder("<<new_parent->id()<<")'s "<<to;
   model_->Move(old_parent->GetChild(from), new_parent, to);
 }
@@ -400,17 +403,19 @@ void BookmarkQt::moveBookmarkInModel(int from, int to) {
 }
 
 // Moving bookmarks based on ID, returns moving validity. 
-// * "to" can be folder or item
-// * "bookmarks" is the list containing the item from
-// * "directed" means whether to consider direction of moving the bookmarks
-bool BookmarkQt::moveBookmarkInModel(QString from, QString to, QList<BookmarkItem *>& bookmarks, bool directed) {
+// * "to": can be folder or item
+// * "bookmarks": the list containing the item from
+// * "directed": whether to consider direction of moving the bookmarks
+// * "up": whether the direction of the last movement is up or down
+bool BookmarkQt::moveBookmarkInList(QString from, QString to, QList<BookmarkItem *>& bookmarks, bool directed, bool up) {
   DLOG(INFO)<<"hdq 2.1 before moving from "<<from.toStdString()<<" to "<<to.toStdString();
   const BookmarkNode* nodeFrom = model_->GetNodeByID(from.toLong());
   const BookmarkNode* nodeTo   = model_->GetNodeByID(to.toLong());
   if (!nodeFrom || !nodeTo) return false;
-  DLOG(INFO)<<"hdq 2.1.1 before moving from "<<nodeFrom->id()<<" to "<<nodeTo->id();
   const BookmarkNode* nodef_parent = nodeFrom->parent();
   const BookmarkNode* nodet_parent = nodeTo->parent();
+  DLOG(INFO)<<"hdq nodef parent "<<nodef_parent->id()<<" nodet parent "<<nodet_parent->id();
+  if (!directed && nodef_parent == nodeTo) return false; // trying move to a same folder
 
   if (model_->is_permanent_node(nodeFrom)) return false; // forbid moving "bar" or "others"
   DLOG(INFO)<<"hdq 2.1.2 nodefrom is not permanent node";
@@ -423,7 +428,7 @@ bool BookmarkQt::moveBookmarkInModel(QString from, QString to, QList<BookmarkIte
   int idxtbm = -1; //
   BookmarkList::index(bookmarks, to.toLong(), idxtbm); // here false is ok, as item might be moving out of bookmarks
   if (!BookmarkList::index(bookmarks, from.toLong(), idxfbm)) return false;
-  if (directed && idxtbm == 0 && bookmarks[0]->type_ != BookmarkNode::URL) return false; // forbid dragging OVER first folder
+  //if (directed && idxtbm == 0 && bookmarks[0]->type_ != BookmarkNode::URL) return false; // forbid dragging OVER first folder
 
   // 1. Moving to a folder
   // \TODO Note that for supporting multi-folder in the future, a little more to do:
@@ -431,49 +436,50 @@ bool BookmarkQt::moveBookmarkInModel(QString from, QString to, QList<BookmarkIte
   // * might need to handle left-right drag
   int i, to_folder_idx, from_folder_idx;
   int64 to_folder_id = -1;
+  //BookmarkItem *item = CreateBookmarkItem(nodeFrom);
   if (nodeTo->is_folder()) {  
-    DLOG(INFO)<<"hdq nodeTo is a folder";
-    BookmarkItem *item = CreateBookmarkItem(nodeFrom);
+    DLOG(INFO)<<"hdq nodeTo is a folder"<<(!directed?" ":(up?" moving up":" moving down"));
 
-    // 1.1 moving from down to up
-    if (nodef_parent == nodeTo) { 
-      if (!directed) return false; // try move to a same folder
-      const BookmarkItem *toitem = bookmarks[idxtbm-1];
+    // 1.1 moving up
+    if (directed && up) { 
+      const BookmarkItem *toitem = bookmarks[idxtbm == 0 ? 0 : idxtbm-1];
+      DLOG(INFO)<<"hdq bookmark above the folder is idx("<<idxtbm<<") "<<toitem->id_<<" "<<toitem->title_.toStdString()
+                <<" folder id "<<toitem->folder_id_;
       to_folder_id = (toitem->type_ == BookmarkNode::URL) ? toitem->folder_id_ : toitem->id_;
       const BookmarkNode *tofolder = model_->GetNodeByID(to_folder_id);
-      DLOG(INFO)<<"hdq move item "<<item->id_<<" "<<item->title_.toStdString()<<" to folder "<<to_folder_id;
-      moveBookmarkInModel(nodef_parent, tofolder, idxfrom, tofolder->child_count()); 
+      DLOG(INFO)<<"hdq move "<<nodeFrom->id()<<" "<<nodeFrom->GetTitle()<<" to folder "<<to_folder_id;
+      moveBookmarkInModel(nodef_parent, tofolder, idxfrom, idxtbm == 0 ? 0 : tofolder->child_count()); 
     } 
-    // 1.2 moving from up to down
+    // 1.2 moving down, or non-directed
     else { 
       to_folder_id = nodeTo->id();
-      DLOG(INFO)<<"hdq move item "<<item->id_<<" "<<item->title_.toStdString()<<" to folder "<<to.toStdString();
+      DLOG(INFO)<<"hdq move "<<nodeFrom->id()<<" "<<nodeFrom->GetTitle()<<" to folder "<<nodeTo->id();
       moveBookmarkInModel(nodef_parent, nodeTo, idxfrom, directed ? 0 : nodeTo->child_count()); 
     }
-    if (!BookmarkList::index(bookmarks, to_folder_id, to_folder_idx)) return true; // already moved, so return true.
-    item->folder_id_ = to_folder_id;
-    item->level_ = bookmarks[to_folder_idx]->level_+1;
+    //if (!BookmarkList::index(bookmarks, to_folder_id, to_folder_idx)) return true; // already moved, so return true.
+    //item->folder_id_ = to_folder_id;
+    //item->level_ = bookmarks[to_folder_idx]->level_+1;
   } 
 
   // 2. Moving to a bookmark in another folder
   else if (nodef_parent->id() != nodet_parent->id()) {
-    BookmarkItem *item = CreateBookmarkItem(nodeFrom);
     to_folder_id = nodet_parent->id();
-    DLOG(INFO)<<"hdq move item "<<item->id_<<" "<<item->title_.toStdString()
+    DLOG(INFO)<<"hdq to a bookmark in another folder - move "<<nodeFrom->id()<<" "<<nodeFrom->GetTitle()
               <<" from "<<nodef_parent->id()<<":"<<idxfrom<<" to "<<to_folder_id<<":"<<idxto;
-    moveBookmarkInModel(nodef_parent, nodet_parent, idxfrom, idxto);
+    moveBookmarkInModel(nodef_parent, nodet_parent, idxfrom, up?idxto:idxto+1);
 
-    if (!BookmarkList::index(bookmarks, to_folder_id, to_folder_idx)) return true; // already moved, so return true.
-    item->folder_id_ = to_folder_id;
-    item->level_ = bookmarks[to_folder_idx]->level_+1;
+    //if (!BookmarkList::index(bookmarks, to_folder_id, to_folder_idx)) return true; // already moved, so return true.
+    //item->folder_id_ = to_folder_id;
+    //item->level_ = bookmarks[to_folder_idx]->level_+1;
   }
 
   // 3. Moving under the same folder
   else { 
     DLOG(INFO)<<"hdq same folder: idx from "<<idxfrom<<" to "<<idxto;
     if (idxfrom < 0 || idxto < 0) return false;
-    moveBookmarkInModel(nodef_parent, nodet_parent, idxfrom, idxto);
+    moveBookmarkInModel(nodef_parent, nodet_parent, idxfrom, up?idxto:idxto+1);
   }
+  //delete item;
   return true;
 }
 
@@ -625,7 +631,8 @@ void BookmarkBarQt::BookmarkNodeAdded(BookmarkModel* model,
   // Add to all tree
   BookmarkItem* item = CreateBookmarkItem(node);
   item->folder_id_ = parent->id();
-  all_trees_impl_->addBookmarkToFolder(item, parent, index);
+  if (!all_trees_impl_->addBookmarkToFolder(item, parent, index))
+    delete item;
   DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" add to all tree done";
 
   // Add to toolbar
@@ -731,8 +738,8 @@ void BookmarkBarQt::CreateAllBookmarkTreeItems() {
   CreateTreeFolder(model_->GetBookmarkBarNode()); // Bookmark Bar
   CreateTreeFolder(model_->other_node());         // Other Bookmarks
   BookmarkList::other_node_id = model_->other_node()->id();
-  all_trees_impl_->openItem(1); // Open "Others" first, then "Bar".
-  all_trees_impl_->openItem(0);
+  all_trees_impl_->expand(1); // Open "Others" first, then "Bar".
+  all_trees_impl_->expand(0);
 
   // Create info of all folders
   foreach (BookmarkItem *item, all_trees_impl_->bookmarks_) {
@@ -1007,6 +1014,7 @@ bool BookmarkQtImpl::removeBookmark(int index) {
     index = 1;
     endMoveRows();
   }
+  delete bookmarks_[index];
   beginRemoveRows(QModelIndex(), index, index);
   bookmarks_.removeAt(index);
   endRemoveRows();
@@ -1057,6 +1065,7 @@ void BookmarkQtImpl::Hide() {
 
 void BookmarkQtImpl::clear() {
   //beginResetModel();
+  //qDeleteAll(bookmarks_); // Let go as we are not handling multiple instances
   bookmarks_.clear();
   //endResetModel();
 }
@@ -1088,7 +1097,9 @@ void BookmarkQtImpl::backButtonTapped() {
 BookmarkBarQtImpl::BookmarkBarQtImpl(BookmarkQt* bookmark_qt, QObject *parent)
  : BookmarkQtImpl(bookmark_qt, parent) {}
 
-BookmarkBarQtImpl::~BookmarkBarQtImpl() {}
+BookmarkBarQtImpl::~BookmarkBarQtImpl() {
+  clear();
+}
 
 void BookmarkBarQtImpl::addInstruction() {
   emit showInstruction();
@@ -1193,18 +1204,27 @@ void BookmarkQtGridImpl::PopupMenu(int x, int y) {
 // BookmarkQtTreeImpl
 
 BookmarkQtTreeImpl::BookmarkQtTreeImpl(BookmarkQt* bookmark_qt, QObject *parent)
-  : BookmarkQtImpl(bookmark_qt, parent) {}
+  : BookmarkQtImpl(bookmark_qt, parent), 
+    dragging_(false), up_(false)
+{}
 
+BookmarkQtTreeImpl::~BookmarkQtTreeImpl() { 
+  //qDeleteAll(memento_); // Let go as we are not handling multiple instances
+  memento_.clear();
+  clear(); 
+}
 //int BookmarkQtTreeImpl::rowCount(const QModelIndex &parent) const {
 //  Q_UNUSED(parent)
 //  return bookmarks_.size();
 //}
 
-void BookmarkQtTreeImpl::openItem(int idx) {
+void BookmarkQtTreeImpl::expand(int idx) {
+  if (idx > (bookmarks_.size()-1) || bookmarks_[idx]->isOpened_ )
+    return;
   BookmarkItem *item = bookmarks_[idx];
   DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq opening "<<item->title().toStdString()<<" of child size "<<item->children_.size()<<" isOpen "<<item->isOpened_;
-  if (idx > (bookmarks_.size()-1) || item->isOpened_ )
-    return;
+
+  collapse(idx, false); // it is possible that some items were moved below this folder, so we collapse it first
 
   QModelIndex modelIndex = index(idx);
   item->isOpened_ = true;
@@ -1213,19 +1233,17 @@ void BookmarkQtTreeImpl::openItem(int idx) {
 
   beginInsertRows(QModelIndex(), i, i+item->children_.size()-1);
   foreach(BookmarkItem *im, item->children_) {
-    if (!bookmarks_.contains(im)) { // TODO: hdq this will make insert row a wrong count maybe
-      bookmarks_.insert(i++, im);
-      DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq added item "<<im->title().toStdString()<<" level "<<im->level_;
-    }
+    bookmarks_.insert(i++, im);
+    DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq added item "<<im->title().toStdString()<<" level "<<im->level_<<" id "<<im->id_;
   }
   endInsertRows();
 }
 
-void BookmarkQtTreeImpl::closeItem(int idx) {
+void BookmarkQtTreeImpl::collapse(int idx, bool checkopen) {
+  if (idx > (bookmarks_.size()-1) || (checkopen && !bookmarks_[idx]->isOpened_))
+    return;
   BookmarkItem *item = bookmarks_[idx];
   DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq closing "<<item->title().toStdString()<<" of child size "<<item->children_.size()<<" isOpen "<<item->isOpened_ << " level "<<item->level_;
-  if (idx > (bookmarks_.size()-1) || !item->isOpened_)
-    return;
 
   QModelIndex modelIndex = index(idx);
   item->isOpened_ = false;
@@ -1238,7 +1256,7 @@ void BookmarkQtTreeImpl::closeItem(int idx) {
   beginRemoveRows(QModelIndex(), idx+1, i);
   while (i > idx) {
     DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq removed item "<<bookmarks_[i]->title().toStdString();
-    bookmarks_[i]->isOpened_ = false;
+    //bookmarks_[i]->isOpened_ = false;
     bookmarks_.removeAt(i--);
   }
   endRemoveRows();
@@ -1272,9 +1290,17 @@ void BookmarkQtTreeImpl::remove(QString id) {
 //  return ret;
 //}
 //
+
+void BookmarkQtTreeImpl::premove() {
+  memento_ = bookmarks_;
+  dragging_ = true;
+}
+
 void BookmarkQtTreeImpl::moving(int from, int to) {
   if (to == from) return;
-  DLOG(INFO)<<"hdq moving "<<from<<" --> "<<to;
+  if ((from == 0 || to == 0) && bookmarks_[0]->type_ == BookmarkNode::BOOKMARK_BAR) return;
+  up_ = from > to ? true : false;
+  DLOG(INFO)<<"hdq moving "<<(up_?"up ":"down ")<<from<<" --> "<<to;
   beginMoveRows(QModelIndex(), from, from, QModelIndex(), to > from ? to+1 : to);
   bookmarks_.move(from, to);
   endMoveRows();
@@ -1282,15 +1308,14 @@ void BookmarkQtTreeImpl::moving(int from, int to) {
 
 //void BookmarkQtTreeImpl::moveDone(int from, int to) {
 //  if (to == from) return;
-//  DLOG(INFO)<<"hdq: moveDone 1. will move idx from "<<from<<" to "<<to
-//            <<" ["<<bookmarks_[from]->title_.toStdString()<<"] to the place of ["<<bookmarks_[to]->title_.toStdString()<<"]";
-//  bookmark_qt_->moveBookmarkInModel(bookmarks_[from]->id_, bookmarks_[to]->id_);
+//  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq tree movedone "<< from << " ===> " << to;
+//  bookmark_qt_->moveBookmarkInModel(from, to);
 //}
 
 void BookmarkQtTreeImpl::moveDone(int f, int t, QString from, QString to) {
-  if (to == from) return;
+  if (f == t || to == from) return;
   DLOG(INFO)<<"hdq: 1. will movedone "<<f<<"-->"<<t<<" id: "<<from.toStdString()<<" ==> "<<to.toStdString();
-  bool ok = bookmark_qt_->moveBookmarkInModel(from, to, bookmarks_);
+  bool ok = bookmark_qt_->moveBookmarkInList(from, to, memento_, true, up_);
 
   //if (ok) {
   //  beginMoveRows(QModelIndex(), f, f, QModelIndex(), t > f ? t+1 : t);
@@ -1299,6 +1324,7 @@ void BookmarkQtTreeImpl::moveDone(int f, int t, QString from, QString to) {
   //}
   DLOG(INFO)<<"hdq: 9. done movedone "<<f<<"-->"<<t<<" id: "<<from.toStdString()<<" ==> "<<to.toStdString();
   DLOG(INFO)<<"hdq";
+  dragging_ = false;
 }
 
 void BookmarkQtTreeImpl::titleChanged(QString id, QString title) {
@@ -1317,21 +1343,36 @@ void BookmarkQtTreeImpl::PopupMenu(int x, int y) {
 // Simply return false for those items who don't have folder, 
 // as another instance of all_trees will handle them.
 bool BookmarkQtTreeImpl::addBookmarkToFolder(BookmarkItem *bookmark, const BookmarkNode* parent, int idx) {
-  DLOG(INFO)<<"hdq: a. adding "<<bookmark->title().toStdString()<<" to folder "<<parent->id();
+  DLOG(INFO)<<"hdq: a. adding "<<bookmark->title().toStdString()<<" to folder "<<parent->id()<<" idx "<<idx;
   if (bookmarks_.contains(bookmark)) 
     return false;
 
   int folder_pos = -1;
   if (!BookmarkList::index(bookmarks_, parent->id(), folder_pos)) return false;
   bookmark->level_ = bookmarks_[folder_pos]->level_+1;
+  bookmark->folder_id_ = bookmarks_[folder_pos]->id_;
+  int list_idx = folder_pos + idx + 1;
 
-  DLOG(INFO)<<"hdq: b. adding "<<bookmark->title().toStdString()<<" to folder "<<bookmarks_[folder_pos]->title_.toStdString()<<"'s "<<idx<<"th child";
-  bookmarks_[folder_pos]->children_.insert(idx, bookmark);
-  if (bookmarks_[folder_pos]->isOpened_) {
-    int index = folder_pos + idx + 1;
-    beginInsertRows(QModelIndex(), index, index);
-    bookmarks_.insert(index, bookmark);
-    endInsertRows();
+  DLOG(INFO)<<"hdq: b. adding to folder "<<bookmarks_[folder_pos]->title_.toStdString()<<"'s "<<idx<<"th child" 
+            <<" fpos "<<folder_pos<<" dragging "<<dragging_ <<" listidx "<<list_idx;
+
+  if (dragging_) { // 1. only updates item
+    int from_idx = -1;
+    if (BookmarkList::index(bookmarks_, bookmark->id_, from_idx)) {
+      bookmarks_[from_idx]->level_ = bookmark->level_;
+      bookmarks_[from_idx]->folder_id_ = bookmark->folder_id_;
+      DLOG(INFO)<<"hdq add "<<from_idx<<" to list["<<folder_pos<<"]'s "<<idx<<"'s child";
+      bookmarks_[folder_pos]->children_.insert(idx, bookmarks_[from_idx]);
+    }
+    DLOG(INFO)<<"hdq delete bookmark";
+    delete bookmark;
+  } else {        // 2. add item
+    if (bookmarks_[folder_pos]->isOpened_) {
+      beginInsertRows(QModelIndex(), list_idx, list_idx);
+      bookmarks_.insert(list_idx, bookmark);
+      endInsertRows();
+    }
+    bookmarks_[folder_pos]->children_.insert(idx, bookmark);
   }
 
   // Update folder arrow if necessary
@@ -1386,7 +1427,7 @@ bool BookmarkQtTreeImpl::removeBookmark(const BookmarkNode *node) {
   }
 
   // 2. remove in tree
-  if (!BookmarkQtImpl::removeBookmark(node)) return false;
+  if (!dragging_ && !BookmarkQtImpl::removeBookmark(node)) return false;
 
   // 3. update folder arrow if necessary
   if (-1 != fid && fempty) {

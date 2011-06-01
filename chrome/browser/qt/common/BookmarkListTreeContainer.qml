@@ -112,6 +112,7 @@ Item {
 
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         property int currentId: -1  // Original ID in model
+        property int newId: -1      // New ID in model
         property int newIndex       // Current Position in model
         property int index          // Item underneath cursor
         property int oldIndex       // Start position on moving
@@ -119,24 +120,27 @@ Item {
           index = tree.indexAt(mouseX, mouseY)
           if (index < 0) return
           if (0 == model.level(index)) return; // forbid "bar"/"others" moving
+          model.premove()  // get ready to move - saving a memento
           bmGlobal.dragging = true
           oldIndex = index
           currentId = model.id(newIndex = index)
+          newId = currentId
         }
         onReleased: {
           bmGlobal.dragging = false
           if (currentId == -1) return
           //console.log("hdq... moveDone", currentId, model.id(newIndex))
           //model.moveDone(currentId, model.id(newIndex))
+          console.log("hdq...... move done", oldIndex, "==>", newIndex, "id of", currentId, newId)
+          model.moveDone(oldIndex, newIndex, currentId, newId);
           currentId = -1
-          //model.moveDone(oldIndex, newIndex)
         }
         onMousePositionChanged: {
           index = tree.indexAt(mouseX, mouseY)
           if (treeMouseArea.currentId != -1 && index != -1 && index != newIndex) {
-            //model.moving(newIndex, newIndex = index) // This wouldn't affect model until moveDone() called
-            console.log("hdq...... move", newIndex, "-->", index, "id of", model.id(newIndex), model.id(index));
-            model.moveDone(newIndex, index, model.id(newIndex), model.id(newIndex = index))
+            newId = model.id(index)
+            console.log("hdq...... moving", newIndex, "-->", index, "id", newId)
+            model.moving(newIndex, newIndex = index) // This wouldn't affect model until moveDone() called
           }
         }
       }
