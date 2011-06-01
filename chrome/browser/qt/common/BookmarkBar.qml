@@ -40,6 +40,7 @@ Item {
   property int itemMinWidth: 60
   property int containerHeight: 55
   property int titleFontSize: 13
+  property bool showInstruction: true
   parent: outerContent
   width: parent.width
   states: [
@@ -95,7 +96,7 @@ Item {
       verticalAlignment: Text.AlignVCenter
       font.pixelSize: container.height*0.5
       text: bookmarkInstruction
-      opacity: 0
+      opacity: showInstruction && !scene.fullscreen
     }
     Component {
       id: bookmarkDelegate
@@ -183,8 +184,8 @@ Item {
   }
   Connections {
     target: bookmarkBarModel
-    onShowInstruction: instruction.opacity = 1
-    onHideInstruction: instruction.opacity = 0
+    onShowInstruction: showInstruction = true 
+    onHideInstruction: showInstruction = flase
   }
 }
 
