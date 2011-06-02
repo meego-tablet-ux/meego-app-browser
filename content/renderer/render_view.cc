@@ -3160,7 +3160,7 @@ WebCookieJar* RenderView::GetCookieJar() {
 #if defined(TOOLKIT_MEEGOTOUCH)
 WebRect RenderView::PluginFullScreenRect() {
 
-  DNOTIMPLEMENTED() << " pw.w-h = " << fs_plugin_win_size_.width() << "-" << fs_plugin_win_size_.height();
+  DLOG(INFO) << " pw.w-h = " << fs_plugin_win_size_.width() << "-" << fs_plugin_win_size_.height();
   if ((fs_plugin_win_size_.width() > 0) && (fs_plugin_win_size_.height() > 0))
       return WebRect(0, 0, fs_plugin_win_size_.width(), fs_plugin_win_size_.height());
 

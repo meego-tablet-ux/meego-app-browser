@@ -6,6 +6,7 @@
 #define WEBKIT_GLUE_PLUGINS_QT_PLUGIN_CONTAINER_MANAGER_H_
 
 #include <map>
+#include "base/meegotouch_config.h"
 
 #include "ui/gfx/native_widget_types.h"
 #include "ui/gfx/point.h"
@@ -16,8 +17,6 @@
 #include "webkit/plugins/npapi/qt_plugin_container_manager_host_delegate.h"
 
 class QWidget;
-
-#define MEEGO_FORCE_FULLSCREEN_PLUGIN
 
 #if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
 class QPushButton;
@@ -73,6 +72,9 @@ class QtPluginContainerManager : public QObject {
   void Hide();
   void Show();
 
+  //This slot should have been surrounded by #if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  //But it seems that moc have trouble to generate the metadata in the MACRO. So leave
+  //the define here and surround the implementation with MACROS instead.
  public Q_SLOTS:
   void CloseFSPluginWindow();
 

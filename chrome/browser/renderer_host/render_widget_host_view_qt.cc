@@ -8,6 +8,7 @@
 // errors happen because of a "#define Status int" in Xlib.h, which interacts
 // badly with URLRequestStatus::Status.
 #include "chrome/common/render_messages.h"
+#include "base/meegotouch_config.h"
 
 #include <QtGui/QApplication>
 #include <QtGui/QCursor>
@@ -43,8 +44,6 @@
 #include "chrome/browser/ui/meegotouch/qt_util.h"
 #include "webkit/plugins/npapi/webplugin.h"
 #include "webkit/plugins/npapi/qt_plugin_container_manager.h"
-
-#define MEEGO_ENABLE_WINDOWED_PLUGIN
 
 // static
 RenderWidgetHostView* RenderWidgetHostView::CreateViewForWidget(
@@ -247,7 +246,6 @@ void RenderWidgetHostViewQt::SetPluginWindowSize() {
 
   gfx::Size pw_size = CalPluginWindowSize();
   host_->SetFSPluginWinSize(pw_size);
-  DNOTIMPLEMENTED() << "width-height=" << pw_size.width() << "-" << pw_size.height();
 #endif
 }
 

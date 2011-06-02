@@ -142,7 +142,6 @@
         '../plugins/npapi/gtk_plugin_container_manager.h',
         '../plugins/npapi/qt_plugin_container_manager.cc',
         '../plugins/npapi/qt_plugin_container_manager.h',
-        '../plugins/npapi/moc_qt_plugin_container_manager.cc',
         '../plugins/npapi/qt_plugin_container_manager_host_delegate.h',
         '../plugins/npapi/npapi_extension_thunk.cc',
         '../plugins/npapi/npapi_extension_thunk.h',

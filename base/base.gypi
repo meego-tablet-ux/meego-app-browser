@@ -419,6 +419,7 @@
                 'moc_message_pump_qt.cc',
                 'message_pump_qt.cc',
                 'message_pump_qt.h',
+                'meegotouch_config.h',
               ],
               'actions': [{
                 'action_name': 'moc_message_pump_qt.h',

@@ -4,6 +4,10 @@
 
 #include "webkit/plugins/npapi/webplugin_impl.h"
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "base/meegotouch_config.h"
+#endif
+
 #include "base/logging.h"
 #include "base/memory/linked_ptr.h"
 #include "base/message_loop.h"
@@ -285,13 +289,12 @@ void WebPluginImpl::updateGeometry(
     new_geometry.cutout_rects.push_back(cutout_rects[i]);
 
 
-#if 1
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
   // for windowed mode
   if (window_ && page_delegate_) {
     WebRect fs_rect = page_delegate_->PluginFullScreenRect();
     new_geometry.window_rect = fs_rect;
   }
-
 #endif
 
   // Only send DidMovePlugin if the geometry changed in some way.

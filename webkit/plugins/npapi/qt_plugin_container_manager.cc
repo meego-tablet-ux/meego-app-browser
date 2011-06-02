@@ -12,7 +12,9 @@
 #include <QX11EmbedContainer>
 #include <QGraphicsProxyWidget>
 
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
 #include <QPushButton>
+#endif
 
 #include "base/logging.h"
 #include "webkit/plugins/npapi/webplugin.h"
@@ -41,16 +43,19 @@ gfx::PluginWindowHandle QtPluginContainerManager::MapCloseBtnToID(QPushButton* b
   return 0;
 }
 
+#endif
+
 void QtPluginContainerManager::CloseFSPluginWindow()
 {
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
   QPushButton *button = qobject_cast<QPushButton *>(sender());
   gfx::PluginWindowHandle id = MapCloseBtnToID(button);
 
   if (host_delegate_)
     host_delegate_->OnCloseFSPluginWindow(id);
+#endif
 }
 
-#endif
 
 QtPluginContainerManager::QtPluginContainerManager(QtPluginContainerManagerHostDelegate *host)
     : QObject(), host_widget_(NULL), host_delegate_(host) {
@@ -59,7 +64,7 @@ QtPluginContainerManager::QtPluginContainerManager(QtPluginContainerManagerHostD
 
 QWidget* QtPluginContainerManager::CreatePluginContainer(
     gfx::PluginWindowHandle id) {
-  NOTIMPLEMENTED() << "PluginWindowHandle " << id;
+  DLOG(INFO) << "PluginWindowHandle " << id;
 
   DCHECK(host_widget_);
 
@@ -119,8 +124,6 @@ void QtPluginContainerManager::DestroyPluginContainer(
   }
   plugin_window_to_fswidgets_map_.erase(id);
 #endif
-
-  DNOTIMPLEMENTED();
 }
 
 void QtPluginContainerManager::Show()
@@ -161,7 +164,7 @@ void QtPluginContainerManager::MovePluginContainer(
   int current_x, current_y;
   widget->setGeometry(move.window_rect.x() + view_offset.x(), move.window_rect.y() + view_offset.y(),
                       move.window_rect.width(), move.window_rect.height());
-  DNOTIMPLEMENTED() << " " << move.window << " " << move.window_rect.x() << "+" << move.window_rect.y() << "+"
+  DLOG(INFO) << " " << move.window << " " << move.window_rect.x() << "+" << move.window_rect.y() << "+"
                    << move.window_rect.width() << "x" << move.window_rect.height()
                    << " - offset = " << view_offset.x() << "-" << view_offset.y();
 }
@@ -239,3 +242,5 @@ void QtPluginContainerManager::RealizeCallback(GtkWidget* widget,
 
 }  // namespace npapi
 }  // namespace webkit
+
+#include "webkit/plugins/npapi/moc_qt_plugin_container_manager.cc"
