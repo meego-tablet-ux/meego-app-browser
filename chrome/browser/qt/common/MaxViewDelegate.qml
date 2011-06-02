@@ -75,7 +75,7 @@ Component{
 */
               Text { 
                 id: titleText
-		width: titleContainer.width - closeIcon.width
+		width: titleContainer.width - closeIcon.width - separator.width - 6
                 anchors { left: titleContainer.left; leftMargin:8; rightMargin:8; verticalCenter:parent.verticalCenter }
 		text: title
 		elide: Text.ElideRight
@@ -84,10 +84,19 @@ Component{
               }
 
               Image {
+                id: separator
+                anchors.right: closeIcon.left
+                width: 3
+                height: parent.height
+		fillMode: Image.Stretch
+                source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
+              }
+
+              Image {
                 id: closeIcon
                 height: parent.height
                 width: height
-                anchors { right: titleContainer.right; rightMargin:4; verticalCenter:parent.verticalCenter }
+                anchors { right: titleContainer.right; rightMargin:3; verticalCenter:parent.verticalCenter }
                 source: "image://themedimage/images/notes/icn_close_up"
                 property bool pressed: false
 		visible: gridModel.getCloseButtonState()
