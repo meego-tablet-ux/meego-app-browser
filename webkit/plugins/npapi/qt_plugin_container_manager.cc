@@ -110,13 +110,13 @@ void QtPluginContainerManager::DestroyPluginContainer(
   plugin_window_to_geometry_map_.erase(id);
 
 #if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
-//  PluginWindowToFSWidgetsMap::iterator iter = plugin_window_to_fswidgets_map_.find(id);
-//  if (iter != plugin_window_to_fswidgets_map_.end()) {
-//    FSPluginWidgets* fs_widgets = iter.second();
-//    delete fs_widgets->top_window;
-//    delete fs_widgets->close_btn;
-//  }
-  NOTIMPLEMENTED();
+// hmm, the erase(id) operation don't call FSPluginWidgets's destructor, strange
+  PluginWindowToFSWidgetsMap::const_iterator iter = plugin_window_to_fswidgets_map_.find(id);
+  if (iter != plugin_window_to_fswidgets_map_.end()) {
+    FSPluginWidgets* fs_widgets = iter->second;
+    delete fs_widgets->top_window;
+    fs_widgets->top_window = NULL; // in case Destructor some how been called...
+  }
   plugin_window_to_fswidgets_map_.erase(id);
 #endif
 

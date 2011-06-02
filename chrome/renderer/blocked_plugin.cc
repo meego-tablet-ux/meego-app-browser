@@ -87,6 +87,11 @@ BlockedPlugin::BlockedPlugin(RenderView* render_view,
                                                  preferences,
                                                  html_data,
                                                  GURL(kBlockedPluginDataURL));
+#if defined(TOOLKIT_MEEGOTOUCH)
+  loaded_ = false;
+  loaded_plugin_ = NULL;
+#endif
+
 }
 
 BlockedPlugin::~BlockedPlugin() {
@@ -157,6 +162,12 @@ bool BlockedPlugin::OnMessageReceived(const IPC::Message& message) {
       LoadPlugin();
   }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  if (message.type() == ViewMsg_ResetPlugin::ID) {
+    ResetPlugin();
+  }
+#endif
+
   return false;
 }
 
@@ -187,9 +198,37 @@ void BlockedPlugin::LoadPlugin() {
     container->invalidate();
     container->reportGeometry();
     plugin_->ReplayReceivedData(new_plugin);
+#if !defined(TOOLKIT_MEEGOTOUCH)
     plugin_->destroy();
+#else
+    // We don't delete plugin_ , so that we can restore it later.
+    //FIXME: need to find a proper time to destroy plugin_, or we don't need to?
+    loaded_ = true;
+    loaded_plugin_ = new_plugin;
+#endif
   }
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void BlockedPlugin::ResetPlugin() {
+
+  CHECK(plugin_);
+  if (!loaded_)
+    return;
+
+  WebPluginContainer* container = plugin_->container();
+
+  container->setPlugin(plugin_);
+  container->invalidate();
+  container->reportGeometry();
+
+  //plugin_->ReplayReceivedData(new_plugin);
+  loaded_plugin_->destroy();
+  loaded_plugin_ = NULL;
+  loaded_ = false;
+}
+#endif
+
 
 void BlockedPlugin::Load(const CppArgumentList& args, CppVariant* result) {
   LoadPlugin();

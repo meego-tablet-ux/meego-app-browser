@@ -11,6 +11,10 @@
 #include "webkit/glue/cpp_bound_class.h"
 #include "webkit/plugins/npapi/webview_plugin.h"
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebPlugin.h"
+#endif
+
 class GURL;
 
 namespace webkit {
@@ -69,6 +73,10 @@ class BlockedPlugin : public RenderViewObserver,
   // Hide the blocked plugin.
   void HidePlugin();
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void ResetPlugin();
+#endif
+
   WebKit::WebFrame* frame_;
   WebKit::WebPluginParams plugin_params_;
   webkit::npapi::WebViewPlugin* plugin_;
@@ -79,6 +87,17 @@ class BlockedPlugin : public RenderViewObserver,
   bool is_blocked_for_prerendering_;
   bool hidden_;
   bool allow_loading_;
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+
+  // whether the real plugin is loaded or not
+  bool loaded_;
+  // We keep track the loaded plugin, will need to destroy it when reset
+  // to the WebViewPlugin. We don't own it, so we won't delete in other cases.
+  WebKit::WebPlugin* loaded_plugin_;
+
+#endif
+
 };
 
 #endif  // CHROME_RENDERER_BLOCKED_PLUGIN_H_
