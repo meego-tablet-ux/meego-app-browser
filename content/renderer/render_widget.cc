@@ -28,6 +28,8 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebPoint.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebScreenInfo.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebSize.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebView.h"
+#include "third_party/WebKit/Source/WebKit/chromium/public/WebFrame.h"
 #include "ui/gfx/point.h"
 #include "ui/gfx/size.h"
 #include "ui/gfx/surface/transport_dib.h"
@@ -487,6 +489,15 @@ void RenderWidget::OnQueryNodeAtPosition(int x, int y) {
   webwidget_->queryNodeTypeAtPoint(x, y, node_info);
   IPC::Message* response = new ViewHostMsg_QueryNodeAtPosition_ACK(routing_id_, node_info);
   Send(response);
+
+#if defined(RENDER_TREE_DEBUG)
+  WebKit::WebFrame* frame = static_cast<WebKit::WebView*>(webwidget_)->mainFrame();
+  if (frame)
+  {
+    std::string output = frame->renderTreeAsText(true).utf8();
+    DLOG(INFO) << output;
+  }
+#endif
 }
 
 void RenderWidget::OnQueryEditorCursorPosition(int* cursor_position) {
