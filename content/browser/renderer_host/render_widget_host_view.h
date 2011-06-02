@@ -87,7 +87,7 @@ class RenderWidgetHostView {
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   virtual void UpdateWebKitNodeInfo(unsigned int node_info) { }
-  virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set) {}
+  virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, int height, bool set) {}
 
   ///////////////////////////////////////////
   // for tiled backing store

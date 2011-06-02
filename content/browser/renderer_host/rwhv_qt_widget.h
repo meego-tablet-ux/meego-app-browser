@@ -56,7 +56,7 @@ class RWHVQtWidget : public QGraphicsWidget
   void imeCancelComposition();
   QtMobility::QOrientationReading::Orientation orientationAngle();
   void setOrientationAngle(QtMobility::QOrientationReading::Orientation angle);
-  void UpdateSelectionRange(gfx::Point start, gfx::Point end, bool set);
+  void UpdateSelectionRange(gfx::Point start, gfx::Point end, int height, bool set);
 
   // for pinch emulation
   void touchPointCopyPosToLastPos(QTouchEvent::TouchPoint &point);

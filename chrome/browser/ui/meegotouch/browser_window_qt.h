@@ -32,6 +32,7 @@
 #include "chrome/browser/ui/meegotouch/find_bar_qt.h"
 #include "chrome/browser/ui/meegotouch/crash_tab_qt.h"
 #include "chrome/browser/ui/meegotouch/ssl_dialog_qt.h"
+#include "chrome/browser/ui/meegotouch/selection_handler_qt.h"
 
 class LauncherWindow;
 class QDeclarativeView;
@@ -190,6 +191,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   FindBarQt* GetFindBar();
   SelectFileDialogQtImpl* GetSelectFileDialog();
   PopupListQt* GetWebPopupList();
+  SelectionHandlerQt* GetSelectionHandler();
 
   SSLDialogQt* GetSSLDialogQt();
   TabContentsContainerQt* GetTabContentsContainer() { return contents_container_.get(); }
@@ -229,6 +231,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   FindBarQt* find_bar_; // It will be automatically freed by find bar controller
   BookmarkListData* bookmarklist_data_; // The bookmark data shared between bookmark_bar_ and bookmark_others_
   scoped_ptr<CrashTabQt> crash_tab_;
+  scoped_ptr<SelectionHandlerQt> selection_handler_;
 
   BrowserWindowQtImpl* impl_;
   NotificationRegistrar registrar_;  

@@ -37,6 +37,7 @@
 #include "chrome/browser/renderer_host/render_widget_host_view_qt.h"
 #include "chrome/browser/browser_list.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "chrome/browser/ui/meegotouch/selection_handler_qt.h"
 #include "content/browser/renderer_host/animation_utils.h"
 #include "content/browser/renderer_host/backing_store_x.h"
 #include "content/browser/renderer_host/event_util_qt.h"
@@ -1338,8 +1339,8 @@ void RWHVQtWidget::onAnimationFinished()
         QPointF(distance * pinch_scale_factor_ + center + (topLeft_- pinch_start_pos_)),
         size() * pinch_scale_factor_);
  }
-
   UnFrozen();
+
 }
 
 void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture)
@@ -1394,6 +1395,18 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         //Currently we disable it for we're confused by native rwhv gestures and Flickable gestures.
         //Flickable element will cause pinch jump when the pinch finger is firstly pressed first released
         setViewportInteractive(false);
+        //
+        if (in_selection_mode_)
+        {
+            Browser* browser = BrowserList::GetLastActive();
+            if (browser) {
+                BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+                SelectionHandlerQt* handler = browser_window->GetSelectionHandler();
+                handler->setPinchState(true);
+                handler->setPinchOffset(0,0);
+            }
+        }
+        
       }
       break;
     case Qt::GestureUpdated:
@@ -1423,6 +1436,22 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         } 
 
         cancel_next_mouse_release_event_ = true;
+
+        
+        if (in_selection_mode_)
+        {
+            Browser* browser = BrowserList::GetLastActive();
+            if (browser) {
+                BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+                SelectionHandlerQt* handler = browser_window->GetSelectionHandler();
+                pinch_center_ = gesture->centerPoint();
+                QPointF center = mapFromScene(pinch_center_);
+
+                handler->setScale(pending_scale_);
+                handler->setPinchOffset((1-pinch_scale_factor_)*center.x(),
+                                        (1-pinch_scale_factor_)*center.y());
+            }
+        }
       }
       break;
     case Qt::GestureFinished:
@@ -1446,6 +1475,19 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         } else {
           onAnimationFinished();
         }
+
+        if (in_selection_mode_)
+        {
+            Browser* browser = BrowserList::GetLastActive();
+            if (browser) {
+                BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+                SelectionHandlerQt* handler = browser_window->GetSelectionHandler();
+                handler->setPinchState(false);
+                handler->setPinchOffset(0,0);
+                handler->setScale(pending_scale_);
+            }
+        }
+
       }
       break;
     case Qt::GestureCanceled:
@@ -1458,6 +1500,17 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
 #endif
         
         setViewportInteractive(true);
+
+        if (in_selection_mode_)
+        {
+            Browser* browser = BrowserList::GetLastActive();
+            if (browser) {
+                BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+                SelectionHandlerQt* handler = browser_window->GetSelectionHandler();
+                handler->setPinchState(false);
+                handler->setPinchOffset(0,0);
+            }
+        }
       }
 
       break;
@@ -1882,8 +1935,9 @@ RWHVQtWidget::SelectionHandlerID RWHVQtWidget::findSelectionHandler(int x, int y
   return handler;
 }
 
+
 void RWHVQtWidget::UpdateSelectionRange(gfx::Point start,
-    gfx::Point end, bool set) {
+     gfx::Point end, int height, bool set) {
 #if 0
   DLOG(INFO) << "--" << __PRETTY_FUNCTION__ << ": " <<
     ", start_pos x-y: " << start.x() << "-" << start.y()<<
@@ -1891,15 +1945,30 @@ void RWHVQtWidget::UpdateSelectionRange(gfx::Point start,
     ", selection set: " << set <<
     std::endl;
 #endif
+  Browser* browser = BrowserList::GetLastActive();
+  if (!browser) return;
+  BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+  SelectionHandlerQt* handler = browser_window->GetSelectionHandler();
+
   if (!set) {
     in_selection_mode_ = false;
     current_selection_handler_ = SELECTION_HANDLER_NONE;
+    handler->hideHandler();
     return;
   }
 
   in_selection_mode_ = true;
   selection_start_pos_ = start;
   selection_end_pos_ = end;
+
+  handler->showHandler();
+
+  handler->setScale(scale());
+  handler->setHandlerAt(start.x(), start.y(),\
+                        end.x(), end.y());
+  handler->setHandlerHeight(height);
+  
+  
 }
 
 void RWHVQtWidget::InvokeSelection(QTapAndHoldGesture* gesture) {

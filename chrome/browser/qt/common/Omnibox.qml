@@ -172,6 +172,7 @@ Item {
       property bool shouldSelectAll: false
       autoScroll: false
       inputMethodHints: Qt.ImhUrlCharactersOnly
+
       Keys.onReturnPressed: {
         autocompleteEditViewModel.returnPressed();
       }

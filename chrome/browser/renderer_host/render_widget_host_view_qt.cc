@@ -310,9 +310,9 @@ void RenderWidgetHostViewQt::UpdateWebKitNodeInfo(unsigned int node_info)
 }
 
 void RenderWidgetHostViewQt::UpdateSelectionRange(gfx::Point start,
-    gfx::Point end, bool set) {
+    gfx::Point end, int height, bool set) {
   if(view_)
-    reinterpret_cast<RWHVQtWidget*>(view_)->UpdateSelectionRange(start, end, set);
+      reinterpret_cast<RWHVQtWidget*>(view_)->UpdateSelectionRange(start, end, height, set);
 }
 
 void RenderWidgetHostViewQt::Destroy() {  

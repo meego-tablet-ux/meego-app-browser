@@ -438,7 +438,7 @@ class RenderViewHost : public RenderWidgetHost {
   void CreateNewFullscreenWidget(int route_id);
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  void OnUpdateSelectionRange(gfx::Point start, gfx::Point end, bool set);
+  void OnUpdateSelectionRange(gfx::Point start, gfx::Point end, int height, bool set);
   void SetSelectionRange(gfx::Point start, gfx::Point end, bool set);
   void SelectItem(gfx::Point pos);
   void CommitSelection();

@@ -327,9 +327,10 @@ IPC_MESSAGE_ROUTED0(ViewHostMsg_ResourceRelease)
 IPC_MESSAGE_ROUTED1(ViewMsg_ResourceGet,
                     int /* type */)
 
-IPC_MESSAGE_ROUTED3(ViewHostMsg_UpdateSelectionRange,
+IPC_MESSAGE_ROUTED4(ViewHostMsg_UpdateSelectionRange,
                     gfx::Point, /* start point */
                     gfx::Point, /* end point */
+                    int, /* height */
                     bool /* if false, cancel selection */)
 
 IPC_SYNC_MESSAGE_ROUTED0_1(ViewMsg_QueryEditorSelection,

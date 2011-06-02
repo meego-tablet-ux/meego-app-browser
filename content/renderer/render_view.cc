@@ -759,8 +759,8 @@ void RenderView::OnCommitSelection() {
     view->commitSelection();
 }
 
-void RenderView::UpdateSelectionRange(WebKit::WebPoint& start, WebKit::WebPoint& end, bool set) {
-  Send(new ViewHostMsg_UpdateSelectionRange(routing_id_, start, end, set));
+void RenderView::UpdateSelectionRange(WebKit::WebPoint& start, WebKit::WebPoint& end, int height, bool set) {
+    Send(new ViewHostMsg_UpdateSelectionRange(routing_id_, start, end, height, set));
 }
 
 void RenderView::OnSelectItem(gfx::Point pos) {

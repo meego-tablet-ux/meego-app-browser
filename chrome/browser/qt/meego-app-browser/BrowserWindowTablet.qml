@@ -82,6 +82,7 @@ Item {
 
     property alias findbar: findBarLoader.item
     property alias ssldialog: sslDialogLoader.item
+    property alias selectionhandler: selectionHandlerLoader.item
     property alias bookmarklist: bookmarkManagerLoader.item
     property alias showsearch: toolbar.showsearch
     property alias toolbarheight: toolbar.height
@@ -408,6 +409,23 @@ Item {
         Connections {
             target: bookmarkOthersGridModel
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
+        }
+
+        Loader {
+            id: selectionHandlerLoader
+            source: ""
+        }
+        Connections {
+            target: selectionHandler
+            onShow: {
+                selectionHandlerLoader.source = "SelectionHandler.qml"
+                selectionhandler.parent = webview
+                selectionhandler.z = webview.z + 1
+                selectionhandler.anchors.fill = webview
+            }
+            onHide: {
+                selectionHandlerLoader.source = ""
+            }
         }
 
         Loader {

@@ -2849,6 +2849,9 @@
         'browser/ui/meegotouch/external_protocol_dialog_qt.cc',
         'browser/ui/meegotouch/find_bar_qt.cc',
         'browser/ui/meegotouch/find_bar_qt.h',
+        'browser/ui/meegotouch/selection_handler_qt.cc',
+        'browser/ui/meegotouch/selection_handler_qt.h',
+        'browser/ui/meegotouch/moc_selection_handler_qt.cc',
         'browser/ui/meegotouch/fullscreen_exit_bubble_qt.cc',
         'browser/ui/meegotouch/fullscreen_exit_bubble_qt.h',
         'browser/ui/meegotouch/html_dialog_qt.cc',
@@ -4510,6 +4513,21 @@
                 ],
                 'outputs': [
                   'browser/ui/meegotouch/moc_fullscreen_exit_bubble_qt.cc',
+                ],
+                'action': [
+                  'moc',
+                  '<(_inputs)',
+                  '-o',
+                  '<(_outputs)',
+                ],
+              },
+              {
+                'action_name': 'selection_handler',
+                'inputs': [
+                  'browser/ui/meegotouch/selection_handler_qt.h',
+                ],
+                'outputs': [
+                  'browser/ui/meegotouch/moc_selection_handler_qt.cc',
                 ],
                 'action': [
                   'moc',

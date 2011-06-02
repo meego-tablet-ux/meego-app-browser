@@ -733,7 +733,7 @@ class RenderView : public RenderWidget,
   void OnResourceGet(int type);
 
 // reimplement from webviewclient
-  virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, bool set);
+  virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, int height, bool set);
 #endif
 
   void OnAccessibilityDoDefaultAction(int acc_obj_id);

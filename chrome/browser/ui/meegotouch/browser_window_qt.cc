@@ -300,7 +300,8 @@ void BrowserWindowQt::InitWidget()
   bookmark_bubble_.reset(new BookmarkBubbleQt(this, browser_.get(), browser_->profile()));
   web_popuplist_.reset(new PopupListQt(this));
   crash_tab_.reset(new CrashTabQt(this));
-
+  selection_handler_.reset(new SelectionHandlerQt(this));
+  
   DownloadManager* dlm = browser_->profile()->GetDownloadManager();
   download_handler_.reset(new DownloadsQtHandler(this, browser_.get(), dlm));
 
@@ -567,6 +568,12 @@ SelectFileDialogQtImpl* BrowserWindowQt::GetSelectFileDialog()
 {
   return select_file_dialog_.get();
 }
+
+SelectionHandlerQt* BrowserWindowQt::GetSelectionHandler()
+{
+    return selection_handler_.get();
+}
+
 
 PopupListQt* BrowserWindowQt::GetWebPopupList()
 {
