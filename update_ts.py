@@ -26,7 +26,7 @@ mtb_po_dir = po_dir + '/' + mtb_name
 
 grd_diff = './modified_strings.diff'
 
-qml_dir = './chrome/browser/qt/*'
+qml_dir = './chrome/browser/qt/meego-app-browser ./chrome/browser/qt/common'
 
 qml_ts = 'qml.ts'
 
