@@ -253,7 +253,11 @@ bool ShellIntegration::SetAsDefaultBrowser() {
   argv.push_back("xdg-settings");
   argv.push_back("set");
   argv.push_back("default-web-browser");
+#if defined(TOOLKIT_MEEGOTOUCH)
+  argv.push_back("meego-app-browser.desktop");
+#else
   argv.push_back(GetDesktopName(env.get()));
+#endif
   return LaunchXdgUtility(argv);
 }
 
@@ -267,8 +271,11 @@ ShellIntegration::DefaultBrowserState ShellIntegration::IsDefaultBrowser() {
   argv.push_back("xdg-settings");
   argv.push_back("check");
   argv.push_back("default-web-browser");
+#if defined(TOOLKIT_MEEGOTOUCH)
+  argv.push_back("meego-app-browser.desktop");
+#else
   argv.push_back(GetDesktopName(env.get()));
-
+#endif
   std::string reply;
   if (!base::GetAppOutput(CommandLine(argv), &reply)) {
     // xdg-settings failed: we can't determine or set the default browser.
