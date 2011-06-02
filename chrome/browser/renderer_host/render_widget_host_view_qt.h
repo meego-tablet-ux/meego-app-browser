@@ -16,6 +16,7 @@
 #include "webkit/glue/webcursor.h"
 #include "webkit/glue/webmenuitem.h"
 #include "ui/gfx/rect.h"
+#include "webkit/plugins/npapi/qt_plugin_container_manager_host_delegate.h"
 
 namespace webkit {
 namespace npapi {
@@ -33,7 +34,8 @@ struct NativeWebKeyboardEvent;
 // -----------------------------------------------------------------------------
 // See comments in render_widget_host_view.h about this class and its members.
 // -----------------------------------------------------------------------------
-class RenderWidgetHostViewQt : public RenderWidgetHostView {
+class RenderWidgetHostViewQt : public RenderWidgetHostView,
+                               public webkit::npapi::QtPluginContainerManagerHostDelegate {
  public:
 
   explicit RenderWidgetHostViewQt(RenderWidgetHost* widget);
@@ -88,6 +90,10 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView {
   virtual void ImeCancelComposition();
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+
+  // this one is derived from QtPluginContainerManagerHostDelegate
+  virtual void OnCloseFSPluginWindow(gfx::PluginWindowHandle id);
+
   virtual void UpdateWebKitNodeInfo(unsigned int node_info);
   virtual void UpdateSelectionRange(gfx::Point start, gfx::Point end, int height, bool set);
 

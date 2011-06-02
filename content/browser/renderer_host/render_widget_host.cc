@@ -826,6 +826,12 @@ void RenderWidgetHost::SetFSPluginWinSize(const gfx::Size& ws)
   Send(new ViewMsg_SetFSPluginWinSize(routing_id(), ws));
 }
 
+void RenderWidgetHost::ResetPlugin(gfx::PluginWindowHandle id)
+{
+  NOTIMPLEMENTED() << "id = " << id;
+  Send(new ViewMsg_ResetPlugin(routing_id(), id));
+}
+
 double RenderWidgetHost::GetScaleFactor() const
 {
   return scale_factor_;

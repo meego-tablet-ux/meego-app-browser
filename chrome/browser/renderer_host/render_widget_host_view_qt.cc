@@ -67,7 +67,7 @@ RenderWidgetHostViewQt::RenderWidgetHostViewQt(RenderWidgetHost* widget_host)
       webkit_node_info_(0),
       view_(NULL) {
   host_->set_view(this);
-  plugin_container_manager_ = new webkit::npapi::QtPluginContainerManager();
+  plugin_container_manager_ = new webkit::npapi::QtPluginContainerManager(this);
 }
 
 RenderWidgetHostViewQt::~RenderWidgetHostViewQt() {
@@ -249,6 +249,12 @@ void RenderWidgetHostViewQt::SetPluginWindowSize() {
   host_->SetFSPluginWinSize(pw_size);
   DNOTIMPLEMENTED() << "width-height=" << pw_size.width() << "-" << pw_size.height();
 #endif
+}
+
+void RenderWidgetHostViewQt::OnCloseFSPluginWindow(gfx::PluginWindowHandle id) {
+  if (!host_)
+    return;
+  host_->ResetPlugin(id);
 }
 
 void RenderWidgetHostViewQt::ScenePosChanged() {

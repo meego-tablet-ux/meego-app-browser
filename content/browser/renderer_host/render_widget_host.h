@@ -428,6 +428,7 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   ////////////////////////////////////////////////
 
   void SetFSPluginWinSize(const gfx::Size& ws);
+  void ResetPlugin(gfx::PluginWindowHandle id);
 #endif
 
   void set_ignore_input_events(bool ignore_input_events) {

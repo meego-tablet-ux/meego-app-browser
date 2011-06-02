@@ -11,9 +11,13 @@
 #include "ui/gfx/point.h"
 #include "ui/gfx/size.h"
 
-#define MEEGO_FORCE_FULLSCREEN_PLUGIN
+#include <QObject>
+
+#include "webkit/plugins/npapi/qt_plugin_container_manager_host_delegate.h"
 
 class QWidget;
+
+#define MEEGO_FORCE_FULLSCREEN_PLUGIN
 
 #if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
 class QPushButton;
@@ -35,10 +39,12 @@ struct FSPluginWidgets{
 };
 #endif
 
-// Helper class that creates and manages plugin containers (GtkSocket).
-class QtPluginContainerManager {
+class QtPluginContainerManager : public QObject {
+
+  Q_OBJECT
+
  public:
-  QtPluginContainerManager() : host_widget_(NULL) { fs_win_size_.SetSize(0, 0); }
+  QtPluginContainerManager(QtPluginContainerManagerHostDelegate *host);
 
   // Sets the widget that will host the plugin containers. Must be a GtkFixed.
   void set_host_widget(QWidget *widget) { host_widget_ = widget; }
@@ -60,8 +66,15 @@ class QtPluginContainerManager {
   int FSPluginCloseBarHeight() { return FullScreenPluginCloseBarHeight; }
   int SetFSWindowSize(gfx::Size new_size) { fs_win_size_ = new_size; }
 
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  gfx::PluginWindowHandle MapCloseBtnToID(QPushButton* button);
+#endif
+
   void Hide();
   void Show();
+
+ public Q_SLOTS:
+  void CloseFSPluginWindow();
 
  private:
   // Compare to the public version, this internal one do not save the move info
@@ -96,6 +109,8 @@ class QtPluginContainerManager {
   typedef std::map<gfx::PluginWindowHandle, FSPluginWidgets*> PluginWindowToFSWidgetsMap;
   PluginWindowToFSWidgetsMap plugin_window_to_fswidgets_map_;
 #endif
+
+  webkit::npapi::QtPluginContainerManagerHostDelegate *host_delegate_;
 
   gfx::Size fs_win_size_;
 };

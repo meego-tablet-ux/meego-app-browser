@@ -349,6 +349,9 @@ IPC_MESSAGE_ROUTED1(ViewMsg_SetPreferredSize,
 IPC_MESSAGE_ROUTED1(ViewMsg_SetFSPluginWinSize,
                     gfx::Size /* new_size */)
 
+IPC_MESSAGE_ROUTED1(ViewMsg_ResetPlugin,
+                    gfx::PluginWindowHandle /* id */)
+
 IPC_MESSAGE_ROUTED5(ViewMsg_PaintTile,
                     TransportDIB::Handle /* dib_handle */,
                     unsigned int /* seq */,

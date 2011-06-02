@@ -20,6 +20,8 @@
 namespace webkit {
 namespace npapi {
 
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+
 FSPluginWidgets::~FSPluginWidgets()
 {
   NOTIMPLEMENTED();
@@ -27,36 +29,37 @@ FSPluginWidgets::~FSPluginWidgets()
   //close_btn should be the child of top_window, so not need to delete explicitly
 }
 
+gfx::PluginWindowHandle QtPluginContainerManager::MapCloseBtnToID(QPushButton* button)
+{
+  for (PluginWindowToFSWidgetsMap::const_iterator i = plugin_window_to_fswidgets_map_.begin();
+       i != plugin_window_to_fswidgets_map_.end(); ++i) {
+    FSPluginWidgets* fs_widgets = i->second;
+    if (fs_widgets->close_btn == button)
+      return i->first;
+  }
+
+  return 0;
+}
+
+void QtPluginContainerManager::CloseFSPluginWindow()
+{
+  QPushButton *button = qobject_cast<QPushButton *>(sender());
+  gfx::PluginWindowHandle id = MapCloseBtnToID(button);
+
+  if (host_delegate_)
+    host_delegate_->OnCloseFSPluginWindow(id);
+}
+
+#endif
+
+QtPluginContainerManager::QtPluginContainerManager(QtPluginContainerManagerHostDelegate *host)
+    : QObject(), host_widget_(NULL), host_delegate_(host) {
+  fs_win_size_.SetSize(0, 0);
+}
 
 QWidget* QtPluginContainerManager::CreatePluginContainer(
     gfx::PluginWindowHandle id) {
-  /*
-  DCHECK(host_widget_);
-  GtkWidget *widget = gtk_plugin_container_new();
-  plugin_window_to_widget_map_.insert(std::make_pair(id, widget));
-
-  // The Realize callback is responsible for adding the plug into the socket.
-  // The reason is 2-fold:
-  // - the plug can't be added until the socket is realized, but this may not
-  // happen until the socket is attached to a top-level window, which isn't the
-  // case for background tabs.
-  // - when dragging tabs, the socket gets unrealized, which breaks the XEMBED
-  // connection. We need to make it again when the tab is reattached, and the
-  // socket gets realized again.
-  //
-  // Note, the RealizeCallback relies on the plugin_window_to_widget_map_ to
-  // have the mapping.
-  g_signal_connect(widget, "realize",
-                   G_CALLBACK(RealizeCallback), this);
-
-  // Don't destroy the widget when the plug is removed.
-  g_signal_connect(widget, "plug-removed",
-                   G_CALLBACK(gtk_true), NULL);
-
-  gtk_container_add(GTK_CONTAINER(host_widget_), widget);
-  gtk_widget_show(widget);
-  */
-  DNOTIMPLEMENTED() << "PluginWindowHandle " << id;
+  NOTIMPLEMENTED() << "PluginWindowHandle " << id;
 
   DCHECK(host_widget_);
 
@@ -72,6 +75,8 @@ QWidget* QtPluginContainerManager::CreatePluginContainer(
 
   fs_window->setGeometry(0, 0, fs_win_size_.width(), fs_win_size_.height());
   button->setGeometry(0, fs_win_size_.height() - FSPluginCloseBarHeight(), fs_win_size_.width(), FSPluginCloseBarHeight());
+
+  connect(button, SIGNAL(clicked()), this, SLOT(CloseFSPluginWindow()));
 
   window = fs_window;
   window->show();

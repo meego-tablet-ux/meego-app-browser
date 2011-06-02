@@ -142,6 +142,8 @@
         '../plugins/npapi/gtk_plugin_container_manager.h',
         '../plugins/npapi/qt_plugin_container_manager.cc',
         '../plugins/npapi/qt_plugin_container_manager.h',
+        '../plugins/npapi/moc_qt_plugin_container_manager.cc',
+        '../plugins/npapi/qt_plugin_container_manager_host_delegate.h',
         '../plugins/npapi/npapi_extension_thunk.cc',
         '../plugins/npapi/npapi_extension_thunk.h',
         '../plugins/npapi/plugin_constants_win.cc',
@@ -476,6 +478,23 @@
                 '<(_outputs)',
               ],
             },
+
+            {
+              'action_name': 'moc_qt_plugin_container_manager.cc',
+              'inputs': [
+                '../plugins/npapi/qt_plugin_container_manager.h',
+              ],
+              'outputs': [
+                '../plugins/npapi/moc_qt_plugin_container_manager.cc',
+              ],
+              'action': [
+                'moc',
+                '<(_inputs)',
+                '-o',
+                '<(_outputs)',
+              ],
+            },
+
           ],
         }],
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
