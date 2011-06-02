@@ -96,7 +96,7 @@ Item {
       verticalAlignment: Text.AlignVCenter
       font.pixelSize: container.height*0.5
       text: bookmarkInstruction
-      opacity: showInstruction && !scene.fullscreen
+      opacity: scene.showbookmarkbar && !scene.fullscreen && container.showInstruction ? 1.0 : 0.0
     }
     Component {
       id: bookmarkDelegate
@@ -184,8 +184,8 @@ Item {
   }
   Connections {
     target: bookmarkBarModel
-    onShowInstruction: showInstruction = true 
-    onHideInstruction: showInstruction = flase
+    onShowInstruction: container.showInstruction = true;
+    onHideInstruction: container.showInstruction = false;
   }
 }
 
