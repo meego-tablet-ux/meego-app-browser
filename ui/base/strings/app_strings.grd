@@ -276,22 +276,22 @@ need to be translated for each locale.-->
 
       <!-- Edit field context menu item labels. -->
       <message name="IDS_APP_UNDO" desc="The text label of the Undo menu item">
-        Undo
+        &amp;Undo
       </message>
       <message name="IDS_APP_CUT" desc="The text label of the Cut menu item">
-        Cut
+        Cu&amp;t
       </message>
       <message name="IDS_APP_COPY" desc="The text label of the Copy menu item">
-        Copy
+        &amp;Copy
       </message>
       <message name="IDS_APP_PASTE" desc="The text label of the Paste menu item">
-        Paste
+        &amp;Paste
       </message>
       <message name="IDS_APP_DELETE" desc="The text label of the Delete menu item">
-        Delete
+        &amp;Delete
       </message>
       <message name="IDS_APP_SELECT_ALL" desc="The text label of the Select All menu item">
-        Select all
+        Select &amp;all
       </message>
 
       <!-- Generic terms -->

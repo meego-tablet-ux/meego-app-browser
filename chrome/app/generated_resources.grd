@@ -311,7 +311,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         Cancel
       </message>
       <message name="IDS_EDIT" desc="Edit menu item">
-        Edit
+        &amp;Edit
       </message>
       <message name="IDS_LEARN_MORE" desc="Learn more text">
         Learn more
@@ -349,172 +349,172 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       </if>
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_CONTENT_CONTEXT_BACK" desc="The name of the Back command in the content area context menu">
-          Back
+          &amp;Back
         </message>
         <message name="IDS_CONTENT_CONTEXT_FORWARD" desc="The name of the Forward command in the content area context menu">
-          Forward
+          &amp;Forward
         </message>
         <message name="IDS_CONTENT_CONTEXT_SAVEPAGEAS" desc="The name of the Save Page As command in the content area context menu">
-          Save as...
+          Save &amp;as...
         </message>
         <message name="IDS_CONTENT_CONTEXT_PRINT" desc="The name of the Print... command in the content area context menu. Brings a dialog to select the print options">
-          Print...
+          P&amp;rint...
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWPAGESOURCE" desc="The name of the View Page Source command in the content area context menu">
-          View page source
+          &amp;View page source
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWPAGEINFO" desc="The name of the View Page Info command in the content area context menu">
-          View page info
+          View page &amp;info
         </message>
         <message name="IDS_CONTENT_CONTEXT_INSPECTELEMENT" desc="The name of the Inspect Element command in the content area context menu">
-          Inspect element
+          I&amp;nspect element
         </message>
         <message name="IDS_CONTENT_CONTEXT_RELOAD" desc="The name of the Reload command in the content area context menu">
-          Reload
+          Re&amp;load
         </message>
         <message name="IDS_CONTENT_CONTEXT_TRANSLATE" desc="The name of the Translate command in the content area context menu">
-          Translate to <ph name="LANGUAGE">$1<ex>English</ex></ph>
+          &amp;Translate to <ph name="LANGUAGE">$1<ex>English</ex></ph>
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_RELOADFRAME" desc="The name of the Reload Frame command in the content area context menu">
           Reload frame
         </message>
         <message name="IDS_CONTENT_CONTEXT_SAVEFRAMEAS" desc="The name of the Save Frame As command in the content area context menu">
-          Save frame as...
+          Save &amp;frame as...
         </message>
         <message name="IDS_CONTENT_CONTEXT_PRINTFRAME" desc="The name of the Print Frame command in the content area context menu">
-          Print frame...
+          P&amp;rint frame...
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWFRAMESOURCE" desc="The name of the View Frame Source command in the content area context menu">
-          View frame source
+          &amp;View frame source
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWFRAMEINFO" desc="The name of the View Frame Info command in the content area context menu">
-          View frame info
+          View frame &amp;info
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_OPENLINKNEWTAB" desc="The name of the Open Link in New Tab command in the content area context menu">
-          Open link in new tab
+          Open link in new &amp;tab
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENLINKNEWWINDOW" desc="The name of the Open Link in New Window command in the content area context menu">
-          Open link in new window
+          Open link in new &amp;window
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENLINKOFFTHERECORD" desc="The name of the open a link in incognito window command">
-          Open link in incognito window
+          Open link in inco&amp;gnito window
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVELINKAS" desc="The name of the Save Link As command in the content area context menu">
-          Save link as...
+          Save lin&amp;k as...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYLINKLOCATION" desc="The name of the Copy Link Location command in the content area context menu">
-          Copy link address
+          Copy link addr&amp;ess
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_COPYEMAILADDRESS" desc="The name of the Copy Email Address command in the content area context menu">
-          Copy email address
+          Copy &amp;email address
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVEIMAGEAS" desc="The name of the Save Image As command in the content area context menu">
-          Save image as...
+          Sa&amp;ve image as...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYIMAGELOCATION" desc="The name of the Copy Image Location command in the content area context menu">
-          Copy image URL
+          C&amp;opy image URL
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYIMAGE" desc="The name of the Copy Image command in the content area context menu">
-          Copy image
+          Cop&amp;y image
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENIMAGENEWTAB" desc="The name of the Open Image in New Tab command in the content area context menu">
-          Open image in new tab
+          Open &amp;image in new tab
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_LOOP" desc="The name of the Loop command for audio and video playback in the content area context menu">
-          Loop
+          &amp;Loop
         </message>
         <message name="IDS_CONTENT_CONTEXT_PLAY" desc="The name of the Play command for audio and video playback in the content area context menu">
-          Play
+          &amp;Play
         </message>
         <message name="IDS_CONTENT_CONTEXT_PAUSE" desc="The name of the Pause command for audio and video playback in the content area context menu">
-          Pause
+          &amp;Pause
         </message>
         <message name="IDS_CONTENT_CONTEXT_MUTE" desc="The name of the Mute command for audio and video playback in the content area context menu">
-          Mute
+          &amp;Mute
         </message>
         <message name="IDS_CONTENT_CONTEXT_UNMUTE" desc="The name of the Unmute command for audio and video playback in the content area context menu">
-          Unmute
+          Un&amp;mute
         </message>
         <message name="IDS_CONTENT_CONTEXT_CONTROLS" desc="The name of the Show Controls command for audio and video playback in the content area context menu">
-          Show Controls
+          Show &amp;Controls
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVEVIDEOAS" desc="The name of the Save Video As command in the content area context menu">
-          Save video as...
+          Sa&amp;ve video as...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYVIDEOLOCATION" desc="The name of the Copy Video Location command in the content area context menu">
-          Copy video URL
+          C&amp;opy video URL
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENVIDEONEWTAB" desc="The name of the Open Video in New Tab command in the content area context menu">
-          Open video in new tab
+          &amp;Open video in new tab
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVEAUDIOAS" desc="The name of the Save Audio As command in the content area context menu">
-          Save audio as...
+          Sa&amp;ve audio as...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYAUDIOLOCATION" desc="The name of the Copy Audio Location command in the content area context menu">
-          Copy audio URL
+          C&amp;opy audio URL
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENAUDIONEWTAB" desc="The name of the Open Audio in New Tab command in the content area context menu">
-          Open audio in new tab
+          &amp;Open audio in new tab
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_UNDO" desc="The name of the Undo command in the content area context menu">
-          Undo
+          &amp;Undo
         </message>
         <message name="IDS_CONTENT_CONTEXT_REDO" desc="The name of the Redo command in the content area context menu">
-          Redo
+          &amp;Redo
         </message>
         <message name="IDS_CONTENT_CONTEXT_CUT" desc="The name of the Cut command in the content area context menu">
-          Cut
+          Cu&amp;t
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPY" desc="The name of the Copy command in the content area context menu">
-          Copy
+          &amp;Copy
         </message>
         <message name="IDS_CONTENT_CONTEXT_PASTE" desc="The name of the Paste command in the content area context menu">
-          Paste
+          &amp;Paste
         </message>
         <message name="IDS_CONTENT_CONTEXT_DELETE" desc="The name of the Delete command in the content area context menu">
-          Delete
+          &amp;Delete
         </message>
         <message name="IDS_CONTENT_CONTEXT_ADD_TO_DICTIONARY" desc="The name of the Add to dictionary command in the content area context menu">
-          Add to dictionary
+          &amp;Add to dictionary
         </message>
         <message name="IDS_CONTENT_CONTEXT_NO_SPELLING_SUGGESTIONS" desc="The name of the No Spelling Suggestions display in the content area context menu">
-          No spelling suggestions
+          &amp;No spelling suggestions
         </message>
         <message name="IDS_CONTENT_CONTEXT_SPELLCHECK_MENU" desc="The name of the Spellcheck Options submenu in the content area context menu">
-          Spell-checker options
+          &amp;Spell-checker options
         </message>
         <message name="IDS_CONTENT_CONTEXT_LANGUAGE_SETTINGS" desc="The name of the Language Settings command in the content area context menu">
-          Language settings...
+          &amp;Language settings...
         </message>
         <message name="IDS_CONTENT_CONTEXT_CHECK_SPELLING_OF_THIS_FIELD" desc="The name of the Check the spelling of this field command in the content area context menu">
-          Check the spelling of this field
+          &amp;Check the spelling of this field
         </message>
         <message name="IDS_CONTENT_CONTEXT_SHOW_SPELLING_PANEL" desc="The name of the Show Spelling Panel command in the content area context menu">
-          Show spelling panel
+          &amp;Show spelling panel
         </message>
         <message name="IDS_CONTENT_CONTEXT_HIDE_SPELLING_PANEL" desc="The name of the Hide Spelling Panel command in the content area context menu">
-          Hide spelling panel
+          &amp;Hide spelling panel
         </message>
         <message name="IDS_CONTENT_CONTEXT_SELECTALL" desc="The name of the Select All command in the content area context menu">
-          Select all
+          Select &amp;all
         </message>
         <message name="IDS_CONTENT_CONTEXT_SEARCHWEBFOR" desc="The name of the Search the Web for 'string' command in the content area context menu">
-          Search <ph name="SEARCH_ENGINE">$1<ex>Google</ex></ph> for '<ph name="SEARCH_TERMS">$2<ex>flowers</ex></ph>'
+          &amp;Search <ph name="SEARCH_ENGINE">$1<ex>Google</ex></ph> for '<ph name="SEARCH_TERMS">$2<ex>flowers</ex></ph>'
         </message>
         <message name="IDS_CONTENT_CONTEXT_GOTOURL" desc="The name of the Go to 'url' command in the content area context menu">
-          Go to <ph name="URL">$1<ex>http://www.google.com/</ex></ph>
+          &amp;Go to <ph name="URL">$1<ex>http://www.google.com/</ex></ph>
         </message>
         <message name="IDS_CONTENT_CONTEXT_INPUT_METHODS_MENU" desc="The name of the input method submenu in the content area context menu">
-          Input methods
+          Input &amp;methods
         </message>
         <message name="IDS_CONTENT_CONTEXT_PLUGIN_RUN" desc="The name of the Run command on the blocked plugin context menu">
           Run this plugin
@@ -534,172 +534,172 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_CONTENT_CONTEXT_BACK" desc="In Title Case: The name of the Back command in the content area context menu">
-          Back
+          &amp;Back
         </message>
         <message name="IDS_CONTENT_CONTEXT_FORWARD" desc="In Title Case: The name of the Forward command in the content area context menu">
-          Forward
+          &amp;Forward
         </message>
         <message name="IDS_CONTENT_CONTEXT_SAVEPAGEAS" desc="In Title Case: The name of the Save Page As command in the content area context menu">
-          Save As...
+          Save &amp;As...
         </message>
         <message name="IDS_CONTENT_CONTEXT_PRINT" desc="In Title Case: The name of the Print... command in the content area context menu. Brings a dialog to select the print options">
-          Print...
+          P&amp;rint...
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWPAGESOURCE" desc="In Title Case: The name of the View Page Source command in the content area context menu">
-          View Page Source
+          &amp;View Page Source
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWPAGEINFO" desc="In Title Case: The name of the View Page Info command in the content area context menu">
-          View Page Info
+          View Page &amp;Info
         </message>
         <message name="IDS_CONTENT_CONTEXT_INSPECTELEMENT" desc="In Title Case: The name of the Inspect Element command in the content area context menu">
-          Inspect Element
+          I&amp;nspect Element
         </message>
         <message name="IDS_CONTENT_CONTEXT_RELOAD" desc="In Title Case: The name of the Reload command in the content area context menu">
-          Reload
+          Re&amp;load
         </message>
         <message name="IDS_CONTENT_CONTEXT_TRANSLATE" desc="In Title Case: The name of the Translate command in the content area context menu">
-          Translate to <ph name="LANGUAGE">$1<ex>English</ex></ph>
+          &amp;Translate to <ph name="LANGUAGE">$1<ex>English</ex></ph>
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_RELOADFRAME" desc="In Title Case: The name of the Reload Frame command in the content area context menu">
           Reload Frame
         </message>
         <message name="IDS_CONTENT_CONTEXT_SAVEFRAMEAS" desc="In Title Case: The name of the Save Frame As command in the content area context menu">
-          Save Frame As...
+          Save &amp;Frame As...
         </message>
         <message name="IDS_CONTENT_CONTEXT_PRINTFRAME" desc="In Title Case: The name of the Print Frame command in the content area context menu">
-          Print Frame...
+          P&amp;rint Frame...
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWFRAMESOURCE" desc="In Title Case: The name of the View Frame Source command in the content area context menu">
-          View Frame Source
+          &amp;View Frame Source
         </message>
         <message name="IDS_CONTENT_CONTEXT_VIEWFRAMEINFO" desc="In Title Case: The name of the View Frame Info command in the content area context menu">
-          View Frame Info
+          View Frame &amp;Info
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_OPENLINKNEWTAB" desc="In Title Case: The name of the Open Link in New Tab command in the content area context menu">
-          Open Link in New Tab
+          Open Link in New &amp;Tab
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENLINKNEWWINDOW" desc="In Title Case: The name of the Open Link in New Window command in the content area context menu">
-          Open Link in New Window
+          Open Link in New &amp;Window
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENLINKOFFTHERECORD" desc="In Title Case: The name of the open a link in incognito window command">
-          Open Link in Incognito Window
+          Open Link in Inco&amp;gnito Window
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVELINKAS" desc="In Title Case: The name of the Save Link As command in the content area context menu">
-          Save Link As...
+          Save Lin&amp;k As...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYLINKLOCATION" desc="In Title Case: The name of the Copy Link Location command in the content area context menu">
-          Copy Link Address
+          Copy Link Addr&amp;ess
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_COPYEMAILADDRESS" desc="In Title Case: The name of the Copy Email Address command in the content area context menu">
-          Copy Email Address
+          Copy &amp;Email Address
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVEIMAGEAS" desc="In Title Case: The name of the Save Image As command in the content area context menu">
-          Save Image As...
+          Sa&amp;ve Image As...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYIMAGELOCATION" desc="In Title Case: The name of the Copy Image Location command in the content area context menu">
-          Copy Image URL
+          C&amp;opy Image URL
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYIMAGE" desc="In Title Case: The name of the Copy Image command in the content area context menu">
-          Copy Image
+          Cop&amp;y Image
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENIMAGENEWTAB" desc="In Title Case: The name of the Open Image in New Tab command in the content area context menu">
-          Open Image in New Tab
+          Open &amp;Image in New Tab
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_LOOP" desc="In Title Case: The name of the Loop command for audio and video playback in the content area context menu">
-          Loop
+          &amp;Loop
         </message>
         <message name="IDS_CONTENT_CONTEXT_PLAY" desc="In Title Case: The name of the Play command for audio and video playback in the content area context menu">
-          Play
+          &amp;Play
         </message>
         <message name="IDS_CONTENT_CONTEXT_PAUSE" desc="In Title Case: The name of the Pause command for audio and video playback in the content area context menu">
-          Pause
+          &amp;Pause
         </message>
         <message name="IDS_CONTENT_CONTEXT_MUTE" desc="In Title Case: The name of the Mute command for audio and video playback in the content area context menu">
-          Mute
+          &amp;Mute
         </message>
         <message name="IDS_CONTENT_CONTEXT_UNMUTE" desc="In Title Case: The name of the Unmute command for audio and video playback in the content area context menu">
-          Unmute
+          Un&amp;mute
         </message>
         <message name="IDS_CONTENT_CONTEXT_CONTROLS" desc="In Title Case: The name of the Show Controls command for audio and video playback in the content area context menu">
-          Show Controls
+          Show &amp;Controls
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVEVIDEOAS" desc="In Title Case: The name of the Save Video As command in the content area context menu">
-         Save Video As...
+         Sa&amp;ve Video As...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYVIDEOLOCATION" desc="In Title Case: The name of the Copy Video Location command in the content area context menu">
-          Copy Video URL
+          C&amp;opy Video URL
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENVIDEONEWTAB" desc="In Title Case: The name of the Open Video in New Tab command in the content area context menu">
-          Open Video in New Tab
+          &amp;Open Video in New Tab
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_SAVEAUDIOAS" desc="In Title Case: The name of the Save Audio As command in the content area context menu">
-          Save Audio As...
+          Sa&amp;ve Audio As...
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPYAUDIOLOCATION" desc="In Title Case: The name of the Copy Audio Location command in the content area context menu">
-          Copy Audio URL
+          C&amp;opy Audio URL
         </message>
         <message name="IDS_CONTENT_CONTEXT_OPENAUDIONEWTAB" desc="In Title Case: The name of the Open Audio in New Tab command in the content area context menu">
-          Open Audio in New Tab
+          &amp;Open Audio in New Tab
         </message>
 
         <message name="IDS_CONTENT_CONTEXT_UNDO" desc="In Title Case: The name of the Undo command in the content area context menu">
-          Undo
+          &amp;Undo
         </message>
         <message name="IDS_CONTENT_CONTEXT_REDO" desc="In Title Case: The name of the Redo command in the content area context menu">
-          Redo
+          &amp;Redo
         </message>
         <message name="IDS_CONTENT_CONTEXT_CUT" desc="In Title Case: The name of the Cut command in the content area context menu">
-          Cut
+          Cu&amp;t
         </message>
         <message name="IDS_CONTENT_CONTEXT_COPY" desc="In Title Case: The name of the Copy command in the content area context menu">
-          Copy
+          &amp;Copy
         </message>
         <message name="IDS_CONTENT_CONTEXT_PASTE" desc="In Title Case: The name of the Paste command in the content area context menu">
-          Paste
+          &amp;Paste
         </message>
         <message name="IDS_CONTENT_CONTEXT_DELETE" desc="In Title Case: The name of the Delete command in the content area context menu">
-          Delete
+          &amp;Delete
         </message>
         <message name="IDS_CONTENT_CONTEXT_ADD_TO_DICTIONARY" desc="In Title Case: The name of the Add to dictionary command in the content area context menu">
-          Add to Dictionary
+          &amp;Add to Dictionary
         </message>
         <message name="IDS_CONTENT_CONTEXT_NO_SPELLING_SUGGESTIONS" desc="In Title Case: The name of the No Spelling Suggestions display in the content area context menu">
-          No Spelling Suggestions
+          &amp;No Spelling Suggestions
         </message>
         <message name="IDS_CONTENT_CONTEXT_SPELLCHECK_MENU" desc="In Title Case: The name of the Spellcheck Options submenu in the content area context menu">
-          Spell-checker Options
+          &amp;Spell-checker Options
         </message>
         <message name="IDS_CONTENT_CONTEXT_LANGUAGE_SETTINGS" desc="In Title Case: The name of the Language Settings command in the content area context menu">
-          Language Settings...
+          &amp;Language Settings...
         </message>
         <message name="IDS_CONTENT_CONTEXT_CHECK_SPELLING_OF_THIS_FIELD" desc="In Title Case: The name of the Check the spelling of this field command in the content area context menu">
-          Check Spelling in This Field
+          &amp;Check Spelling in This Field
         </message>
         <message name="IDS_CONTENT_CONTEXT_SHOW_SPELLING_PANEL" desc="In Title Case: The name of the Show Spelling Panel command in the content area context menu">
-          Show Spelling Panel
+          &amp;Show Spelling Panel
         </message>
         <message name="IDS_CONTENT_CONTEXT_HIDE_SPELLING_PANEL" desc="In Title Case: The name of the Hide Spelling Panel command in the content area context menu">
-          Hide Spelling Panel
+          &amp;Hide Spelling Panel
         </message>
         <message name="IDS_CONTENT_CONTEXT_SELECTALL" desc="In Title Case: The name of the Select All command in the content area context menu">
-          Select All
+          Select &amp;All
         </message>
         <message name="IDS_CONTENT_CONTEXT_SEARCHWEBFOR" desc="In Title Case: The name of the Search the Web for 'string' command in the content area context menu">
-          Search <ph name="SEARCH_ENGINE">$1<ex>Google</ex></ph> for '<ph name="SEARCH_TERMS">$2<ex>flowers</ex></ph>'
+          &amp;Search <ph name="SEARCH_ENGINE">$1<ex>Google</ex></ph> for '<ph name="SEARCH_TERMS">$2<ex>flowers</ex></ph>'
         </message>
         <message name="IDS_CONTENT_CONTEXT_GOTOURL" desc="In Title Case: The name of the Go to url for 'string' command in the content area context menu">
-          Go to <ph name="URL">$1<ex>http://www.google.com/</ex></ph>
+          &amp;Go to <ph name="URL">$1<ex>http://www.google.com/</ex></ph>
         </message>
         <message name="IDS_CONTENT_CONTEXT_INPUT_METHODS_MENU" desc="In Title Case: The name of the input method submenu in the content area context menu">
-          Input Methods
+          Input &amp;Methods
         </message>
         <message name="IDS_CONTENT_CONTEXT_PLUGIN_RUN" desc="In Title Case: The name of the Run command on the blocked plugin context menu">
           Run This Plugin
@@ -721,55 +721,55 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       <!-- Page menu -->
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_NEW_TAB" desc="The text label of the New Tab menu item">
-          New tab
+          New &amp;tab
         </message>
         <message name="IDS_SHOW_AS_TAB" desc="The text label for the Show As tab menu item">
-          Show as tab
+          &amp;Show as tab
         </message>
         <message name="IDS_NEW_WINDOW" desc="The text label of the New Window menu item">
-          New window
+          &amp;New window
         </message>
         <message name="IDS_NEW_INCOGNITO_WINDOW" desc="The text label of the New incognito window menu item">
-          New incognito window
+          New &amp;incognito window
         </message>
         <message name="IDS_EDIT2" desc="The text label before the cut/copy/paste buttons in the merged menu">
           Edit
         </message>
         <message name="IDS_UNDO" desc="The text label of the Undo menu item">
-          Undo
+          &amp;Undo
         </message>
         <message name="IDS_CUT" desc="The text label of the Cut menu item">
-          Cut
+          Cu&amp;t
         </message>
         <message name="IDS_COPY" desc="The text label of the Copy menu item">
-          Copy
+          &amp;Copy
         </message>
         <message name="IDS_PASTE" desc="The text label of the Paste menu item">
-          Paste
+          &amp;Paste
         </message>
         <message name="IDS_SELECT_ALL" desc="The text label of the Select All menu item">
-          Select all
+          Select &amp;all
         </message>
         <message name="IDS_FIND" desc="The text label of the Find... menu item">
-          Find...
+          &amp;Find...
         </message>
         <message name="IDS_SAVE_PAGE" desc="The text label of the Save Page As menu item">
-          Save page as...
+          Save page &amp;as...
         </message>
         <message name="IDS_PRINT" desc="The text label of the Print... menu item. Opens a dialog box to select print settings">
-          Print...
+          &amp;Print...
         </message>
         <message name="IDS_TOOLS_MENU" desc="The text label of the Tools submenu">
-          Tools
+          Too&amp;ls
         </message>
         <message name="IDS_ZOOM_MENU" desc="The text label of the Zoom submenu">
-          Zoom
+          &amp;Zoom
         </message>
         <message name="IDS_ZOOM_MENU2" desc="The text label of the Zoom menu in the merged menu">
           Zoom
         </message>
         <message name="IDS_ZOOM_PLUS" desc="The text label of the Make Text Larger menu item">
-          Larger
+          &amp;Larger
         </message>
         <message name="IDS_ZOOM_PLUS2" desc="The text label of the Make Text Larger menu item in the merged menu">
           +
@@ -778,10 +778,10 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
           Make Text Larger
         </message>
         <message name="IDS_ZOOM_NORMAL" desc="The text label of the Make Text Normal Size menu item">
-          Normal
+          &amp;Normal
         </message>
         <message name="IDS_ZOOM_MINUS" desc="The text label of the Make Text Smaller menu item">
-          Smaller
+          &amp;Smaller
         </message>
         <message name="IDS_ZOOM_MINUS2" desc="The text label of the Make Text Smaller menu item in the merged menu">
           &#8722;
@@ -793,7 +793,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         <ph name="VALUE">$1<ex>100</ex></ph>%
         </message>
         <message name="IDS_ENCODING_MENU" desc="The text label of the Encoding submenu">
-          Encoding
+          &amp;Encoding
         </message>
         <message name="IDS_ENCODING_AUTO_DETECT" desc="The text label of the Auto Detect submenu">
           Auto detect
@@ -801,58 +801,58 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_NEW_TAB" desc="In Title Case: The text label of the New Tab menu item">
-          New Tab
+          New &amp;Tab
         </message>
         <message name="IDS_SHOW_AS_TAB" desc="In Title Case: The text label for the Show As tab menu item">
-          Show As Tab
+          &amp;Show As Tab
         </message>
         <message name="IDS_NEW_WINDOW" desc="In Title Case: The text label of the New Window menu item">
-          New Window
+          &amp;New Window
         </message>
         <message name="IDS_NEW_INCOGNITO_WINDOW" desc="In Title Case: The text label of the New incognito window menu item">
-          New Incognito Window
+          New &amp;Incognito Window
         </message>
         <message name="IDS_UNDO" desc="In Title Case: The text label of the Undo menu item">
-          Undo
+          &amp;Undo
         </message>
         <message name="IDS_CUT" desc="In Title Case: The text label of the Cut menu item">
-          Cut
+          Cu&amp;t
         </message>
         <message name="IDS_COPY" desc="In Title Case: The text label of the Copy menu item">
-          Copy
+          &amp;Copy
         </message>
         <message name="IDS_PASTE" desc="In Title Case: The text label of the Paste menu item">
-          Paste
+          &amp;Paste
         </message>
         <message name="IDS_SELECT_ALL" desc="In Title Case: The text label of the Select All menu item">
-          Select All
+          Select &amp;All
         </message>
         <message name="IDS_FIND" desc="In Title Case: The text label of the Find... menu item">
-          Find...
+          &amp;Find...
         </message>
         <message name="IDS_SAVE_PAGE" desc="In Title Case: The text label of the Save Page As menu item">
-          Save Page As...
+          Save Page &amp;As...
         </message>
         <message name="IDS_PRINT" desc="In Title Case: The text label of the Print... menu item. Opens a dialog box to select print settings">
-          Print...
+          &amp;Print...
         </message>
         <message name="IDS_TOOLS_MENU" desc="The text label of the Tools submenu">
-          Tools
+          Too&amp;ls
         </message>
         <message name="IDS_ZOOM_MENU" desc="In Title Case: The text label of the Zoom submenu">
-          Zoom
+          &amp;Zoom
         </message>
         <message name="IDS_ZOOM_PLUS" desc="In Title Case: The text label of the Make Text Larger menu item">
-          Larger
+          &amp;Larger
         </message>
         <message name="IDS_ZOOM_PLUS2" desc="The text label of the Make Text Larger menu item in the merged menu">
           +
         </message>
         <message name="IDS_ZOOM_NORMAL" desc="In Title Case: The text label of the Make Text Normal Size menu item">
-          Normal
+          &amp;Normal
         </message>
         <message name="IDS_ZOOM_MINUS" desc="In Title Case: The text label of the Make Text Smaller menu item">
-          Smaller
+          &amp;Smaller
         </message>
         <message name="IDS_ZOOM_MINUS2" desc="The text label of the Make Text Smaller menu item in the merged menu">
           &#8722;
@@ -861,7 +861,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         <ph name="VALUE">$1<ex>100</ex></ph>%
         </message>
         <message name="IDS_ENCODING_MENU" desc="In Title Case: The text label of the Encoding submenu">
-          Encoding
+          &amp;Encoding
         </message>
         <message name="IDS_ENCODING_AUTO_DETECT" desc="In Title Case: The text label of the Auto Detect submenu">
           Auto Detect
@@ -930,54 +930,54 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
 
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_VIEW_SOURCE" desc="The text label of the View Page Source menu item">
-          View source
+          View s&amp;ource
         </message>
         <message name="IDS_FEEDBACK" desc="The text label of the Report Bug menu item">
-          Report an issue...
+          &amp;Report an issue...
         </message>
         <message name="IDS_DEV_TOOLS" desc="The text label of the Developer Tools menu item">
-          Developer tools
+          &amp;Developer tools
         </message>
         <message name="IDS_DEV_TOOLS_CONSOLE" desc="The text label of the JavaScript console menu item">
-          JavaScript console
+          &amp;JavaScript console
         </message>
         <message name="IDS_FILE_MANAGER" desc="The text label of the File Manager menu item">
-          File manager
+          &amp;File manager
         </message>
         <message name="IDS_TASK_MANAGER" desc="The text label of the Task Manager menu item">
-          Task manager
+          &amp;Task manager
         </message>
         <message name="IDS_RESTORE_TAB" desc="The text label of the Restore Tab menu item">
-          Reopen closed tab
+          R&amp;eopen closed tab
         </message>
         <message name="IDS_RESTORE_WINDOW" desc="The text label of the Restore Window menu item">
-          Reopen closed window
+          R&amp;eopen closed window
         </message>
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_VIEW_SOURCE" desc="In Title Case: The text label of the View Page Source menu item">
-          View Source
+          View S&amp;ource
         </message>
         <message name="IDS_FEEDBACK" desc="In Title Case: The text label of the Report Bug menu item">
-          Report an Issue...
+          &amp;Report an Issue...
         </message>
         <message name="IDS_DEV_TOOLS" desc="In Title Case: The text label of the Developer Tools menu item">
-          Developer Tools
+          &amp;Developer Tools
         </message>
         <message name="IDS_DEV_TOOLS_CONSOLE" desc="In Title Case: The text label of the JavaScript console menu item">
-          JavaScript Console
+          &amp;JavaScript Console
         </message>
         <message name="IDS_FILE_MANAGER" desc="In Title Case: The text label of the File Manager menu item">
-          File Manager
+          &amp;File Manager
         </message>
         <message name="IDS_TASK_MANAGER" desc="In Title Case: The text label of the Task Manager menu item">
-          Task Manager
+          &amp;Task Manager
         </message>
         <message name="IDS_RESTORE_TAB" desc="In Title Case: The text label of the Restore Tab menu item">
-          Reopen Closed Tab
+          R&amp;eopen Closed Tab
         </message>
         <message name="IDS_RESTORE_WINDOW" desc="In Title Case: The text label of the Restore Window menu item">
-          Reopen Closed Window
+          R&amp;eopen Closed Window
         </message>
       </if>
 
@@ -1009,43 +1009,43 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       <!-- App menu -->
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_SHOW_HISTORY" desc="The show history menu in the app menu">
-          History
+          &amp;History
         </message>
         <message name="IDS_SHOW_BOOKMARK_BAR" desc="The toggle to show the bookmark bar">
-          Always show bookmarks bar
+          &amp;Always show bookmarks bar
         </message>
         <message name="IDS_PROFILING_ENABLED" desc="The toggle to turn profiling on / off">
-          Profiling enabled
+          &amp;Profiling enabled
         </message>
         <message name="IDS_FULLSCREEN" desc="Switches into fullscreen mode">
-          Full screen
+          &amp;Full screen
         </message>
         <message name="IDS_ACCNAME_FULLSCREEN" desc="The accessible name of the fullscreen button in the new merged menu">
           Full screen
         </message>
         <message name="IDS_CLEAR_BROWSING_DATA" desc="The text label for the menu item for clearing of browsing data">
-          Clear browsing data...
+          &amp;Clear browsing data...
         </message>
         <message name="IDS_SHOW_DOWNLOADS" desc="The show downloads menu in the app menu">
-          Downloads
+          &amp;Downloads
         </message>
         <message name="IDS_SHOW_EXTENSIONS" desc="The show extensions menu in the app menu">
-          Extensions
+          &amp;Extensions
         </message>
         <message name="IDS_SETTINGS" desc="The text label of the Settings menu item">
-          Settings
+          &amp;Settings
         </message>
         <message name="IDS_OPTIONS" desc="The text label of the Options menu item">
-          Options
+          &amp;Options
         </message>
         <message name="IDS_HELP_PAGE" desc="The text label of the Help menu item">
-          Help
+          H&amp;elp
         </message>
         <message name="IDS_ABOUT" desc="The text label of the About Chrome menu item">
-          About <ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
+          About &amp;<ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
         </message>
         <message name="IDS_UPDATE_NOW" desc="The text label of the Update Chrome Now menu item">
-          Update <ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
+          Update &amp;<ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
         </message>
         <message name="IDS_VIEW_INCOMPATIBILITIES" desc="The text label of the View incompatibilities menu item">
           View incompatibilities
@@ -1054,45 +1054,45 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
           View background pages (<ph name="NUM_BACKGROUND_APPS">$1<ex>3</ex></ph>)
         </message>
         <message name="IDS_EXIT" desc="The text label of the Exit menu item">
-          Exit
+          E&amp;xit
         </message>
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_SHOW_HISTORY" desc="In Title Case: The show history menu in the app menu">
-          History
+          &amp;History
         </message>
         <message name="IDS_SHOW_BOOKMARK_BAR" desc="In Title Case: The toggle to show the bookmark bar">
-          Always Show Bookmarks Bar
+          &amp;Always Show Bookmarks Bar
         </message>
         <message name="IDS_PROFILING_ENABLED" desc="In Title Case: The toggle to turn profiling on / off">
-          Profiling Enabled
+          &amp;Profiling Enabled
         </message>
         <message name="IDS_FULLSCREEN" desc="In Title Case: Switches into fullscreen mode">
-          Full Screen
+          &amp;Full Screen
         </message>
         <message name="IDS_CLEAR_BROWSING_DATA" desc="In Title Case: The text label for the menu item for clearing of browsing data">
-          Clear Browsing Data...
+          &amp;Clear Browsing Data...
         </message>
         <message name="IDS_SHOW_DOWNLOADS" desc="In Title Case: The show downloads menu in the app menu">
-          Downloads
+          &amp;Downloads
         </message>
         <message name="IDS_SHOW_EXTENSIONS" desc="In Title Case: The show extensions menu in the app menu">
-          Extensions
+          &amp;Extensions
         </message>
         <message name="IDS_SETTINGS" desc="In Title Case: The text label of the Settings menu item">
-          Settings
+          &amp;Settings
         </message>
         <message name="IDS_OPTIONS" desc="In Title Case: The text label of the Options menu item">
-          Options
+          &amp;Options
         </message>
         <message name="IDS_HELP_PAGE" desc="In Title Case: The text label of the Help menu item">
-          Help
+          H&amp;elp
         </message>
         <message name="IDS_ABOUT" desc="In Title Case: The text label of the About Chrome menu item">
-          About <ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
+          About &amp;<ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
         </message>
         <message name="IDS_UPDATE_NOW" desc="In Title Case: The text label of the Update Chrome Now menu item">
-          Update <ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
+          Update &amp;<ph name="PRODUCT_NAME">$1<ex>Google Chrome</ex></ph>
         </message>
         <message name="IDS_VIEW_INCOMPATIBILITIES" desc="The text label of the View incompatibilities menu item">
           View Incompatibilities
@@ -1101,7 +1101,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
           View Background Pages (<ph name="NUM_BACKGROUND_APPS">$1<ex>3</ex></ph>)
         </message>
         <message name="IDS_EXIT" desc="In Title Case: The text label of the Exit menu item">
-          Exit
+          E&amp;xit
         </message>
       </if>
       <if expr="pp_ifdef('chromeos')">
@@ -1136,13 +1136,13 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_EDIT_SEARCH_ENGINES"
                  desc="Title of the popup menu item for editing search engines">
-          Edit search engines...
+          &amp;Edit search engines...
         </message>
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_EDIT_SEARCH_ENGINES"
                  desc="In Title Case: Title of the popup menu item for editing search engines">
-          Edit Search Engines...
+          &amp;Edit Search Engines...
         </message>
       </if>
 
@@ -1177,11 +1177,11 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       </message>
       <message name="IDS_SEARCH_ENGINES_EDITOR_NEW_BUTTON"
                desc="Text of the new button in the search engines editor">
-        Add...
+        &amp;Add...
       </message>
       <message name="IDS_SEARCH_ENGINES_EDITOR_REMOVE_BUTTON"
                desc="Text of the remove button in the search engines editor">
-        Remove
+        &amp;Remove
       </message>
       <message name="IDS_SEARCH_ENGINES_EDITOR_EDIT_BUTTON"
                desc="Text of the edit button in the search engines editor">
@@ -2245,53 +2245,53 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_DOWNLOAD_MENU_OPEN_WHEN_COMPLETE"
                  desc="Download context menu open when download is finished">
-          Open when done
+          Open when &amp;done
         </message>
         <message name="IDS_DOWNLOAD_MENU_OPEN"
                  desc="Download context menu open download">
-          Open
+          &amp;Open
         </message>
         <message name="IDS_DOWNLOAD_MENU_ALWAYS_OPEN_TYPE"
                  desc="Download context menu open when download is finished">
-          Always open files of this type
+          &amp;Always open files of this type
         </message>
         <message name="IDS_DOWNLOAD_MENU_CANCEL"
                  desc="Download context menu cancel">
-          Cancel
+          &amp;Cancel
         </message>
         <message name="IDS_DOWNLOAD_MENU_PAUSE_ITEM"
                  desc="Download context menu pause download">
-          Pause
+          &amp;Pause
         </message>
         <message name="IDS_DOWNLOAD_MENU_RESUME_ITEM"
                  desc="Download context menu resume download">
-          Resume
+          &amp;Resume
         </message>
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_DOWNLOAD_MENU_OPEN_WHEN_COMPLETE"
                  desc="In Title Case: Download context menu open when download is finished">
-          Open When Done
+          Open When &amp;Done
         </message>
         <message name="IDS_DOWNLOAD_MENU_OPEN"
                  desc="In Title Case: Download context menu open download">
-          Open
+          &amp;Open
         </message>
         <message name="IDS_DOWNLOAD_MENU_ALWAYS_OPEN_TYPE"
                  desc="In Title Case: Download context menu open when download is finished">
-          Always Open Files of This Type
+          &amp;Always Open Files of This Type
         </message>
         <message name="IDS_DOWNLOAD_MENU_CANCEL"
                  desc="In Title Case: Download context menu cancel">
-          Cancel
+          &amp;Cancel
         </message>
         <message name="IDS_DOWNLOAD_MENU_PAUSE_ITEM"
                  desc="In Title Case: Download context menu pause download">
-          Pause
+          &amp;Pause
         </message>
         <message name="IDS_DOWNLOAD_MENU_RESUME_ITEM"
                  desc="In Title Case: Download context menu resume download">
-          Resume
+          &amp;Resume
         </message>
       </if>
       <!-- GRIT doesn't support nesting <if>...</if> blocks, so these can't -->
@@ -2305,7 +2305,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         <message name="IDS_DOWNLOAD_MENU_SHOW"
                  desc="Show the file in file explorer, 'Show in folder' item"
               meaning="'show in folder' on non Mac in Sentence case">
-          Show in folder
+          &amp;Show in folder
         </message>
       </if>
       <if expr="os != 'darwin' and pp_ifdef('use_titlecase')">
@@ -2313,7 +2313,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         <message name="IDS_DOWNLOAD_MENU_SHOW"
                  desc="In Title Case: Show the file in file explorer, 'Show in folder' item"
               meaning="'show in folder' on non Mac in Title Case">
-          Show in Folder
+          &amp;Show in Folder
         </message>
       </if>
       <if expr="os == 'darwin' and not pp_ifdef('use_titlecase')">
@@ -2321,7 +2321,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         <message name="IDS_DOWNLOAD_MENU_SHOW"
                  desc="Mac: Show the file in the Finder, 'Show in Finder' item"
               meaning="'show in Finder' on Mac in Sentence case">
-          Show in Finder
+          &amp;Show in Finder
         </message>
       </if>
       <if expr="os == 'darwin' and pp_ifdef('use_titlecase')">
@@ -2329,7 +2329,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         <message name="IDS_DOWNLOAD_MENU_SHOW"
                  desc="In Title Case: Mac: Show the file in the Finder, 'Show in Finder' item"
               meaning="'show in Finder' on Mac in Title Case">
-          Show in Finder
+          &amp;Show in Finder
         </message>
       </if>
 
@@ -2362,12 +2362,12 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
       <!-- "Create application shortcuts" menu item -->
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_CREATE_SHORTCUTS" desc="Default installation menu label">
-          Create application shortcuts...
+          Create application &amp;shortcuts...
         </message>
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_CREATE_SHORTCUTS" desc="In Title Case: Default installation menu label">
-          Create Application Shortcuts...
+          Create Application &amp;Shortcuts...
         </message>
       </if>
 
@@ -2685,10 +2685,10 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         Certificate Viewer: <ph name="CERTIFICATE_NAME">$1<ex>www.google.com</ex></ph>
       </message>
       <message name="IDS_CERT_INFO_GENERAL_TAB_LABEL" desc="Title of the notebook page displaying the basic info about the certificate">
-        General
+        &amp;General
       </message>
       <message name="IDS_CERT_INFO_DETAILS_TAB_LABEL" desc="Title of the notebook page displaying the details about the certificate">
-        Details
+        &amp;Details
       </message>
       <message name="IDS_CERT_INFO_VERIFIED_USAGES_GROUP" desc="The label of the group in the general page of the certificate info dialog which lists the usages that the certificate is verified for">
         This certificate has been verified for the following usages:
@@ -2819,7 +2819,7 @@ Other platform defines such as use_titlecase are declared in build/common.gypi.
         Certificate Signature Value
       </message>
       <message name="IDS_CERT_DETAILS_EXPORT_CERTIFICATE" desc="The label of the button to export the selected certificate">
-        Export...
+        E&amp;xport...
       </message>
       <message name="IDS_CERT_EXPORT_TYPE_BASE64" desc="The description of saving a single certificate in base64 encoding.">
         Base64-encoded ASCII, single certificate
@@ -4275,7 +4275,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Omnibox input may be logged
       </message>
       <message name="IDS_INSTANT_LEARN_MORE_URL" desc="URL of help center page that explains browser instant" translateable="false">
-        http://www.google.com/support/chrome/bin/answer.py?answer=180655hl=[GRITLANGCODE]
+        http://www.google.com/support/chrome/bin/answer.py?answer=180655&amp;hl=[GRITLANGCODE]
       </message>
 
       <!-- Conflicts page -->
@@ -4334,7 +4334,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Not loaded yet
       </message>
       <message name="IDS_HELP_CENTER_VIEW_CONFLICTS" desc="The url of the Help center article for the View Conflicts page" translateable="false">
-        http://www.google.com/support/chrome/bin/answer.py?answer=1093113topic=21605hl=[GRITLANGCODE]n=<ph name="NAME">$1<ex>Hash</ex></ph>l=<ph name="LOCATION">$2<ex>Hash</ex></ph>d=<ph name="DESC">$3<ex>Hash</ex></ph>s=<ph name="SIGNER">$4<ex>Hash</ex></ph>
+        http://www.google.com/support/chrome/bin/answer.py?answer=1093113&amp;topic=21605&amp;hl=[GRITLANGCODE]&amp;n=<ph name="NAME">$1<ex>Hash</ex></ph>&amp;l=<ph name="LOCATION">$2<ex>Hash</ex></ph>&amp;d=<ph name="DESC">$3<ex>Hash</ex></ph>&amp;s=<ph name="SIGNER">$4<ex>Hash</ex></ph>
       </message>
 
       <!-- Click to play -->
@@ -4515,18 +4515,18 @@ Keep your key file in a safe place. You will need it to create new versions of y
       <!-- Omnibox -->
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_PASTE_AND_GO" desc="The text label of the Paste And Go menu item when the clipboard contains a URL">
-          Paste and go
+          Pa&amp;ste and go
         </message>
         <message name="IDS_PASTE_AND_SEARCH" desc="The text label of the Paste And Go menu item when the clipboard contains a string to search for">
-          Paste and search
+          Pa&amp;ste and search
         </message>
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_PASTE_AND_GO" desc="In Title Case: The text label of the Paste And Go menu item when the clipboard contains a URL">
-          Paste and Go
+          Pa&amp;ste and Go
         </message>
         <message name="IDS_PASTE_AND_SEARCH" desc="In Title Case: The text label of the Paste And Go menu item when the clipboard contains a string to search for">
-          Paste and Search
+          Pa&amp;ste and Search
         </message>
       </if>
       <message name="IDS_OMNIBOX_KEYWORD_HINT" desc="Shown to the user when the url in the omnibox has a keyword associated with it. $1 is replaced with an image showing the tab key and is labelled with IDS_OMNIBOX_KEYWORD_HINT_KEY. $2 is replaced with the description of the keyword.">
@@ -5753,7 +5753,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         New folder
       </message>
       <message name="IDS_BOOMARK_EDITOR_NEW_FOLDER_MENU_ITEM" desc="Text on the new folder context menu item.">
-        New folder
+        &amp;New folder
       </message>
       <message name="IDS_BOOMARK_EDITOR_TITLE" desc="Title of the window the bookmark editor is in.">
         Edit Bookmark
@@ -8441,7 +8441,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
       </message>
       <if expr="not pp_ifdef('use_titlecase')">
         <message name="IDS_BOOKMARK_MANAGER" desc="The label of the menu item that shows the bookmark manager">
-          Bookmarks
+          &amp;Bookmarks
         </message>
         <message name="IDS_BOOKMARK_MANAGER_SHOW_IN_FOLDER" desc="The label of the menu item in the bookmark manager context menu that changes the selection in the tree to match the folder of the selected item in the table.">
           Show in folder
@@ -8479,7 +8479,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
       </if>
       <if expr="pp_ifdef('use_titlecase')">
         <message name="IDS_BOOKMARK_MANAGER" desc="In Title Case: The label of the menu item that shows the bookmark manager">
-          Bookmarks
+          &amp;Bookmarks
         </message>
         <message name="IDS_BOOKMARK_MANAGER_SHOW_IN_FOLDER" desc="In Title Case: The label of the menu item in the bookmark manager context menu that changes the selection in the tree to match the folder of the selected item in the table.">
           Show in Folder
@@ -11752,7 +11752,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Toggle bookmark bar
       </message>
       <message name="IDS_KEYBOARD_OVERLAY_VIEW_SOURCE" desc="The text in the keyboard overlay to explain the shortcut.">
-        View source
+        View s&amp;ource
       </message>
       <message name="IDS_KEYBOARD_OVERLAY_ZOOM_IN" desc="The text in the keyboard overlay to explain the shortcut.">
         Zoom in
