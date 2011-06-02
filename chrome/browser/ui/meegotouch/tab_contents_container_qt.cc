@@ -37,13 +37,14 @@ class TabContentsContainerQtImpl: public QObject
   }
 
  private:
-  TabContentsContainerQt* container_;
+  TabContentsContainerQt* container_; 
 };
   
 TabContentsContainerQt::TabContentsContainerQt(BrowserWindowQt* window)
     : tab_contents_(NULL),
       window_(window),
-      impl_(NULL)
+      impl_(NULL),
+      in_orientation_(false)
 {
 }
 
@@ -71,7 +72,11 @@ void TabContentsContainerQt::Init() {
 
 void TabContentsContainerQt::ViewportSizeChanged()
 {
-  DLOG(INFO) << "ViewportSizeChanged ";
+  if (in_orientation_) {
+    DLOG(INFO) << "in orientation, don't adjust contents size now";
+    return;
+  }
+
   if (!viewport_item_)
     return;
   
@@ -82,6 +87,7 @@ void TabContentsContainerQt::ViewportSizeChanged()
       // set preferred size
       QRectF contentRect = viewport_item_->boundingRect();
       gfx::Size size(int(contentRect.width()), int(contentRect.height()));
+      DLOG(INFO) << "ViewportSizeChanged " << size.width() << ", " << size.height();
       host_view->SetPreferredSize(size);
     }
   }
@@ -224,6 +230,17 @@ void TabContentsContainerQt::TabContentsDestroyed(TabContents* contents) {
   // us to clean up our state in case this happens.
   DCHECK(contents == tab_contents_);
   SetTabContents(NULL);
+}
+
+void TabContentsContainerQt::OrientationStart()
+{
+  in_orientation_ = true;
+}
+
+void TabContentsContainerQt::OrientationEnd()
+{
+  in_orientation_ = false;
+  ViewportSizeChanged();
 }
 
 #include "moc_tab_contents_container_qt.cc"

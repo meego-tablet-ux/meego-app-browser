@@ -192,6 +192,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   PopupListQt* GetWebPopupList();
 
   SSLDialogQt* GetSSLDialogQt();
+  TabContentsContainerQt* GetTabContentsContainer() { return contents_container_.get(); }
 
  protected:
   bool CanClose();

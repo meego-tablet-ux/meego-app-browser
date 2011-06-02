@@ -40,6 +40,9 @@ class TabContentsContainerQt : public NotificationObserver
   QDeclarativeItem* widget() {return webview_item_;}
 
   void ViewportSizeChanged();
+
+  void OrientationStart();
+  void OrientationEnd();
   
  private:
   // Add or remove observers for events that we care about.
@@ -70,6 +73,8 @@ class TabContentsContainerQt : public NotificationObserver
   BrowserWindowQt* window_;
 
   TabContentsContainerQtImpl* impl_;
+
+  bool in_orientation_;
 
   DISALLOW_COPY_AND_ASSIGN(TabContentsContainerQt);
 };

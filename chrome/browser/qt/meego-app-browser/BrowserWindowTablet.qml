@@ -207,7 +207,10 @@ Item {
         MouseArea {
 			id: mouseArea
           anchors.fill: parent
-          //onClicked: scene.statusBarTriggered()
+          /*onClicked: {
+            browserWindow.OrientationStart();
+            scene.statusBarTriggered();
+          }*/
 
 			property int firstY: 0
 			property int firstX: 0
@@ -720,14 +723,20 @@ Item {
                 value: scene.width
             }
 
-            PropertyAnimation {
+            SequentialAnimation {
+              PropertyAnimation {
                 exclude:statusBar
                 properties: "transformX,transformY,width,height"
                 duration: 500
                 easing.type: "OutSine"
+              }
+              ScriptAction {
+                script: {
+                  console.log("orientation is done");
+                  browserWindow.OrientationEnd();
+                }
+              }
             }
         }
     ]
-
-
 }

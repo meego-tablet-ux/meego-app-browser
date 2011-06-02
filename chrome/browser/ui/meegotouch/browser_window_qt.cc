@@ -110,6 +110,57 @@ namespace M {
     enum OrientationAngle { Angle0=0, Angle90=90, Angle180=180, Angle270=270 };
 }
 
+class BrowserWindowQtImpl : public QObject
+{
+  Q_OBJECT;
+ public:
+  BrowserWindowQtImpl(BrowserWindowQt* window):
+      QObject(),
+      window_(window)
+  {
+  }
+  void HideAllPanel()
+  {
+     emit hideAllPanel();
+  }
+
+ Q_SIGNALS:
+   void hideAllPanel();
+
+ public Q_SLOTS:
+  void onCalled(const QStringList& parameters)
+  {
+    for (int i = 0 ; i < parameters.size(); i++)
+    {
+      DLOG(INFO) << "BrowserWindowQtImpl::onCalled " << parameters[i].toStdString();
+      window_->browser_->OpenURL(URLFixerUpper::FixupURL(parameters[i].toStdString(), std::string()),
+                                 GURL(), NEW_FOREGROUND_TAB, PageTransition::LINK);
+    }
+  }
+
+  void OrientationStart()
+  {
+    window_->GetTabContentsContainer()->OrientationStart();
+  }
+
+  void OrientationEnd()
+  {
+    window_->GetTabContentsContainer()->OrientationEnd();
+  }
+
+ protected:
+  bool eventFilter(QObject *obj, QEvent *event)
+  {
+    if (event->type() == QEvent::Close) {
+      window_->browser_->ExecuteCommandWithDisposition(IDC_CLOSE_WINDOW, CURRENT_TAB);
+    }
+    return QObject::eventFilter(obj, event);
+  }
+
+ private:
+  BrowserWindowQt* window_;
+};
+
 class OrientationSensorFilter : public QOrientationFilter
 {
     bool filter(QOrientationReading *reading)
@@ -136,6 +187,10 @@ class OrientationSensorFilter : public QOrientationFilter
             break;
         }
 
+        for(int i = 0; i < listeners_.size(); i++) {
+          listeners_[i]->OrientationStart();
+        }
+
         ((LauncherApp*)qApp)->setOrientation(qmlOrient);
 
         // Need to tell the MInputContext plugin to rotate the VKB too
@@ -144,49 +199,24 @@ class OrientationSensorFilter : public QOrientationFilter
                                   Q_ARG(M::OrientationAngle, qtOrient));
         return false;
     }
-};
-
-class BrowserWindowQtImpl : public QObject
-{
-  Q_OBJECT;
- public:
-  BrowserWindowQtImpl(BrowserWindowQt* window):
-      QObject(),
-      window_(window)
-  {
-  }
-  void HideAllPanel()
-  {
-     emit hideAllPanel();
-  }
- 
- Q_SIGNALS:
-   void hideAllPanel();
-
- public Q_SLOTS:
-  void onCalled(const QStringList& parameters)
-  {
-    for (int i = 0 ; i < parameters.size(); i++)
+public:
+    void addListener(BrowserWindowQtImpl *listener)
     {
-      DLOG(INFO) << "BrowserWindowQtImpl::onCalled " << parameters[i].toStdString();
-      window_->browser_->OpenURL(URLFixerUpper::FixupURL(parameters[i].toStdString(), std::string()),
-                                 GURL(), NEW_FOREGROUND_TAB, PageTransition::LINK);
+      listeners_.append(listener);
     }
-  }
 
-
- protected:
-  bool eventFilter(QObject *obj, QEvent *event)
-  {
-    if (event->type() == QEvent::Close) {
-      window_->browser_->ExecuteCommandWithDisposition(IDC_CLOSE_WINDOW, CURRENT_TAB);
+    void removeListener(BrowserWindowQtImpl * listener)
+    {
+      int index = listeners_.indexOf(listener);
+      if (index >= 0) {
+        listeners_.remove(index);
+      }
     }
-    return QObject::eventFilter(obj, event);
-  }
-
- private:
-  BrowserWindowQt* window_;
+private:
+    QVector<BrowserWindowQtImpl *> listeners_;
 };
+
+static OrientationSensorFilter *filter = NULL;
 
 BrowserWindowQt::BrowserWindowQt(Browser* browser, QWidget* parent):
   browser_(browser)
@@ -200,8 +230,12 @@ BrowserWindowQt::BrowserWindowQt(Browser* browser, QWidget* parent):
 
 BrowserWindowQt::~BrowserWindowQt()
 {
+
   //delete main_page_;
   //delete container;
+  if (filter) {
+    filter->removeListener(impl_);
+  }
 
   delete impl_;
   browser_->tabstrip_model()->RemoveObserver(this);
@@ -287,9 +321,12 @@ void BrowserWindowQt::InitWidget()
   static QOrientationSensor *sensor = NULL;
   if (sensor == NULL) {
     sensor = new QOrientationSensor;
-    static OrientationSensorFilter *filter = new OrientationSensorFilter;
+    filter = new OrientationSensorFilter;
     sensor->addFilter(filter);
     sensor->start();
+  }
+  if (filter) {
+    filter->addListener(impl_);
   }
 
   //Init TopSitesCache
