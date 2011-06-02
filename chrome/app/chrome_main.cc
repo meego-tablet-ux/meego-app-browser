@@ -256,7 +256,8 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
   context->setContextProperty("is_appmode", appmode);
 
   //show main window to improve startup time
-  g_main_window->show();
+  //disable it since there is one small hole in the left of status bar when startup
+  //g_main_window->show();
 
   foreach (QString path, QCoreApplication::libraryPaths())
   {
