@@ -763,6 +763,8 @@ bool RenderViewHost::OnMessageReceived(const IPC::Message& msg) {
 
 #if defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewHostMsg_UpdateSelectionRange, OnUpdateSelectionRange)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_ResourceRequire, OnResourceRequire)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_ResourceRelease, OnResourceRelease)
 #endif
 
     IPC_MESSAGE_HANDLER(ViewHostMsg_ShowView, OnMsgShowView)
@@ -879,6 +881,51 @@ void RenderViewHost::CreateNewFullscreenWidget(int route_id) {
 void RenderViewHost::OnUpdateSelectionRange(gfx::Point start, gfx::Point end, bool set) {
   if(view())
     view()->UpdateSelectionRange(start, end, set);
+}
+
+/*PolicyAware Application: callback while acquired the resource*/
+void RenderViewHost::GrantCallback (resource_set_t *resource_set,
+                                     uint32_t        resources,
+                                     void           *userdata)
+{
+  int type = resources;
+/*
+  char buf[512];
+  int type = 0;
+  (void)resource_set;
+  (void)userdata;
+*/
+
+  //("*** %s(): granted resources %s\n", __FUNCTION__, resmsg_res_str (resources, buf, sizeof(buf)));
+  RenderViewHost *viewHost = (RenderViewHost*)userdata;
+
+  if(resources & 0x3) {
+    /*Get AudioPlayBack resource*/
+    /*3 for both Audio and Video*/
+    viewHost->Send(new ViewMsg_ResourceGet(viewHost->routing_id(), type));
+  }
+
+  return;
+}
+
+/*PolicyAware Application: receive resource acquire request from render process*/
+void RenderViewHost::OnResourceRequire(int type) 
+{
+  resource_set_ = resource_set_create ("browser", RESOURCE_AUDIO_PLAYBACK | RESOURCE_VIDEO_PLAYBACK,0, 0,
+                           (resource_callback_t)(GrantCallback), this);
+
+  resource_set_configure_audio (resource_set_, "browser", 0,NULL);
+
+  resource_set_acquire (resource_set_);
+}
+
+/*PolicyAware Application: receive resource Release request from render process*/
+void RenderViewHost::OnResourceRelease(void) 
+{
+  if(resource_set_){
+     resource_set_destroy (resource_set_);
+     resource_set_ = 0;
+  }
 }
 
 void RenderViewHost::SetSelectionRange(gfx::Point start, gfx::Point end, bool set) {

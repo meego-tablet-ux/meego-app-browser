@@ -710,6 +710,7 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_SetSelectionRange, OnSetSelectionRange)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectItem, OnSelectItem)
     IPC_MESSAGE_HANDLER(ViewMsg_CommitSelection, OnCommitSelection)
+    IPC_MESSAGE_HANDLER(ViewMsg_ResourceGet, OnResourceGet)
 #endif
 #if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
@@ -734,6 +735,15 @@ void RenderView::OnQueryScrollOffset(gfx::Point* output) {
     return;
   WebSize out = main_frame->scrollOffset();
   output->SetPoint (out.width, out.height);
+}
+/*PolicyAware Application*/
+void RenderView::OnResourceGet(int type) {
+  WebView* view = webview();
+  if(mediaplayer_){
+      /*we get confirm of resource required, and kickoff playback.*/
+      mediaplayer_->play();
+  }
+  return;
 }
 
 void RenderView::OnSetSelectionRange(gfx::Point start, gfx::Point end, bool set) {
@@ -1925,6 +1935,29 @@ WebSharedWorker* RenderView::createSharedWorker(
   }
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+/*PolicyAware */
+int RenderView::resourceRequire(
+    WebFrame* frame, WebMediaPlayerClient* client) {
+    int type = 0;
+
+    //("Resource Required ..[RenderProcess]: %s, file : %s\n", __FUNCTION__, __FILE__);
+    Send(new ViewHostMsg_ResourceRequire(routing_id_, type));
+    return 0;
+}
+
+/*PolicyAware */
+int RenderView::resourceRelease(
+    WebFrame* frame, WebMediaPlayerClient* client) {
+
+    //("Resource Release ..[RenderProcess]: %s, file : %s\n", __FUNCTION__, __FILE__);
+
+    Send(new ViewHostMsg_ResourceRelease(routing_id_));
+    return 0;
+}
+
+#endif
+
 WebMediaPlayer* RenderView::createMediaPlayer(
     WebFrame* frame, WebMediaPlayerClient* client) {
   // If this is a prerendering page, start the cancel of the prerender.
@@ -1977,7 +2010,14 @@ WebMediaPlayer* RenderView::createMediaPlayer(
                           video_renderer)) {
     return NULL;
   }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  mediaplayer_ = result.release();
+  return mediaplayer_;
+#else
   return result.release();
+#endif
+
 }
 
 WebApplicationCacheHost* RenderView::createApplicationCacheHost(

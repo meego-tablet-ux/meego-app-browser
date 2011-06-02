@@ -28,6 +28,11 @@
 #include "webkit/glue/webaccessibility.h"
 #include "webkit/glue/window_open_disposition.h"
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include <res-msg.h>
+#include <resource.h>
+#endif
+
 class ChildProcessSecurityPolicy;
 class FilePath;
 class GURL;
@@ -437,6 +442,10 @@ class RenderViewHost : public RenderWidgetHost {
   void SetSelectionRange(gfx::Point start, gfx::Point end, bool set);
   void SelectItem(gfx::Point pos);
   void CommitSelection();
+  /*PolicyAware Application*/
+  void OnResourceRequire(int type);
+  void OnResourceRelease(void);
+  static void GrantCallback (resource_set_t *, uint32_t, void *);
 #endif
 
   // Tells the renderer which browser window it is being attached to.
@@ -699,6 +708,10 @@ class RenderViewHost : public RenderWidgetHost {
   ObserverList<RenderViewHostObserver> observers_;
 
   DISALLOW_COPY_AND_ASSIGN(RenderViewHost);
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  resource_set_t *resource_set_;
+#endif
 };
 
 #endif  // CONTENT_BROWSER_RENDERER_HOST_RENDER_VIEW_HOST_H_

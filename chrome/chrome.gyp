@@ -4,6 +4,7 @@
 {
   'variables': {
     'chromium_code': 1,
+    'pkg-config': 'pkg-config',
 
     'variables': {
       'version_py_path': 'tools/build/version.py',
@@ -359,6 +360,10 @@
         '../skia/skia.gyp:skia',
         '../third_party/icu/icu.gyp:icui18n',
         '../third_party/icu/icu.gyp:icuuc',
+      ],
+      #Policy Management
+      'cflags': [
+        '<!@(<(pkg-config) --cflags-only-I libresource0)',
       ],
       'include_dirs': [
         '..',

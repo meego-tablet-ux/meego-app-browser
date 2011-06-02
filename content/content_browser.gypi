@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 {
+  'variables': {
+    'pkg-config': 'pkg-config'
+  },
   'targets': [
     {
       'target_name': 'content_browser',
@@ -17,9 +20,22 @@
         '../third_party/WebKit/Source/WebKit/chromium/WebKit.gyp:webkit',
         '../ui/ui.gyp:ui_base',
       ],
+      #Policy Management
+      'cflags': [
+        '<!@(<(pkg-config) --cflags-only-I libresource0)',
+      ],
       'include_dirs': [
         '..',
+        #Policy Management
+        #'<!@(<(pkg-config) --cflags-only-I libva)',
       ],
+
+      'libraries': [
+        #'-lresource',  #FIXME libresource 
+        '<!@(<(pkg-config) --libs-only-l libresource0)',
+        '<!@(<(pkg-config) --libs-only-l libresource0-glib)',
+      ],
+
       'sources': [
         'browser/appcache/appcache_dispatcher_host.cc',
         'browser/appcache/appcache_dispatcher_host.h',

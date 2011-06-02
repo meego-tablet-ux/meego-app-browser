@@ -319,6 +319,14 @@ IPC_SYNC_MESSAGE_ROUTED1_0(ViewMsg_ZoomFactor, double)
 IPC_MESSAGE_ROUTED1(ViewHostMsg_QueryNodeAtPosition_ACK,
                     unsigned int /* node_info */)
 
+/*PolicyAware Application*/
+IPC_MESSAGE_ROUTED1(ViewHostMsg_ResourceRequire,
+                    int /* type */)
+IPC_MESSAGE_ROUTED0(ViewHostMsg_ResourceRelease)
+
+IPC_MESSAGE_ROUTED1(ViewMsg_ResourceGet,
+                    int /* type */)
+
 IPC_MESSAGE_ROUTED3(ViewHostMsg_UpdateSelectionRange,
                     gfx::Point, /* start point */
                     gfx::Point, /* end point */

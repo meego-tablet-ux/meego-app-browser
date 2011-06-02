@@ -436,6 +436,18 @@ class RenderView : public RenderWidget,
   virtual WebKit::WebMediaPlayer* createMediaPlayer(
       WebKit::WebFrame* frame,
       WebKit::WebMediaPlayerClient* client);
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  /*PolicyAware */
+  virtual int resourceRequire(
+      WebKit::WebFrame* frame,
+      WebKit::WebMediaPlayerClient* client);
+
+  virtual int resourceRelease(
+      WebKit::WebFrame* frame,
+      WebKit::WebMediaPlayerClient* client);
+#endif
+
   virtual WebKit::WebApplicationCacheHost* createApplicationCacheHost(
       WebKit::WebFrame* frame,
       WebKit::WebApplicationCacheHostClient* client);
@@ -716,6 +728,9 @@ class RenderView : public RenderWidget,
   void OnSetSelectionRange(gfx::Point start, gfx::Point end, bool set);
   void OnSelectItem(gfx::Point pos);
   void OnCommitSelection();
+
+  /*PolicyAware Application*/
+  void OnResourceGet(int type);
 
 // reimplement from webviewclient
   virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, bool set);
@@ -1175,6 +1190,10 @@ class RenderView : public RenderWidget,
 
   // Reports load progress to the browser.
   scoped_ptr<LoadProgressTracker> load_progress_tracker_;
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  WebKit::WebMediaPlayer* mediaplayer_;
+#endif
 
   // All the registered observers.  We expect this list to be small, so vector
   // is fine.

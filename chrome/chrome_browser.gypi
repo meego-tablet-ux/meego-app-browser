@@ -6,6 +6,7 @@
   'targets': [
     {
       'target_name': 'browser',
+      'pkg-config': 'pkg-config',
       'type': '<(library)',
       'msvs_guid': '5BF908A7-68FB-4A4B-99E3-8C749F1FE4EA',
       'dependencies': [
@@ -53,6 +54,10 @@
         '../webkit/support/webkit_support.gyp:glue',
         '../webkit/support/webkit_support.gyp:quota',
         '../webkit/support/webkit_support.gyp:webkit_resources',
+      ],
+      #Policy Management
+      'cflags': [
+        '<!@(<(pkg-config) --cflags-only-I libresource0)',
       ],
       'include_dirs': [
         '..',
