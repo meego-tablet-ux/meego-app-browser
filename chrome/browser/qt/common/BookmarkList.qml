@@ -135,7 +135,7 @@ Item {
     id: topContainer
     width: parent.width
     height: headHeight
-    MouseArea { anchors.fill: parent; onClicked: bmItemEditDialog.show() }
+    //MouseArea { anchors.fill: parent; onClicked: bmItemEditDialog.show() }
     Image {
       anchors.fill: parent
       source: "image://themedimage/images/bg_application_p"
