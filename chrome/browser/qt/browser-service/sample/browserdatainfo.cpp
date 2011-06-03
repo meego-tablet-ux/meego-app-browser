@@ -79,8 +79,8 @@ void BrowserDataInfo::openBrowser(BrowserDataInfo::OpenMode mode, const QString 
             }
             m_showTabWithIndex = target.toInt();
         }
+        QProcess::startDetached(browser_path, arguments);
     }
-    QProcess::startDetached(browser_path, arguments);
 }
 
 void BrowserDataInfo::updateCurrentTab()

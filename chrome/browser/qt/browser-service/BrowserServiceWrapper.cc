@@ -34,6 +34,8 @@
 #include "BrowserServiceWrapper.h"
 #include "MeeGoPluginAPI.h"
 
+extern LauncherWindow* g_main_window;
+
 class BrowserServiceBackend : public base::RefCountedThreadSafe<BrowserServiceBackend>
 {
  public:
@@ -620,6 +622,11 @@ void BrowserServiceWrapper::showBrowser(const char *mode, const char *target)
 {
     if(mode == NULL || target == NULL) return;
 
+    if(g_main_window) {
+      g_main_window->show();
+      g_main_window->activateWindow();
+      g_main_window->raise();
+    }
     string16 search_term;
     UTF8ToUTF16(target, strlen(target), &search_term);
     GURL url;
