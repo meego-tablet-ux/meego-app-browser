@@ -38,6 +38,10 @@ Item {
   // Call c++ methods to open the clicked page and decide whether to show
   // historybar and listen to signals from c++ to update its showness
   id: container
+
+  property int itemWidth : 180
+  property int itemHeight: 114
+
   // default height is 135
   property int rectHeight: 135
   height: rectHeight
@@ -54,8 +58,8 @@ Item {
     Item {
       id: innerItem
 
-      height: 114 
-      width: 180
+      height: container.itemHeight
+      width: container.itemWidth
 
       // flag to indicate whether the current item is the highlighted one in the list
       property bool isCurrent: false
@@ -174,10 +178,9 @@ Item {
     clip: true
     currentIndex: 0
     property real itemHeight: height
-    property real itemWidth: innerItem.width
     orientation: ListView.Horizontal
     // only interactive when items are full of container
-    interactive: itemWidth * count < container.width ? false : true
+    interactive: container.itemWidth * count < container.width ? false : true
     // control the scrollbar
     states: State {
        name: "ShowBars"
