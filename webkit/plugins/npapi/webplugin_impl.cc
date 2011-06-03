@@ -539,6 +539,10 @@ WebPluginImpl::WebPluginImpl(
     arg_names_.push_back(params.attributeNames[i].utf8());
     arg_values_.push_back(params.attributeValues[i].utf8());
   }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  set_id(0);
+#endif
 }
 
 WebPluginImpl::~WebPluginImpl() {
@@ -565,6 +569,9 @@ void WebPluginImpl::SetWindow(gfx::PluginWindowHandle window) {
   if (window) {
     DCHECK(!windowless_);
     window_ = window;
+#if defined(TOOLKIT_MEEGOTOUCH)
+    set_id(window);
+#endif
     accepts_input_events_ = false;
     if (page_delegate_) {
       // Tell the view delegate that the plugin window was created, so that it

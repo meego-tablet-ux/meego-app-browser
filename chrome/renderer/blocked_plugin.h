@@ -10,8 +10,8 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebPluginParams.h"
 #include "webkit/glue/cpp_bound_class.h"
 #include "webkit/plugins/npapi/webview_plugin.h"
-
 #if defined(TOOLKIT_MEEGOTOUCH)
+#include "ui/gfx/native_widget_types.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebPlugin.h"
 #endif
 
@@ -74,7 +74,7 @@ class BlockedPlugin : public RenderViewObserver,
   void HidePlugin();
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-  void ResetPlugin();
+  void ResetPlugin(gfx::PluginWindowHandle id);
 #endif
 
   WebKit::WebFrame* frame_;

@@ -29,6 +29,7 @@
 #include "webkit/glue/webpreferences.h"
 #include "webkit/plugins/npapi/plugin_group.h"
 #include "webkit/plugins/npapi/webview_plugin.h"
+#include "webkit/plugins/npapi/webplugin_impl.h"
 
 using WebKit::WebContextMenuData;
 using WebKit::WebElement;
@@ -164,7 +165,7 @@ bool BlockedPlugin::OnMessageReceived(const IPC::Message& message) {
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   if (message.type() == ViewMsg_ResetPlugin::ID) {
-    ResetPlugin();
+    ViewMsg_ResetPlugin::Dispatch(&message, this, this, &BlockedPlugin::ResetPlugin);
   }
 #endif
 
@@ -210,10 +211,13 @@ void BlockedPlugin::LoadPlugin() {
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-void BlockedPlugin::ResetPlugin() {
+void BlockedPlugin::ResetPlugin(gfx::PluginWindowHandle id) {
 
   CHECK(plugin_);
   if (!loaded_)
+    return;
+
+  if (!loaded_plugin_ || loaded_plugin_->get_id() != id)
     return;
 
   WebPluginContainer* container = plugin_->container();

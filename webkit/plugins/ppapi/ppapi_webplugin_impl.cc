@@ -161,6 +161,9 @@ void WebPluginImpl::didFinishLoading() {
     document_loader_->didFinishLoading(NULL, 0);
     document_loader_ = NULL;
   }
+#if defined(TOOLKIT_MEEGOTOUCH)
+  set_id(0);
+#endif
 }
 
 void WebPluginImpl::didFailLoading(const WebKit::WebURLError& error) {
