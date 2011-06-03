@@ -711,6 +711,7 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_SelectItem, OnSelectItem)
     IPC_MESSAGE_HANDLER(ViewMsg_CommitSelection, OnCommitSelection)
     IPC_MESSAGE_HANDLER(ViewMsg_ResourceGet, OnResourceGet)
+    IPC_MESSAGE_HANDLER(ViewMsg_ResourceInUsed, OnResourceInUsed)
 #endif
 #if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
@@ -742,6 +743,15 @@ void RenderView::OnResourceGet(int type) {
   if(mediaplayer_){
       /*we get confirm of resource required, and kickoff playback.*/
       mediaplayer_->play();
+  }
+  return;
+}
+/*in case : resource is using or preempted by others*/
+void RenderView::OnResourceInUsed(void) {
+  WebView* view = webview();
+  if(mediaplayer_){
+      /*we get confirm of resource is in used, and keep or trigger pause.*/
+      mediaplayer_->pause();
   }
   return;
 }
@@ -1941,16 +1951,12 @@ int RenderView::resourceRequire(
     WebFrame* frame, WebMediaPlayerClient* client) {
     int type = 0;
 
-    //("Resource Required ..[RenderProcess]: %s, file : %s\n", __FUNCTION__, __FILE__);
     Send(new ViewHostMsg_ResourceRequire(routing_id_, type));
     return 0;
 }
 
 /*PolicyAware */
-int RenderView::resourceRelease(
-    WebFrame* frame, WebMediaPlayerClient* client) {
-
-    //("Resource Release ..[RenderProcess]: %s, file : %s\n", __FUNCTION__, __FILE__);
+int RenderView::resourceRelease(void) {
 
     Send(new ViewHostMsg_ResourceRelease(routing_id_));
     return 0;

@@ -97,6 +97,9 @@ RenderViewHost::RenderViewHost(SiteInstance* instance,
       instance_(instance),
       delegate_(delegate),
       waiting_for_drag_context_response_(false),
+#if defined(TOOLKIT_MEEGOTOUCH)
+      resource_set_(0),
+#endif
       enabled_bindings_(0),
       pending_request_id_(0),
       navigations_suspended_(false),
@@ -884,7 +887,7 @@ void RenderViewHost::OnUpdateSelectionRange(gfx::Point start, gfx::Point end, in
 }
 
 /*PolicyAware Application: callback while acquired the resource*/
-void RenderViewHost::GrantCallback (resource_set_t *resource_set,
+static void GrantCallback (resource_set_t *resource_set,
                                      uint32_t        resources,
                                      void           *userdata)
 {
@@ -896,13 +899,20 @@ void RenderViewHost::GrantCallback (resource_set_t *resource_set,
   (void)userdata;
 */
 
-  //("*** %s(): granted resources %s\n", __FUNCTION__, resmsg_res_str (resources, buf, sizeof(buf)));
   RenderViewHost *viewHost = (RenderViewHost*)userdata;
+
+  if(viewHost == NULL){
+    return;
+  }
 
   if(resources & 0x3) {
     /*Get AudioPlayBack resource*/
     /*3 for both Audio and Video*/
     viewHost->Send(new ViewMsg_ResourceGet(viewHost->routing_id(), type));
+  }
+
+  if(!resources){
+    viewHost->Send(new ViewMsg_ResourceInUsed(viewHost->routing_id()));
   }
 
   return;
@@ -911,6 +921,12 @@ void RenderViewHost::GrantCallback (resource_set_t *resource_set,
 /*PolicyAware Application: receive resource acquire request from render process*/
 void RenderViewHost::OnResourceRequire(int type) 
 {
+
+  if(resource_set_){
+    resource_set_acquire (resource_set_);
+    /*we have create link*/
+    return ;
+  }
   resource_set_ = resource_set_create ("browser", RESOURCE_AUDIO_PLAYBACK | RESOURCE_VIDEO_PLAYBACK,0, 0,
                            (resource_callback_t)(GrantCallback), this);
 

@@ -323,6 +323,7 @@ IPC_MESSAGE_ROUTED1(ViewHostMsg_QueryNodeAtPosition_ACK,
 IPC_MESSAGE_ROUTED1(ViewHostMsg_ResourceRequire,
                     int /* type */)
 IPC_MESSAGE_ROUTED0(ViewHostMsg_ResourceRelease)
+IPC_MESSAGE_ROUTED0(ViewMsg_ResourceInUsed)
 
 IPC_MESSAGE_ROUTED1(ViewMsg_ResourceGet,
                     int /* type */)

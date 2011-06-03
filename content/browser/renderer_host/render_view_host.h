@@ -445,7 +445,6 @@ class RenderViewHost : public RenderWidgetHost {
   /*PolicyAware Application*/
   void OnResourceRequire(int type);
   void OnResourceRelease(void);
-  static void GrantCallback (resource_set_t *, uint32_t, void *);
 #endif
 
   // Tells the renderer which browser window it is being attached to.

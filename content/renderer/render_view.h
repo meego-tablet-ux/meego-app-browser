@@ -443,9 +443,7 @@ class RenderView : public RenderWidget,
       WebKit::WebFrame* frame,
       WebKit::WebMediaPlayerClient* client);
 
-  virtual int resourceRelease(
-      WebKit::WebFrame* frame,
-      WebKit::WebMediaPlayerClient* client);
+  virtual int resourceRelease(void);
 #endif
 
   virtual WebKit::WebApplicationCacheHost* createApplicationCacheHost(
@@ -731,6 +729,7 @@ class RenderView : public RenderWidget,
 
   /*PolicyAware Application*/
   void OnResourceGet(int type);
+  void OnResourceInUsed(void);
 
 // reimplement from webviewclient
   virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, int height, bool set);

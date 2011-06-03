@@ -41,10 +41,10 @@
           },
           'link_settings': {
             'ldflags': [
-              '<!@(<(pkg-config) --libs-only-L --libs-only-other mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher)',
+              '<!@(<(pkg-config) --libs-only-L --libs-only-other mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher libresource0 libresource0-glib)',
             ],
             'libraries': [
-              '<!@(<(pkg-config) --libs-only-l mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher)',
+              '<!@(<(pkg-config) --libs-only-l mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher libresource0 libresource0-glib)',
               '-lQtSensors',
             ],
           },
