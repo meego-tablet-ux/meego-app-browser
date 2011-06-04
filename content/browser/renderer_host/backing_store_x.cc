@@ -103,7 +103,7 @@ BackingStoreX::BackingStoreX(RenderWidgetHost* widget,
 
   pixmap_gc_ = XCreateGC(display_, pixmap_, 0, NULL);
 #else //TILED_BACKING_STORE
-  tiles_map_seq_ = 1;
+  tiles_map_seq_ = 0;
   tiles_paint_tag_ = 1;
   contents_scale_ = 1.0;
   pending_scaling_ = false;
@@ -338,9 +338,9 @@ void BackingStoreX::PaintToBackingStore(
     QRect bitmap_qrect(bitmap_rect.x(), bitmap_rect.y(),
                        bitmap_rect.width(), bitmap_rect.height());
   
-    if (tiles_map_seq_ != seq)
-    {
-      return;
+    if (tiles_map_seq_ != seq) {
+      // don't use return to avoid memory leak
+      break;
     }
     
     QRect dirty_rect(MapFromContents(copy_rect));
@@ -913,7 +913,7 @@ QRect BackingStoreX::GetCachedRect()
   return cached_rect.intersected(ContentsRect());
 }
 
-void BackingStoreX::AdjustTiles(bool recreatedAll)
+void BackingStoreX::AdjustTiles(bool recreate_all, bool least_request, const gfx::Rect &update_rect)
 {
   if (frozen_)
     return;
@@ -938,7 +938,7 @@ void BackingStoreX::AdjustTiles(bool recreatedAll)
       itr = GetWorkingTilesMap().erase(itr);
       continue;
     }
-    if (recreatedAll) {
+    if (recreate_all) {
       (*itr)->reset();
     }
     itr++;
@@ -990,6 +990,10 @@ void BackingStoreX::AdjustTiles(bool recreatedAll)
   QVector<scoped_refptr<Tile> > other_tiles;
   DLOG(INFO) << "Cached tiles index " << first.x() << " " << first.y()
              << " " << last.x() << " " << last.y();
+  QRect qupdate(update_rect.x(),
+                update_rect.y(),
+                update_rect.width(),
+                update_rect.height());
   for (int x = first.x(); x <= last.x(); x++)
   {
     for (int y = first.y(); y <= last.y(); y++)
@@ -1002,14 +1006,16 @@ void BackingStoreX::AdjustTiles(bool recreatedAll)
 
         gfx::Rect grect = render_widget_host_->view()->GetVisibleRect();
         QRect visible_rect(grect.x(), grect.y(), grect.width(), grect.height());
-
-        if (visible_rect.intersects(tile->Rect()))
-        {
-          visible_tiles.append(tile);
-        }
-        else
-        {
-          other_tiles.append(tile);
+        // if create all necessary or create those are not all contained in
+        // update rectangle
+        if ( !least_request ||
+            (least_request &&
+            qupdate.intersected(tile->Rect()) != tile->Rect())) { 
+          if (visible_rect.intersects(tile->Rect())) {
+            visible_tiles.append(tile);
+          } else {
+            other_tiles.append(tile);
+          }
         }
       }
     }

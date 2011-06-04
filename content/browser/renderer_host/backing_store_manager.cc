@@ -216,6 +216,18 @@ void BackingStoreManager::PrepareBackingStore(
 
     if (!backing_store)
       return;       
+
+    BackingStoreX * bsx = static_cast<BackingStoreX *>(backing_store);
+    if (bsx) {
+      // create tiles and update them by this copy_rects[0] since
+      // it should be one for the first time
+      // only send tile request for those which are not all contained
+      // in copy_rects[0].
+      // There are two reasons:
+      // 1) show rendering pixmap as early as possible
+      // 2) avoid extra tiles repainting
+      bsx->AdjustTiles(true, true, copy_rects[0]);
+    }
 #endif
     
   }

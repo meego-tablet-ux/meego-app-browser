@@ -75,7 +75,11 @@ class BackingStoreX : public BackingStore {
   // Tiled backing store public APIs
   
   // Adjust tiles according to visible rect, contents size or scale change
-  void AdjustTiles(bool recreatedAll = false);
+  // if least_request is true, just create tiles and send request for those are
+  // not all contained in update_rect.
+  void AdjustTiles(bool recreate_all = false, 
+                   bool least_request = false,
+                   const gfx::Rect &update_rect = gfx::Rect(0, 0, 0, 0));
 
   // Handle tiles painting tiles ack from render
   void PaintTilesAck(unsigned int seq, unsigned int tag, const QRect& rect, const QRect& pixmap_rect);

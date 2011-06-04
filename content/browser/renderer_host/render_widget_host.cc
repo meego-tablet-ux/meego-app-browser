@@ -373,10 +373,11 @@ void RenderWidgetHost::WasResized() {
 
 void RenderWidgetHost::SetPreferredSize(const gfx::Size& size)
 {
-  if (size != gfx::Size(0, 0))
+  if (size != gfx::Size(0, 0) && size != preferred_size_) {
     preferred_size_ = size;
-  LOG(INFO) << "------- " << __PRETTY_FUNCTION__ << ": " << preferred_size_;
-  Send(new ViewMsg_SetPreferredSize(routing_id_, preferred_size_));
+    LOG(INFO) << "------- " << __PRETTY_FUNCTION__ << ": " << preferred_size_;
+    Send(new ViewMsg_SetPreferredSize(routing_id_, preferred_size_));
+  }
 }
 void RenderWidgetHost::GotFocus() {
   Focus();
