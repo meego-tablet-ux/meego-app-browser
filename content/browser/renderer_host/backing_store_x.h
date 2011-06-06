@@ -77,7 +77,7 @@ class BackingStoreX : public BackingStore {
   // Adjust tiles according to visible rect, contents size or scale change
   // if least_request is true, just create tiles and send request for those are
   // not all contained in update_rect.
-  void AdjustTiles(bool recreate_all = false, 
+  void AdjustTiles(bool recreate = false,
                    bool least_request = false,
                    const gfx::Rect &update_rect = gfx::Rect(0, 0, 0, 0));
 
@@ -168,11 +168,19 @@ private:
 
     TileIndex Index() { return index_; }
     
-    QRect Rect() { return rect_; }
+    QRect Rect() { return curr_rect_; }
+    QRect PrevRect() { return prev_rect_; }
+    void SetCurrRect(QRect rect) 
+    { 
+      curr_rect_ = rect; 
+      if (prev_rect_ != curr_rect_) {
+        paint_request_ = false;
+      }
+    }
+    void SetPrevRect(QRect rect) { prev_rect_ = rect; }
 
-    bool IsReady() { return ready_; }
-
-    void reset() { ready_ = false; }
+    void SetPaintRequest(bool set) { paint_request_ = set; }
+    bool NeedPaintRequest();
 
     QPixmap* Pixmap() {return pixmap_;}
     
@@ -180,9 +188,16 @@ private:
     friend class base::RefCounted<Tile>;
 
     TileIndex index_;
-    QRect rect_;
+    // previous rect that pixmap has updated 
+    QRect prev_rect_;
+    // to be update rect, this is for first showing to avoid checker
+    // and reuse previous pixmap to show
+    QRect curr_rect_;
+
+    // whether the paint request is sent for curr_rect_ not equal to prev_rect_
+    bool paint_request_;
+
     QPixmap* pixmap_;
-    bool ready_;
   };
 
 private:

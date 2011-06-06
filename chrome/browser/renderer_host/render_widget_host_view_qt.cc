@@ -523,9 +523,10 @@ RenderWidgetHostView*
 }
 
 void RenderWidgetHostViewQt::UpdateContentsSize(const gfx::Size& size)
- {
-  if (contents_size_ != size)
-   {
+{
+  if (contents_size_ != size) {
+    // a flag whether width is changed
+    bool width_changed = (contents_size_.width() != size.width());
     contents_size_ = size;
     if (view_)
       reinterpret_cast<RWHVQtWidget*>(view_)->AdjustSize();
@@ -534,7 +535,14 @@ void RenderWidgetHostViewQt::UpdateContentsSize(const gfx::Size& size)
 #if defined(TILED_BACKING_STORE)
     if (backing_store)
     {
-      backing_store->AdjustTiles();
+      // if width is not changed, we have the chance to reuse some
+      // tiles to avoid checker painting many times
+      // here assumes height changed won't adjust relayout and won't be
+      // repaint for existing tiles. This can save rendering time and improve
+      // performance. If we find height changes the existing tiles, we'll
+      // add a repaint later
+      backing_store->AdjustTiles(width_changed);
+      DLOG(INFO) << __PRETTY_FUNCTION__ << "adjust tiles: " << width_changed;
     }
 #endif
   }

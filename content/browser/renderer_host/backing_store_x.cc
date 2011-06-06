@@ -704,7 +704,7 @@ const static QSizeF kTileCacheMultipler = QSizeF(1.5, 2.5);
 static scoped_ptr<QPixmap> g_background_pixmap;
 
 // paint a dummy element when a tile is not ready
-static void paintTileBackground(QPainter *painter, QRect &tile, QRect &dirty)
+static void paintTileBackground(QPainter *painter, const QRect &tile, const QRect &dirty)
 {
   const static int cell = 16;
 
@@ -753,7 +753,7 @@ void BackingStoreX::QPainterShowRect(QPainter *painter, QRectF &rect) {
       TileIndex index(x, y);
       // Always use front tiles map
       scoped_refptr<Tile> tile = tiles_map_.value(index);
-      if (tile.get() && tile->IsReady())
+      if (tile.get())
       {
         DLOG(INFO) << "Paint Tile " << x << " " << y;
         tile->QPainterShowRect(painter, dirty_rect);
@@ -814,8 +814,8 @@ void BackingStoreX::PaintToRect(const gfx::Rect& rect, GdkDrawable* target) {
 
 BackingStoreX::Tile::Tile(const TileIndex& index, const QRect& rect):
     index_(index),
-    rect_(rect),
-    ready_(false),
+    curr_rect_(rect),
+    paint_request_(false),
     pixmap_(NULL)
 {
   DLOG(INFO) << "Tile create for " << this << " " << "[" << index_.x() << ", " << index_.y() << "]";
@@ -828,18 +828,37 @@ BackingStoreX::Tile::~Tile()
   delete pixmap_;
 }
 
+// check whether we need send paint request to rendering process
+// when prev_rect is not equal to curr_rect_
+bool BackingStoreX::Tile::NeedPaintRequest()
+{
+  // paint_request_ has not been sent
+  if (!paint_request_ && prev_rect_ != curr_rect_) {
+    return true;
+  }
+  return false;
+}
+
 void BackingStoreX::Tile::QPainterShowRect(QPainter* painter,
                                            const QRect& rect)
 {
   DCHECK(pixmap_);
 
-  QRect target = rect.intersected(rect_);
-  QRect source((target.x() - rect_.x()),
-               (target.y() - rect_.y()),
+  if (curr_rect_ != prev_rect_) {
+    DLOG(INFO) << "paint checker in Tile::QPainterShowRect: " << index_.x() << ", " << index_.y();
+    paintTileBackground(painter, curr_rect_, rect);
+  }
+
+  // to paint previous pixmap content, this can
+  // help user see many checkers unnecessarily
+  QRect target = rect.intersected(prev_rect_);
+  QRect source((target.x() - prev_rect_.x()),
+               (target.y() - prev_rect_.y()),
                target.width(),
                target.height());
-    
+
   painter->drawPixmap(target, *pixmap_, source);
+
 #if defined(TILED_BACKING_STORE_DEBUG)
   QPen pen(QColor("red"));
   painter->save();
@@ -857,30 +876,29 @@ void BackingStoreX::Tile::PaintToBackingStore(QPixmap& bitmap,
                                               const QRect& bitmap_rect,
                                               const QRect& rect)
 {
-  if (!ready_)
-  {
-    ready_ = true;
-  }
-  
   DLOG(INFO) << "Tile::update dirty rect " << rect.x()
              << " " << rect.y()
              << " " << rect.width()
              << " " << rect.height();
-  
-  QRect updated = rect.intersected(rect_);
+
+  QRect updated = rect.intersected(curr_rect_);
+  if (updated == curr_rect_) {
+    prev_rect_ = curr_rect_;
+  }
+
   QRect source((updated.x() - bitmap_rect.x()),
                (updated.y() - bitmap_rect.y()),
                updated.width(),
                updated.height());
-  QRect target((updated.x() - rect_.x()),
-               (updated.y() - rect_.y()),
+  QRect target((updated.x() - curr_rect_.x()),
+               (updated.y() - curr_rect_.y()),
                updated.width(),
                updated.height());
   QPainter painter(pixmap_);
   painter.drawPixmap(target, bitmap, source);
   
-  DLOG(INFO) << "Tile::update (" << rect_.x() << "," << rect_.y() << ","
-             << rect_.width() << "," << rect_.height() << ")"
+  DLOG(INFO) << "Tile::update (" << curr_rect_.x() << "," << curr_rect_.y() << ","
+             << curr_rect_.width() << "," << curr_rect_.height() << ")"
              << " target (" << target.x() << "," << target.y() << ","
              << target.width() << "," << target.height() << ")"
              << " source (" << source.x() << "," << source.y() << ","
@@ -890,9 +908,9 @@ void BackingStoreX::Tile::PaintToBackingStore(QPixmap& bitmap,
 void BackingStoreX::Tile::ScrollBackingStore(int dx, int dy,
                                              const QRect& clip_rect)
 {
-  QRect rect = clip_rect & rect_;
-  rect = QRect(rect.x() - rect_.x(),
-               rect.y() - rect_.y(),
+  QRect rect = clip_rect & curr_rect_;
+  rect = QRect(rect.x() - curr_rect_.x(),
+               rect.y() - curr_rect_.y(),
                rect.width(),
                rect.height());
   DLOG(INFO) << "BackingStoreX::Tile::ScrollBackingStore "
@@ -913,10 +931,12 @@ QRect BackingStoreX::GetCachedRect()
   return cached_rect.intersected(ContentsRect());
 }
 
-void BackingStoreX::AdjustTiles(bool recreate_all, bool least_request, const gfx::Rect &update_rect)
+void BackingStoreX::AdjustTiles(bool recreate, bool least_request, const gfx::Rect &update_rect)
 {
   if (frozen_)
     return;
+
+  DLOG(INFO) << __PRETTY_FUNCTION__ << ": " << recreate << ", " << least_request << ", ";
 
   QRect cached_rect = GetCachedRect();
 
@@ -932,14 +952,12 @@ void BackingStoreX::AdjustTiles(bool recreate_all, bool least_request, const gfx
   TilesMap::iterator itr = GetWorkingTilesMap().begin();
   while (itr != GetWorkingTilesMap().end())
   {
-    if ((!(cached_rect.intersects(itr.value()->Rect())))
-        || GetTileRectAt(itr.value()->Index()) != itr.value()->Rect())
-    {
+    if (!cached_rect.intersects(itr.value()->Rect())) {
       itr = GetWorkingTilesMap().erase(itr);
       continue;
-    }
-    if (recreate_all) {
-      (*itr)->reset();
+    } else if (!recreate 
+        && GetTileRectAt(itr.value()->Index()) != itr.value()->Rect()) {
+      itr.value()->SetCurrRect(GetTileRectAt(itr.value()->Index()));
     }
     itr++;
   }
@@ -994,6 +1012,11 @@ void BackingStoreX::AdjustTiles(bool recreate_all, bool least_request, const gfx
                 update_rect.y(),
                 update_rect.width(),
                 update_rect.height());
+  QRect visible_qrect(visible_rect.x(),
+                      visible_rect.y(),
+                      visible_rect.width(),
+                      visible_rect.height());
+
   for (int x = first.x(); x <= last.x(); x++)
   {
     for (int y = first.y(); y <= last.y(); y++)
@@ -1004,18 +1027,33 @@ void BackingStoreX::AdjustTiles(bool recreate_all, bool least_request, const gfx
       {
         tile = CreateTileAt(index);
 
-        gfx::Rect grect = render_widget_host_->view()->GetVisibleRect();
-        QRect visible_rect(grect.x(), grect.y(), grect.width(), grect.height());
         // if create all necessary or create those are not all contained in
         // update rectangle
+        // this case is triggered for the first time showing a page
         if ( !least_request ||
             (least_request &&
             qupdate.intersected(tile->Rect()) != tile->Rect())) { 
-          if (visible_rect.intersects(tile->Rect())) {
+          if (visible_qrect.intersects(tile->Rect())) {
             visible_tiles.append(tile);
           } else {
             other_tiles.append(tile);
           }
+        }
+      } else if (recreate ||
+          //(!recreate && tile->PrevRect() != tile->Rect())) {
+          (!recreate && tile->NeedPaintRequest())) {
+        // recreate is true to trigger to send all tiles request
+        // or is not true and has a new rect change for the tile
+        // then need paint request
+        // paint request is sent if needed
+        // we have to set whether the request is sent for this case.
+        // If we don't do that, for flick, a pixel change causes paint operation
+        // so it will send request again and again 
+        tile->SetPaintRequest(true);
+        if (visible_qrect.intersects(tile->Rect())) {
+          visible_tiles.append(tile);
+        } else {
+          other_tiles.append(tile);
         }
       }
     }
@@ -1208,7 +1246,7 @@ void BackingStoreX::SetContentsScale(float scale)
   contents_scale_ = scale;
   pending_scaling_ = true;
   tiles_map_seq_++;
-  AdjustTiles(true);
+  AdjustTiles();
 }
 
 void BackingStoreX::SetFrozen(bool frozen)
