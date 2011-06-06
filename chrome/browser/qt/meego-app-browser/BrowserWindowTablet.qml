@@ -750,7 +750,6 @@ Item {
               }
               ScriptAction {
                 script: {
-                  console.log("orientation is done");
                   browserWindow.OrientationEnd();
                 }
               }
