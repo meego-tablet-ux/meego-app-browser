@@ -324,7 +324,8 @@ if(/*(wp->paused() == 0) ||*/ subwin){
         memset(mXImage->data, 0, w_*h_*4);
         proxy->last_frame_ = 0;
     }
-    
+
+#if 0
     int k = 0;
    char *pSrc = mXImage->data;
     //("stride : %d, w.h: %d.%d\n", mXImage->bytes_per_line, w_, h_);
@@ -336,6 +337,21 @@ if(/*(wp->paused() == 0) ||*/ subwin){
        pDst += stride;
        pSrc += mXImage->bytes_per_line;
     }
+#else
+   /*workaround for invalid ARGB*/
+   int i = 0;
+   int j = 0;
+   unsigned int *pSrc = (unsigned int *)mXImage->data;
+   unsigned int *pDst4 = (unsigned int *)pDst;
+   for(i = 0; i <  mXImage->height; i ++){
+     for(j = 0; j <  (mXImage->bytes_per_line>>2); j ++){
+       /*set Alpha channle to FF, not transparents*/
+       *(pDst4 + j) = (0xFF000000 | *(pSrc+ j));
+     }
+     pDst4 += (stride>>2);
+     pSrc += (mXImage->bytes_per_line>>2);
+   } 
+#endif
 
     //XFreePixmap(dTmp, pixmap);
 }/*not full screen ?*/
