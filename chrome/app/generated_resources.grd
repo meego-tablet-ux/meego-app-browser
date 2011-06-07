@@ -6010,9 +6010,9 @@ Keep your key file in a safe place. You will need it to create new versions of y
         <message name="IDS_ERRORPAGES_SUGGESTION_PROXY_DISABLE_PLATFORM" desc="Linux instructions for disabling use of a proxy server.">
           Go to
           <ph name="BEGIN_BOLD">&lt;strong&gt;</ph>
-          Wrench menu &gt; Options &gt; Networking Proxy
+          Action menu &gt; Options &gt; Use HTTP proxy
           <ph name="END_BOLD">&lt;/strong&gt;</ph>
-          and make sure your configuration is set to &quot;no proxy&quot; or &quot;direct.&quot;
+          and make sure your configuration is set to &quot;Off&quot;
         </message>
       </if>
       <if expr="os != 'darwin' and os != 'linux2'">

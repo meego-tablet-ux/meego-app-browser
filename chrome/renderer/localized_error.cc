@@ -488,6 +488,7 @@ void LocalizedError::GetStrings(const WebKit::WebURLError& error,
         l10n_util::GetStringUTF16(IDS_ERRORPAGES_SUGGESTION_DNS_CONFIG));
     error_strings->Set("suggestionsDNSConfig", suggest_dns_config);
 
+#ifndef MEEGOTOUCH_TOOLKIT
     DictionaryValue* suggest_network_prediction = new DictionaryValue;
     suggest_network_prediction->SetString("msg",
         l10n_util::GetStringUTF16(
@@ -502,6 +503,7 @@ void LocalizedError::GetStrings(const WebKit::WebURLError& error,
             IDS_NETWORK_PREDICTION_ENABLED_DESCRIPTION));
     error_strings->Set("suggestionsDisableNetworkPrediction",
                        suggest_network_prediction);
+#endif
   }
 
   if (options.suggestions & SUGGEST_FIREWALL_CONFIG) {
