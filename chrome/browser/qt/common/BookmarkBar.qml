@@ -40,7 +40,7 @@ Item {
   property int itemMinWidth: 60
   property int containerHeight: 55
   property int titleFontSize: 13
-  property bool showInstruction: true
+  property bool showInstruction: false
   parent: outerContent
   width: parent.width
   states: [
