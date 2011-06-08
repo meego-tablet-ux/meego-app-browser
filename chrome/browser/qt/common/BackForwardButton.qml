@@ -53,9 +53,9 @@ Item {
     id: backForwardIcon
     anchors.centerIn: parent
     height: parent.height
-    source: "image://themedimage/images/browser/icn_toolbar_back_forward_up"
+    source: "image://themedimage/images/browser/icn_toolbar_back_button_up"
     property bool pressed: false
-    opacity: 1
+    opacity: {showqmlpanel? 0.5:1}
     states: [
       State {
         name: "popupShown"
@@ -77,7 +77,7 @@ Item {
       },
       State {
         name: "backActiveUnpressed"
-        when: ((kind == 0 && active) || showqmlpanel) && !backForwardIcon.pressed
+        when: (kind == 0 && active) && !backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_button_up"
@@ -86,7 +86,7 @@ Item {
       // backward active icon
       State {
         name: "backPressed"
-        when: (kind == 0 || showqmlpanel) && backForwardIcon.pressed
+        when: kind == 0 && backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
             source: "image://themedimage/images/browser/icn_toolbar_back_button_dn"
@@ -134,15 +134,12 @@ Item {
     onReleased: backForwardIcon.pressed = false
     onClicked: {
       if (!showqmlpanel) {
-        console.log("back-forward button is tapped")
         // open the history stack in a flyout
         var map = mapToItem(scene, width / 2, height / 3 * 2);
         scene.lastMousePos.mouseX = map.x;
         scene.lastMousePos.mouseY = map.y;
         browserToolbarModel.bfButtonTapped();
-      } else {
-        showqmlpanel = false;
-      }
+      } 
     }
     onPressAndHold: {
       if (!showqmlpanel) {
@@ -151,9 +148,7 @@ Item {
         scene.lastMousePos.mouseX = map.x;
         scene.lastMousePos.mouseY = map.y;
         browserToolbarModel.bfButtonTappedAndHeld();
-      } else {
-        showqmlpanel = false;
-      }
+      } 
     }
   }
 }

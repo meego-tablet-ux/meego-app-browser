@@ -77,7 +77,9 @@ Item {
     property bool hasfindbar: false
     
     //align QML panel behaviour, such as BookmarkManager, DownloadManager.
-    property bool showqmlpanel: false 
+    property bool showbookmarkmanager: false
+    property bool showdownloadmanager: false
+    property bool showqmlpanel: showbookmarkmanager || showdownloadmanager 
     property string panelstring: ""
 
     property alias findbar: findBarLoader.item
@@ -155,7 +157,8 @@ Item {
 //          contextLoader.sourceComponent = undefined;
 //          wrenchmenushown = false;
         bubbleLoader.source = "";
-        showqmlpanel = false;
+        showbookmarkmanager = false;
+        showdownloadmanager = false;
      }
    }
 
@@ -385,7 +388,7 @@ Item {
             z: toolbar.z - 1  
             width: parent.width
             height: {!scene.fullscreen ? parent.height - y: parent.height}
-            opacity: {showqmlpanel ? 1:0}
+            opacity: {showbookmarkmanager ? 1:0}
 
             Loader {
                 id: bookmarkManagerLoader
@@ -403,11 +406,11 @@ Item {
               bookmarkManagerLoader.item.portrait = !isLandscapeView()
               bookmarkManagerHolder.initx = mappedPos.x
               bookmarkManagerHolder.inity = mappedPos.y
-              showqmlpanel = true
+              showbookmarkmanager = true
               panelstring  = bookmarkManagerTitle
               if (downloadsLoader.item) {
                 downloadsLoader.item.showed = false
-                downloadsLoader.opacity = 0
+                showdownloadmanager = false;
               }
             }
         }
@@ -502,7 +505,7 @@ Item {
             z: toolbar.z - 1 
             width: parent.width
             height: {!scene.fullscreen ? parent.height - y: parent.height}
-            opacity: {showqmlpanel ? 1:0}
+            opacity: {showdownloadmanager ? 1:0}
             Loader {
               id: downloadsLoader
               anchors.fill: parent
@@ -517,10 +520,10 @@ Item {
             downloadsHolder.initx = mappedPos.x
             downloadsHolder.inity = mappedPos.y
             downloadsLoader.item.showed = true
-            showqmlpanel = true
+            showdownloadmanager = true
             panelstring  = downloadTitle
             if (bookmarkManagerLoader.item) {
-              bookmarkManagerLoader.opacity = 0
+              showbookmarkmanager = false;              
             }
           }
         }

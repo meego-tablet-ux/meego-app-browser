@@ -195,7 +195,8 @@ Item {
           anchors.fill: parent
           onClicked: {
             if (showqmlpanel) {
-              showqmlpanel = false;
+              showbookmarkmanager = false;
+              showdownloadmanager = false;
             }
             tabChangeFromTabSideBar = true;
             tabSideBarModel.go(index);

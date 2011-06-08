@@ -111,7 +111,8 @@ Item {
           }
         }
         onReleased: { 
-          showqmlpanel = false;
+          showbookmarkmanager = false;
+          showdownloadmanager = false;
           tabChangeFromTabSideBar = true;
           mouse.accepted = true; 
           if (newtab.newTabEnabled) tabSideBarModel.newTab();
