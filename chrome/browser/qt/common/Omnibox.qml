@@ -32,6 +32,7 @@
  ****************************************************************************/
 
 import Qt 4.7
+import MeeGo.Components 0.1
 
 Item {
   id: container
@@ -43,6 +44,7 @@ Item {
 
   property int starButtonHeight: 45
   property int starButtonWidth: 40
+  property int indicatorWidth: 40
 
   Row {
     anchors.fill: parent
@@ -326,48 +328,44 @@ Item {
         }
       }
     }
+
     Item {
-        id: "processIndicator"
-        height: parent.height/2
-        width: {!showqmlpanel ? height:0}
-        opacity: {!showqmlpanel ? 1:0}
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.right: parent.right
-        anchors.leftMargin: 5
-        anchors.rightMargin: 5
+      id: processContainer
+      width: indicatorWidth
+      height: parent.height
+      anchors.right: parent.right
+      anchors.rightMargin: -1 * right.width
+      visible: false
+      Spinner{
+        id: processIndicator
         visible: false
-
-   	    Timer {
-	         id: indicatorTimer
-           interval: 200
-           repeat: true
-           onTriggered: { indicator.rotation = (indicator.rotation + 45)%360; }
- 	      }
-
-        Image {
-            id: indicator
-            anchors.fill: parent
-            source: "image://themedimage/images/browser/busy";
-            rotation: 0 
+        spinning: false
+        onSpinningChanged: {
+          if (!spinning)
+            spinning = true;
         }
+
         Connections {
-            target: browserToolbarModel
-            onUpdateReloadButton: {
-                if(is_loading){
-                    processIndicator.visible = true;
-                    starButton.visible = false;
-                    indicatorTimer.start();
-                    urlTextInput.anchors.right = processIndicator.left
-                }
-                else{
-                    processIndicator.visible = false;
-                    starButton.visible = true;
-                    indicatorTimer.stop();
-                    urlTextInput.anchors.right = starButton.left
-                }
+          target: browserToolbarModel
+          onUpdateReloadButton: {
+            if(is_loading){
+              processContainer.visible = true;
+              processIndicator.visible = true;
+              processIndicator.spinning = true;
+              starButton.visible = false;
+              urlTextInput.anchors.right = processContainer.left
             }
+            else{
+              processContainer.visible = false;
+              processIndicator.visible = false;
+              processIndicator.spinning = false;
+              starButton.visible = true;
+              urlTextInput.anchors.right = starButton.left
+            }
+          }
         }
-    }
+      }
+    }//end of processContainer Item
   }
 
   Image {
