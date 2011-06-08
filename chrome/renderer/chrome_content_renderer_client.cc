@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "base/meegotouch_config.h"
+#endif
+
 #include "chrome/renderer/chrome_content_renderer_client.h"
 
 #include <string>
@@ -242,6 +246,21 @@ WebPlugin* ChromeContentRendererClient::CreatePlugin(
 
   if (!found)
     return NULL;
+
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+
+  // The default plugin is for showing missing plugin info, and it is a
+  // windowed plugin, it will get loaded automatically. While in our force
+  // fullscreen plugin apporaching for windowed plugin, this will cause problem,
+  // since there might be multiple plugin been full screened at the same time.
+  // And it will be hard to track and close all these windows. So we workaround
+  // this issue simply by return a NULL pointer and let webkit show missing plugin
+  // info for us instead of using default plugin.
+
+  if (info.path.value() == webkit::npapi::kDefaultPluginLibraryName)
+    return NULL;
+#endif
+
   DCHECK(plugin_setting != CONTENT_SETTING_DEFAULT);
   if (!webkit::npapi::IsPluginEnabled(info))
     return NULL;
