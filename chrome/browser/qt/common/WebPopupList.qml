@@ -39,11 +39,14 @@ Item {
     property variant model : []
     property int minPopupListWidth : 200
     property int maxPopupListWidth : 600
-    property int maxPopupListHeight : 600
+    property int maxPopupListHeight : 450
+    property int constMaxPopupListHeight : 450
     property int currentIndex : 0
     property Item targetContainer : null
+    property int contextMenuArrowHeight: 10
     property Item contentItem: null
-
+    property int screenHeight: 800
+    property int toolbarHeight: 55
     anchors.fill : parent
     visible : false
 
@@ -70,13 +73,30 @@ Item {
         model.uiCanceled();
         close();
     }
-
+     
     Component {
         id : popupholder
+
         ContextMenu {
             id: webPopupListContext
             targetContainer: container.targetContainer
+           
             function display(x, y) {
+                if (y > 500){
+                    webPopupListContext.forceFingerMode = 3
+                    if(y < 550){
+                        contextMenuContent.maxHeight = constMaxPopupListHeight - toolbarHeight;
+                    }else{
+                        contextMenuContent.maxHeight = constMaxPopupListHeight;
+                    }
+                }else{
+                    webPopupListContext.forceFingerMode = 2
+                    if(screenHeight - toolbarHeight - y < constMaxPopupListHeight){
+                        contextMenuContent.maxHeight = screenHeight - y - toolbarHeight;
+                    }else{
+                        contextMenuContent.maxHeight = constMaxPopupListHeight;
+                    }
+                }
                 webPopupListContext.setPosition(x, y);
                 webPopupListContext.show();
             }
@@ -87,7 +107,9 @@ Item {
                 }
             }
 
+          
             content : WebPopupListView {
+                id: contextMenuContent
                 model: container.model
                 minWidth: minPopupListWidth
                 maxWidth: maxPopupListWidth

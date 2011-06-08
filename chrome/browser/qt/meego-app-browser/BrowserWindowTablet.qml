@@ -208,6 +208,7 @@ Item {
         MouseArea {
 			id: mouseArea
           anchors.fill: parent
+
           /*onClicked: {
             browserWindow.OrientationStart();
             scene.statusBarTriggered();

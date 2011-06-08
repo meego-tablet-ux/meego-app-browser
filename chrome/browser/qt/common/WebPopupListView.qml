@@ -35,6 +35,7 @@ import Qt 4.7
 import MeeGo.Components 0.1
 
 Flickable {
+
     id: container
 
     property alias model: repeater.model
@@ -42,7 +43,7 @@ Flickable {
     property int minWidth : 200     // The width of the menu should always be between minWidth and maxWidth
     property int maxWidth : 500
     property int currentWidth: minWidth
-    property int textMargin : 16
+    property int textMargin : 20
 
     property bool elideEnabled: false
     property int currentIndex : 0
@@ -50,8 +51,8 @@ Flickable {
     property int currentItemY : 0
     property int currentItemHeight : 0
     property int realheight : 200
-
     property int maxHeight : 600
+
 
     signal triggered(int index)
 
@@ -81,17 +82,14 @@ Flickable {
         // we try to position currentItem at the center of the layout
         // if that's not possible, scroll the flickable to either end
         // so that the currentItem is positioned as near to the center as posible
-        var bestY = currentItemY - container.height/2
 
-        if (bestY < 0) {
-            bestY = 0;
+        if (currentItemY < container.height/4 ){
+            container.contentY = 0;
+        }else if (currentItemY + container.height/4 > contentHeight ){
+            container.contentY = contentHeight;
+        }else{
+            container.contentY = currentItemY - container.height/4
         }
-
-        if (bestY + container.height > contentHeight) {
-            bestY = contentHeight - container.height;
-        }
-
-        container.contentY = bestY;
     }
 
     Column {
@@ -116,48 +114,35 @@ Flickable {
                     if (container.currentIndex > index) {
                         currentItemY = currentItemY + height;
                     }
-
                     if (container.currentIndex == index) {
                         currentItemHeight = height;
                     }
                 }
 
-                Rectangle {
-                    id : highlighter
-                    property int borderWidth : 6
-                    radius : 1
-                    x : borderWidth
-                    width : parent.width - borderWidth*2
-                    y : borderWidth
-                    height : textItem.height - borderWidth*2
 
-                    border.color:  "#2CACE3"
-                    border.width: borderWidth
-                    visible :  (container.currentIndex == index) ? true : false
-
-                    // saddly, we need this to cover the rectangle's background color
-                    Image {
-                        id: backgroundImage
-                        width: parent.width
-                        height: parent.height
-                        source: "image://themedimage/images/popupbox_2"
-                    }
+                Image {
+                    id: highLighterImage
+                    width: 22
+                    height: 18
+                    visible : (container.currentIndex == index) ? true : false
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.rightMargin: 20
+                    anchors.topMargin: parent.height/2 - highLighterImage.height/2
+                    source: "image://themedimage/widgets/apps/browser/tick"
                 }
+                
 
                 Text {
                     id: textItem
-
                     x: textMargin
-
-                    width: parent.width - textMargin * 2
-                    height: paintedHeight + textMargin * 2
+                    width: parent.width - textMargin - 70
+                    height: 45
 
                     verticalAlignment: Text.AlignVCenter
 
                     color: theme_contextMenuFontColor
                     font.pixelSize: theme_contextMenuFontPixelSize
-                    font.italic: (type == itemType.groupItem) ? true : false
-                    font.weight: (type == itemType.groupItem) ? Font.Black : ((container.currentIndex == index) ? Font.Bold : Font.Normal)
 
                     // elide has to be turned of to correctly compute the paintedWidth. It is re-enabled after the width computing
                     elide: if(elideEnabled){ Text.ElideRight; }else{ Text.ElideNone; }
@@ -180,12 +165,9 @@ Flickable {
 
                 Image {
                     id: seperatorImage
-
                     anchors.top: textItem.bottom
                     width: currentWidth
-
                     visible: index < repeater.count - 1     // Seperator won't be visible for the last item
-
                     source: "image://themedimage/images/menu_item_separator"
                 }
 
@@ -210,14 +192,13 @@ Flickable {
                     }
                 }
             }
+        }
 
-            // enable text eliding when the correct width was computed
-            Component.onCompleted: {
+        // enable text eliding when the correct width was computed
+        Component.onCompleted: {
                 container.realheight = layout.height
                 positionCurrentItem();
                 elideEnabled = true;
-            }
         }
     }
-
 }
