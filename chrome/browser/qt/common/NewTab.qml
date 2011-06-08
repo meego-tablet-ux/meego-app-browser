@@ -112,6 +112,7 @@ Item {
         }
         onReleased: { 
           showqmlpanel = false;
+          tabChangeFromTabSideBar = true;
           mouse.accepted = true; 
           if (newtab.newTabEnabled) tabSideBarModel.newTab();
         }

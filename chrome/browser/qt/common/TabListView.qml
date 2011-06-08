@@ -181,6 +181,7 @@ Item {
                 if (index == tabSideBarListView.currentIndex ) {
                   tabContainer.isCurrentTab = true;
                 }
+                tabChangeFromTabSideBar = true;
                 tabSideBarModel.closeTab(index);
               }
               onPressed: closeIcon.pressed = true
@@ -195,9 +196,9 @@ Item {
           onClicked: {
             if (showqmlpanel) {
               showqmlpanel = false;
-              console.log("clicked");
-            } 
-            tabSideBarModel.go(index)
+            }
+            tabChangeFromTabSideBar = true;
+            tabSideBarModel.go(index);
           } 
         }
 

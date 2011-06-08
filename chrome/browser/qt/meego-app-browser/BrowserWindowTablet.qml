@@ -102,7 +102,7 @@ Item {
     signal statusBarTriggered()
 
     property bool showStartupAnimation: false
-
+    property bool tabChangeFromTabSideBar: false
     // We support four orientations:
     // 0 - Right Uup
     // 1 - Top Up
@@ -143,7 +143,11 @@ Item {
           downloadsLoader.source = "";
         if (bookmarkManagerLoader.item)
           bookmarkManagerLoader.source = "";
-        tabSideBarLoader.source = "";
+        if (tabSideBarLoader.item && !tabChangeFromTabSideBar) {
+          tabSideBarLoader.source = "";
+        } else {
+          tabChangeFromTabSideBar = false;
+        }
         historyLoader.source = "";
         dialogLoader.source = "";
         selectFileDialogLoader.source = "";

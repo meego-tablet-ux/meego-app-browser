@@ -423,7 +423,7 @@ void BrowserWindowQt::TabDetachedAt(TabContentsWrapper* contents, int index) {
       infobar_container_->ChangeTabContents(NULL);
   //  contents_container_->DetachTabContents(contents);
   //  UpdateDevToolsForContents(NULL);
-  impl_->HideAllPanel();
+//  impl_->HideAllPanel();
 }
 
 void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
@@ -463,7 +463,7 @@ void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
   UpdateToolbar(new_contents, true);
   contents_container_->SetTabContents(new_contents->tab_contents());
 
-  impl_->HideAllPanel();
+//  impl_->HideAllPanel();
 }
 
 void BrowserWindowQt::TabInsertedAt(TabContentsWrapper* contents,
