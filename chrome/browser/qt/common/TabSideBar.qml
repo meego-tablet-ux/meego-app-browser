@@ -61,7 +61,7 @@ Item {
   }
 
   Column {
-    width: 202
+    width: tabsidebarview.width 
     height: tabsidebarview.height ? borderImage1.height + newtab.height + tabsidebarview.height + 10 + borderImage2.height : borderImage1.height + newtab.height + tabsidebarview.height + borderImage2.height
 
     x: calcX()
@@ -97,7 +97,7 @@ Item {
 
       NewTab {
         id: newtab
-        anchors.left: parent.left
+        width: tabsidebarview.tabWidth - 10
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.leftMargin: 10
@@ -113,7 +113,6 @@ Item {
         innertabHeight: 40
         titleHeight: 50
         anchors.left: parent.left
-        anchors.right: parent.right
         anchors.top: newtab.bottom
         anchors.topMargin: 10
         maxHeight: maxSideBarHeight - 20 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
