@@ -150,11 +150,8 @@ bool TabStripModel::IsReachTabsLimit()
     if(ContainsIndex(i))
     {
       TabContents* contents = GetTabContentsAt(i)->tab_contents();
-      if (contents->GetURL().SchemeIs("chrome") ||
-          contents->GetURL().SchemeIs("chrome-extension"))
-      {
+      if (contents->GetURL() == GURL(chrome::kChromeUIDownloadsURL) || contents->GetURL() == GURL(chrome::kChromeUIBookmarksURL))
         num_chrome_tabs++;
-      }
     }
   }
 
