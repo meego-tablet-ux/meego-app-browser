@@ -602,6 +602,7 @@ Item {
                 historyLoader.item.fingerX= mappedPos.x
                 historyLoader.item.fingerY= mappedPos.y
                 historyLoader.item.parent = outerContent
+                historyLoader.item.parentWidth = outerContent.width
             }
         }
     }

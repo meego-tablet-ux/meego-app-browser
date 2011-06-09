@@ -39,9 +39,10 @@ Item {
     id: historyOverlay
     anchors.fill: parent
     property bool showed: false
-	property int itemCount: 0
-	property int commonMargin: 5
-	property int showWidth: (itemCount * 180 + commonMargin * (itemCount + 1)) < parent.width ? itemCount * 180 + commonMargin * (itemCount + 1): parent.width
+    property int itemCount: 0
+    property int commonMargin: 5
+    property int parentWidth: 0
+    property int showWidth: (itemCount * 180 + commonMargin * (itemCount + 1)) < parentWidth ? itemCount * 180 + commonMargin * (itemCount + 1): parentWidth
     //property alias historyBarY: historyBar.y
     z: 10
     opacity: 0
