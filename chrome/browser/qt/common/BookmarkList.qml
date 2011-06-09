@@ -81,7 +81,7 @@ Item {
   id: bookmarkListRoot
   anchors.fill: parent
 
-  property bool portrait: false
+  property bool portrait: bookmarkManagerLoader.portrait
   property int bottomMargin: 20
   property int searchMargin: 20
   property int headTextPixel: 21

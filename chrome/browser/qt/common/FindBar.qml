@@ -39,6 +39,7 @@ Item {
   id: container
   property bool showfindbar: false
   property alias textentry: findboxcontainer
+  width: parent.width
   GestureArea {
     anchors.fill: parent
     Tap {}

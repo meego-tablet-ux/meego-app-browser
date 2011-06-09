@@ -85,7 +85,6 @@ Item {
     property alias findbar: findBarLoader.item
     property alias ssldialog: sslDialogLoader.item
     property alias selectionhandler: selectionHandlerLoader.item
-    property alias bookmarklist: bookmarkManagerLoader.item
     property alias showsearch: toolbar.showsearch
     property alias toolbarheight: toolbar.height
     property alias wrenchmenushown: toolbar.wrenchmenushown
@@ -406,8 +405,9 @@ Item {
 
             Loader {
                 id: bookmarkManagerLoader
+                objectName: "bookmarkManagerLoader"
                 anchors.fill: parent
-                source: "BookmarkListNull.qml"
+                property bool portrait : false
             }
         }
         Connections {
@@ -417,7 +417,7 @@ Item {
               var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
               bookmarkManagerLoader.opacity = 1
               bookmarkManagerLoader.source = "BookmarkList.qml"
-              bookmarkManagerLoader.item.portrait = !isLandscapeView()
+              //bookmarkManagerLoader.item.portrait = !isLandscapeView()
               bookmarkManagerHolder.initx = mappedPos.x
               bookmarkManagerHolder.inity = mappedPos.y
               showbookmarkmanager = true
@@ -450,7 +450,6 @@ Item {
 
         Loader {
             id: findBarLoader
-            source: "FindBarNull.qml"
         }
         Connections {
             target: findBarModel
@@ -460,12 +459,11 @@ Item {
                 findbar.parent = toolbar
                 findbar.x = toolbar.x
                 findbar.y = toolbar.y
-                findbar.width = toolbar.width
                 findbar.height = toolbar.height
                 findbar.z = toolbar.z + 1
                 hasfindbar = true
                 findbar.showfindbar = true
-                findBarModel.positionUpdated(toolbar.x, toolbar.y, toolbar.width, toolbar.height);
+                //findBarModel.positionUpdated(toolbar.x, toolbar.y, toolbar.width, toolbar.height);
                 findbar.textentry.textFocus = true
               } else {
                 if (hasfindbar) {
@@ -650,12 +648,7 @@ Item {
                 transformX: 0
             }
             PropertyChanges {
-                target: findbar
-                width: scene.width / 2
-                x: scene.width / 2
-            }
-            PropertyChanges {
-                target: bookmarklist
+                target: bookmarkManagerLoader
                 portrait: false
             }
         },
@@ -679,12 +672,7 @@ Item {
                 transformY: scene.height
             }
             PropertyChanges {
-                target: findbar
-                width: scene.width / 2
-                x: scene.width / 2
-            }
-            PropertyChanges {
-                target: bookmarklist
+                target: bookmarkManagerLoader
                 portrait: false
             }
         },
@@ -707,12 +695,7 @@ Item {
                 transformX: scene.width
             }
             PropertyChanges {
-                target: findbar
-                width: scene.height / 2
-                x: scene.height / 2
-            }
-            PropertyChanges {
-                target: bookmarklist
+                target: bookmarkManagerLoader
                 portrait: true
             }
         },
@@ -735,12 +718,7 @@ Item {
                 transformY: scene.height
             }
             PropertyChanges {
-                target: findbar
-                width: scene.height / 2
-                x: scene.height / 2
-            }
-            PropertyChanges {
-                target: bookmarklist
+                target: bookmarkManagerLoader
                 portrait: true
             }
         }
