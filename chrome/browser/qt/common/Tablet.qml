@@ -248,7 +248,6 @@ BrowserWindowTablet {
   {
       var parentContainer = screenlayer;
 
-      loader.item.parent = parentContainer;
       loader.item.targetContainer = parentContainer;
       loader.item.model = model;
 
