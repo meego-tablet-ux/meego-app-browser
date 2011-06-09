@@ -444,6 +444,7 @@ class RenderView : public RenderWidget,
       WebKit::WebMediaPlayerClient* client);
 
   virtual int resourceRelease(void);
+  virtual int isHidden(void);
 #endif
 
   virtual WebKit::WebApplicationCacheHost* createApplicationCacheHost(

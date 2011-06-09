@@ -152,6 +152,7 @@
 #include "skia/ext/skia_utils_mac.h"
 #endif
 
+
 using WebKit::WebAccessibilityCache;
 using WebKit::WebAccessibilityNotification;
 using WebKit::WebAccessibilityObject;
@@ -377,6 +378,9 @@ RenderView::RenderView(RenderThreadBase* render_thread,
       device_orientation_dispatcher_(NULL),
       accessibility_ack_pending_(false),
       p2p_socket_dispatcher_(NULL),
+#if defined(TOOLKIT_MEEGOTOUCH)
+      mediaplayer_(NULL),
+#endif
       session_storage_namespace_id_(session_storage_namespace_id)
 {
   routing_id_ = routing_id;
@@ -4174,6 +4178,12 @@ void RenderView::DidHandleMouseEvent(const WebKit::WebMouseEvent& event) {
   FOR_EACH_OBSERVER(RenderViewObserver, observers_, DidHandleMouseEvent(event));
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+int RenderView::isHidden() {
+  return is_hidden_;
+}
+#endif
+
 void RenderView::OnWasHidden() {
   RenderWidget::OnWasHidden();
 
@@ -4181,6 +4191,7 @@ void RenderView::OnWasHidden() {
     webview()->settings()->setMinimumTimerInterval(
         webkit_glue::kBackgroundTabTimerInterval);
   }
+
 
 #if defined(OS_MACOSX)
   // Inform plugins that their container is no longer visible.
