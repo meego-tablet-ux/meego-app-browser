@@ -141,10 +141,6 @@ Item {
     Connections {
       target: browserWindow
       onHideAllPanel: {
-        if (downloadsLoader.item)
-          downloadsLoader.source = "";
-        if (bookmarkManagerLoader.item)
-          bookmarkManagerLoader.source = "";
         if (tabSideBarLoader.item && !tabChangeFromTabSideBar) {
           tabSideBarLoader.source = "";
         } else {
@@ -160,6 +156,24 @@ Item {
         showbookmarkmanager = false;
         showdownloadmanager = false;
      }
+     onShowDownloads: {
+       showdownloadmanager = is_show;
+       if (is_show){
+         panelstring = qsTr("Downloads");
+         showbookmarkmanager = false;
+       } else {
+         downloadsLoader.source = "";
+       }
+     }
+     onShowBookmarks: {
+       showbookmarkmanager = is_show;
+       if (is_show) {
+         panelstring = qsTr("Bookmarks");
+         showdownloadmanager = false;
+       } else {
+         bookmarkManagerLoader.source = "" 
+       }
+     } 
    }
 
     // private
@@ -408,10 +422,8 @@ Item {
               bookmarkManagerHolder.inity = mappedPos.y
               showbookmarkmanager = true
               panelstring  = bookmarkManagerTitle
-              if (downloadsLoader.item) {
-                downloadsLoader.item.showed = false
-                showdownloadmanager = false;
-              }
+              if (downloadsLoader.item)
+                showdownloadmanager = false
             }
         }
         Connections {
@@ -522,9 +534,8 @@ Item {
             downloadsLoader.item.showed = true
             showdownloadmanager = true
             panelstring  = downloadTitle
-            if (bookmarkManagerLoader.item) {
-              showbookmarkmanager = false;              
-            }
+            if (bookmarkManagerLoader.item)
+              showbookmarkmanager = false
           }
         }
 

@@ -90,6 +90,14 @@ Item {
             thumbnails.height = tabContainer.height - titleRect.height
             newtabBg.visible = true
             return "image://themedimage/widgets/apps/browser/web-favorite-medium"
+          } else if (pageType == "bookmarks") {
+            thumbnails.height = tabContainer.height - titleRect.height
+            newtabBg.visible = true
+            return "image://themedimage/widgets/apps/browser/web-favorite-medium"
+          } else if (pageType == "downloads") {
+            thumbnails.height = tabContainer.height - titleRect.height
+            newtabBg.visible = true
+            return "image://themedimage/widgets/apps/browser/web-favorite-medium"
           }
           thumbnails.height = tabContainer.height
           newtabBg.visible = false
@@ -194,7 +202,7 @@ Item {
         MouseArea {
           anchors.fill: parent
           onClicked: {
-            if (showqmlpanel) {
+            if (showqmlpanel && (pageType == "normal" || pageType == "newtab")) {
               showbookmarkmanager = false;
               showdownloadmanager = false;
             }
@@ -258,5 +266,4 @@ Item {
         tabSideBarListView.currentIndex = index
     }
   }
-
 }

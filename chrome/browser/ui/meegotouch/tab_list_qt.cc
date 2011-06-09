@@ -146,9 +146,15 @@ void TabItem::GetThumbnail()
 
 void TabItem::GetPageType()
 {
-  if(tab_contents_->tab_contents()->GetURL().SchemeIs("chrome"))
-    pageType_ = QString("newtab");
-  else
+  if(tab_contents_->tab_contents()->GetURL().SchemeIs("chrome")) {
+    if (tab_contents_->tab_contents()->GetURL() == GURL(chrome::kChromeUIDownloadsURL)) {
+      pageType_ = QString("downloads");
+    } else if (tab_contents_->tab_contents()->GetURL() == GURL(chrome::kChromeUIBookmarksURL)) {
+      pageType_ = QString("bookmarks");
+    } else {
+      pageType_ = QString("newtab");
+    }  
+  }  else
     pageType_ = QString("normal");
 }
 
@@ -172,6 +178,12 @@ void TabItem::update()
   std::wstring title_str = UTF16ToWide(tab_contents_->tab_contents()->GetTitle());
   title_ = QString::fromStdWString(title_str);
 
+  if (tab_contents_->tab_contents()->GetURL() == GURL(chrome::kChromeUIDownloadsURL)) {
+    title_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_DOWNLOAD_TITLE).c_str()); 
+  } else if (tab_contents_->tab_contents()->GetURL() == GURL(chrome::kChromeUIBookmarksURL)) {
+    title_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_BOOKMARK_MANAGER_TITLE).c_str());
+  }
+  
   GetThumbnail();
   GetPageType();
 }
@@ -427,7 +439,6 @@ void TabListQt::closeTab(int index)
   TabItem* item = tabs_[index];
   TabContentsWrapper *tab_contents = item->GetTabContents();
   int index_ = model->GetIndexOfTabContents(tab_contents);
-
 
   if (model->count() == 1) {
     // the last one

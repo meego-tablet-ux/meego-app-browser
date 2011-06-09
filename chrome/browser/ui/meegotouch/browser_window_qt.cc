@@ -54,6 +54,7 @@
 #include "chrome/common/chrome_switches.h"
 #include "content/common/notification_service.h"
 #include "chrome/common/pref_names.h"
+#include "chrome/common/url_constants.h"
 #include "ui/gfx/color_utils.h"
 #include "ui/gfx/rect.h"
 #include "grit/app_resources.h"
@@ -123,10 +124,19 @@ class BrowserWindowQtImpl : public QObject
   {
      emit hideAllPanel();
   }
+  void ShowBookmarks(bool is_show)
+  {
+     emit showBookmarks(is_show);
+  }
+  void ShowDownloads(bool is_show)
+  {
+     emit showDownloads(is_show);
+  }
 
  Q_SIGNALS:
    void hideAllPanel();
-
+   void showBookmarks(bool is_show);
+   void showDownloads(bool is_show);
  public Q_SLOTS:
   void onCalled(const QStringList& parameters)
   {
@@ -423,7 +433,12 @@ void BrowserWindowQt::TabDetachedAt(TabContentsWrapper* contents, int index) {
       infobar_container_->ChangeTabContents(NULL);
   //  contents_container_->DetachTabContents(contents);
   //  UpdateDevToolsForContents(NULL);
-//  impl_->HideAllPanel();
+  if (contents->tab_contents()->GetURL() == GURL(chrome::kChromeUIDownloadsURL)) {
+    impl_->ShowDownloads(false);
+  } else if (contents->tab_contents()->GetURL() == GURL(chrome::kChromeUIBookmarksURL)) {
+    impl_->ShowBookmarks(false);
+  }
+
 }
 
 void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
@@ -463,7 +478,12 @@ void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
   UpdateToolbar(new_contents, true);
   contents_container_->SetTabContents(new_contents->tab_contents());
 
-//  impl_->HideAllPanel();
+  if (new_contents->tab_contents()->GetURL() == GURL(chrome::kChromeUIDownloadsURL)) {
+    impl_->ShowDownloads(true);
+  } else if (new_contents->tab_contents()->GetURL() == GURL(chrome::kChromeUIBookmarksURL)) {
+    impl_->ShowBookmarks(true);
+  }
+
 }
 
 void BrowserWindowQt::TabInsertedAt(TabContentsWrapper* contents,
