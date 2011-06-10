@@ -126,6 +126,7 @@ class BrowserWindowQtImpl : public QObject
   }
   void ShowBookmarks(bool is_show)
   {
+     window_->bookmark_bar_->ShowBookmarkManager();
      emit showBookmarks(is_show);
   }
   void ShowDownloads(bool is_show)

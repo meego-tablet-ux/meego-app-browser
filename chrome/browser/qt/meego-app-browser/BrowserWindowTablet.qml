@@ -158,19 +158,41 @@ Item {
      onShowDownloads: {
        showdownloadmanager = is_show;
        if (is_show){
-         panelstring = qsTr("Downloads");
-         showbookmarkmanager = false;
+         if(downloadsLoader.source == "") {
+           var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
+           downloadsLoader.opacity = 1
+           downloadsLoader.source = "Downloads.qml"
+           downloadsHolder.initx = mappedPos.x
+           downloadsHolder.inity = mappedPos.y
+           downloadsLoader.item.showed = true
+         }
+         showdownloadmanager = true
+         panelstring  = downloadTitle
+         if (bookmarkManagerLoader.item)
+             showbookmarkmanager = false
        } else {
          downloadsLoader.source = "";
+         showdownloadmanager = false;
        }
      }
      onShowBookmarks: {
        showbookmarkmanager = is_show;
        if (is_show) {
-         panelstring = qsTr("Bookmarks");
-         showdownloadmanager = false;
+         if(bookmarkManagerLoader.source=="") {
+            var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
+            bookmarkManagerLoader.opacity = 1
+            bookmarkManagerLoader.source = "BookmarkList.qml"
+            bookmarkManagerLoader.item.portrait = !isLandscapeView()
+            bookmarkManagerHolder.initx = mappedPos.x
+            bookmarkManagerHolder.inity = mappedPos.y
+          }
+          showbookmarkmanager = true
+          panelstring  = bookmarkManagerTitle
+          if (downloadsLoader.item)
+             showdownloadmanager = false
        } else {
          bookmarkManagerLoader.source = "" 
+         showbookmarkmanager = false
        }
      } 
    }

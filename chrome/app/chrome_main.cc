@@ -250,6 +250,8 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
   initAtoms ();
 
   g_main_window = new LauncherWindow(fullscreen, width, height, opengl, setSource);
+//    g_main_window = new LauncherWindow();
+//    g_main_window->init(fullscreen, width, height, opengl, setSource);
 
   //set appmode according to argv
   QDeclarativeContext *context = g_main_window->getDeclarativeView()->rootContext();

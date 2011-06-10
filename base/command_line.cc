@@ -194,8 +194,15 @@ CommandLine CommandLine::FromString(const std::wstring& command_line) {
 
 #if defined(OS_POSIX)
 void CommandLine::InitFromArgv(int argc, const char* const* argv) {
-  for (int i = 0; i < argc; ++i)
+  for (int i = 0; i < argc; ++i) {
+    // Since --cmd parameter is only for meego-qml-launcher
+    // Don't pass this parameter to chromium
+    if(strcmp(argv[i], "--cmd") == 0)
+    {
+      i++; continue;
+    }
     argv_.push_back(argv[i]);
+  }
   InitFromArgv(argv_);
 }
 

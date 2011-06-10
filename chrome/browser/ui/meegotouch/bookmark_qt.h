@@ -328,6 +328,7 @@ public:
 
   void Init(Profile* profile, BookmarkOthersQt* others);
 
+  void ShowBookmarkManager();
 private:
   void ShowInstruction();
   // Helper function which generates GtkToolItems for |bookmark_toolbar_|.
@@ -346,8 +347,6 @@ private:
   // is equivalent to the number of children the bookmark bar node from the
   // bookmark bar model has.
   int GetBookmarkButtonCount();
-
-  void ShowBookmarkManager();
 
   // Set the appearance of the overflow button appropriately (either chromium
   // style or GTK style).
