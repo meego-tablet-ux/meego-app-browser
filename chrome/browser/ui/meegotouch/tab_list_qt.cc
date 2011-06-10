@@ -451,19 +451,6 @@ void TabListQt::closeTab(int index)
 void TabListQt::newTab()
 {
   TabStripModel* model = browser()->tabstrip_model();
-  for(int i = 0; i < model->count(); i++)
-  {
-    if(model->ContainsIndex(i))
-    {
-      TabContents* contents = model->GetTabContentsAt(i)->tab_contents();
-      if(contents->GetURL().HostNoBrackets() == "newtab")
-      {
-	model->SelectTabContentsAt(i, true);
-	Hide();
-	return;
-      }
-    }
-  }
   model->delegate()->AddBlankTab(true);
   Hide();
 }
