@@ -37,8 +37,8 @@ Item {
   // Represent the tab list view, show thumbnails of each tab
   // Call c++ methods to open/close pages
   id: container
-  property variant model
-  property int maxHeight: parent.maxHeight
+  property variant model: tabSideBarModel
+  property int maxHeight: 600
 
   property int innertabHeight: 40
   property int titleHeight: 50
@@ -49,10 +49,24 @@ Item {
   property int counterSpacing: 5
 
   property int tabHeight: 134
+  property int tabWidth: 202
 
-  width: parent.width
-  height: tabSideBarListView.count * tabHeight > maxHeight? maxHeight:tabSideBarListView.count*tabHeight
+  property bool delayAnim: false
 
+  anchors.left: parent.left
+
+  height: tabSideBarListView.rows ? tabSideBarListView.rows * tabHeight : 0
+  width:  tabSideBarListView.columns ? tabSideBarListView.columns * tabWidth + 10 : tabWidth + 10
+  Behavior on height {
+    NumberAnimation{ duration: 500 }
+  }
+  Behavior on width {
+    NumberAnimation{ duration: 500 }
+  }
+  
+  anchors.leftMargin: 5
+  anchors.rightMargin: 5
+  
   // default margin is 4
   property int commonMargin : 4
 
@@ -63,10 +77,8 @@ Item {
     Column{
       id: tabColumn
       spacing: 10
-      width: parent.width
+      width: container.tabWidth
       height: 134 + divide0.height
-      anchors.left: parent.left
-      anchors.right: parent.right
       Image{
         id: divide0
         height: 2
@@ -74,13 +86,16 @@ Item {
         fillMode: Image.Stretch
         source: "image://themedimage/widgets/common/menu/menu-item-separator"
       }
+      Item {
+      id:tabItem
+      height: 114
+      width: parent.width
       Rectangle{
         id: tabContainer
-        height: 114
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
+        height: parent.height
+        width: parent.width - 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
         anchors.bottomMargin: 10
         property bool isCurrentTab: false
         property string thumbnailPath: selectThumbnail (pageType, index, thumbnail)
@@ -233,31 +248,36 @@ Item {
           } 
         ]
       } // BorderImage of tabContainer
-      ListView.onRemove: SequentialAnimation {
-          PropertyAction { target: tabColumn; property: "ListView.delayRemove"; value: true }
-          NumberAnimation { target: tabColumn; property: "height"; to: 0; duration: 500; easing.type: Easing.InOutQuad }
+      }
+      GridView.onRemove: SequentialAnimation {
+          PropertyAction { target: tabColumn; property: "GridView.delayRemove"; value: true }
+          PropertyAnimation { target: tabColumn; properties: "height, width, opacity"; to: 0,0,false; duration: 500; easing.type: Easing.InOutQuad }
           PauseAnimation { duration: 500 }
-          ScriptAction { script: if(tabContainer.isCurrentTab) { tabSideBarModel.hideSideBar(); tabContainer.isCurrentTab = false;} }
-
+          ScriptAction { script: if(tabContainer.isCurrentTab) { container.delayAnim =true; tabContainer.isCurrentTab = false;} }
           // Make sure delayRemove is set back to false so that the item can be destroyed
-          PropertyAction { target: tabColumn; property: "ListView.delayRemove"; value: false }
+          PropertyAction { target: tabColumn; property: "GridView.delayRemove"; value: false }
+          onRunningChanged: if (!running) timer.start()
         }
     }//column
   } // Component
-
-
-  ListView {
+  Timer {
+    id: timer
+    interval: 500
+    onTriggered: { if(container.delayAnim) { tabSideBarModel.hideSideBar(); container.delayAnim  = false;} }
+  }
+  GridView {
     id: tabSideBarListView
-    
+
+    property int rows: count ? (count > 2 ? 2 : 1) : 0
+    property int columns: rows ? count / rows : 0
+    width: parent.width
+    height: parent.height
+    cellHeight: container.tabHeight
+    cellWidth: container.tabWidth
     anchors.fill: parent
-
-    interactive: container.height < container.maxHeight ? false:true
-
-    contentY: tabHeight*currentIndex
-
+    
     model: tabSideBarModel
     delegate: tabDelegate
-
   }
   Connections {
     target: tabSideBarModel

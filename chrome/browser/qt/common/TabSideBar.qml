@@ -43,6 +43,7 @@ Item {
   property int sidebarMargin: 5
   property int headSpacing: 5
   property int maxSideBarHeight: tabSideBarLoader.maxSideBarHeight
+  property bool isLandscape: scene.isLandscapeView()
 
   Rectangle {
     id: fog
@@ -61,8 +62,9 @@ Item {
   }
 
   Column {
-    width: tabsidebarview.width 
-    height: tabsidebarview.height ? borderImage1.height + newtab.height + tabsidebarview.height + 10 + borderImage2.height : borderImage1.height + newtab.height + tabsidebarview.height + borderImage2.height
+    width: isLandscape ? tabgridview.width : 202
+    property int tabviewHeight: isLandscape ? tabgridview.height : tablistview.item.height
+    height: tabviewHeight ? borderImage1.height + newtab.height + tabviewHeight + 10 + borderImage2.height : borderImage1.height + newtab.height + tabviewHeight + borderImage2.height
 
     x: calcX()
     y: up?arrow.y + arrow.height-2:start_y - arrow.height - height +2
@@ -97,7 +99,7 @@ Item {
 
       NewTab {
         id: newtab
-        width: tabsidebarview.tabWidth - 10
+        width: isLandscape ? 192 : 182
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.leftMargin: 10
@@ -106,17 +108,24 @@ Item {
         height: 50
         z: 1000
       }
-
-      TabListView {
-        id: tabsidebarview
-        model: tabSideBarModel
-        innertabHeight: 40
-        titleHeight: 50
+      Loader {
+        id:tabgridview
+        source: isLandscape ? "TabGridView.qml" : ""
         anchors.left: parent.left
         anchors.top: newtab.bottom
         anchors.topMargin: 10
-        maxHeight: maxSideBarHeight - 20 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
       }
+      Loader {
+        id:tablistview
+        source: isLandscape ? "" : "TabListView.qml"
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: newtab.bottom
+        anchors.topMargin: 10
+        width: parent.width
+        property int maxHeight: maxSideBarHeight - 20 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
+      }
+
       Connections {
         target: tabSideBarModel
 
