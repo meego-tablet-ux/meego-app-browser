@@ -84,9 +84,12 @@ Item {
   property bool portrait: bookmarkManagerLoader.portrait
   property int bottomMargin: 20
   property int searchMargin: 20
-  property int headTextPixel: 21
   property int headTextHeight: 50
   property int headHeight: 115
+  property string headColor: "#515151"
+  property string searchColor: "#999999"
+  property string folderColor: "#909090"
+  property string deleteColor: "#383838"
   property alias textFocus: searchBox.textFocus
 
   Item {
@@ -149,7 +152,8 @@ Item {
         id: head
         anchors { verticalCenter: parent.verticalCenter }
         text: bookmarkManagerTitle
-        font { pixelSize: headTextPixel }
+        font { pixelSize: theme_fontPixelSizeLarge; family: theme_fontFamily }
+        color: headColor
       }
     }
 
@@ -159,6 +163,8 @@ Item {
       height: headHeight - headTextHeight - bottomMargin
       anchors { top: headTextContainer.bottom; left: parent.left; leftMargin: bmGlobal.leftMargin } //verticalCenter: backButton.verticalCenter }
       defaultText: bookmarkManagerSearchHolder
+      font { pixelSize: theme_fontPixelSizeNormal; family: theme_fontFamily }
+      color: searchColor 
       onTextChanged: textChange(text)
     }
 
@@ -186,6 +192,8 @@ Item {
       text: qsTr("Are you sure you want to delete this bookmark?"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"?");
       anchors.fill: parent
       anchors.margins: bmGlobal.leftMargin
+      font { pixelSize: theme_fontPixelSizeNormal; family: theme_fontFamily }
+      color: deleteColor
       wrapMode: Text.WordWrap
     }
     onAccepted: {
@@ -250,6 +258,8 @@ Item {
         anchors { top: bmContent.top; topMargin: bmGlobal.leftMargin/2; left: bmContent.left; leftMargin: bmGlobal.leftMargin; }
         width: parent.width - bmGlobal.leftMargin*2; height: 50; focus: true
         //defaultText: bmGlobal.currentTitle
+        font { pixelSize: theme_fontPixelSizeNormal; family: theme_fontFamily }
+        color: "#383838"
         text: bmGlobal.currentTitle
         onTextChanged: tmpTitle = text
       }
@@ -257,6 +267,8 @@ Item {
         id: urlEditor
         anchors { top: titleEditor.bottom; topMargin: bmGlobal.leftMargin/2; left: titleEditor.left }
         width: titleEditor.width; height: titleEditor.height; focus: true
+        font { pixelSize: theme_fontPixelSizeNormal; family: theme_fontFamily }
+        color: "#383838"
         text: bmGlobal.currentUrl
         onTextChanged: tmpUrl = text
       }
@@ -280,8 +292,8 @@ Item {
                 width: titleEditor.width
                 height: folderGroup.itemHeight
                 verticalAlignment: Text.AlignVCenter
-                font.pixelSize: 16
-                color: "#909090"
+                font { pixelSize: theme_fontPixelSizeMediumLarge; family: theme_fontFamily }
+                color: folderColor 
                 MouseArea {
                   anchors.fill: parent
                   onClicked: {

@@ -103,6 +103,8 @@ Component {
           anchors.verticalCenter: parent.verticalCenter
           width: parent.width
           elide: Text.ElideRight
+          font { pixelSize: theme_fontPixelSizeNormal; family: theme_fontFamily }
+          color: "#383838"
         }
       }
       //Rectangle { color: "lightgreen"

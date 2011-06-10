@@ -90,7 +90,7 @@ Item
                 anchors.leftMargin:15
                 anchors.right: arrow.left
                 anchors.rightMargin: 10
-                font.pixelSize: 18
+                font.pixelSize: theme_fontPixelSizeNormal
                 clip: true
                 elide: Text.ElideRight
                 color:"#383838"

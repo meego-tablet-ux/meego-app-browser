@@ -124,12 +124,12 @@ Component{
             }
             Text {
                 id: titleText; text: title; width: titleContainer.width; elide: Text.ElideRight
-                color: "white"; font.pixelSize: 18;
+                color: "white"; font.pixelSize: theme_fontPixelSizeNormal;
                 anchors { left: titleContainer.left; top: titleContainer.top; leftMargin: itemMargin/2; topMargin: itemMargin/4 }
             }
             Text {
                 id: urlText; text: url; width: urlContainer.width - itemMargin; elide: Text.ElideRight
-                color: "white"; font.pixelSize: 13;
+                color: "white"; font.pixelSize: theme_fontPixelSizeMedium;
                 anchors { left: urlContainer.left; top: urlContainer.top; leftMargin: itemMargin/2; topMargin: itemMargin/8 }
             }
 

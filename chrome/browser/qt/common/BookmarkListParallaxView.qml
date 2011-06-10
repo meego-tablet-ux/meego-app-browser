@@ -165,6 +165,7 @@ Item {
             Text {
               id: folderItemText
               text: modelData.text; elide: Text.ElideRight
+              font { pixelSize: theme_fontPixelSizeNormal; family: theme_fontFamily }
               anchors { left: parent.left; leftMargin: bmGlobal.leftMargin; verticalCenter: parent.verticalCenter }
             }
             MouseArea {
