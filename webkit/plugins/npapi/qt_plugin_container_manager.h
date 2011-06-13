@@ -115,6 +115,7 @@ class QtPluginContainerManager : public QObject {
   webkit::npapi::QtPluginContainerManagerHostDelegate *host_delegate_;
 
   gfx::Size fs_win_size_;
+  bool is_hidden_;
 };
 
 }  // namespace npapi

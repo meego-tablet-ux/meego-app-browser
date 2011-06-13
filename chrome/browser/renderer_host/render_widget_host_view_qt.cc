@@ -121,7 +121,9 @@ void RenderWidgetHostViewQt::InitAsPopup(
 void RenderWidgetHostViewQt::DidBecomeSelected() {
   if (!is_hidden_)
     return;
-  
+
+  plugin_container_manager_->Show();
+
   is_hidden_ = false;
 
   if (tab_switch_paint_time_.is_null())
@@ -135,6 +137,8 @@ void RenderWidgetHostViewQt::DidBecomeSelected() {
 void RenderWidgetHostViewQt::WasHidden() {
   if (is_hidden_)
     return;
+
+  plugin_container_manager_->Hide();
 
   // If we receive any more paint messages while we are hidden, we want to
   // ignore them so we don't re-allocate the backing store.  We will paint
@@ -266,6 +270,12 @@ void RenderWidgetHostViewQt::ScenePosChanged() {
 #if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
   if (!view_)
       return;
+
+// When hidden, ScenePos should not been changed. If it did, it must caused
+// by tab switching. under this case, we should not relocate plugin window.
+  if (is_hidden_)
+    return;
+
   QPointF offset = view_->scenePos();
   if ( (scene_pos_.x() == int(offset.x())) && (scene_pos_.y() == int(offset.y())) )
       return;
@@ -294,9 +304,13 @@ bool RenderWidgetHostViewQt::HasFocus() {
 void RenderWidgetHostViewQt::Show() {
   if(view_)
     view_->show();
+
+  plugin_container_manager_->Show();
 }
 
 void RenderWidgetHostViewQt::Hide() {
+  plugin_container_manager_->Hide();
+
   if(view_)
     view_->hide();
 }

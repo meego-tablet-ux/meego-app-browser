@@ -60,6 +60,7 @@ void QtPluginContainerManager::CloseFSPluginWindow()
 QtPluginContainerManager::QtPluginContainerManager(QtPluginContainerManagerHostDelegate *host)
     : QObject(), host_widget_(NULL), host_delegate_(host) {
   fs_win_size_.SetSize(0, 0);
+  is_hidden_ = true;
 }
 
 QWidget* QtPluginContainerManager::CreatePluginContainer(
@@ -133,6 +134,8 @@ void QtPluginContainerManager::Show()
        i != plugin_window_to_widget_map_.end(); ++i) {
     i->second->show();
   }
+
+  is_hidden_ = false;
 }
 
 void QtPluginContainerManager::Hide()
@@ -143,6 +146,7 @@ void QtPluginContainerManager::Hide()
     i->second->hide();
   }
 
+  is_hidden_ = true;
 }
 
 void QtPluginContainerManager::MovePluginContainer(
@@ -156,14 +160,16 @@ void QtPluginContainerManager::MovePluginContainer(
     return;
   }
 
-  widget->show();
-
   if (!move.rects_valid)
     return;
 
   int current_x, current_y;
   widget->setGeometry(move.window_rect.x() + view_offset.x(), move.window_rect.y() + view_offset.y(),
                       move.window_rect.width(), move.window_rect.height());
+
+  if (!is_hidden_)
+    widget->show();
+
   DLOG(INFO) << " " << move.window << " " << move.window_rect.x() << "+" << move.window_rect.y() << "+"
                    << move.window_rect.width() << "x" << move.window_rect.height()
                    << " - offset = " << view_offset.x() << "-" << view_offset.y();
