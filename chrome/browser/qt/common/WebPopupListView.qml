@@ -51,14 +51,14 @@ Flickable {
     property int currentItemY : 0
     property int currentItemHeight : 0
     property int realheight : 200
-    property int maxHeight : 600
-
+    property int maxHeight : 450
+    property int constMaxHeight : 450
 
     signal triggered(int index)
 
     // currentWidth is the current width of the largest text width, clamped between minWidth and maxWidth
     width: currentWidth
-    height: (contentHeight < maxHeight) ? contentHeight : maxHeight
+    height: (contentHeight < constMaxHeight ) ? contentHeight : constMaxHeight
 
     contentHeight: realheight
     contentWidth: currentWidth
@@ -78,7 +78,8 @@ Flickable {
         //console.log("container.height " + container.height);
         //console.log("maxHeight " + maxHeight);
         //console.log("currentItemY " + currentItemY);
-
+        //console.log("contentHeight" + contentHeight);
+        //console.log("realHeight" + realheight);
         // we try to position currentItem at the center of the layout
         // if that's not possible, scroll the flickable to either end
         // so that the currentItem is positioned as near to the center as posible
@@ -86,12 +87,16 @@ Flickable {
         if(!container.interactive)
             return;
 
-        if (currentItemY < container.height/4 ){
+        if (currentItemY < container.height/2 ){
             container.contentY = 0;
-        }else if (currentItemY + container.height/4 > contentHeight ){
-            container.contentY = contentHeight;
+        }else if (currentItemY + container.height/2 > realheight ){
+            if(realheight - container.height < 0){
+                container.contentY = 0
+            }else{
+                container.contentY = realheight - container.height;
+            }
         }else{
-            container.contentY = currentItemY - container.height/4
+            container.contentY = currentItemY - container.height/2
         }
     }
 
