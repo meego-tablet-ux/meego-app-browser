@@ -82,6 +82,9 @@ Flickable {
         // we try to position currentItem at the center of the layout
         // if that's not possible, scroll the flickable to either end
         // so that the currentItem is positioned as near to the center as posible
+        
+        if(!container.interactive)
+            return;
 
         if (currentItemY < container.height/4 ){
             container.contentY = 0;
