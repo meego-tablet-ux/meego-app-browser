@@ -83,7 +83,7 @@ BrowserWindowTablet {
       crashTabLoader.sourceComponent = undefined; 
     }
     onPopup: {
-      scene.showCrashTabModal(crashTabLoader, browserCrashTabObject);
+      scene.showCrashTabModal(crashTabLoader, browserCrashDialogModel);
     }
   }
   function showCrashTabModal(loader, model){
@@ -91,7 +91,9 @@ BrowserWindowTablet {
     loader.width = parent.width
     loader.height = parent.height
     loader.source = "CrashTabModal.qml"
-  }
+    loader.item.model = model
+    loader.item.show();
+}
   
   Loader {
     id: dialogLoader

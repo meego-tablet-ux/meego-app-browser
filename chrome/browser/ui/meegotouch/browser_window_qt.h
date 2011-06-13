@@ -31,6 +31,7 @@
 #include "chrome/browser/ui/meegotouch/downloads_handler_qt.h"
 #include "chrome/browser/ui/meegotouch/find_bar_qt.h"
 #include "chrome/browser/ui/meegotouch/crash_tab_qt.h"
+#include "chrome/browser/ui/meegotouch/crash_modal_dialog_qt.h"
 #include "chrome/browser/ui/meegotouch/ssl_dialog_qt.h"
 #include "chrome/browser/ui/meegotouch/selection_handler_qt.h"
 
@@ -54,6 +55,8 @@ class DialogQtResultListener;
 class BrowserWindowQtImpl;
 class DownloadsQtHandler;
 class CrashTabQt;
+class CrashAppModalDialog;
+class CrashTabQtModel;
 class SSLDialogQt;
 //
 // An implementation of BrowserWindow for QT.
@@ -145,7 +148,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   virtual void ShowPageMenu() {DNOTIMPLEMENTED();};
   virtual void ShowAppMenu() {DNOTIMPLEMENTED();};
   virtual void ShowDownloads();
-  virtual void ShowCrashTab();
+  virtual void ShowCrashDialog(CrashTabQtModel* model, CrashAppModalDialog* app_modal);
   // No key accelerators
   virtual bool PreHandleKeyboardEvent(const NativeWebKeyboardEvent& event,
                                       bool* is_keyboard_shortcut) {/*DNOTIMPLEMENTED();*/ return false;};

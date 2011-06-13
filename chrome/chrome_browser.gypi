@@ -2830,6 +2830,8 @@
         'browser/ui/meegotouch/bookmark_bubble_qt.h',
         'browser/ui/meegotouch/crash_tab_qt.cc',
         'browser/ui/meegotouch/crash_tab_qt.h',
+        'browser/ui/meegotouch/crash_modal_dialog_qt.h',
+        'browser/ui/meegotouch/crash_modal_dialog_qt.cc',
         'browser/ui/meegotouch/bookmark_editor_qt.cc',
         'browser/ui/meegotouch/bookmark_qt.cc',
         'browser/ui/meegotouch/bookmark_qt.h',

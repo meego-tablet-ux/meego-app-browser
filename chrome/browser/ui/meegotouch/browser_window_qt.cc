@@ -582,7 +582,8 @@ void BrowserWindowQt::ShowDownloads()
   download_handler_->Show();
 }
 
-void BrowserWindowQt::ShowCrashTab( ){
+void BrowserWindowQt::ShowCrashDialog(CrashTabQtModel* model, CrashAppModalDialog* app_modal){
+  crash_tab_->SetModelAndAppModal(model, app_modal);
   crash_tab_->Popup();
 }
 

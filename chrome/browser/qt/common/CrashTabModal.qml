@@ -32,10 +32,38 @@
  ****************************************************************************/
 
 import Qt 4.7
+import MeeGo.Components 0.1
 
 Item {
   id: container
-  property variant model: browserCrashTabObject
+  property variant model: browserCrashDialogModel
+  opacity: 0
+  function show(){
+    container.opacity = 1
+    fadeIn.running = true
+  }
+  function hide(){
+    container.opacity = 0
+    fadeOut.running = true
+  }
+  PropertyAnimation{
+    id: fadeOut
+    running: false
+    target: container
+    property: "opacity"
+    from: 1
+    to: 0
+    duration: theme_dialogAnimationDuration
+  }
+  PropertyAnimation{
+    id: fadeIn
+    running: false
+    target: container
+    property: "opacity"
+    from: 0
+    to: 1
+    duration: theme_dialogAnimationDuration
+  }
   Rectangle {
     id: fogRect
     anchors.fill: parent
@@ -71,7 +99,7 @@ Item {
       font.pixelSize: 18
       font.family: "Droid Sans"
       color: "#383838"
-      text: headContent
+      text: model.GetHeadContent()
     }
     TextEdit {
       id: bodyTitle
@@ -86,7 +114,7 @@ Item {
       font.family: "Droid Sans"
       font.pixelSize: 18
       color: "#383838"
-      text: bodyContent
+      text: model.GetBodyContent()
     }
     BorderImage {
       id: borderButton
@@ -107,13 +135,14 @@ Item {
         font.family: "Droid Sans"
         font.pixelSize: 18
         color: "white"
-        text: closeButtonContent
+        text: model.GetCloseButtonContent()
       }
       MouseArea{
         id: buttonArea
         anchors.fill: parent
         onClicked: { 
-          container.model.onCloseButtonClicked();
+          hide();
+          browserCrashTabObject.onCloseButtonClicked();
         }
         onPressed: {
           borderButton.source = "image://themedimage/widgets/common/button/button-pressed";

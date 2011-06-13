@@ -4,8 +4,6 @@
 
 #include "chrome/browser/tab_contents/tab_contents_view_qt.h"
 #include <iostream>
-
-#include "base/pickle.h"
 #include "base/string_util.h"
 #include "build/build_config.h"
 #include "chrome/browser/download/download_shelf.h"
@@ -28,6 +26,8 @@
 #include "chrome/browser/renderer_host/render_widget_host_view_qt.h"
 #include "chrome/browser/ui/meegotouch/qt_util.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "chrome/browser/ui/meegotouch/crash_modal_dialog_qt.h"
+#include "chrome/browser/ui/app_modal_dialogs/app_modal_dialog_queue.h"
 #include "chrome/browser/ui/meegotouch/popup_list_qt.h"
 #include "webkit/glue/webmenuitem.h"
 #include "chrome/browser/browser_list.h"
@@ -134,13 +134,10 @@ void TabContentsViewQt::SetPageTitle(const std::wstring& title) {
 
 void TabContentsViewQt::OnTabCrashed(base::TerminationStatus status,
                                       int error_code) {
-  DNOTIMPLEMENTED();
   LOG(INFO)<<__FUNCTION__;
   if( tab_contents() != NULL ) {
-    tab_contents()->Activate();
-    Browser* browser = BrowserList::GetLastActive();
-    BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
-    browser_window->ShowCrashTab();
+    AppModalDialogQueue::GetInstance()->AddDialog(new CrashAppModalDialog(
+          tab_contents()));
   }
 }
 

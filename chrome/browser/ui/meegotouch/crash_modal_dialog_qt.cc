@@ -28,93 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef CHROME_BROWSER_QT_CRASH_TAB_QT_H_
-#define CHROME_BROWSER_QT_CRASH_TAB_QT_H_
-#pragma once
-
-#include <QObject>
-#include <QString>
+#include "ui/base/l10n/l10n_util.h"
+#include "base/i18n/rtl.h"
+#include "base/logging.h"
+#include "base/stl_util-inl.h"
+#include "base/utf_string_conversions.h"
 #include "chrome/browser/ui/meegotouch/crash_modal_dialog_qt.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "grit/generated_resources.h"
+#include "grit/locale_settings.h"
+#include "grit/chromium_strings.h"
 
-class BrowserWindowQt;
-class CrashTabQtImpl;
-class CrashTabQtModel;
-class CrashAppModalDialog;
-/**
- * Qml dialg
- **/
-class CrashTabQt{
-  
-public:
-
-  CrashTabQt(BrowserWindowQt* window);
-
-  virtual ~CrashTabQt();
-  void Popup();
-  void Dismiss();
-  void SetModelAndAppModal(CrashTabQtModel* model, CrashAppModalDialog* app_modal);
-
-private:
-  BrowserWindowQt* window_;
-  CrashTabQtImpl* impl_;
-  CrashTabQtModel* model_;
-  CrashAppModalDialog* app_modal_;
-};
-
-/**
- * Helper class to interacivie with qml
- **/
-class CrashTabQtImpl: public QObject {
-
-  Q_OBJECT;
-
-public:
-  CrashTabQtImpl(CrashTabQt* crashtab_qt);
-
-  virtual ~CrashTabQtImpl() {};
-
-  void Popup();
- 
-  void CloseModel();
-        
- public Q_SLOTS:
-  void onCloseButtonClicked();
-
- Q_SIGNALS:
-  void popup();
-  
-  void dismiss();
-
- private:
-  CrashTabQt* crashtab_qt_;
-
-};
-
-class CrashTabQtModel : public QObject {
-
-  Q_OBJECT;
-
-public:
-  
-  CrashTabQtModel();
-  
-  virtual ~CrashTabQtModel(){ };
-
-public Q_SLOTS:
-  QString GetHeadContent(){
-    return headContent_;
+CrashAppModalDialog::CrashAppModalDialog (
+    TabContents* tab_contents)
+    : AppModalDialog (tab_contents,UTF16ToWide(l10n_util::GetStringUTF16(IDS_CRASH_TAB_HEAD_CONTENT))){
+  model_ = new CrashTabQtModel();
   }
-  QString GetBodyContent(){
-    return bodyContent_;
-  }
-  QString GetCloseButtonContent(){
-    return closeButtonContent_;
-  }
-private:
-  QString headContent_;
-  QString bodyContent_;
-  QString closeButtonContent_;
-};
 
-#endif
+void CrashAppModalDialog::CreateAndShowDialog(){
+  Browser* browser = BrowserList::GetLastActive();
+  BrowserWindowQt *browser_window = (BrowserWindowQt*)browser->window();
+  browser_window->ShowCrashDialog(model_, this);
+}
+
+CrashAppModalDialog::~CrashAppModalDialog(){
+  delete model_;
+}
+
+void CrashAppModalDialog::HandleDialogResponse(){
+  CompleteDialog();
+  delete this;
+}

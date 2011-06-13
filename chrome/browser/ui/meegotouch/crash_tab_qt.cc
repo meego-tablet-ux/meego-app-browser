@@ -28,10 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "chrome/browser/ui/meegotouch/menu_qt.h"
-
 #include <map>
-
 #include <QDeclarativeEngine>
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
@@ -40,16 +37,11 @@
 #include <QStringList>
 
 #include "ui/base/l10n/l10n_util.h"
-#include "ui/base/models/menu_model.h"
-#include "ui/base/message_box_flags.h"
 #include "base/i18n/rtl.h"
 #include "base/logging.h"
-#include "base/message_loop.h"
 #include "base/stl_util-inl.h"
 #include "base/utf_string_conversions.h"
-#include "third_party/skia/include/core/SkBitmap.h"
-#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
-#include "crash_tab_qt.h"
+#include "chrome/browser/ui/meegotouch/crash_tab_qt.h"
 #include "grit/generated_resources.h"
 #include "grit/locale_settings.h"
 #include "grit/chromium_strings.h"
@@ -60,20 +52,11 @@
 CrashTabQt::CrashTabQt(BrowserWindowQt* window)
     : window_(window){
   impl_ = new CrashTabQtImpl(this);
-  
   QDeclarativeView* view = window_->DeclarativeView();
   QDeclarativeContext *context = view->rootContext();
   context->setContextProperty("browserCrashTabObject", impl_);
-
-  QString q_headContent = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_HEAD_CONTENT).c_str());
-  context->setContextProperty("headContent", q_headContent);
-
-  QString q_bodyContent = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_BODY_CONTENT).c_str());
-  context->setContextProperty("bodyContent", q_bodyContent);
-
-  QString q_closeButtonContent = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_CLOSE_BUTTON_CONTENT).c_str());
-  context->setContextProperty("closeButtonContent", q_closeButtonContent);   
 }
+
 
 CrashTabQt::~CrashTabQt() {
   delete impl_;
@@ -83,25 +66,49 @@ void CrashTabQt::Popup() {
   impl_->Popup();
 }
 
+void CrashTabQt::Dismiss() {
+  if(app_modal_){
+    app_modal_->HandleDialogResponse();
+  }
+}
+
+void CrashTabQt::SetModelAndAppModal(CrashTabQtModel* model, CrashAppModalDialog* app_modal){
+  model_ = model;
+  app_modal_ = app_modal;
+
+  if(model_){
+    QDeclarativeView* view = window_->DeclarativeView();
+    QDeclarativeContext *context = view->rootContext();
+    context->setContextProperty("browserCrashDialogModel", model_); 
+  }
+}
+
 /*******************************************************************************************
  * Implement class CrashTabQtImpl
  **/
 
 CrashTabQtImpl::CrashTabQtImpl(CrashTabQt* crashtab_qt):
-    QObject(),
-    crashtab_qt_(crashtab_qt) {
+  QObject(),
+  crashtab_qt_(crashtab_qt) {
 }
  
 void CrashTabQtImpl::Popup() {
-    emit popup();
+  emit popup();
 }
 
 void CrashTabQtImpl::CloseModel() {
-    emit dismiss();
+  emit dismiss();
+  crashtab_qt_->Dismiss();
 }
 
 void CrashTabQtImpl::onCloseButtonClicked( ) {
-    CloseModel();
+  CloseModel();
+}
+
+CrashTabQtModel::CrashTabQtModel(){
+  headContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_HEAD_CONTENT).c_str());
+  bodyContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_BODY_CONTENT).c_str());
+  closeButtonContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_CLOSE_BUTTON_CONTENT).c_str());
 }
 
 #include "moc_crash_tab_qt.cc"
