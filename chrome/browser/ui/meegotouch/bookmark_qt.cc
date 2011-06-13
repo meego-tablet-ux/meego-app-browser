@@ -1450,7 +1450,6 @@ BookmarkQtFilterProxyModel::BookmarkQtFilterProxyModel(BookmarkQtImpl *impl, QOb
   setSourceModel(impl_);
   setFilterRole(BookmarkQtImpl::TitleRole);
   setFilterCaseSensitivity(Qt::CaseInsensitive);
-  setDynamicSortFilter(true);
 }
 
 void BookmarkQtFilterProxyModel::openBookmarkItem(QString id) { 
