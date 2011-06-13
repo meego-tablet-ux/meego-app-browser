@@ -669,6 +669,14 @@ bool TabContents::NavigateToPendingEntry(
 bool TabContents::NavigateToEntry(
     const NavigationEntry& entry,
     NavigationController::ReloadType reload_type) {
+  if(entry.url_is_chrome_ui_tab()){
+     // Won't create render process for chrome ui tab since
+     // current implementations for NewTab, Downloads and 
+     // Bookmark manager are native UI controls, not a HTML
+     // page showing those info. 
+     current_load_start_ = base::TimeTicks::Now();
+     return true;
+  }
   RenderViewHost* dest_render_view_host = render_manager_.Navigate(entry);
   if (!dest_render_view_host)
     return false;  // Unable to create the desired render view host.

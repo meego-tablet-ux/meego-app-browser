@@ -165,6 +165,14 @@ void TabLoader::ScheduleLoad(NavigationController* controller) {
 
 void TabLoader::TabIsLoading(NavigationController* controller) {
   DCHECK(controller);
+
+  // No rendering process for chrome ui tab become they have
+  // been customized with native UI controls instead of html
+  // page.
+  if(controller->GetActiveEntry() &&
+      controller->GetActiveEntry()->url_is_chrome_ui_tab())
+    return;
+
   DCHECK(find(tabs_loading_.begin(), tabs_loading_.end(), controller) ==
          tabs_loading_.end());
   tabs_loading_.insert(controller);

@@ -113,6 +113,14 @@ const string16& NavigationEntry::GetTitleForDisplay(
   return cached_display_title_;
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+bool NavigationEntry::url_is_chrome_ui_tab() const {
+  return url_ == GURL(chrome::kChromeUIBookmarksURL) ||
+    url_ == GURL(chrome::kChromeUIDownloadsURL) ||
+    url_ == GURL(chrome::kChromeUINewTabURL);
+}
+#endif
+
 bool NavigationEntry::IsViewSourceMode() const {
   return virtual_url_.SchemeIs(chrome::kViewSourceScheme);
 }

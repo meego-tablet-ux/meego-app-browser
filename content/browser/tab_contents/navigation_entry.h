@@ -265,6 +265,12 @@ class NavigationEntry {
     update_virtual_url_with_url_ = update;
   }
 
+  // Reture true in case of the url of entry has the following values:
+  // o kChromeUINewTabURL
+  // o kChromeUIDownloadsURL
+  // o kChromeUIBookmarksURL
+  bool url_is_chrome_ui_tab() const;
+
   // The title as set by the page. This will be empty if there is no title set.
   // The caller is responsible for detecting when there is no title and
   // displaying the appropriate "Untitled" label if this is being displayed to

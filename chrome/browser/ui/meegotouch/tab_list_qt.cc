@@ -182,6 +182,8 @@ void TabItem::update()
     title_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_DOWNLOAD_TITLE).c_str()); 
   } else if (tab_contents_->tab_contents()->GetURL() == GURL(chrome::kChromeUIBookmarksURL)) {
     title_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_BOOKMARK_MANAGER_TITLE).c_str());
+  } else if(tab_contents_->tab_contents()->GetURL() == GURL(chrome::kChromeUINewTabURL)) {
+    title_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_NEW_TAB_TITLE).c_str());
   }
   
   GetThumbnail();

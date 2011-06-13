@@ -2748,6 +2748,28 @@ void Browser::TabInsertedAt(TabContentsWrapper* contents,
   contents->render_view_host()->UpdateBrowserWindowId(
       contents->controller().window_id().id());
 
+  NavigationEntry* entry = contents->controller().GetActiveEntry();
+
+  // Immediately send out notification to tell observer that
+  // entry is already changed. Especially, for new tab, the
+  // page title is also set by manually since there is no
+  // renderer process to update the title by UpdateTitle IPC.
+  if(entry->url_is_chrome_ui_tab()) {
+     // Notify observers about navigation.
+     int entry_index = contents->controller().GetCurrentEntryIndex();
+     contents->controller().NotifyEntryChanged(entry, entry_index);
+
+     // In case of it is a new tab url
+     if(entry->url() == GURL(chrome::kChromeUINewTabURL)){
+       string16 title16 = l10n_util::GetStringUTF16(IDS_NEW_TAB_TITLE);
+       entry->set_title(title16);
+       NotificationService::current()->Notify(
+           NotificationType::TAB_CONTENTS_TITLE_UPDATED,
+           Source<TabContents>(contents->tab_contents()),
+           NotificationService::NoDetails());
+     }
+  }
+
   SyncHistoryWithTabs(index);
 
   // Make sure the loading state is updated correctly, otherwise the throbber
