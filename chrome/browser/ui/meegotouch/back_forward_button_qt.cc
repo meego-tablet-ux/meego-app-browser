@@ -31,6 +31,7 @@
 #include "chrome/browser/ui/meegotouch/back_forward_button_qt.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/browser/ui/meegotouch/browser_toolbar_qt.h"
+#include "chrome/browser/ui/meegotouch/new_tab_ui_qt.h"
 #include "base/utf_string_conversions.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/resource/resource_bundle.h"
@@ -40,6 +41,7 @@
 #include "content/browser/tab_contents/navigation_controller.h"
 #include "content/browser/tab_contents/navigation_entry.h"
 #include "content/browser/tab_contents/tab_contents.h"
+#include "content/common/notification_service.h"
 #include "chrome/common/url_constants.h"
 #include "grit/generated_resources.h"
 #include "grit/theme_resources.h"
@@ -346,6 +348,15 @@ public:
     {
         currentController()->GoToIndex(currentController()->GetIndexOfEntry(entry));
         updateStatus();
+        // In case of opening a new page which has no render process
+        // We need to show new tab and update title bar manually due
+        // to there is no title update IPC message received.
+        if(entry->url() == GURL(chrome::kChromeUINewTabURL)) {
+          BrowserWindowQt* window = static_cast<BrowserWindowQt*>(browser_->window());
+          NewTabUIQt* new_tab = window->GetNewTabUIQt();
+          new_tab->AboutToShow();
+          window->UpdateTitleBar();
+        }
     }
 
     void updateStatus()

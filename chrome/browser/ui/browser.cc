@@ -2754,7 +2754,7 @@ void Browser::TabInsertedAt(TabContentsWrapper* contents,
   // entry is already changed. Especially, for new tab, the
   // page title is also set by manually since there is no
   // renderer process to update the title by UpdateTitle IPC.
-  if(entry->url_is_chrome_ui_tab()) {
+  if(entry && entry->url_is_chrome_ui_tab()) {
      // Notify observers about navigation.
      int entry_index = contents->controller().GetCurrentEntryIndex();
      contents->controller().NotifyEntryChanged(entry, entry_index);

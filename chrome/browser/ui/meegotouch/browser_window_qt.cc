@@ -585,6 +585,11 @@ SSLDialogQt* BrowserWindowQt::GetSSLDialogQt()
   return ssl_dialog_.get();
 }
 
+NewTabUIQt* BrowserWindowQt::GetNewTabUIQt()
+{
+  return new_tab_.get(); 
+}
+
 SelectFileDialogQtImpl* BrowserWindowQt::GetSelectFileDialog()
 {
   return select_file_dialog_.get();

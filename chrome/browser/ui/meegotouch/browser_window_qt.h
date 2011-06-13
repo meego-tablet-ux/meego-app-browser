@@ -196,6 +196,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   SSLDialogQt* GetSSLDialogQt();
   TabContentsContainerQt* GetTabContentsContainer() { return contents_container_.get(); }
 
+  NewTabUIQt* GetNewTabUIQt(); 
  protected:
   bool CanClose();
   virtual void DestroyBrowser();
