@@ -5,7 +5,7 @@
       <applyto>/apps/browser/PageOpenedOnStartup</applyto>
       <owner>browser</owner>
       <type>int</type>
-      <default>1</default>
+      <default>2</default>
       <locale name="C">
         <short/>
       </locale>
