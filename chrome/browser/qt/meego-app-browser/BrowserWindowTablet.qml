@@ -352,6 +352,7 @@ Item {
 
         BrowserToolbarTablet {
             id: toolbar
+            property int tabSideBarX: getTabSideBarX()
             z: 10
             tabsidebar: tabSideBarLoader
             historypopup: historyLoader.item
@@ -510,7 +511,7 @@ Item {
             mappedPos : scene.mapToItem (parent, scene.lastMousePos.mouseX, scene.lastMousePos.mouseY);
             property int start_x
             property int start_y
-            start_x: mappedPos.x
+            start_x: toolbar.tabSideBarX
             start_y: mappedPos.y
             property int maxSideBarHeight 
             maxSideBarHeight: parent.height - start_y

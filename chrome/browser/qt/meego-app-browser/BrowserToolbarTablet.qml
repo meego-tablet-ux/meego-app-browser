@@ -61,6 +61,8 @@ Item {
     signal search(string needle)
     signal appSwitcherTriggered()
 
+    function getTabSideBarX() { return tabButton.x + tabButton.width/2 }
+
     states: [
         State {
             name: "show"
