@@ -116,11 +116,13 @@ TimedOverlay {
                 text: fullscreenBubbleLabel
                 objectName: "exitFullscreenLabel"
                 color: "white"
-                height: 50
+                font.pixelSize: theme_fontPixelSizeLarge
+                font.family: theme_fontFamily
                 elide: Text.ElideRight
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
 
+                anchors.verticalCenter: parent.verticalCenter
                 anchors.right: yesButton.left
                 anchors.rightMargin: 10
             }
