@@ -1305,7 +1305,6 @@ void RWHVQtWidget::onAnimationFinished()
      || (scale_ == kMaxContentsScale 
          && pending_scale_ > kMaxContentsScale)) {
     pinch_completing_ = false;
-    setViewportInteractive(true);
   }
  
   if(pending_scale_ < kNormalContentsScale)
@@ -1462,6 +1461,8 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         if (delay_for_click_timer_->isActive()) {
             delay_for_click_timer_->stop();
         }
+
+        setViewportInteractive(true);
 
         if(pending_scale_ < kNormalContentsScale) 
         {
