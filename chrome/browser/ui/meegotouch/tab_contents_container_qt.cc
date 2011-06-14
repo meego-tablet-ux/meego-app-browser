@@ -21,6 +21,7 @@
 #include <QDeclarativeItem>
 #include <QGraphicsLineItem>
 #include <QGraphicsWidget>
+#include <QPropertyAnimation>
 
 class TabContentsContainerQtImpl: public QObject
 {
@@ -29,6 +30,15 @@ class TabContentsContainerQtImpl: public QObject
   TabContentsContainerQtImpl(TabContentsContainerQt* container):
       container_(container)
   {}
+
+void FadeAnimation(QDeclarativeItem* item) {
+  QPropertyAnimation* anim = new QPropertyAnimation(item, "opacity");
+    anim->stop();
+    anim->setDuration(200);
+    anim->setStartValue(QVariant(0));
+    anim->setEndValue(QVariant(1));
+    anim->start();
+}
 
  public slots:
   void viewportSizeChanged()
@@ -166,6 +176,8 @@ void TabContentsContainerQt::SetTabContents(TabContents* tab_contents) {
         view->Focus();
 
       tab_widget->show();
+      viewport_item_->setOpacity(1);
+      impl_->FadeAnimation(viewport_item_);
     }
   }
 }

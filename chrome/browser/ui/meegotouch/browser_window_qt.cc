@@ -474,7 +474,6 @@ void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
 
   new_contents->tab_contents()->DidBecomeSelected();
 
-  contents_container_->SetTabContents(new_contents->tab_contents());
     
   UpdateToolbar(new_contents, true);
   contents_container_->SetTabContents(new_contents->tab_contents());

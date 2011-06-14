@@ -200,14 +200,23 @@ Item {
         
         MouseArea {
           anchors.fill: parent
-          onClicked: {
-            if (showqmlpanel && (pageType == "normal" || pageType == "newtab")) {
-              showbookmarkmanager = false;
-              showdownloadmanager = false;
+          onClicked: SequentialAnimation {
+            PropertyAnimation { target: innerContent; properties: "opacity"; from: 1; to: 0; duration: 150; easing.type: Easing.InOutQuad }
+            PauseAnimation { duration: 150}
+            ScriptAction { script: {
+                if (showqmlpanel && (pageType == "normal" || pageType == "newtab")) {
+                  showbookmarkmanager = false;
+                  showdownloadmanager = false;
+                }
+                tabChangeFromTabSideBar = true;
+                if(index != tabSideBarListView.currentIndex)
+                  tabSideBarModel.go(index);
+                else
+                  tabSideBarModel.hideSideBar();
+              }
             }
-            tabChangeFromTabSideBar = true;
-            tabSideBarModel.go(index);
-          } 
+            PropertyAction { target: innerContent; property: "opacity"; value: 1 }
+          }
         }
 
         states: [
