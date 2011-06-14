@@ -455,11 +455,16 @@ void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
                       local_dest_irect.fLeft , local_dest_irect.fTop);
 */
 
-  //("Painting\n");
  if(video_frame->data_[1] == (uint8_t*)0x264){
 
-     /*H264 Paint, Directly or not*/
-     H264Paint(proxy_, video_frame, local_dest_irect.width(), local_dest_irect.height(),dest_rect_pointer,bitmap.rowBytes());
+    if(local_dest_irect.width() == dest_rect.width()){
+      if(local_dest_irect.height() == dest_rect.height()){
+        /*H264 Paint, Directly or not*/
+        H264Paint(proxy_, video_frame, local_dest_irect.width(), local_dest_irect.height(),dest_rect_pointer,bitmap.rowBytes());
+      }
+    }
+
+    bitmap.unlockPixels();
 
     return ;
 

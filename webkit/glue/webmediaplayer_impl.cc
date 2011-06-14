@@ -245,7 +245,6 @@ void WebMediaPlayerImpl::Proxy::AbortDataSources() {
 void WebMediaPlayerImpl::Proxy::Detach() {
   DCHECK(MessageLoop::current() == render_loop_);
   webmediaplayer_ = NULL;
-  video_renderer_ = NULL;
 
   {
     base::AutoLock auto_lock(data_sources_lock_);

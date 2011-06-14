@@ -1952,8 +1952,11 @@ WebSharedWorker* RenderView::createSharedWorker(
 #if defined(TOOLKIT_MEEGOTOUCH)
 /*PolicyAware */
 int RenderView::resourceRequire(
-    WebFrame* frame, WebMediaPlayerClient* client) {
+    WebFrame* frame, WebMediaPlayer* player) {
     int type = 0;
+
+    /*update mediaplayer*/
+    mediaplayer_ = player;
 
     Send(new ViewHostMsg_ResourceRequire(routing_id_, type));
     return 0;

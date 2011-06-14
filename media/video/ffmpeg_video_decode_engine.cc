@@ -1361,6 +1361,12 @@ void FFmpegVideoDecodeEngine::UnInitializeHwEngine(void)
         hw_context_->config_id = 0;
     }
 
+    if (hw_context_ && hw_context_->display) {
+      /*free all internal resource of VA*/
+      vaTerminate(hw_context_->display);
+    }
+
+
     DEV2FreeCalloc(hw_context_);
 
 #ifdef _DEV2_DEBUG_

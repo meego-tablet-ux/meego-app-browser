@@ -441,7 +441,7 @@ class RenderView : public RenderWidget,
   /*PolicyAware */
   virtual int resourceRequire(
       WebKit::WebFrame* frame,
-      WebKit::WebMediaPlayerClient* client);
+      WebKit::WebMediaPlayer* client);
 
   virtual int resourceRelease(void);
   virtual int isHidden(void);
