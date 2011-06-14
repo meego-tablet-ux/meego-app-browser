@@ -126,9 +126,9 @@ void DialogQtImpl::OnButtonClicked(int number, QString input1, QString input2, b
     	    DLOG(INFO)<<"input1: "<<input1.toStdString();
     	    DLOG(INFO)<<"input2: "<<input2.toStdString();
 
-    dialog_->notifyResultListener(result, input1, input2, isSuppress);
-
     CloseDialog();
+
+    dialog_->notifyResultListener(result, input1, input2, isSuppress);
 }
 
 
