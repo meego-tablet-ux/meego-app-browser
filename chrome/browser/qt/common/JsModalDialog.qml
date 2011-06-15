@@ -134,6 +134,8 @@ Item {
 		  anchors.topMargin: -10 
 		  anchors.verticalCenter: parent.verticalCenter
 		  width: parent.width-20
+		  font.pixelSize: theme_fontPixelSizeNormal
+		  font.family: theme_fontFamily
 		  verticalAlignment: Text.AlignVCenter
 		  text: browserDialogModel.getDialogContent() 
 		  color: theme_dialogTitleFontColor
@@ -157,7 +159,8 @@ Item {
 		    anchors.leftMargin: 4
 		    width: parent.width - 20
 		    color: theme_dialogTitleFontColor
-    		    font.pixelSize: 15
+		    font.pixelSize: theme_fontPixelSizeNormal
+		    font.family: theme_fontFamily
 		    verticalAlignment: Text.AlignVCenter
 		    text: browserDialogModel.getSuppressText()
 		  }
@@ -178,6 +181,8 @@ Item {
 		  anchors.topMargin: 10 
 		  width: parent.width - 20
                   height: 25
+		  font.pixelSize: theme_fontPixelSizeNormal
+		  font.family: theme_fontFamily
 		  //anchors.verticalCenter: parent.verticalCenter
 		  text: browserDialogModel.getDialogContent()
 		  color: theme_dialogTitleFontColor
@@ -191,7 +196,7 @@ Item {
 		  anchors.topMargin: 10
 		  anchors.top: content.bottom
 		  width: parent.width - 20
-    		  //font.pixelSize: 17
+		  font.pixelSize: theme_fontPixelSizeNormal
 		  text: browserDialogModel.getDefaultPrompt()
 		  color: theme_dialogTitleFontColor
 		}
@@ -212,8 +217,9 @@ Item {
 			id: checkText
 		        anchors.leftMargin: 4
 		        width: parent.width - 20
+		        font.pixelSize: theme_fontPixelSizeNormal
+		        font.family: theme_fontFamily
 		  	color: theme_dialogTitleFontColor
-    		        font.pixelSize: 15
 		        verticalAlignment: Text.AlignVCenter
 			text: browserDialogModel.getSuppressText()
 		    }
@@ -242,7 +248,8 @@ Item {
 			  anchors.top: parent.top
 			  text: browserDialogModel.getUsernameText()
 			  color: theme_dialogTitleFontColor
-			  font.pixelSize: 17
+			  font.pixelSize: theme_fontPixelSizeNormal
+			  font.family: theme_fontFamily
 			  width: 140
 			}
 
@@ -253,7 +260,7 @@ Item {
 			  width: parent.width - 180
 		  	  height: 30
 			  color: theme_dialogTitleFontColor
-			  font.pixelSize: 17
+			  font.pixelSize: theme_fontPixelSizeNormal
 			}
 		}
 
@@ -271,7 +278,8 @@ Item {
 			  anchors.top: parent.top
 			  text: browserDialogModel.getPasswordText()
 			  color: theme_dialogTitleFontColor
-			  font.pixelSize: 17
+			  font.pixelSize: theme_fontPixelSizeNormal
+			  font.family: theme_fontFamily
 			  width: 140
 			}
 
@@ -282,7 +290,7 @@ Item {
 			  width: parent.width - 180
 		  	  height: 30
 			  color: theme_dialogTitleFontColor
-			  font.pixelSize: 17
+			  font.pixelSize: theme_fontPixelSizeNormal
 			  echoMode: TextInput.Password
 			}
 		}
@@ -304,7 +312,8 @@ Item {
 		    anchors.leftMargin: 4
 		    width: parent.width - 20
 		    color: theme_dialogTitleFontColor
-    		    font.pixelSize: 15
+		    font.pixelSize: theme_fontPixelSizeNormal
+		    font.family: theme_fontFamily
 		    verticalAlignment: Text.AlignVCenter
 		    text: browserDialogModel.getSuppressText()
 		  }
