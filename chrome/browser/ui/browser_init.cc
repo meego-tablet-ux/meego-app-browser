@@ -1204,7 +1204,9 @@ void BrowserInit::LaunchWithProfile::AddStartupURLs(
         if (it->host() == "new_tab_page") {
           startup_urls->push_back(GURL(chrome::kChromeUINewTabURL));
         } else if (it->host() == "welcome_page") {
+#if !defined(TOOLKIT_MEEGOTOUCH)
           startup_urls->push_back(GetWelcomePageURL());
+#endif
         } else {
           startup_urls->push_back(*it);
         }
