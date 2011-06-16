@@ -129,22 +129,38 @@ void QtPluginContainerManager::DestroyPluginContainer(
 
 void QtPluginContainerManager::Show()
 {
-  for (PluginWindowToWidgetMap::const_iterator i =
-          plugin_window_to_widget_map_.begin();
-       i != plugin_window_to_widget_map_.end(); ++i) {
-    i->second->show();
-  }
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+    for (PluginWindowToFSWidgetsMap::const_iterator i =
+             plugin_window_to_fswidgets_map_.begin();
+         i != plugin_window_to_fswidgets_map_.end(); ++i) {
+      i->second->top_window->show();
+    }
+#else
+    for (PluginWindowToWidgetMap::const_iterator i =
+             plugin_window_to_widget_map_.begin();
+         i != plugin_window_to_widget_map_.end(); ++i) {
+      i->second->show();
+    }
+#endif
 
   is_hidden_ = false;
 }
 
 void QtPluginContainerManager::Hide()
 {
+#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  for (PluginWindowToFSWidgetsMap::const_iterator i =
+           plugin_window_to_fswidgets_map_.begin();
+       i != plugin_window_to_fswidgets_map_.end(); ++i) {
+    i->second->top_window->hide();
+  }
+#else
   for (PluginWindowToWidgetMap::const_iterator i =
            plugin_window_to_widget_map_.begin();
        i != plugin_window_to_widget_map_.end(); ++i) {
     i->second->hide();
   }
+#endif
 
   is_hidden_ = true;
 }
