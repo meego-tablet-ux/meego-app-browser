@@ -71,6 +71,8 @@ class WebViewPlugin: public WebKit::WebPlugin, public WebKit::WebViewClient,
 
   void RestoreTitleText();
 
+  void deleteNow(){ delete this; }
+
   // WebPlugin methods:
   virtual bool initialize(WebKit::WebPluginContainer*);
   virtual void destroy();

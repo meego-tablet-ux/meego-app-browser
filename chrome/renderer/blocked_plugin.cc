@@ -96,6 +96,13 @@ BlockedPlugin::BlockedPlugin(RenderView* render_view,
 }
 
 BlockedPlugin::~BlockedPlugin() {
+#if defined(TOOLKIT_MEEGOTOUCH)
+  // When the real plugin is loaded, the blockedplugin placeholder is not owned by anyone else.
+  // Under this condition, we need to delete it here. This will happen when render view is gone.
+  // And we do call deleteNow instead of call plugin_->destroy(), so that it won't loop back to here.
+  if (loaded_)
+    plugin_->deleteNow();
+#endif
 }
 
 void BlockedPlugin::BindWebFrame(WebFrame* frame) {
@@ -202,8 +209,8 @@ void BlockedPlugin::LoadPlugin() {
 #if !defined(TOOLKIT_MEEGOTOUCH)
     plugin_->destroy();
 #else
-    // We don't delete plugin_ , so that we can restore it later.
-    //FIXME: need to find a proper time to destroy plugin_, or we don't need to?
+    // We don't delete plugin_ here , so that we can restore it later.
+    // Will be deleted upon render view is gone and blockedPlugin get destructed
     loaded_ = true;
     loaded_plugin_ = new_plugin;
 #endif
