@@ -43,6 +43,10 @@ BrowserWindowTablet {
         orientation = (orientation +1) % 4;
   }
 
+  onOrientationChanged: {
+    contextLoader.close();
+  }
+
   Loader {
     id: newTabLoader
   }

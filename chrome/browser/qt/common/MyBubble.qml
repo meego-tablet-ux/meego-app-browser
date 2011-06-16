@@ -120,7 +120,7 @@ Item {
         width: container.bubbleWidth
         height: 292
         opacity: container.bubbleOpacity
-
+        
         Column {
           id: bubbleColumn
           width: parent.width
