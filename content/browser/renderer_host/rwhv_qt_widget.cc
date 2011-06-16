@@ -557,7 +557,7 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
   if(!host) return;
 
   BackingStoreX* backing_store = static_cast<BackingStoreX*>(
-      host->GetBackingStore(true));
+      host->GetBackingStore(false));
 
   ///\todo A little bit dirty here. It's said that Calling GetBackingStore maybe have changed |invalid_rect_|
   /// So we have to refer back to the invalid_rect_ and union it with exposedRect
@@ -593,12 +593,10 @@ void RWHVQtWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 
     if (hold_paint_) {
       hold_paint_ = false;
-    }else if (painter) {
+    } else if (painter) {
       backing_store->QPainterShowRect(painter, paint_rect);
     }
-  } else {
-    DNOTIMPLEMENTED();
-  }
+  } 
 
   if (pinchEmulationEnabled)
   {
