@@ -213,24 +213,24 @@ Item {
  
         }
         
+        SequentialAnimation {
+          id: tabSwitchAnim
+          PropertyAnimation { target: innerContent; properties: "opacity"; from: 1; to: 0; duration: 150; easing.type: Easing.InOutQuad }
+          PauseAnimation { duration: 150}
+          ScriptAction { script: tabSideBarModel.go(index) }
+        }
         MouseArea {
           anchors.fill: parent
-          onClicked: SequentialAnimation {
-            PropertyAnimation { target: innerContent; properties: "opacity"; from: 1; to: 0; duration: 150; easing.type: Easing.InOutQuad }
-            PauseAnimation { duration: 150}
-            ScriptAction { script: {
-                if (showqmlpanel && (pageType == "normal" || pageType == "newtab")) {
-                  showbookmarkmanager = false;
-                  showdownloadmanager = false;
-                }
-                tabChangeFromTabSideBar = true;
-                if(index != tabSideBarListView.currentIndex)
-                  tabSideBarModel.go(index);
-                else
-                  tabSideBarModel.hideSideBar();
-              }
+          onClicked: {
+            if (showqmlpanel && (pageType == "normal" || pageType == "newtab")) {
+              showbookmarkmanager = false;
+              showdownloadmanager = false;
             }
-            PropertyAction { target: innerContent; property: "opacity"; value: 1 }
+            tabChangeFromTabSideBar = true;
+            if(index != tabSideBarListView.currentIndex)
+              tabSwitchAnim.running = true;
+            else
+              tabSideBarModel.hideSideBar();
           }
         }
 

@@ -176,7 +176,6 @@ void TabContentsContainerQt::SetTabContents(TabContents* tab_contents) {
         view->Focus();
 
       tab_widget->show();
-      viewport_item_->setOpacity(1);
       impl_->FadeAnimation(viewport_item_);
     }
   }
