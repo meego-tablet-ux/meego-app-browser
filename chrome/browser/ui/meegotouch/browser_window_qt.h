@@ -176,6 +176,10 @@ class BrowserWindowQt : //public MApplicationWindow,
   virtual void TabInsertedAt(TabContentsWrapper* contents,
                              int index,
                              bool foreground);
+  virtual void TabReplacedAt( TabStripModel* tab_strip_model,
+                             TabContentsWrapper* old_contents,
+                             TabContentsWrapper* new_contents,
+                             int index);
   virtual void TabStripEmpty() {DNOTIMPLEMENTED();};
 
   LauncherWindow* window() {return window_;};

@@ -486,6 +486,18 @@ void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
 
 }
 
+void BrowserWindowQt::TabReplacedAt( TabStripModel* tab_strip_model,
+                             TabContentsWrapper* old_contents,
+                             TabContentsWrapper* new_contents,
+                             int index)
+{
+  if (new_contents->tab_contents()->GetURL() != GURL(chrome::kChromeUIDownloadsURL)) {
+    impl_->ShowDownloads(false);
+  } 
+  if (new_contents->tab_contents()->GetURL() != GURL(chrome::kChromeUIBookmarksURL)) {
+    impl_->ShowBookmarks(false);
+  }
+}
 void BrowserWindowQt::TabInsertedAt(TabContentsWrapper* contents,
                              int index,
                              bool foreground){

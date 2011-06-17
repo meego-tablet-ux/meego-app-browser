@@ -175,13 +175,19 @@ void TabStripModel::InsertTabContentsAt(int index,
         {
           replace_index = i;
         }
+        //if exist NewTab, replace NewTab in first priority
+        if (contents_data_.at(i)->contents->tab_contents()->GetURL() == GURL(chrome::kChromeUINewTabURL))
+        {
+          replace_index = i;
+          break;
+        }
       }
-
+      TabContentsWrapper* selected_contents = GetSelectedTabContents();
       ReplaceTabContentsAt(replace_index, contents);
 
       if (active)
       {
-        TabContentsWrapper* selected_contents = GetSelectedTabContents();
+        selection_model_.SetSelectedIndex(replace_index);
         NotifyTabSelectedIfChanged(selected_contents, replace_index, false);
       }
 

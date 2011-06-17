@@ -537,7 +537,8 @@ void TabListQt::TabChangedAt(TabContentsWrapper* contents, int index,
  
 }
 
-void TabListQt::TabReplacedAt(TabContentsWrapper* old_contents,
+void TabListQt::TabReplacedAt( TabStripModel* tab_strip_model,
+                             TabContentsWrapper* old_contents,
                              TabContentsWrapper* new_contents,
                              int index)
 {
