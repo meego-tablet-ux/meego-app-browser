@@ -14,6 +14,9 @@
 
 #if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
 #include <QPushButton>
+#include <QPalette>
+#include "ui/base/l10n/l10n_util.h"
+#include "../chrome/grit/generated_resources.h"
 #endif
 
 #include "base/logging.h"
@@ -72,7 +75,7 @@ QWidget* QtPluginContainerManager::CreatePluginContainer(
   QWidget *window = NULL;
 #if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
   QWidget *fs_window = new QWidget(host_widget_);
-  QPushButton *button = new QPushButton("Close", fs_window);
+  QPushButton *button = new QPushButton(QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CLOSE).c_str()), fs_window);
 
   FSPluginWidgets *fs_widgets = new FSPluginWidgets();
   fs_widgets->top_window = fs_window;
@@ -83,6 +86,13 @@ QWidget* QtPluginContainerManager::CreatePluginContainer(
   button->setGeometry(0, fs_win_size_.height() - FSPluginCloseBarHeight(), fs_win_size_.width(), FSPluginCloseBarHeight());
 
   connect(button, SIGNAL(clicked()), this, SLOT(CloseFSPluginWindow()));
+
+  QPalette pal = button->palette( );
+  pal.setColor( QPalette::Button, Qt::black );
+  pal.setColor( QPalette::ButtonText, Qt::white );
+  button->setPalette(pal);
+  button->setFlat(true);
+  button->setAutoFillBackground(true);
 
   window = fs_window;
   window->show();
