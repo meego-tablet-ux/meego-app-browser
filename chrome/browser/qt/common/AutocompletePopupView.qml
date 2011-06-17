@@ -130,6 +130,7 @@ Item {
           anchors.fill: parent
           onClicked: {
             container.model.openLine(line);
+            innerContent.forceActiveFocus();
           }
         }
       }
