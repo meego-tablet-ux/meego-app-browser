@@ -70,6 +70,13 @@
 #define _FULLSCREEN_
 //#ifdef _FULLSCREEN_
 #include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/X.h>
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
+#include <sys/shm.h>
+#include <X11/extensions/XShm.h>
+ 
 #endif
 
 #include "ui/gfx/size.h"
@@ -134,6 +141,12 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
 
     bool menu_on_;
     bool last_frame_;
+    XShmSegmentInfo shminfo_ ;
+    unsigned long hw_pixmap_;
+    unsigned int pixmap_w_;
+    unsigned int pixmap_h_;
+    XImage * m_ximage_;
+    base::Lock paint_lock_;
 /*_DEV2_H264_*/
 #endif
     bool HasSingleOrigin();

@@ -20,17 +20,11 @@
 /*
 _DEV2_OPT_
 */
-#include "x11_util.h"
 #include <sys/syscall.h>
 #include <sys/shm.h>
 /*XA_WINDOW*/
-//#include <X11/Xatom.h>
 #include <X11/X.h>
-extern Display* g_display;
 
-static unsigned long frm ;
-
-int shmkey = 0;
 /*us*/
 double GetTick(void)
 {
@@ -41,7 +35,6 @@ double GetTick(void)
 }
 
 Display *mDisplay = NULL; 
-extern Window subwin ;
 unsigned int CodecID = 0;
 
 #endif
@@ -594,7 +587,6 @@ void FFmpegVideoDecodeEngine::DecodeFrame(scoped_refptr<Buffer> buffer) {
 
 #if defined (TOOLKIT_MEEGOTOUCH)
 // _DEV2_H264_
-  frm ++;
   /*force to exit for performance evaluation*/
   if(!hw_accel_){
     /*run here only for no hw accelerated codec*/
@@ -692,18 +684,7 @@ void FFmpegVideoDecodeEngine::Uninitialize() {
     UnInitializeHwEngine();
   }
   
-  if(shmkey){
-      shmctl(shmkey, IPC_RMID, 0);
-      shmkey = 0;
-  }
-
-/*
-  if(subwin){
-      XDestroyWindow(mDisplay, subwin);
-     subwin = 0;
-  }
-*/
-
+  /* LOGERR << syscall(__NR_gettid));*/
   if(mDisplay){
       XCloseDisplay(mDisplay);
       mDisplay = NULL;

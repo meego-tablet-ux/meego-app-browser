@@ -63,7 +63,10 @@ class VideoRendererImpl : public WebVideoRenderer {
 
 #if defined (TOOLKIT_MEEGOTOUCH)
   /*_DEV2_H264_*/
+  void H264GetPixmapAndmXImage(WebMediaPlayerImpl::Proxy* proxy, Display *dTmp, int w_, int h_, XShmSegmentInfo * shm_tmp);
   void H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::VideoFrame* video_frame, int dst_w, int dst_h, uint8 * pDst, int stride);
+  void H264CreateXImage(WebMediaPlayerImpl::Proxy* proxy, Display *dTmp, int w_, int h_, XShmSegmentInfo * shm_tmp);
+  void H264FreePixmap(WebMediaPlayerImpl::Proxy* proxy, Display *dTmp);
 #endif
 
   void TransformToSkIRect(const SkMatrix& matrix, const gfx::Rect& src_rect,

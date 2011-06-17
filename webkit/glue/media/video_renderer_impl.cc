@@ -24,9 +24,6 @@
 
 #include <X11/X.h>
 extern Window subwin;
-extern unsigned long hwPixmap ;
-//extern double GetTick(void);
-extern int shmkey;
 /*_DEV2_H264_*/
 #endif
 
@@ -227,57 +224,164 @@ void VideoRendererImpl::SlowPaint(media::VideoFrame* video_frame,
   Paint VAAPI H264 to Subwin or Share memory.
   it adopts automatically on context.
 */
+void VideoRendererImpl::H264FreePixmap(WebMediaPlayerImpl::Proxy* proxy, Display *dTmp)
+{
+  XImage * mXImage = proxy->m_ximage_;
+  XShmSegmentInfo *shm = &proxy_->shminfo_ ;
+
+  if((shm->shmid !=0) && shm->shmaddr){
+    if(!dTmp){
+      /*NULL*/
+      return;
+    }
+
+    /*free share memory*/
+    shmdt(shm->shmaddr);
+    shmctl(shm->shmid, IPC_RMID, 0);
+    shm->shmid = 0;
+    shm->shmaddr = NULL;
+  }
+
+  /*free and reallocate*/
+  if((dTmp != NULL) && proxy_->hw_pixmap_){
+    XFreePixmap(dTmp, proxy_->hw_pixmap_);
+    proxy_->hw_pixmap_ = 0;
+    proxy_->pixmap_w_ = 0;
+    proxy_->pixmap_h_ = 0;
+  }
+
+  return;
+}
+void VideoRendererImpl::H264CreateXImage(WebMediaPlayerImpl::Proxy* proxy, Display *dTmp, int w_, int h_, XShmSegmentInfo * shm_tmp)
+{
+  XImage * mXImage = NULL;
+  XShmSegmentInfo *shm = &proxy_->shminfo_ ;
+
+  mXImage = XShmCreateImage(dTmp, DefaultVisual(dTmp, DefaultScreen(dTmp)), 24, ZPixmap, NULL, shm_tmp, w_, h_);
+  if(!mXImage){
+     LOG(ERROR) << "XShm Create Error ";
+     return ;
+  }
+  shm_tmp->shmaddr = mXImage->data = shm->shmaddr;
+  shm_tmp->shmid = shm->shmid;
+
+  if(!XShmAttach(dTmp, shm_tmp)){
+     LOG(ERROR) << "XShmAttach Error" ;
+     return ;
+  };
+
+  proxy->m_ximage_ = mXImage;
+
+  return;
+}
+
+#define MAX_WIDTH 1280
+#define MAX_HEIGHT 720 
+
+/*return a mXImage, hw_pixmap, Shmmeory */
+void VideoRendererImpl::H264GetPixmapAndmXImage(WebMediaPlayerImpl::Proxy* proxy, Display *dTmp, int w_, int h_, XShmSegmentInfo * shm_tmp)
+{
+  XImage * mXImage = proxy->m_ximage_;
+  XShmSegmentInfo *shm = &proxy_->shminfo_ ;
+  
+  if((w_ == 0) || (h_ == 0)){
+    return ;
+  }
+
+  if((proxy->pixmap_w_ == w_) && (proxy->pixmap_h_ == h_)){
+    /*use last one, normal case*/
+    /*create Image*/
+    H264CreateXImage(proxy, dTmp, w_, h_, shm_tmp);
+    
+    return ;
+  }else{
+
+    /*1st frame pixmap*/
+    if(!dTmp){
+      return;
+    }
+    /*We free it firstly, Detach, Destroy, and free share memroy*/
+    H264FreePixmap(proxy, dTmp);
+
+    /*allocate shm, pixmap, mXImage*/
+    int screen = DefaultScreen(dTmp);
+    XWindowAttributes attr;
+    int root_window = RootWindow(dTmp, screen);
+    Window wTmp = root_window;
+    XGetWindowAttributes (dTmp, wTmp, &attr);
+
+    /*allocate something*/
+    proxy->hw_pixmap_ = XCreatePixmap(dTmp, wTmp, w_, h_, attr.depth);
+    if(proxy->hw_pixmap_ == 0){
+      LOG(ERROR) << "XCreatePixmap  Error ";
+      return ;
+    }
+    proxy->pixmap_w_ = w_;
+    proxy->pixmap_h_ = h_;
+
+#define _Shared_
+#ifdef _Shared_
+    int shmid = 0;
+    //char* pShmaddr = NULL;
+    if(!shm->shmaddr){
+       //shmid = shmget(IPC_PRIVATE, ((w_ + 31) & (~31))*((h_ + 31) & (~31))*4, 0666);
+       shm->shmid = shmget(IPC_PRIVATE, MAX_WIDTH*MAX_HEIGHT*4, 0666);
+       shm->shmaddr = (char*)shmat(shm->shmid, NULL /* desired address */, 0 /* flags */);
+       if(!shm->shmaddr){
+         LOG(ERROR) << "XShm Alloc Error ";
+         return ;
+       }
+    }
+
+    H264CreateXImage(proxy, dTmp, w_, h_, shm_tmp);
+#endif
+
+    return ;
+  }
+
+}
 
 void VideoRendererImpl::H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::VideoFrame* video_frame, int dst_w, int dst_h, uint8 * pDst, int stride)
 {
-
-    int w = video_frame->width();
-    int h = video_frame->height();
+ 
+  int w = video_frame->width();
+  int h = video_frame->height();
   
-    int w_ = dst_w;
-   int h_ = dst_h;
-    WebMediaPlayerImpl * wp = proxy->GetMediaPlayer();
+  int w_ = dst_w;
+  int h_ = dst_h;
+  
+  WebMediaPlayerImpl * wp = proxy->GetMediaPlayer();
     
-    void *hw_ctx_display = (void*)video_frame->data_[2];
-    VASurfaceID surface_id = (VASurfaceID)video_frame->idx_;
-   VAStatus status;
-    Display *dpy = (Display*) video_frame->data_[0];
+  void *hw_ctx_display = (void*)video_frame->data_[2];
+  VASurfaceID surface_id = (VASurfaceID)video_frame->idx_;
+  VAStatus status;
+  Display *dpy = (Display*) video_frame->data_[0];
+  XShmSegmentInfo *shminfo = &proxy->shminfo_;
 
-    if(wp->paused() && subwin){
-        //("skip paint for chromium default render\n");
-       //("paint %d \n", syscall(__NR_gettid));
+  base::AutoLock auto_lock(proxy->paint_lock_);
+
+  if(wp->paused() && subwin){
        return;
-    }
+  }
    /*if paused, but no subwin, it means preload*/
-    //("h264 p in, surface id :%d, win: %d, last frm: %d\n", surface_id, subwin, proxy->last_frame_);
-
-
-if(/*(wp->paused() == 0) ||*/ subwin){
+  if(subwin){
     /*if not paused , just render directly in full screen mode.*/
-    //base::TimeDelta time = video_frame->GetDuration();
     return;
 
-}else{
+  }else{
     /*if paused , just copy to shm, and .*/
-    //("render default\n");
 
     Display *dTmp = (Display *)video_frame->data_[0];
 
-    int screen = DefaultScreen(dTmp);
-    int root_window = RootWindow(dTmp, screen);
-    Window wTmp = root_window;
+    XShmSegmentInfo shm = {0};
+    /*get a pixmap and mxImage for RGBA data retrieve*/
+    H264GetPixmapAndmXImage(proxy, dTmp, w_, h_, &shm);
+   
+    if((proxy->hw_pixmap_ == 0) || (proxy->m_ximage_ == NULL)){
+     return;
+    } 
 
-   XWindowAttributes attr;
-    XGetWindowAttributes (dTmp, wTmp, &attr);
-    unsigned long pixmap = hwPixmap;
-    // Creates a pixmap and uploads from the XImage.
-    if(hwPixmap == 0){
-        pixmap = hwPixmap = XCreatePixmap(dTmp,
-                                         wTmp,
-                                         w_,
-                                         h_,
-                                         attr.depth);
-    }
+    unsigned long pixmap = proxy->hw_pixmap_;
     
     /*CC and Resize*/
     status = vaPutSurface(hw_ctx_display, surface_id, pixmap,
@@ -285,40 +389,22 @@ if(/*(wp->paused() == 0) ||*/ subwin){
                               0, 0, w_, h_, /*dst*/
                               NULL, 0,
                               VA_FRAME_PICTURE );
-
-   XImage * mXImage;
-
-#define _Shared_
-#ifdef _Shared_
-    static int shared = 0;
-    static char* pbuffer = NULL;
-    /*if w_, h_ is changed, shm has to be reallocated.*/
-    if(!shared){
-       shared = 1;
-       shmkey = shmget(IPC_PRIVATE, 1280*720*4, 0666);
-      pbuffer = (char*)shmat(shmkey, NULL /* desired address */, 0 /* flags */);
+    if (status != VA_STATUS_SUCCESS) {
+      LOG(ERROR) << "vaPutsurface Error " ;
     }
-        
-    XShmSegmentInfo shminfo = {0};
 
-    mXImage = XShmCreateImage(dTmp, DefaultVisual(dTmp, DefaultScreen(dTmp)), 24, ZPixmap, NULL, &shminfo, w_, h_);
- // ("mXImage->bytes_per_line: %d, mXImage->height: %d\n", mXImage->bytes_per_line, mXImage->height);
+    XImage * mXImage = proxy->m_ximage_;
 
-    shminfo.shmaddr = mXImage->data = pbuffer;
-   shminfo.shmid = shmkey;
+#ifdef _Shared_
 
-    if(!XShmAttach(dTmp, &shminfo)){
-       LOG(ERROR) << "XShmAttach Error" ;
-    };
-
-    if(! XShmGetImage(dTmp, pixmap, mXImage, 0, 0, AllPlanes) ){
-        LOG(ERROR) << "XShmGetImage Error" ;
+    if(!XShmGetImage(dTmp, pixmap, mXImage, 0, 0, AllPlanes) ){
+       LOG(ERROR) << "XShmGetImage Error" ;
+       return;
     } ;
 
 #else
     mXImage = XGetImage(dTmp, pixmap, 0, 0, w_, h_, AllPlanes, ZPixmap);
 #endif
-    //("mXImage: %x, %x, %x, %x, %x\n", mXImage->data, mXImage->bytes_per_line, mXImage->width, mXImage->height, mXImage->depth);
 
     if(proxy->last_frame_){
         memset(mXImage->data, 0, w_*h_*4);
@@ -353,6 +439,19 @@ if(/*(wp->paused() == 0) ||*/ subwin){
    } 
 #endif
 
+#ifdef _Shared_
+    if(!XShmDetach(dTmp, &shm)){
+        LOG(ERROR) << "XShmDetach Error" ;
+        return;
+    }
+    XDestroyImage(mXImage);
+    proxy->m_ximage_ = NULL;
+
+#else
+    XDestroyImage(mXImage);
+#endif
+
+
     //XFreePixmap(dTmp, pixmap);
 }/*not full screen ?*/
 
@@ -385,6 +484,11 @@ void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
   const SkMatrix& local_matrix = canvas->getTotalMatrix();
   SkRect local_dest_rect;
   local_matrix.mapRect(&local_dest_rect, scalar_dest_rect);
+
+  /*Skip not really resize paint*/
+  if(local_matrix.getType() == 2){
+    return;
+  }
 
   // After projecting the destination rectangle to local coordinates, round
   // the projected rectangle to integer values, this will give us pixel values
@@ -448,12 +552,6 @@ void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
 
 #if defined (TOOLKIT_MEEGOTOUCH)
 // _DEV2_H264_
-
-/*
-    ("src: %d.%d, dst: %d.%d, row: %d. left: %d, top: %d\n", video_frame->width(),video_frame->height(),local_dest_irect.width(),
-                       local_dest_irect.height(), bitmap.rowBytes(), 
-                      local_dest_irect.fLeft , local_dest_irect.fTop);
-*/
 
  if(video_frame->data_[1] == (uint8_t*)0x264){
 

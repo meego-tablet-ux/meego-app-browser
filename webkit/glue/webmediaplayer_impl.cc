@@ -50,18 +50,12 @@ using WebKit::WebRect;
 using WebKit::WebSize;
 
 #if defined (TOOLKIT_MEEGOTOUCH)
-#include <X11/X.h>
-#include <X11/Xlib.h>
 #include <sys/syscall.h>
 /*XA_WINDOW*/
-#include <X11/Xatom.h>
-#include <sys/shm.h>
-#include <X11/extensions/XShm.h>
 #include <va/va.h>
 #include <va/va_x11.h>
 
 Window subwin ;
-unsigned long hwPixmap ;
 extern Display *mDisplay ;
 extern unsigned int CodecID ;
 
@@ -156,6 +150,7 @@ void WebMediaPlayerImpl::Proxy::H264PaintFullScreen() {
   /*resize of not while menu is enabled*/
   
   if(!subwin){
+    PutCurrentFrame(video_frame);
     return;
   }
   
@@ -164,6 +159,10 @@ void WebMediaPlayerImpl::Proxy::H264PaintFullScreen() {
                         0, 0, w_, h_, /*dst*/
                         NULL, 0,
                         VA_FRAME_PICTURE | VA_SRC_BT601);
+
+  if (status != VA_STATUS_SUCCESS) {
+      LOG(ERROR) << "vaPutsurface Error " ;
+  }
   
   PutCurrentFrame(video_frame);
   return;
@@ -659,10 +658,18 @@ bool WebMediaPlayerImpl::Initialize(
 
 #if defined (TOOLKIT_MEEGOTOUCH)
 /*_DEV2_OPT*/
+  {
+  base::AutoLock auto_lock(proxy_->paint_lock_);
   subwin = 0;
   proxy_->menu_on_ = 0;
   proxy_->last_frame_ = 0;
-  hwPixmap = 0;
+  proxy_->hw_pixmap_ = 0;
+  proxy_->pixmap_w_ = 0;
+  proxy_->pixmap_h_ = 0;
+  proxy_->m_ximage_ = 0;
+  proxy_->shminfo_.shmid = 0;
+  proxy_->shminfo_.shmaddr = NULL;
+  }
    
 #endif
 
@@ -673,9 +680,6 @@ bool WebMediaPlayerImpl::Initialize(
 WebMediaPlayerImpl::~WebMediaPlayerImpl() {
   Destroy();
 
-  if((mDisplay != NULL) && hwPixmap){
-    XFreePixmap(mDisplay, hwPixmap);
-  }
   // Finally tell the |main_loop_| we don't want to be notified of destruction
   // event.
   if (main_loop_) {
@@ -1228,6 +1232,31 @@ void WebMediaPlayerImpl::SetReadyState(
 
 void WebMediaPlayerImpl::Destroy() {
   DCHECK(MessageLoop::current() == main_loop_);
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+  {
+  base::AutoLock auto_lock(proxy_->paint_lock_);
+  /*Free shm memeory for H264*/
+  if((proxy_->shminfo_.shmid !=0) && proxy_->shminfo_.shmaddr){
+ 
+    if(!mDisplay){
+      return;
+    }
+
+    /*free share memory*/
+    shmdt(proxy_->shminfo_.shmaddr);
+    shmctl(proxy_->shminfo_.shmid, IPC_RMID, 0);
+    proxy_->shminfo_.shmid = 0;
+    proxy_->shminfo_.shmaddr = NULL;
+  }
+
+  if((mDisplay != NULL) && proxy_->hw_pixmap_){
+    proxy_->hw_pixmap_ = 0;
+    proxy_->pixmap_w_ = 0;
+    proxy_->pixmap_h_ = 0;
+  }
+  }
+#endif
 
   // Tell the data source to abort any pending reads so that the pipeline is
   // not blocked when issuing stop commands to the other filters.
