@@ -134,8 +134,8 @@ TimedOverlay {
                 textColor: "white"
                 height: 40
                 width: 100
-                bgSourceUp: "image://themedimage/images/btn_blue_up"
-                bgSourceDn: "image://themedimage/images/btn_blue_dn"
+                bgSourceUp: "image://themedimage/widgets/common/button/button-default"
+                bgSourceDn: "image://themedimage/widgets/common/button/button-default-pressed"
 
                 anchors.right: noButton.left
                 anchors.rightMargin: 5
@@ -152,8 +152,8 @@ TimedOverlay {
                 textColor: "white"
                 height: 40
                 width: 100
-                bgSourceUp: "image://themedimage/images/btn_red_up"
-                bgSourceDn: "image://themedimage/images/btn_red_dn"
+                bgSourceUp: "image://themedimage/widgets/common/button/button"
+                bgSourceDn: "image://themedimage/widgets/common/button/button-pressed"
 
                 anchors.right: parent.right
                 anchors.rightMargin: 5
