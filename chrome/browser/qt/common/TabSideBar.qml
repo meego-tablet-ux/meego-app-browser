@@ -62,9 +62,8 @@ Item {
   }
 
   Column {
-    width: isLandscape ? tabgridview.width : 202
-    property int tabviewHeight: isLandscape ? tabgridview.height : tablistview.item.height
-    height: tabviewHeight ? borderImage1.height + newtab.height + tabviewHeight + 10 + borderImage2.height : borderImage1.height + newtab.height + tabviewHeight + borderImage2.height
+    width: tabgridview.width
+    height: tabgridview.height + borderImage1.height + newtab.height + borderImage2.height + 10
 
     x: calcX()
     y: up?arrow.y + arrow.height-2:start_y - arrow.height - height +2
@@ -108,22 +107,13 @@ Item {
         height: 50
         z: 1000
       }
-      Loader {
-        id:tabgridview
-        source: isLandscape ? "TabGridView.qml" : ""
+
+      TabGridView {
+        id: tabgridview
         anchors.left: parent.left
         anchors.top: newtab.bottom
         anchors.topMargin: 10
-      }
-      Loader {
-        id:tablistview
-        source: isLandscape ? "" : "TabListView.qml"
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: newtab.bottom
-        anchors.topMargin: 10
-        width: parent.width
-        property int maxHeight: maxSideBarHeight - 20 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
+        maxHeight: maxSideBarHeight - 20 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
       }
 
       Connections {
