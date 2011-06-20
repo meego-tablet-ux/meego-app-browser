@@ -43,10 +43,12 @@ Item {
     property int constMaxPopupListHeight : 450
     property int currentIndex : 0
     property Item targetContainer : null
-    property int contextMenuArrowHeight: 10
     property Item contentItem: null
     property int screenHeight: 800
-    property int toolbarHeight: 55
+    property int toolbarHeight: 85
+    property int contextMenuExtraHeight: 40
+    property int midOfPage: (screenHeight - toolbarHeight)/2 + toolbarHeight
+    property int maxAllowedHeight: 0
     anchors.fill : parent
     visible : false
 
@@ -82,22 +84,35 @@ Item {
             targetContainer: container.targetContainer
            
             function display(x, y) {
-                if (y > 500){
+                if (y > midOfPage){
                     webPopupListContext.forceFingerMode = 3
-                    if(y < 550){
-                        contextMenuContent.maxHeight = constMaxPopupListHeight - toolbarHeight;
+                    if(y - toolbarHeight > contextMenuExtraHeight + constMaxPopupListHeight){
+                        maxAllowedHeight = constMaxPopupListHeight;
                     }else{
-                        contextMenuContent.maxHeight = constMaxPopupListHeight;
+                        maxAllowedHeight = y - toolbarHeight - contextMenuExtraHeight;
                     }
                 }else{
                     webPopupListContext.forceFingerMode = 2
-                    if(screenHeight - toolbarHeight - y < constMaxPopupListHeight){
-                        contextMenuContent.maxHeight = screenHeight - y - toolbarHeight;
+                    if(y + constMaxPopupListHeight + contextMenuExtraHeight < screenHeight){
+                        maxAllowedHeight = constMaxPopupListHeight;
                     }else{
-                        contextMenuContent.maxHeight = constMaxPopupListHeight;
+                        maxAllowedHeight = screenHeight - y - contextMenuExtraHeight;
                     }
                 }
+
+                if(maxAllowedHeight > contextMenuContent.realheight){
+                    contextMenuContent.height = contextMenuContent.realheight;
+                    contextMenuContent.interactive = false;
+                }else{
+                    contextMenuContent.height = maxAllowedHeight;
+                    contextMenuContent.interactive = true;
+                }
+
                 webPopupListContext.setPosition(x, y);
+                // The invoke sequence is positionCurrentItem() -> display()
+                // Since we modified the contextMenuConten.height which positionCurrentItem() used,
+                // We need reinvoke the positionCurrentItem()
+                contextMenuContent.positionCurrentItem();
                 webPopupListContext.show();
             }
 

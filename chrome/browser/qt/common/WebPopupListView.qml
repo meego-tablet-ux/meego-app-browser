@@ -52,18 +52,15 @@ Flickable {
     property int currentItemHeight : 0
     property int realheight : 200
     property int maxHeight : 450
-    property int constMaxHeight : 450
 
     signal triggered(int index)
 
     // currentWidth is the current width of the largest text width, clamped between minWidth and maxWidth
     width: currentWidth
-    height: (contentHeight < constMaxHeight ) ? contentHeight : constMaxHeight
 
     contentHeight: realheight
     contentWidth: currentWidth
 
-    interactive: (contentHeight > height) ? true : false
     clip: true
 
     Item {
@@ -87,6 +84,7 @@ Flickable {
         if(!container.interactive)
             return;
 
+        // Note: container.height is setted by the invoker
         if (currentItemY < container.height/2 ){
             container.contentY = 0;
         }else if (currentItemY + container.height/2 > realheight ){
