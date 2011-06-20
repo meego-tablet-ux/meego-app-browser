@@ -107,14 +107,12 @@ Item {
       }
     }
   }
-  Image {
+
+  DefaultDivider {
     id: divide
-    height: 5
-    width: parent.width
-    anchors.top: controlContainer.bottom
-    fillMode: Image.Stretch
-    source: "image://themedimage/images/btn_grey_up"
+    anchors { left: parent.left; leftMargin: 25; right: parent.right; rightMargin: 25; top: controlContainer.bottom }
   }
+
   DownloadShelf {
     id: listContainer
     anchors.margins: 10
