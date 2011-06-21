@@ -101,8 +101,13 @@ Item {
       anchors.topMargin: -5
       anchors.bottomMargin: -5
       onPressed: {
-        if (!showqmlpanel) 
+        if (!showqmlpanel) {
           urlTextInput.forceActiveFocus();
+          urlTextInput.moveTo(mouseX);
+        }
+      }
+      onMouseXChanged: {
+        urlTextInput.moveToSelection(mouseX);
       }
     }
     Rectangle{
@@ -171,9 +176,21 @@ Item {
       opacity: {!showqmlpanel ? 1:0}
       font.pixelSize: theme_fontPixelSizeNormal
       property bool isDelete: false
-      property bool shouldSelectAll: false
       autoScroll: false
       inputMethodHints: Qt.ImhUrlCharactersOnly
+
+      // get mouseX from MouseArea, transfrom it to cursor position, and move cursor to that position
+      function moveTo(mouseX) {
+        mouseX = mouseX - sslArea.width - anchors.leftMargin - sslArea.anchors.leftMargin;
+        cursorPosition = positionAt(mouseX);
+      }
+
+      // move to and select text
+      function moveToSelection(mouseX) {
+        mouseX = mouseX - sslArea.width - anchors.leftMargin - sslArea.anchors.leftMargin;
+        if(selectByMouse == true)
+          moveCursorSelection(positionAt(mouseX));
+      }
 
       Keys.onReturnPressed: {
         autocompleteEditViewModel.returnPressed();
@@ -191,13 +208,15 @@ Item {
         autocompleteEditViewModel.textChanged(text, isDelete);
         isDelete = false;
       }
-      onSelectedTextChanged: { 
-	if (activeFocus == true)
-	    urlTextInput.autoScroll = true ;                                                                      
-        selectByMouse = !shouldSelectAll;
-        if (shouldSelectAll == true) {
-          selectAll();
-          shouldSelectAll = false;
+      onSelectedTextChanged: {
+        if (activeFocus == true)
+          urlTextInput.autoScroll = true;
+        // when selectAll, disable selectByMouse to avoid partial select.
+        if (selectedText == text) {
+          selectByMouse = false;
+        }
+        else {
+          selectByMouse = true;
         }
       }
       onActiveFocusChanged: {
@@ -221,6 +240,14 @@ Item {
         }
         container.activeFocusChanged(activeFocus);
       }
+      Timer {
+        id: timer
+        interval: 5
+        onTriggered: {
+          urlTextInput.selectAll();
+          urlTextInput.cursorVisible = true; // show cursor after selectAll
+        }
+      }
       Connections {
         target: autocompleteEditViewModel
         onSetFocus: urlTextInput.forceActiveFocus()
@@ -228,8 +255,8 @@ Item {
         onSetSelection: urlTextInput.select(start, end);
         onSelectAll: {
           if (urlTextInput.text.length > 0) {
-            urlTextInput.selectAll();
-            urlTextInput.shouldSelectAll = !urlTextInput.shouldSelectAll;
+            urlTextInput.cursorVisible = false; // hide cursor during selectAll
+            timer.start();
           }
         }
         onSetReadOnly: {urlTextInput.readOnly = readonly;}
