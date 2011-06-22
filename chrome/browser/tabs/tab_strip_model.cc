@@ -194,6 +194,7 @@ void TabStripModel::InsertTabContentsAt(int index,
       return;
     }
   }
+
   // Force app tabs to be pinned.
   bool pin =
       contents->extension_tab_helper()->is_app() || add_types & ADD_PINNED;
@@ -1391,7 +1392,7 @@ void TabStripModel::MakePhantom(int index) {
   FOR_EACH_OBSERVER(TabStripModelObserver, observers_,
                     TabReplacedAt(this, old_contents, new_contents, index));
 
-  if (selected_index() == index && HasNonPhantomTabs()) {
+  if (active_index() == index && HasNonPhantomTabs()) {
     // Change the selection, otherwise we're going to force the phantom tab
     // to become selected.
     // NOTE: we must do this after the call to Replace otherwise browser's
@@ -1401,7 +1402,7 @@ void TabStripModel::MakePhantom(int index) {
         order_controller_->DetermineNewSelectedIndex(index);
     new_selected_index = IndexOfNextNonPhantomTab(new_selected_index,
                                                   index);
-    SelectTabContentsAt(new_selected_index, true);
+    ActivateTabAt(new_selected_index, true);
   }
 
   //if (!HasNonPhantomTabs())

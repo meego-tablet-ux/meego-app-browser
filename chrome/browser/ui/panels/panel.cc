@@ -280,6 +280,10 @@ void Panel::ShowPageInfo(Profile* profile,
   NOTIMPLEMENTED();
 }
 
+void Panel::ShowDownloads() {
+  NOTIMPLEMENTED();
+}
+
 void Panel::ShowAppMenu() {
   NOTIMPLEMENTED();
 }

@@ -30,7 +30,7 @@
 #include "chrome/browser/ui/app_modal_dialogs/app_modal_dialog_queue.h"
 #include "chrome/browser/ui/meegotouch/popup_list_qt.h"
 #include "webkit/glue/webmenuitem.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 
 #include <QGraphicsSceneContextMenuEvent>
 #include <QOrientationReading>

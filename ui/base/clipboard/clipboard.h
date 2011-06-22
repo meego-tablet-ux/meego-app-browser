@@ -149,7 +149,7 @@ class Clipboard {
                                  Buffer buffer);
 
   void ReadAvailableTypes(Buffer buffer, std::vector<string16>* types,
-                          bool* contains_filenames) const;
+                          bool* contains_filenames);
 
   // Reads UNICODE text from the clipboard, if available.
   void ReadText(Buffer buffer, string16* result);

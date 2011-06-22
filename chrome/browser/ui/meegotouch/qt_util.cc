@@ -34,7 +34,7 @@
 
 #include "base/logging.h"
 #include "chrome/browser/ui/meegotouch/qt_util.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 
 

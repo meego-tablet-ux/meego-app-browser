@@ -34,8 +34,8 @@
 #include "base/callback.h"
 #include "base/command_line.h"
 #include "base/md5.h"
-#include "base/singleton.h"
-#include "base/scoped_vector.h"
+#include "base/memory/singleton.h"
+#include "base/memory/scoped_vector.h"
 #include "base/string16.h"
 #include "base/string_number_conversions.h"
 #include "base/utf_string_conversions.h"
@@ -172,7 +172,7 @@ class NewTabUIQt : public TabStripModelObserver,
 
     MaxViewImageProvider* recentlyClosedImageProvider_;
 
-    DictionaryValue* pinned_urls_;
+    const DictionaryValue* pinned_urls_;
 
     // Our consumer for the history service.
     CancelableRequestConsumerTSimple<MostVisitedPage*> cancelable_consumer_;

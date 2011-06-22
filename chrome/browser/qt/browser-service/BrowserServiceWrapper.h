@@ -3,7 +3,7 @@
 
 #include <map>
 
-#include "base/singleton.h"
+#include "base/memory/singleton.h"
 #include "chrome/browser/bookmarks/bookmark_model_observer.h"
 #include "content/common/notification_observer.h"
 #include "content/common/notification_registrar.h"
@@ -21,7 +21,7 @@
 #include "chrome/browser/bookmarks/bookmark_html_writer.h"
 #include "chrome/browser/bookmarks/bookmark_model.h"
 #include "chrome/browser/bookmarks/bookmark_utils.h"
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 #include "content/browser/cancelable_request.h"
 #include "content/browser/browser_thread.h"
 #include "googleurl/src/gurl.h"

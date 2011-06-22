@@ -5,7 +5,7 @@
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/browser/ssl/ssl_blocking_page.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 
 class SSLDialogQt;
 class SSLDialogQtImpl;

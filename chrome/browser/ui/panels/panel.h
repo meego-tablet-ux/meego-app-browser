@@ -104,6 +104,7 @@ class Panel : public BrowserWindow {
                             const GURL& url,
                             const NavigationEntry::SSLStatus& ssl,
                             bool show_history);
+  virtual void ShowDownloads();
   virtual void ShowAppMenu();
   virtual bool PreHandleKeyboardEvent(const NativeWebKeyboardEvent& event,
                                       bool* is_keyboard_shortcut);

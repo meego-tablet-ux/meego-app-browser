@@ -280,7 +280,7 @@ NewTabUIQt::NewTabUIQt(Browser* browser, BrowserWindowQt* window)
     tabModel->AddObserver(this);
 
     Profile* profile = browser_->profile();
-    pinned_urls_ = profile->GetPrefs()->GetMutableDictionary(prefs::kNTPMostVisitedPinnedURLs);
+    pinned_urls_ = profile->GetPrefs()->GetDictionary(prefs::kNTPMostVisitedPinnedURLs);
 
     impl_ = new NewTabUIQtImpl();
     mostVisitedModel_ = new MaxViewModel(this, NULL, QString(MOST_VISITED));
@@ -501,7 +501,7 @@ void NewTabUIQt::syncWithPinnedPage(std::vector<MostVisitedPage*>* data,
     if (pinned_urls_->GetWithoutPathExpansion(*it, &value)) {
       if (!value->IsType(DictionaryValue::TYPE_DICTIONARY)) {
         // Moved on to TopSites and now going back.
-        pinned_urls_->Clear();
+//        pinned_urls_->Clear();
         DLOG(INFO)<<__FUNCTION__<<"Critical error!";
         return;
       }
@@ -607,7 +607,7 @@ bool NewTabUIQt::GetPinnedURLAtIndex(int index,
     if (pinned_urls_->GetWithoutPathExpansion(*it, &value)) {
       if (!value->IsType(DictionaryValue::TYPE_DICTIONARY)) {
         // Moved on to TopSites and now going back.
-        pinned_urls_->Clear();
+//        pinned_urls_->Clear();
         return false;
       }
 

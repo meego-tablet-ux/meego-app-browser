@@ -18,7 +18,6 @@
 
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/resource/resource_bundle.h"
-#include "ui/base/theme_provider.h"
 #include "base/base_paths.h"
 #include "base/command_line.h"
 //#include "base/keyboard_codes.h"
@@ -26,7 +25,7 @@
 #include "base/message_loop.h"
 #include "base/path_service.h"
 #include "base/scoped_ptr.h"
-#include "base/singleton.h"
+#include "base/memory/singleton.h"
 #include "base/string_util.h"
 #include "base/time.h"
 #include "chrome/app/chrome_command_ids.h"
@@ -34,9 +33,8 @@
 #include "chrome/browser/autocomplete/autocomplete_edit_view.h"
 #include "chrome/browser/bookmarks/bookmark_utils.h"
 #include "chrome/browser/ui/browser.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/browser_process.h"
-#include "chrome/browser/themes/browser_theme_provider.h"
 #include "chrome/browser/debugger/devtools_window.h"
 #include "chrome/browser/download/download_item_model.h"
 #include "chrome/browser/download/download_manager.h"
@@ -391,6 +389,12 @@ void BrowserWindowQt::Show()
   window_->raise();
 }
 
+void BrowserWindowQt::ShowInactive()
+{
+  window_->show();
+  window_->raise();
+}
+
 void BrowserWindowQt::Close()
 {
   if (!CanClose())
@@ -430,7 +434,7 @@ void BrowserWindowQt::TabDetachedAt(TabContentsWrapper* contents, int index) {
   // We use index here rather than comparing |contents| because by this time
   // the model has already removed |contents| from its list, so
   // browser_->GetSelectedTabContents() will return NULL or something else.
-  if (index == browser_->tabstrip_model()->selected_index())
+  if (index == browser_->tabstrip_model()->active_index())
       infobar_container_->ChangeTabContents(NULL);
   //  contents_container_->DetachTabContents(contents);
   //  UpdateDevToolsForContents(NULL);
@@ -567,7 +571,7 @@ void BrowserWindowQt::SetStarredState(bool is_starred) {
 void BrowserWindowQt::PrepareForInstant() {
   TabContents* contents = contents_container_->GetTabContents();
   if (contents)
-    contents->FadeForInstant(true);
+    FadeForInstant(true);
 }
 
 void BrowserWindowQt::ShowBookmarkBubble(const GURL& url, bool already_bookmarked)
@@ -617,5 +621,24 @@ PopupListQt* BrowserWindowQt::GetWebPopupList()
 {
     return web_popuplist_.get();
 }
+
+void BrowserWindowQt::FadeForInstant(bool animate) {
+  DCHECK(contents_container_->GetTabContents());
+  RenderWidgetHostView* rwhv =
+      contents_container_->GetTabContents()->GetRenderWidgetHostView();
+  if (rwhv) {
+    SkColor whitish = SkColorSetARGB(192, 255, 255, 255);
+    rwhv->SetVisuallyDeemphasized(&whitish, animate);
+  }
+}
+
+void BrowserWindowQt::CancelInstantFade() {
+  DCHECK(contents_container_->GetTabContents());
+  RenderWidgetHostView* rwhv =
+      contents_container_->GetTabContents()->GetRenderWidgetHostView();
+  if (rwhv)
+    rwhv->SetVisuallyDeemphasized(NULL, false);
+}
+
 
 #include "moc_browser_window_qt.cc"

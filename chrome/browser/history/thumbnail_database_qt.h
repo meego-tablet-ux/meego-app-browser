@@ -12,7 +12,7 @@
 #include "app/sql/init_status.h"
 #include "app/sql/meta_table.h"
 #include "base/gtest_prod_util.h"
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 #include "base/scoped_ptr.h"
 #include "chrome/browser/history/history_types.h"
 

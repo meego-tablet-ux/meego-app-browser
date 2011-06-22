@@ -8,7 +8,7 @@
 #include "content/browser/tab_contents/tab_contents.h"
 #include "webkit/glue/context_menu.h"
 #include "chrome/browser/tab_contents/render_view_context_menu_qt.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 
 RenderViewContextMenuQt::RenderViewContextMenuQt(

@@ -15,7 +15,7 @@
 #include "base/scoped_ptr.h"
 #include "base/timer.h"
 #include "build/build_config.h"
-#include "chrome/browser/browser_window.h"
+#include "chrome/browser/ui/browser_window.h"
 #include "chrome/browser/prefs/pref_member.h"
 #include "chrome/browser/tabs/tab_strip_model.h"
 #include "content/common/notification_registrar.h"
@@ -74,6 +74,7 @@ class BrowserWindowQt : //public MApplicationWindow,
 
   // Overridden from BrowserWindow
   virtual void Show();
+  virtual void ShowInactive();
   virtual void SetBounds(const gfx::Rect& bounds) {DNOTIMPLEMENTED();};
   virtual void Close();
   virtual void Activate() {DNOTIMPLEMENTED();};
@@ -84,6 +85,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   virtual void FlashFrame() {DNOTIMPLEMENTED();};
   virtual gfx::NativeWindow GetNativeHandle() {DNOTIMPLEMENTED(); return NULL;};
   virtual BrowserWindowTesting* GetBrowserWindowTesting() {DNOTIMPLEMENTED(); return NULL;};
+  virtual void ToolbarSizeChanged(bool is_animating) {DNOTIMPLEMENTED();};
   // No StatusBubble
   virtual StatusBubble* GetStatusBubble() {/*DNOTIMPLEMENTED();*/ return NULL;};
   virtual void SelectedTabToolbarSizeChanged(bool is_animating) {DNOTIMPLEMENTED();};
@@ -153,6 +155,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   virtual bool PreHandleKeyboardEvent(const NativeWebKeyboardEvent& event,
                                       bool* is_keyboard_shortcut) {/*DNOTIMPLEMENTED();*/ return false;};
   virtual void HandleKeyboardEvent(const NativeWebKeyboardEvent& event) {/*DNOTIMPLEMENTED();*/};
+  virtual void ShowCreateWebAppShortcutsDialog(TabContentsWrapper* tab_contents) {DNOTIMPLEMENTED();};
   virtual void ShowCreateWebAppShortcutsDialog(TabContents*  tab_contents) {DNOTIMPLEMENTED();};
   virtual void ShowCreateChromeAppShortcutsDialog(Profile* profile,
                                                   const Extension* app) {DNOTIMPLEMENTED();};
@@ -161,7 +164,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   virtual void Paste() {DNOTIMPLEMENTED();};
   virtual void ToggleTabStripMode() {DNOTIMPLEMENTED();};
   virtual void PrepareForInstant();
-  virtual void ShowInstant(TabContents* preview_contents){DNOTIMPLEMENTED();};
+  virtual void ShowInstant(TabContentsWrapper* preview){DNOTIMPLEMENTED();};
   virtual void HideInstant(bool instant_is_active) {DNOTIMPLEMENTED();};
   virtual gfx::Rect GetInstantBounds(){return gfx::Rect();};
 
@@ -208,6 +211,9 @@ class BrowserWindowQt : //public MApplicationWindow,
   bool CanClose();
   virtual void DestroyBrowser();
   void AddAction(const QString& str);
+ private:
+  void FadeForInstant(bool animate);
+  void CancelInstantFade();
 
   // top level window
 #if defined(MTF)

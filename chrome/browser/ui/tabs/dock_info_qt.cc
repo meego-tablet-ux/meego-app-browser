@@ -6,8 +6,8 @@
 
 #include "base/logging.h"
 #include "base/task.h"
-#include "chrome/browser/browser_list.h"
-#include "chrome/browser/browser_window.h"
+#include "chrome/browser/ui/browser_list.h"
+#include "chrome/browser/ui/browser_window.h"
 #include "ui/gfx/native_widget_types.h"
 
 bool DockInfo::GetWindowBounds(gfx::Rect* bounds) const {

@@ -15,9 +15,10 @@
 #include "ui/gfx/rect.h"
 
 // static
-void ConstrainedHtmlUI::CreateConstrainedHtmlDialog(
+ConstrainedWindow* ConstrainedHtmlUI::CreateConstrainedHtmlDialog(
     Profile* profile,
     HtmlDialogUIDelegate* delegate,
     TabContents* overshadowed) {
   NOTIMPLEMENTED();
+  return 0;
 }

@@ -44,26 +44,22 @@ static base::LazyInstance<PrintingSequencePathMap>
 // We get null window_ids passed into the two functions below; please see
 // http://crbug.com/9060 for more details.
 
-void RenderMessageFilter::DoOnGetScreenInfo(gfx::NativeViewId view,
-                                            IPC::Message* reply_msg) {
+void RenderMessageFilter::OnGetScreenInfo(gfx::NativeViewId view,
+                                            WebKit::WebScreenInfo* results) {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::BACKGROUND_X11));
   Display* display = ui::GetSecondaryDisplay();
   int screen = ui::GetDefaultScreen(display);
-  WebScreenInfo results = WebScreenInfoFactory::screenInfo(display, screen);
-  ViewHostMsg_GetScreenInfo::WriteReplyParams(reply_msg, results);
-  Send(reply_msg);
+  *results = WebScreenInfoFactory::screenInfo(display, screen);
 }
 
-void RenderMessageFilter::DoOnGetWindowRect(gfx::NativeViewId view,
-                                            IPC::Message* reply_msg) {
+void RenderMessageFilter::OnGetWindowRect(gfx::NativeViewId view,
+                                            gfx::Rect* rect) {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::BACKGROUND_X11));
   gfx::NativeView navite_view = gfx::NativeViewFromId(view);
   QRectF br = navite_view->boundingRect();
-  gfx::Rect rect(static_cast<int>(br.x()), static_cast<int>(br.y()),
+  *rect = gfx::Rect(static_cast<int>(br.x()), static_cast<int>(br.y()),
        static_cast<int>(br.width()), static_cast<int>(br.height()));
 
-  ViewHostMsg_GetRootWindowRect::WriteReplyParams(reply_msg, rect);
-  Send(reply_msg);
 }
 
 // Return the top-level parent of the given window. Called on the
@@ -80,44 +76,15 @@ static XID GetTopLevelWindow(XID window) {
   return GetTopLevelWindow(parent_window);
 }
 
-void RenderMessageFilter::DoOnGetRootWindowRect(gfx::NativeViewId view,
-                                                IPC::Message* reply_msg) {
+void RenderMessageFilter::OnGetRootWindowRect(gfx::NativeViewId view,
+                                                gfx::Rect* rect) {
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::BACKGROUND_X11));
   const XID toplevel = ui::GetX11RootWindow();
   int x, y;
   unsigned width, height;
-  gfx::Rect rect;
 
   if (ui::GetWindowGeometry(&x, &y, &width, &height, toplevel))
-    rect = gfx::Rect(x, y, width, height);
-
-  ViewHostMsg_GetRootWindowRect::WriteReplyParams(reply_msg, rect);
-  Send(reply_msg);
-}
-
-void RenderMessageFilter::OnGetScreenInfo(gfx::NativeViewId view,
-                                          IPC::Message* reply_msg) {
-  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
-  BrowserThread::PostTask(
-     BrowserThread::BACKGROUND_X11, FROM_HERE,
-     NewRunnableMethod(
-         this, &RenderMessageFilter::DoOnGetScreenInfo, view, reply_msg));
-}
-
-void RenderMessageFilter::OnGetWindowRect(gfx::NativeViewId view,
-                                          IPC::Message* reply_msg) {
-  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
-  BrowserThread::PostTask(
-      BrowserThread::BACKGROUND_X11, FROM_HERE,
-      NewRunnableMethod(
-          this, &RenderMessageFilter::DoOnGetWindowRect, view, reply_msg));
-}
-
-void RenderMessageFilter::OnGetRootWindowRect(gfx::NativeViewId view,
-                                              IPC::Message* reply_msg) {
-  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
-  BrowserThread::PostTask(
-      BrowserThread::BACKGROUND_X11, FROM_HERE,
-      NewRunnableMethod(
-          this, &RenderMessageFilter::DoOnGetRootWindowRect, view, reply_msg));
+    *rect = gfx::Rect(x, y, width, height);
+  else
+    *rect = gfx::Rect();
 }

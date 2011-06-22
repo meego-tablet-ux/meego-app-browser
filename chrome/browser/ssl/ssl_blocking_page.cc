@@ -9,7 +9,7 @@
 #include "base/string_piece.h"
 #include "base/utf_string_conversions.h"
 #include "base/values.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/dom_operation_notification_details.h"
 #include "chrome/browser/ssl/ssl_cert_error_handler.h"
 #include "chrome/browser/ssl/ssl_error_info.h"

@@ -45,6 +45,7 @@
 
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebWidget.h"
 #include "chrome/common/render_tiling.h"
+#include "chrome/common/render_messages.h"
 
 #if defined(TILED_BACKING_STORE_DEBUG)
 #include <QString>

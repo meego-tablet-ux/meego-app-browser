@@ -18,6 +18,7 @@
 #include "base/file_path.h"
 #include "base/logging.h"
 #include "base/scoped_ptr.h"
+#include "third_party/skia/include/core/SkBitmap.h"
 
 #include "base/utf_string_conversions.h"
 #include "ui/gfx/size.h"
@@ -188,7 +189,7 @@ bool Clipboard::IsFormatAvailableByString(const std::string& format,
 
 void Clipboard::ReadAvailableTypes(Clipboard::Buffer buffer,
                                    std::vector<string16>* types,
-                                   bool* contains_filenames) const {
+                                   bool* contains_filenames) {
   if (!types || !contains_filenames) {
     NOTREACHED();
     return;
@@ -255,13 +256,14 @@ void Clipboard::ReadHTML(Clipboard::Buffer buffer, string16* markup,
     markup->resize(markup->length() - 1);
 }
 
-void Clipboard::ReadImage(Buffer buffer, std::string* data) const {
+SkBitmap Clipboard::ReadImage(Buffer buffer) const {
   // TODO(dcheng): implement this.
   NOTIMPLEMENTED();
-  if (!data) {
-    NOTREACHED();
-    return;
-  }
+  return SkBitmap();
+//  if (!data) {
+//    NOTREACHED();
+//    return;
+//  }
 }
 
 void Clipboard::ReadBookmark(string16* title, std::string* url) {

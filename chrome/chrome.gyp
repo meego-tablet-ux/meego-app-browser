@@ -406,6 +406,12 @@
             '../build/linux/system.gyp:gtk',
           ],
         }],
+
+        ['OS=="linux" and meegotouch==1', {
+          'dependencies': [
+            '../build/linux/system.gyp:meegotouch',
+          ],
+        }],
       ],
     },
     {
@@ -428,12 +434,6 @@
         ['OS=="linux"', {
           'dependencies': [
             '../build/linux/system.gyp:gtk',
-          ],
-        }],
-
-        ['OS=="linux" and meegotouch==1', {
-          'dependencies': [
-            '../build/linux/system.gyp:meegotouch',
           ],
         }],
       ],

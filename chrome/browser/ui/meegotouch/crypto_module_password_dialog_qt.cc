@@ -5,7 +5,7 @@
 #include "chrome/browser/ui/crypto_module_password_dialog.h"
 
 #include "base/basictypes.h"
-#include "base/crypto/crypto_module_blocking_password_delegate.h"
+#include "crypto/crypto_module_blocking_password_delegate.h"
 #include "base/synchronization/waitable_event.h"
 #include "base/task.h"
 #include "base/utf_string_conversions.h"
@@ -24,7 +24,7 @@ void ShowCryptoModulePasswordDialog(const std::string& slot_name,
   DNOTIMPLEMENTED();
 }
 
-base::CryptoModuleBlockingPasswordDelegate*
+crypto::CryptoModuleBlockingPasswordDelegate*
     NewCryptoModuleBlockingDialogDelegate(
         CryptoModulePasswordReason reason,
         const std::string& server) {

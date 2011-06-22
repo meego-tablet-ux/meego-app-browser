@@ -20,7 +20,7 @@
 #include "content/browser/browser_thread.h"
 #include "chrome/browser/ui/shell_dialogs.h"
 #include "grit/generated_resources.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/browser/ui/meegotouch/select_file_dialog_qt.h"
 
@@ -42,7 +42,7 @@ class SelectFileDialogImpl : public SelectFileDialog {
 
   // SelectFileDialog implementation.
   // |params| is user data we pass back via the Listener interface.
-  virtual void SelectFile(Type type,
+  virtual void SelectFileImpl(Type type,
                           const string16& title,
                           const FilePath& default_path,
                           const FileTypeInfo* file_types,
@@ -115,7 +115,8 @@ SelectFileDialog* SelectFileDialog::Create(Listener* listener) {
 }
 
 SelectFileDialogImpl::SelectFileDialogImpl(Listener* listener)
-    : listener_(listener) {
+    : SelectFileDialog(listener),
+      listener_(listener) {
   if (!last_saved_path_) {
     last_saved_path_ = new FilePath();
     last_opened_path_ = new FilePath();
@@ -291,7 +292,7 @@ void SelectFileDialogImpl::ProcessResult(QFileDialog* dialog, int result) {
 }
 
 // We ignore |default_extension|.
-void SelectFileDialogImpl::SelectFile(
+void SelectFileDialogImpl::SelectFileImpl(
     Type type,
     const string16& title,
     const FilePath& default_path,

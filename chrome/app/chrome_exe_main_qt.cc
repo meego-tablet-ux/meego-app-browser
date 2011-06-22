@@ -8,6 +8,8 @@
 #include "chrome/browser/first_run/first_run.h"
 #endif
 
+#include "chrome/browser/first_run/upgrade_util.h"
+
 // The entry point for all invocations of Chromium, browser and renderer. On
 // windows, this does nothing but load chrome.dll and invoke its entry point in
 // order to make it easy to update the app from GoogleUpdate. We don't need
@@ -52,7 +54,7 @@ int main(int argc, const char** argv) {
 #if defined(OS_LINUX) && !defined(OS_CHROMEOS)
   // Launch a new instance if we're shutting down because we detected an
   // upgrade in the persistent mode.
-  Upgrade::RelaunchChromeBrowserWithNewCommandLineIfNeeded();
+  upgrade_util::RelaunchChromeBrowserWithNewCommandLineIfNeeded();
 #endif
 
   ///\todo A very dirty hack to let browser shutdown without crash in release GLTexture

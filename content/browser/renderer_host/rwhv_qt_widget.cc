@@ -35,7 +35,7 @@
 #include "base/time.h"
 
 #include "chrome/browser/renderer_host/render_widget_host_view_qt.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/browser/ui/meegotouch/selection_handler_qt.h"
 #include "content/browser/renderer_host/animation_utils.h"

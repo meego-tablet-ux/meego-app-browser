@@ -13,7 +13,7 @@
 #include "base/i18n/rtl.h"
 #include "base/logging.h"
 #include "base/path_service.h"
-#include "base/singleton.h"
+#include "base/memory/singleton.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/ui/browser.h"
 #include "content/browser/tab_contents/tab_contents.h"

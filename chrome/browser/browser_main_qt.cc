@@ -10,7 +10,7 @@
 
 #include "base/command_line.h"
 #include "base/debug/debugger.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/browser_main_win.h"
 #include "chrome/browser/metrics/metrics_service.h"
 #include "chrome/common/chrome_switches.h"
@@ -25,7 +25,7 @@
 #include "ui/base/x/x11_util_internal.h"
 
 #if defined(USE_NSS)
-#include "base/nss_util.h"
+#include "crypto/nss_util.h"
 #endif
 
 #if defined(USE_LINUX_BREAKPAD)
@@ -67,7 +67,7 @@ void BrowserMainPartsQt::PreEarlyInitialization() {
 
 #if defined(USE_NSS)
   // We want to be sure to init NSPR on the main thread.
-  base::EnsureNSPRInit();
+  crypto::EnsureNSPRInit();
 #endif
 }
 
@@ -120,6 +120,10 @@ void RecordBreakpadStatusUMA(MetricsService* metrics) {
 
 void WarnAboutMinimumSystemRequirements() {
   // Nothing to warn about on GTK right now.
+}
+
+void RecordBrowserStartupTime() {
+  // Not implemented on GTK for now.
 }
 
 // From browser_main_win.h, stubs until we figure out the right thing...

@@ -26,6 +26,8 @@
 #include "chrome/browser/debugger/devtools_manager.h"
 #include "chrome/browser/debugger/devtools_window.h"
 #include "chrome/browser/download/download_manager.h"
+#include "chrome/browser/download/download_util.h"
+#include "chrome/browser/download/save_package.h"
 #include "chrome/browser/extensions/extension_event_router.h"
 #include "chrome/browser/extensions/extension_service.h"
 #include "chrome/browser/metrics/user_metrics.h"
@@ -34,6 +36,7 @@
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/prefs/pref_member.h"
 #include "chrome/browser/prefs/pref_service.h"
+#include "chrome/browser/printing/print_preview_tab_controller.h"
 #include "chrome/browser/profiles/profile.h"
 #include "content/browser/renderer_host/render_view_host.h"
 #include "chrome/browser/search_engines/template_url.h"
@@ -44,11 +47,16 @@
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/browser/translate/translate_prefs.h"
 #include "chrome/browser/translate/translate_manager.h"
+#include "chrome/browser/translate/translate_prefs.h"
+#include "chrome/browser/translate/translate_tab_helper.h"
+#include "chrome/browser/ui/download/download_tab_helper.h"
+#include "chrome/browser/ui/tab_contents/tab_contents_wrapper.h"
 #include "chrome/common/chrome_constants.h"
 #include "chrome/common/chrome_switches.h"
 #include "content/common/page_zoom.h"
 #include "chrome/common/content_restriction.h"
 #include "chrome/common/pref_names.h"
+#include "chrome/common/print_messages.h"
 #include "chrome/common/url_constants.h"
 #include "grit/generated_resources.h"
 #include "net/base/escape.h"
@@ -527,14 +535,12 @@ bool RenderViewContextMenuSimple::AppendCustomItems() {
 }
 
 void RenderViewContextMenuSimple::AppendDeveloperItems() {
-  if (g_browser_process->have_inspector_files()) {
-    // In the DevTools popup menu, "developer items" is normally the only
-    // section, so omit the separator there.
-    if (menu_model_.GetItemCount() > 0)
-      menu_model_.AddSeparator();
-    menu_model_.AddItemWithStringId(IDC_CONTENT_CONTEXT_INSPECTELEMENT,
-                                    IDS_CONTENT_CONTEXT_INSPECTELEMENT);
-  }
+  // In the DevTools popup menu, "developer items" is normally the only
+  // section, so omit the separator there.
+  if (menu_model_.GetItemCount() > 0)
+    menu_model_.AddSeparator();
+  menu_model_.AddItemWithStringId(IDC_CONTENT_CONTEXT_INSPECTELEMENT,
+                                  IDS_CONTENT_CONTEXT_INSPECTELEMENT);
 }
 
 void RenderViewContextMenuSimple::AppendLinkItems() {
@@ -861,12 +867,15 @@ bool RenderViewContextMenuSimple::IsCommandIdEnabled(int id) const {
       return IsDevCommandEnabled(id);
 
     case IDC_CONTENT_CONTEXT_TRANSLATE: {
+      TranslateTabHelper* helper =
+          TabContentsWrapper::GetCurrentWrapperForContents(
+              source_tab_contents_)->translate_tab_helper();
       std::string original_lang =
-          source_tab_contents_->language_state().original_language();
+          helper->language_state().original_language();
       std::string target_lang = g_browser_process->GetApplicationLocale();
       target_lang = TranslateManager::GetLanguageCode(target_lang);
       return !!(params_.edit_flags & WebContextMenuData::CanTranslate) &&
-             source_tab_contents_->language_state().page_translatable() &&
+             helper->language_state().page_translatable() &&
              !original_lang.empty() &&  // Did we receive the page language yet?
              original_lang != target_lang &&
              // Only allow translating languages we explitly support and the
@@ -874,7 +883,7 @@ bool RenderViewContextMenuSimple::IsCommandIdEnabled(int id) const {
              // the server side).
              (original_lang == chrome::kUnknownLanguageCode ||
                  TranslateManager::IsSupportedLanguage(original_lang)) &&
-             !source_tab_contents_->language_state().IsPageTranslated() &&
+             !helper->language_state().IsPageTranslated() &&
              !source_tab_contents_->interstitial_page() &&
              TranslateManager::IsTranslatableURL(params_.page_url);
     }
@@ -1056,7 +1065,7 @@ bool RenderViewContextMenuSimple::IsCommandIdChecked(int id) const {
 
   if (id == IDC_CONTENT_CONTEXT_CONTROLS) {
     return (params_.media_flags &
-            WebContextMenuData::MediaControls) != 0;
+            WebContextMenuData::MediaControlRootElement) != 0;
   }
 
   // Custom items.
@@ -1280,9 +1289,19 @@ void RenderViewContextMenuSimple::ExecuteCommand(int id) {
 
     case IDC_PRINT:
       if (params_.media_type == WebContextMenuData::MediaTypeNone) {
-        source_tab_contents_->PrintPreview();
+        if (CommandLine::ForCurrentProcess()->HasSwitch(
+            switches::kEnablePrintPreview)) {
+          printing::PrintPreviewTabController::PrintPreview(
+              source_tab_contents_);
+        } else {
+          TabContentsWrapper* wrapper =
+              TabContentsWrapper::GetCurrentWrapperForContents(
+                  source_tab_contents_);
+          wrapper->print_view_manager()->PrintNow();
+        }
       } else {
-        source_tab_contents_->render_view_host()->PrintNodeUnderContextMenu();
+        RenderViewHost* rvh = source_tab_contents_->render_view_host();
+        rvh->Send(new PrintMsg_PrintNodeUnderContextMenu(rvh->routing_id()));
       }
       break;
 
@@ -1305,12 +1324,15 @@ void RenderViewContextMenuSimple::ExecuteCommand(int id) {
     case IDC_CONTENT_CONTEXT_TRANSLATE: {
       // A translation might have been triggered by the time the menu got
       // selected, do nothing in that case.
-      if (source_tab_contents_->language_state().IsPageTranslated() ||
-          source_tab_contents_->language_state().translation_pending()) {
+      TranslateTabHelper* helper =
+          TabContentsWrapper::GetCurrentWrapperForContents(
+              source_tab_contents_)->translate_tab_helper();
+      if (helper->language_state().IsPageTranslated() ||
+          helper->language_state().translation_pending()) {
         return;
       }
       std::string original_lang =
-          source_tab_contents_->language_state().original_language();
+          helper->language_state().original_language();
       std::string target_lang = g_browser_process->GetApplicationLocale();
       target_lang = TranslateManager::GetLanguageCode(target_lang);
       // Since the user decided to translate for that language and site, clears

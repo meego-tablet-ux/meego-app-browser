@@ -140,6 +140,7 @@
 #include "webkit/plugins/npapi/webview_plugin.h"
 #include "webkit/plugins/ppapi/ppapi_webplugin_impl.h"
 #include "chrome/common/render_tiling.h"
+#include "chrome/common/render_messages.h"
 
 #if defined(OS_WIN)
 // TODO(port): these files are currently Windows only because they concern:
@@ -1681,16 +1682,16 @@ bool RenderView::runModalBeforeUnloadDialog(
 void RenderView::showContextMenu(
     WebFrame* frame, const WebContextMenuData& data) {
   ContextMenuParams params = ContextMenuParams(data);
+  // the point should be scaled with scale 
+  params.x *= x_scale();
+  params.x += 1;
+  params.y *= y_scale();
+  params.y += 1;
   // Serializing a GURL longer than content::kMaxURLChars will fail, so don't do
   // it.  We replace it with an empty GURL so the appropriate items are disabled
   // in the context menu.
   // TODO(jcivelli): http://crbug.com/45160 This prevents us from saving large
   //                 data encoded images.  We should have a way to save them.
-  // the point should be scaled with scale
-  params.x *= x_scale();
-  params.x += 1;
-  params.y *= y_scale();
-  params.y += 1;
   if (params.src_url.spec().size() > content::kMaxURLChars)
     params.src_url = GURL();
   context_menu_node_ = data.node;
@@ -2206,77 +2207,6 @@ bool RenderView::canHandleRequest(
   // We allow WebKit to think that everything can be handled even though
   // browser-side we limit what we load.
   return true;
-}
-
-void RenderView::OnMsgPaintContents(const TransportDIB::Handle& dib_handle,
-                                   const gfx::Rect& rect,
-                                   int* retval) {
-
-  *retval = -1;
-
-  if (!webwidget_ || dib_handle == TransportDIB::DefaultHandleValue())
-    return;
-
-  scoped_ptr<TransportDIB> paint_at_size_buffer(TransportDIB::Map(dib_handle));
-
-  DCHECK(paint_at_size_buffer.get());
-  if (!paint_at_size_buffer.get())
-    return;
-
-  gfx::Size canvas_size = rect.size();
-
-  scoped_ptr<skia::PlatformCanvas> canvas(
-      paint_at_size_buffer->GetPlatformCanvas(canvas_size.width(),
-                                              canvas_size.height()));
-  if (!canvas.get()) {
-    NOTREACHED();
-    return;
-  }
-
-  canvas->save();
-
-  WebFrame* main_frame = webview()->mainFrame();
-
-  *retval = main_frame->paintContent(canvas.get(),
-                                    WebRect(rect.x(), rect.y(),
-                                            rect.width(), rect.height()));
-  canvas->restore();
-
-}
-
-void RenderView::OnGetLayoutAlgorithm(int *retval) {
-
-  *retval = -1;
-
-  if (!webwidget_)
-    return;
-
-  WebSettings* settings = webview()->settings();
-  WebSettings::LayoutAlgorithm algo = settings->getLayoutAlgorithm();
-
-  *retval = (int)algo;
-}
-
-void RenderView::OnSetLayoutAlgorithm(int algo) {
-  if (!webwidget_)
-    return;
-
-  WebSettings* settings = webview()->settings();
-  settings->setLayoutAlgorithm((WebSettings::LayoutAlgorithm)algo);
-}
-
-void RenderView::OnZoom2TextPre(int x, int y) {
-  if (!webwidget_)
-    return;
-
-  webwidget_->zoom2TextPre(x, y);
-}
-
-void RenderView::OnZoom2TextPost() {
-  if (!webwidget_)
-    return;
-
-  webwidget_->zoom2TextPost();
 }
 
 WebURLError RenderView::cannotHandleRequestError(
@@ -3482,6 +3412,17 @@ void RenderView::OnZoom(PageZoom::Function function) {
   zoomLevelChanged();
 }
 
+void RenderView::OnSetZoomLevel(double zoom_level) {
+  // Don't set zoom level for full-page plugin since they don't use the same
+  // zoom settings.
+  if (webview()->mainFrame()->document().isPluginDocument())
+    return;
+
+  webview()->hidePopups();
+  webview()->setZoomLevel(false, zoom_level);
+  zoomLevelChanged();
+}
+
 void RenderView::OnZoomFactor(double factor) {
   webview()->hidePopups();
   if (factor <= 0)
@@ -3507,17 +3448,6 @@ void RenderView::OnSetScrollPosition(int x, int y) {
 
   WebFrame* frame = webview()->mainFrame();
   frame->setScrollPosition(WebPoint(x, y));
-}
-
-void RenderView::OnSetZoomLevel(double zoom_level) {
-  // Don't set zoom level for full-page plugin since they don't use the same
-  // zoom settings.
-  if (webview()->mainFrame()->document().isPluginDocument())
-    return;
-
-  webview()->hidePopups();
-  webview()->setZoomLevel(false, zoom_level);
-  zoomLevelChanged();
 }
 
 void RenderView::OnSetZoomLevelForLoadingURL(const GURL& url,
@@ -3964,6 +3894,76 @@ bool RenderView::MaybeLoadAlternateErrorPage(WebFrame* frame,
           error_page_url, frame, error,
           NewCallback(this, &RenderView::AltErrorPageFinished)));
   return true;
+}
+
+void RenderView::OnMsgPaintContents(const TransportDIB::Handle& dib_handle,
+                                   const gfx::Rect& rect,
+                                   int* retval) {
+
+  *retval = -1;
+
+  if (!webwidget_ || dib_handle == TransportDIB::DefaultHandleValue())
+    return;
+
+  scoped_ptr<TransportDIB> paint_at_size_buffer(TransportDIB::Map(dib_handle));
+
+  DCHECK(paint_at_size_buffer.get());
+  if (!paint_at_size_buffer.get())
+    return;
+
+  gfx::Size canvas_size = rect.size();
+
+  scoped_ptr<skia::PlatformCanvas> canvas(
+      paint_at_size_buffer->GetPlatformCanvas(canvas_size.width(),
+                                              canvas_size.height()));
+  if (!canvas.get()) {
+    NOTREACHED();
+    return;
+  }
+
+  canvas->save();
+
+  WebFrame* main_frame = webview()->mainFrame();
+
+  *retval = main_frame->paintContent(canvas.get(),
+                                    WebRect(rect.x(), rect.y(),
+                                            rect.width(), rect.height()));
+  canvas->restore();
+
+}
+
+void RenderView::OnGetLayoutAlgorithm(int *retval) {
+
+  *retval = -1;
+
+  if (!webwidget_)
+    return;
+
+  WebSettings* settings = webview()->settings();
+  WebSettings::LayoutAlgorithm algo = settings->getLayoutAlgorithm();
+
+  *retval = (int)algo;
+}
+
+void RenderView::OnSetLayoutAlgorithm(int algo) {
+  if (!webwidget_)
+    return;
+
+  WebSettings* settings = webview()->settings();
+  settings->setLayoutAlgorithm((WebSettings::LayoutAlgorithm)algo);
+}
+void RenderView::OnZoom2TextPre(int x, int y) {
+  if (!webwidget_)
+    return;
+
+  webwidget_->zoom2TextPre(x, y);
+}
+
+void RenderView::OnZoom2TextPost() {
+  if (!webwidget_)
+    return;
+
+  webwidget_->zoom2TextPost();
 }
 
 void RenderView::AltErrorPageFinished(WebFrame* frame,

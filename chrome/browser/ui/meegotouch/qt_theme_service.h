@@ -11,22 +11,27 @@
 
 #include "base/scoped_ptr.h"
 #include "chrome/browser/prefs/pref_change_registrar.h"
-#include "chrome/browser/themes/browser_theme_provider.h"
+#include "chrome/browser/themes/theme_service.h"
 #include "content/common/notification_observer.h"
 
 // Specialization of BrowserThemeProvider which supplies system colors.
-class QtThemeProvider : public BrowserThemeProvider {
+class QtThemeService : public ThemeService {
  public:
-  // Returns QtThemeProvider, casted from our superclass.
-  static QtThemeProvider* GetFrom(Profile* profile);
+  // Returns QtThemeService, casted from our superclass.
+  static QtThemeService* GetFrom(Profile* profile);
 
-  QtThemeProvider();
-  virtual ~QtThemeProvider();
+  QtThemeService();
+  virtual ~QtThemeService();
 
   // BrowserThemeProvider's implementation.
   virtual void SetTheme(Extension* extension);
   virtual void UseDefaultTheme();
   virtual void SetNativeTheme();
+
+  QImage* GetPixbufImpl(int id, bool rtl_enabled) const;
+
+  virtual QImage* GetPixbufNamed(int id) const;
+  virtual QImage* GetRTLEnabledPixbufNamed(int id) const;
 
   // Returns colors that we pass to webkit to match the system theme.
   const SkColor& get_focus_ring_color() const { return focus_ring_color_; }

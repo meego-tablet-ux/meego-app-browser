@@ -9437,25 +9437,25 @@ Keep your key file in a safe place. You will need it to create new versions of y
         <!-- Menubar Menu Titles -->
         <!-- NOTE: Some of these exist in context menus with Title Case support, but we use different IDs in case we need slightly different strings in some language due to the different context. -->
         <message name="IDS_FILE_MENU_LINUX" desc="The menu title of the Linux file menu.">
-          File
+          &amp;File
         </message>
         <message name="IDS_EDIT_MENU_LINUX" desc="The menu title of the Linux edit menu.">
-          Edit
+          &amp;Edit
         </message>
         <message name="IDS_VIEW_MENU_LINUX" desc="The menu title of the Linux view menu.">
-          View
+          &amp;View
         </message>
         <message name="IDS_HISTORY_MENU_LINUX" desc="The menu title of the Linux history menu.">
-          History
+          Hi&amp;story
         </message>
         <message name="IDS_BOOKMARKS_MENU_LINUX" desc="The menu title of the Linux bookmarks menu.">
-          Bookmarks
+          &amp;Bookmarks
         </message>
         <message name="IDS_TOOLS_MENU_LINUX" desc="The menu title of the Linux tools menu.">
-          Tools
+          &amp;Tools
         </message>
         <message name="IDS_HELP_MENU_LINUX" desc="The menu title of the Linux help menu.">
-          Help
+          &amp;Help
         </message>
 
         <!-- File menu items that we can't reuse. -->
@@ -9463,33 +9463,33 @@ Keep your key file in a safe place. You will need it to create new versions of y
           Reopen Closed Tab
         </message>
         <message name="IDS_OPEN_FILE_LINUX" desc="The Linux menu item to open a file in the file menu.">
-          Open File...
+          Open &amp;File...
         </message>
         <message name="IDS_OPEN_LOCATION_LINUX" desc="The Linux menu item to open a location in the file menu (puts cursor in the url bar).">
-          Open Location...
+          Open &amp;Location...
         </message>
         <message name="IDS_CLOSE_WINDOW_LINUX" desc="The Linux menu item to close a window in the file menu.">
-          Close Window
+          Close Win&amp;dow
         </message>
         <message name="IDS_CLOSE_TAB_LINUX" desc="The Linux menu item to close a browser tab in the file menu.">
-          Close Tab
+          &amp;Close Tab
         </message>
 
         <!-- View menu items that we can't reuse. -->
         <message name="IDS_STOP_MENU_LINUX" desc="The Linux menu item stop in the view menu.">
-          Stop
+          &amp;Stop
         </message>
         <message name="IDS_RELOAD_MENU_LINUX" desc="The Linux menu item to reload the current page in the view menu.">
-          Reload This Page
+          &amp;Reload This Page
         </message>
         <message name="IDS_TEXT_DEFAULT_LINUX" desc="The Linux menu item to make the page actual size in the view menu.">
-          Actual Size
+          A&amp;ctual Size
         </message>
         <message name="IDS_TEXT_BIGGER_LINUX" desc="The Linux menu item to zoom in on the page in the view menu.">
-          Zoom In
+          Zoom &amp;In
         </message>
         <message name="IDS_TEXT_SMALLER_LINUX" desc="The Linux menu item to zoom out on the in the view menu.">
-          Zoom Out
+          Zoom &amp;Out
         </message>
 
       </if>
@@ -11752,7 +11752,7 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Toggle bookmark bar
       </message>
       <message name="IDS_KEYBOARD_OVERLAY_VIEW_SOURCE" desc="The text in the keyboard overlay to explain the shortcut.">
-        View s&amp;ource
+        View source
       </message>
       <message name="IDS_KEYBOARD_OVERLAY_ZOOM_IN" desc="The text in the keyboard overlay to explain the shortcut.">
         Zoom in

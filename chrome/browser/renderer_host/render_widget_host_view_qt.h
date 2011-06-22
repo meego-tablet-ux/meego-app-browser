@@ -84,7 +84,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
   virtual void SetVisuallyDeemphasized(const SkColor* color, bool animate);
   virtual bool ContainsNativeView(gfx::NativeView native_view) const;
   virtual void AcceleratedCompositingActivated(bool activated) {DNOTIMPLEMENTED();};
-  virtual gfx::PluginWindowHandle AcquireCompositingSurface() {DNOTIMPLEMENTED();};
+  virtual gfx::PluginWindowHandle GetCompositingSurface() {DNOTIMPLEMENTED();};
   virtual void ReleaseCompositingSurface(gfx::PluginWindowHandle surface) {DNOTIMPLEMENTED();};
   virtual void ImeUpdateTextInputState(WebKit::WebTextInputType, const gfx::Rect&);
   virtual void ImeCancelComposition();

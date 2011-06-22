@@ -22,6 +22,7 @@
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/tab_contents/tab_contents_wrapper.h"
+#include "chrome/browser/ui/web_applications/web_app_ui.h"
 #include "content/common/notification_service.h"
 #include "grit/generated_resources.h"
 #include <QTextCodec>
@@ -266,11 +267,12 @@ void BookmarkBubbleQt::ApplyEdits() {
       if(newly_bookmarked_) {
         model->Remove(node->parent(), node->parent()->GetIndexOf(node));
       }
-      TabContents* current_tab_contents =
-                         browser_->tabstrip_model()->GetSelectedTabContents()->tab_contents();
+      TabContentsWrapper* current_tab =
+                         browser_->tabstrip_model()->GetSelectedTabContents();
+      TabContents * current_tab_contents = current_tab->tab_contents();
 
        // Prepare data
-      web_app::GetShortcutInfoForTab(current_tab_contents, &shortcut_info_);
+      web_app::GetShortcutInfoForTab(current_tab, &shortcut_info_);
       shortcut_info_.create_on_desktop = true;
       shortcut_info_.create_in_quick_launch_bar = false;
       shortcut_info_.create_in_applications_menu = false;

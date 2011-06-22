@@ -5,7 +5,7 @@
 #include "base/callback.h"
 #include "base/message_loop.h"
 #include "base/path_service.h"
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 #include "base/string_util.h"
 #include "base/task.h"
 #include "base/threading/thread.h"

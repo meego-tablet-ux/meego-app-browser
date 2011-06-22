@@ -6,7 +6,7 @@
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
 
-#include "chrome/browser/browser_window.h"
+#include "chrome/browser/ui/browser_window.h"
 #include "chrome/browser/tab_contents/infobar_delegate.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "content/common/notification_service.h"

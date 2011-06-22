@@ -515,6 +515,7 @@ bool AutocompleteEditViewQt::OnAfterPossibleChange() {
                                  sel_before_change_.cp_max));
 
   bool something_changed = model_->OnAfterPossibleChange(new_text,
+      new_sel.cp_min,new_sel.cp_max,
       selection_differs, text_changed_, just_deleted_text, at_end_of_edit);
 
   // If only selection was changed, we don't need to call |controller_|'s

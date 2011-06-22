@@ -6,7 +6,7 @@
 
 #include "base/process_util.h"
 #include "base/utf_string_conversions.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/tab_contents/tab_contents_wrapper.h"
 #include "chrome/common/logging_chrome.h"
 #include "content/common/result_codes.h"

@@ -10,7 +10,7 @@
 #include "base/logging.h"
 #include "base/utf_string_conversions.h"
 #include "chrome/browser/ui/browser.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/meegotouch/qt_util.h"
 #include "chrome/browser/ui/app_modal_dialogs/js_modal_dialog.h"
 #include "grit/generated_resources.h"

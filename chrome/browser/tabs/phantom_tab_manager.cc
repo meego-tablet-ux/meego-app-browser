@@ -106,7 +106,7 @@ class ResourceMonitor : public TaskManagerModelObserver {
   {
     item->index = index;
     item->pid = model_->GetResourceProcessHandle(index);
-    item->tab_contents = model_->GetResourceTabContents(index);
+    item->tab_contents = model_->GetResourceTabContents(index)->tab_contents();
     item->title = UTF16ToUTF8(model_->GetResourceTitle(index));
     size_t size;
     if (model_->GetPrivateMemory(index, &size))

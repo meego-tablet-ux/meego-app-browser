@@ -24,7 +24,7 @@
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/browser/autocomplete/autocomplete.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/search_engines/template_url.h"
 #include "chrome/browser/search_engines/template_url_model.h"
 #include "ui/gfx/codec/jpeg_codec.h"
@@ -433,7 +433,7 @@ void BrowserServiceWrapper::TabChangedAt(TabContentsWrapper* contents,
   TabStripModel* model = browser_->tabstrip_model();
 
   // Ignore changes if the tab is not selected
-  if(model->selected_index() != index) return;
+  if(model->active_index() != index) return;
   
   TabContents* content = contents->tab_contents();
   if(content->is_loading()) return;
@@ -604,7 +604,7 @@ void BrowserServiceWrapper::SelectTabByUrl(std::string url_string)
     TabContents* contents = model->GetTabContentsAt(i)->tab_contents();
     if (contents && contents->GetURL() == url)
     {
-      model->SelectTabContentsAt(i, true);
+      model->ActivateTabAt(i, true);
       return;
     }
   }
@@ -614,7 +614,7 @@ void BrowserServiceWrapper::SelectTabByUrl(std::string url_string)
 
 void BrowserServiceWrapper::updateCurrentTab()
 {
-    int index = browser_->selected_index();
+    int index = browser_->active_index();
     TabChangedAt(browser_->GetTabContentsWrapperAt(index), index, TabStripModelObserver::ALL);
 }
 
@@ -636,14 +636,14 @@ void BrowserServiceWrapper::showBrowser(const char *mode, const char *target)
       int index = atoi(target);
       if(index >= 0 && index < browser_->tab_count()) 
       {
-        browser_->SelectTabContentsAt(index, true);
+        browser_->ActivateTabAt(index, true);
       }
       return;
     }
 
     if (!strcmp(mode, "gotourl")) {
         scoped_ptr<AutocompleteController> controller( new AutocompleteController(profile, NULL) );
-        controller->Start(search_term, string16(), false, false, false, true);
+        controller->Start(search_term, string16(), false, false, false, AutocompleteInput::SYNCHRONOUS_MATCHES);
         const AutocompleteResult * result = &controller->result();
         //url = result->match_at(0).destination_url;
         AutocompleteResult::const_iterator itr = result->begin();
@@ -689,5 +689,5 @@ void BrowserServiceWrapper::closeTab(int index)
 
 int BrowserServiceWrapper::getCurrentTabIndex()
 {
-    return browser_->selected_index();
+    return browser_->active_index();
 }

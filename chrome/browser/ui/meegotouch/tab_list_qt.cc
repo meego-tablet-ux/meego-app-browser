@@ -41,11 +41,13 @@
 #include "content/browser/site_instance.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/browser/tabs/tab_strip_model.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/browser/ui/tab_contents/tab_contents_wrapper.h"
 #include "chrome/common/chrome_switches.h"
 #include "chrome/common/url_constants.h"
+#include "chrome/browser/tab_contents/thumbnail_generator.h"
 #include "grit/generated_resources.h"
 #include "grit/chromium_strings.h"
 #include "net/base/registry_controlled_domain.h"
@@ -428,7 +430,7 @@ void TabListQt::go(int index)
   TabContentsWrapper *tab_contents = item->GetTabContents();
   int index_ = model->GetIndexOfTabContents(tab_contents);
   LOG(INFO) << "TabListQt go " << index_;
-  model->SelectTabContentsAt(index_, true);
+  model->ActivateTabAt(index_, true);
   Hide();
 }
 

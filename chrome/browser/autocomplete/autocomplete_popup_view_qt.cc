@@ -23,7 +23,7 @@
 #include "grit/theme_resources.h"
 
 
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 
 #include <QObject>

@@ -13,6 +13,8 @@
 
 #if defined(TOOLKIT_USES_GTK)
 #include "chrome/browser/ui/gtk/gtk_theme_service.h"
+#elif defined(TOOLKIT_MEEGOTOUCH)
+#include "chrome/browser/ui/meegotouch/qt_theme_service.h"
 #endif
 
 // static
@@ -48,7 +50,7 @@ ProfileKeyedService* ThemeServiceFactory::BuildServiceInstanceFor(
 #if defined(TOOLKIT_USES_GTK)
   provider = new GtkThemeService;
 #elif defined(TOOLKIT_MEEGOTOUCH)
-  provider = new QtThemeProvider;
+  provider = new QtThemeService;
 #else
   provider = new ThemeService;
 #endif

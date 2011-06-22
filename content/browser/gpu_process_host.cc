@@ -69,8 +69,10 @@ ReleasePermanentXIDDispatcher::ReleasePermanentXIDDispatcher(
 }
 
 void ReleasePermanentXIDDispatcher::Run() {
+#if defined(TOOLKIT_USES_GTK)
   GtkNativeViewManager* manager = GtkNativeViewManager::GetInstance();
   manager->ReleasePermanentXID(surface_);
+#endif
 }
 
 #endif
@@ -103,10 +105,12 @@ class GpuProcessHost::SurfaceRef {
 
 GpuProcessHost::SurfaceRef::SurfaceRef(gfx::PluginWindowHandle surface)
     : surface_(surface) {
+#if defined(TOOLKIT_USES_GTK)
   GtkNativeViewManager* manager = GtkNativeViewManager::GetInstance();
   if (!manager->AddRefPermanentXID(surface_)) {
     LOG(ERROR) << "Surface " << surface << " cannot be referenced.";
   }
+#endif
 }
 
 GpuProcessHost::SurfaceRef::~SurfaceRef() {

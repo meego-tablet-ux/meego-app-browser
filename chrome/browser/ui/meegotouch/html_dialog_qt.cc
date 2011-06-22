@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "base/utf_string_conversions.h"
-#include "chrome/browser/browser_window.h"
+#include "chrome/browser/ui/browser_window.h"
 #include "chrome/browser/ui/webui/html_dialog_ui.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/browser/ui/browser.h"

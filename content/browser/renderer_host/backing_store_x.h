@@ -16,7 +16,7 @@
 
 #include "base/basictypes.h"
 #include "build/build_config.h"
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 #include "base/scoped_ptr.h"
 #include "content/browser/renderer_host/backing_store.h"
 #include "ui/base/x/x11_util.h"

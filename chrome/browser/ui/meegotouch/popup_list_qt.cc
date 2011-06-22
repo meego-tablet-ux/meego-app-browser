@@ -32,7 +32,7 @@
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
 
-#include "chrome/browser/browser_window.h"
+#include "chrome/browser/ui/browser_window.h"
 
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "webkit/glue/webmenuitem.h"

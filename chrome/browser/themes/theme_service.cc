@@ -356,7 +356,7 @@ std::string ThemeService::GetThemeID() const {
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-#include "chrome/browser/ui/meegotouch/qt_theme_provider.h"
+#include "chrome/browser/ui/meegotouch/qt_theme_service.h"
 #endif
 
 // static
@@ -613,6 +613,11 @@ void ThemeService::NotifyThemeChanged() {
 #if defined(OS_WIN)
 void ThemeService::FreePlatformCaches() {
   // Views (Skia) has no platform image cache to clear.
+}
+#elif defined(OS_POSIX)
+void ThemeService::FreePlatformCaches() {
+  DCHECK(CalledOnValidThread());
+  DNOTIMPLEMENTED();
 }
 #endif
 

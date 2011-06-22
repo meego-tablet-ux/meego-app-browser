@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "content/browser/tab_contents/constrained_window.h"
 

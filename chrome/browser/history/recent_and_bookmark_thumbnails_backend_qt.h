@@ -7,7 +7,7 @@
 #pragma once
 
 #include "base/file_path.h"
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 #include "base/scoped_ptr.h"
 #include "chrome/browser/history/history_types.h"
 #include "content/browser/cancelable_request.h"

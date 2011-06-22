@@ -10,7 +10,7 @@
 #include "base/callback.h"
 #include "base/file_path.h"
 #include "base/mime_util.h"
-#include "base/singleton.h"
+#include "base/memory/singleton.h"
 #include "base/string_piece.h"
 #include "base/string16.h"
 #include "base/threading/thread.h"
@@ -419,7 +419,7 @@ void DownloadsQtHandler::HandleSaveDangerous(const int args) {
 void DownloadsQtHandler::HandleDiscardDangerous(const int args) {
   DownloadItem* file = GetDownloadById(args);
   if (file)
-    file->Remove(true);
+    file->Remove();
 }
 
 void DownloadsQtHandler::HandleShow(const int args) {
@@ -437,13 +437,13 @@ void DownloadsQtHandler::HandlePause(const int args) {
 void DownloadsQtHandler::HandleRemove(const int args) {
   DownloadItem* file = GetDownloadById(args);
   if (file)
-    file->Remove(false);
+    file->Remove();
 }
 
 void DownloadsQtHandler::HandleDelete(const int args) {
   DownloadItem* file = GetDownloadById(args);
   if (file)
-    file->Remove(true);
+    file->Remove();
 }
 
 

@@ -1151,9 +1151,7 @@ TabContents* TabContents::CloneAndMakePhantom() {
   TabNavigation tab_nav;
 
   NavigationEntry* entry = controller().GetActiveEntry();
-  if (extension_app_)
-    tab_nav.set_virtual_url(extension_app_->GetFullLaunchURL());
-  else if (entry)
+  if (entry)
     tab_nav.SetFromNavigationEntry(*entry);
 
   std::vector<TabNavigation> navigations;
@@ -1163,10 +1161,9 @@ TabContents* TabContents::CloneAndMakePhantom() {
       new TabContents(profile(),
                       SiteInstance::CreateSiteInstance(profile()),
                       MSG_ROUTING_NONE, this, NULL);
-  new_contents->SetExtensionApp(extension_app_);
   new_contents->controller().CopyStateFrom(controller_);
 
-  if (!extension_app_ && entry)
+  if (entry)
     new_contents->controller().GetActiveEntry()->favicon() = entry->favicon();
 
   return new_contents;

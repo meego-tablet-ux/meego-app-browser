@@ -13,7 +13,7 @@
 //#include "ui/base/gtk/gtk_signal.h"
 #include "base/basictypes.h"
 #include "base/scoped_ptr.h"
-#include "base/scoped_vector.h"
+#include "base/memory/scoped_vector.h"
 #include "chrome/browser/autocomplete/autocomplete_edit.h"
 #include "chrome/browser/autocomplete/autocomplete_edit_view_qt.h"
 #include "chrome/browser/extensions/extension_context_menu_model.h"
@@ -97,7 +97,7 @@ class LocationBarViewQt : public AutocompleteEditController,
   virtual SkBitmap GetFavicon() const OVERRIDE;
   virtual string16 GetTitle() const OVERRIDE;
   virtual InstantController* GetInstant() OVERRIDE {return NULL;};
-  virtual TabContentsWrapper* GetTabContentsWrapper() OVERRIDE {DNOTIMPLEMENTED();};
+  virtual TabContentsWrapper* GetTabContentsWrapper() const OVERRIDE {DNOTIMPLEMENTED();};
 
   // Implement the LocationBar interface.
   virtual void ShowFirstRunBubble(FirstRun::BubbleType bubble_type) ;

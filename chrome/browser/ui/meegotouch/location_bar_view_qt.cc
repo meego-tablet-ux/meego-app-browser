@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/browser_window.h"
+#include "chrome/browser/ui/browser_window.h"
 #include <string>
 
 #include "ui/base/l10n/l10n_util.h"
@@ -15,7 +15,7 @@
 #include "chrome/browser/accessibility_events.h"
 #include "chrome/browser/alternate_nav_url_fetcher.h"
 #include "chrome/browser/ui/browser.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/command_updater.h"
 #include "chrome/browser/content_setting_bubble_model.h"
 #include "chrome/browser/content_setting_image_model.h"

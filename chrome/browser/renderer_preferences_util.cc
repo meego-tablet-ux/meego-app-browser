@@ -12,7 +12,7 @@
 #include "chrome/browser/ui/gtk/gtk_theme_service.h"
 #include "chrome/browser/ui/gtk/gtk_util.h"
 #elif defined(TOOLKIT_MEEGOTOUCH)
-#include "chrome/browser/ui/meegotouch/qt_theme_provider.h"
+#include "chrome/browser/ui/meegotouch/qt_theme_service.h"
 #endif
 
 namespace renderer_preferences_util {
@@ -25,7 +25,7 @@ void UpdateFromSystemSettings(RendererPreferences* prefs, Profile* profile) {
   GtkThemeService* theme_service = GtkThemeService::GetFrom(profile);
 #endif  // !defined(TOOLKIT_VIEWS)
 #elif defined(TOOLKIT_MEEGOTOUCH)
-  QtThemeProvider* provider = QtThemeProvider::GetFrom(profile);
+  QtThemeService* theme_service = QtThemeService::GetFrom(profile);
 #endif
 
 #if (defined(TOOLKIT_USES_GTK) && !defined(TOOLKIT_VIEWS)) || defined(TOOLKIT_MEEGOTOUCH)

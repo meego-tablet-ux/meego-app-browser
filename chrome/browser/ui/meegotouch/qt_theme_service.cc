@@ -2,51 +2,52 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/ui/meegotouch/qt_theme_provider.h"
+#include "chrome/browser/ui/meegotouch/qt_theme_service.h"
 
 #include <set>
 
+#include "chrome/browser/themes/theme_service_factory.h"
 #include "chrome/browser/themes/theme_service.h"
 #include "chrome/browser/profiles/profile.h"
 
 // static
-QtThemeProvider* QtThemeProvider::GetFrom(Profile* profile) {
-  return static_cast<QtThemeProvider*>(
+QtThemeService* QtThemeService::GetFrom(Profile* profile) {
+  return static_cast<QtThemeService*>(
       ThemeServiceFactory::GetForProfile(profile));
 }
 
-QtThemeProvider::QtThemeProvider()
-    : BrowserThemeProvider() {
+QtThemeService::QtThemeService()
+    : ThemeService() {
 }
 
-QtThemeProvider::~QtThemeProvider() {
+QtThemeService::~QtThemeService() {
 }
 
-void QtThemeProvider::SetTheme(Extension* extension) {
+void QtThemeService::SetTheme(Extension* extension) {
   LoadQtValues();
-  BrowserThemeProvider::SetTheme(extension);
+  ThemeService::SetTheme(extension);
 }
 
-void QtThemeProvider::UseDefaultTheme() {
+void QtThemeService::UseDefaultTheme() {
   LoadQtValues();
-  BrowserThemeProvider::UseDefaultTheme();
+  ThemeService::UseDefaultTheme();
 }
 
-void QtThemeProvider::SetNativeTheme() {
+void QtThemeService::SetNativeTheme() {
   LoadQtValues();
-  BrowserThemeProvider::SetNativeTheme();
+  ThemeService::SetNativeTheme();
 }
 
-void QtThemeProvider::LoadThemePrefs() {
+void QtThemeService::LoadThemePrefs() {
   LoadQtValues();
-  BrowserThemeProvider::LoadThemePrefs();
+  ThemeService::LoadThemePrefs();
 }
 
-void QtThemeProvider::LoadQtValues() {
+void QtThemeService::LoadQtValues() {
   // Temporary solution: use default hard-coded settings.
   // May replace them by extracting theme settings from QML
 
-  // This color is from frame boder color in QT 
+  // This color is from frame boder color in QT
   focus_ring_color_ = SkColorSetARGB(127, 102, 102, 102);
 
   // Below three colors are from default values in GtkThemeProvider
@@ -61,4 +62,18 @@ void QtThemeProvider::LoadQtValues() {
   // Below two colors are from default values in GtkThemeProvider
   inactive_selection_bg_color_ = SkColorSetRGB(200, 200, 200);
   inactive_selection_fg_color_ = SkColorSetRGB(50, 50, 50);
+}
+
+QImage* QtThemeService::GetPixbufNamed(int id) const {
+  return GetPixbufImpl(id, false);
+}
+
+QImage* QtThemeService::GetRTLEnabledPixbufNamed(int id) const {
+  return GetPixbufImpl(id, true);
+}
+
+QImage* QtThemeService::GetPixbufImpl(int id, bool rtl_enabled) const {
+  DCHECK(CalledOnValidThread());
+  DNOTIMPLEMENTED();
+  return NULL;
 }

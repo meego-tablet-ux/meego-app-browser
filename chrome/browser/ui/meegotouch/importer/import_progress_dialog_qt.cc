@@ -19,7 +19,7 @@ void ShowImportProgressDialog(QWidget* parent,
                               uint16 items,
                               ImporterHost* importer_host,
                               ImporterObserver* importer_observer,
-                              const ProfileInfo& browser_profile,
+                              const SourceProfile& browser_profile,
                               Profile* profile,
                               bool first_run) {
   DNOTIMPLEMENTED();

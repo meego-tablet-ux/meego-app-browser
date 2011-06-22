@@ -8,7 +8,7 @@
 #include "base/file_util.h"
 #include "base/message_loop.h"
 #include "base/metrics/histogram.h"
-#include "base/scoped_vector.h"
+#include "base/memory/scoped_vector.h"
 #include "base/string_util.h"
 #include "base/time.h"
 #include "chrome/browser/history/recent_and_bookmark_thumbnails_backend_qt.h"

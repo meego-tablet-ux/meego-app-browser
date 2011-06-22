@@ -6,7 +6,7 @@
 
 #include "ui/base/l10n/l10n_util.h"
 #include "base/utf_string_conversions.h"
-#include "chrome/browser/browser_list.h"
+#include "chrome/browser/ui/browser_list.h"
 #include "content/browser/browser_thread.h"
 #include "chrome/browser/ui/login/login_model.h"
 #include "chrome/browser/ui/meegotouch/dialog_qt.h"
