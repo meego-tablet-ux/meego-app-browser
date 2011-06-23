@@ -135,16 +135,45 @@ bool AudioManagerLinux::CanShowAudioInputSettings() {
       env.get());
   return (desktop == base::nix::DESKTOP_ENVIRONMENT_GNOME ||
           desktop == base::nix::DESKTOP_ENVIRONMENT_KDE3 ||
-          desktop == base::nix::DESKTOP_ENVIRONMENT_KDE4);
+          desktop == base::nix::DESKTOP_ENVIRONMENT_KDE4 ||
+          desktop == base::nix::DESKTOP_ENVIRONMENT_MEEGO);
 }
 
 void AudioManagerLinux::ShowAudioInputSettings() {
   scoped_ptr<base::Environment> env(base::Environment::Create());
   base::nix::DesktopEnvironment desktop = base::nix::GetDesktopEnvironment(
       env.get());
-  std::string command((desktop == base::nix::DESKTOP_ENVIRONMENT_GNOME) ?
-                      "gnome-volume-control" : "kmix");
-  base::LaunchApp(CommandLine(FilePath(command)), false, false, NULL);
+  switch (desktop) {
+    case base::nix::DESKTOP_ENVIRONMENT_KDE3:
+    case base::nix::DESKTOP_ENVIRONMENT_KDE4: {
+      std::string command("kmix");
+      base::LaunchApp(CommandLine(FilePath(command)), false, false, NULL);
+      } break;
+    case base::nix::DESKTOP_ENVIRONMENT_GNOME: {
+        std::string command("gnome-volume-control");
+        base::LaunchApp(CommandLine(FilePath(command)), false, false, NULL);
+      } break;
+    case base::nix::DESKTOP_ENVIRONMENT_MEEGO: {
+        std::vector<std::string> argv;
+        argv.push_back("meego-qml-launcher");
+        argv.push_back("--app");
+        argv.push_back("meego-ux-settings");
+        argv.push_back("--fullscreen");
+        argv.push_back("--opengl");
+        argv.push_back("--cmd");
+        argv.push_back("showPage");
+        argv.push_back("--cdata");
+        argv.push_back("General");
+
+        base::file_handle_mapping_vector no_files;
+        base::environment_vector env_vec;
+        base::LaunchApp(argv, env_vec, no_files, false, NULL);
+      } break;
+    case base::nix::DESKTOP_ENVIRONMENT_OTHER:
+    case base::nix::DESKTOP_ENVIRONMENT_XFCE:
+    default:
+      break;
+  }
 }
 
 // static

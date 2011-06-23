@@ -1086,6 +1086,7 @@ ProxyConfigServiceLinux::Delegate::Delegate(base::Environment* env_var_getter)
   // Figure out which GConfSettingGetterImpl to use, if any.
   switch (base::nix::GetDesktopEnvironment(env_var_getter)) {
     case base::nix::DESKTOP_ENVIRONMENT_GNOME:
+    case base::nix::DESKTOP_ENVIRONMENT_MEEGO:
 #if defined(USE_GCONF)
       gconf_getter_.reset(new GConfSettingGetterImplGConf());
 #endif

@@ -32,6 +32,9 @@ FilePath GetXDGUserDirectory(Environment* env, const char* dir_name,
 }
 
 DesktopEnvironment GetDesktopEnvironment(Environment* env) {
+#ifdef OS_MEEGO
+  return DESKTOP_ENVIRONMENT_MEEGO;
+#endif
   std::string desktop_session;
   if (env->GetVar("DESKTOP_SESSION", &desktop_session)) {
     if (desktop_session == "gnome") {

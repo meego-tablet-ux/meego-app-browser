@@ -47,6 +47,7 @@ enum DesktopEnvironment {
   DESKTOP_ENVIRONMENT_KDE3,
   DESKTOP_ENVIRONMENT_KDE4,
   DESKTOP_ENVIRONMENT_XFCE,
+  DESKTOP_ENVIRONMENT_MEEGO,
 };
 
 // Return an entry from the DesktopEnvironment enum with a best guess
