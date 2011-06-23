@@ -135,7 +135,9 @@ void TabContentsViewQt::SetPageTitle(const std::wstring& title) {
 void TabContentsViewQt::OnTabCrashed(base::TerminationStatus status,
                                       int error_code) {
   LOG(INFO)<<__FUNCTION__;
-  if( tab_contents() != NULL ) {
+  Browser* browser = BrowserList::GetLastActive();
+  if( tab_contents() != NULL && browser->tabstrip_model()->
+      GetWrapperIndex(tab_contents()) >= 0 ) {
     AppModalDialogQueue::GetInstance()->AddDialog(new CrashAppModalDialog(
           tab_contents()));
   }
