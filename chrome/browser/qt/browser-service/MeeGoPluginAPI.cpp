@@ -31,6 +31,8 @@
 
 #define DEFAULT_MODE (S_IRUSR | S_IWUSR |S_IXUSR) | (S_IRGRP | S_IXGRP) | (S_IROTH | S_IXOTH)
 
+#define RESERVED_HISTORY_ITEM_COUNT 20
+
 #define CREATE_URL_TABLE_STMT "CREATE TABLE IF NOT EXISTS urls \
 	(id INTEGER PRIMARY KEY, url LONGVARCHAR, title LONGVARCHAR, \
 	 visit_count INTEGER DEFAULT 0 NOT NULL, \
@@ -136,6 +138,8 @@ static void UpdateAlreadyOpenedTab(BrowserServiceWrapper* wrapper)
 MeeGoPluginAPI::MeeGoPluginAPI(BrowserServiceWrapper* wrapper):
     wrapper_(wrapper),
     m_panel_db(NULL),
+    m_thumbnail_dirname(NULL),
+    m_favicon_dirname(NULL),
     m_browser_closing(false)
 {
   init_db();
@@ -150,11 +154,16 @@ MeeGoPluginAPI::~MeeGoPluginAPI()
 {
   DBG("~MeeGoPluginAPI");
 
+  cleanupObsoleteHistoryItem(RESERVED_HISTORY_ITEM_COUNT);
+
   browser_service_destroy(m_browserService);
 
   sqlite3_close(m_panel_db);
-  g_free(m_db_dirname);
   m_panel_db = NULL;
+
+  if(m_thumbnail_dirname) g_free(m_thumbnail_dirname);
+  if(m_favicon_dirname) g_free(m_favicon_dirname);
+  if(m_db_dirname)  g_free(m_db_dirname);
 }
 
 void MeeGoPluginAPI::init_db()
@@ -177,20 +186,18 @@ void MeeGoPluginAPI::init_db()
   }
 
   // mkdir thumbnails
-  char* thumbnail_dirname = g_build_filename(m_db_dirname, "thumbnails", NULL);
-  if(!g_file_test(thumbnail_dirname, G_FILE_TEST_EXISTS))
+  m_thumbnail_dirname = g_build_filename(m_db_dirname, "thumbnails", NULL);
+  if(!g_file_test(m_thumbnail_dirname, G_FILE_TEST_EXISTS))
   {
-    g_mkdir(thumbnail_dirname, DEFAULT_MODE); 
+    g_mkdir(m_thumbnail_dirname, DEFAULT_MODE); 
   }
-  g_free(thumbnail_dirname);
 
   //mkdir favicons
-  char* favicon_dirname    = g_build_filename(m_db_dirname, "favicons", NULL);
-  if(!g_file_test(favicon_dirname, G_FILE_TEST_EXISTS))
+  m_favicon_dirname    = g_build_filename(m_db_dirname, "favicons", NULL);
+  if(!g_file_test(m_favicon_dirname, G_FILE_TEST_EXISTS))
   {
-    g_mkdir(favicon_dirname, DEFAULT_MODE);
+    g_mkdir(m_favicon_dirname, DEFAULT_MODE);
   }
-  g_free(favicon_dirname);
 
   rc = sqlite3_open(db_path, &m_panel_db);
   if(rc == SQLITE_OK)
@@ -254,6 +261,38 @@ void MeeGoPluginAPI::addURLItem(int64 id, std::string url, std::string title, st
 
   return;
 }
+
+void MeeGoPluginAPI::cleanupObsoleteHistoryItem(int count)
+{
+  if(count < 0) return;
+
+  const char* select_sql = 
+    "SELECT url FROM urls WHERE url NOT IN (SELECT url FROM urls ORDER BY last_visit_time DESC LIMIT ?)";
+
+  const char* cleanup_sql =
+    "DELETE FROM urls WHERE id NOT IN (SELECT id FROM urls ORDER BY last_visit_time DESC LIMIT ?)";
+
+  // Remove thumbnail and favicons from local file system
+  sqlite3_stmt* select_stmt = NULL;
+  const char* url = NULL;
+  if(sqlite3_prepare_v2(m_panel_db, select_sql, -1, &select_stmt, NULL) != SQLITE_OK) return;
+  sqlite3_bind_int(select_stmt, 1, count);
+  while(sqlite3_step(select_stmt) == SQLITE_ROW)
+  {
+    url = (const char*)sqlite3_column_text(select_stmt, 0);
+    removeThumbnailAndFavicon(url);
+  }
+  if(select_stmt)sqlite3_finalize(select_stmt);
+
+  // Delete data item from Sqlite3 database
+  sqlite3_stmt* cleanup_stmt = NULL;
+  if(sqlite3_prepare_v2(m_panel_db, cleanup_sql, -1, &cleanup_stmt, NULL) != SQLITE_OK) return;
+  sqlite3_bind_int(cleanup_stmt, 1, count);
+  sqlite3_step(cleanup_stmt);
+  if(cleanup_stmt) sqlite3_finalize(cleanup_stmt);
+  return;
+}
+
 
 void MeeGoPluginAPI::clearAllURLs()
 {
@@ -638,6 +677,40 @@ void MeeGoPluginAPI::removeTabItem(int tab_id)
     sqlite3_exec(m_panel_db, "ROLLBACK TRANACTION", NULL, NULL, NULL);
   }
 
+  return;
+}
+
+
+void MeeGoPluginAPI::removeThumbnailAndFavicon(const char* url)
+{
+  if(url == NULL) return;
+  char* thumbnail_filename = NULL;
+  char* thumbnail_fullname = NULL;
+  char* favicon_filename = NULL;
+  char* favicon_fullname = NULL;
+
+  // Calculate checksum for the url
+  char* csum = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
+
+  // Remove thumbnail file
+  thumbnail_filename = g_strconcat(csum, ".jpg", NULL);
+  thumbnail_fullname = g_build_filename(m_db_dirname, "thumbnails", thumbnail_filename, NULL);
+  if(g_file_test(thumbnail_fullname, G_FILE_TEST_IS_REGULAR))
+    g_remove(thumbnail_fullname);
+  g_free(thumbnail_filename);
+  g_free(thumbnail_fullname);
+
+  // Remove favicon file
+  favicon_filename = g_strconcat(csum, "*.png", NULL);
+  favicon_fullname = g_build_filename(favicon_filename, favicon_filename, NULL);
+
+  if(g_file_test(favicon_fullname, G_FILE_TEST_IS_REGULAR))
+    g_remove(favicon_fullname);
+
+  g_free(favicon_filename);
+  g_free(favicon_fullname);
+
+  g_free(csum);
   return;
 }
 

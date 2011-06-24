@@ -99,9 +99,16 @@ private:
     void init_db();
     void init_browser_service();
 
+    // Remove thumbnail and favicon from database for internet panel
+    void removeThumbnailAndFavicon(const char* url);
+    // Clean up obsolete history items in database
+    void cleanupObsoleteHistoryItem(int count);
+
     BrowserService* m_browserService;
     sqlite3* m_panel_db;
     char*    m_db_dirname;
+    char*    m_thumbnail_dirname;
+    char*    m_favicon_dirname;
     bool     m_browser_closing;
 
     BrowserServiceWrapper* wrapper_;

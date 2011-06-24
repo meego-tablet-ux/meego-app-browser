@@ -52,39 +52,45 @@ int BrowserDataInfo::getCurrentTabIndex() const
 
 bool BrowserDataInfo::closeTab(int index)
 {
-    m_interface->closeTab(index);
-    return true;
+    if(isBrowserRunning()) {
+      m_interface->closeTab(index);
+      return true;
+    } else {
+      return false;
+    }
 }
 
 void BrowserDataInfo::openBrowser(BrowserDataInfo::OpenMode mode, const QString &target)
 {
-    QString browser_path;
-    QStringList arguments;
+  QString browser_path;
+  QStringList arguments;
 
-    char* env = getenv("BROWSER");
-    if(env) browser_path = env;
-    else browser_path = "/usr/bin/meego-app-browser";
+  char* env = getenv("BROWSER");
+  if(env) browser_path = env;
+  else browser_path = "/usr/bin/meego-app-browser";
 
-    if(isBrowserRunning()) {
-        m_interface->showBrowser(mode == URL_MODE ? "gotourl" :
-                                 mode == SEARCH_MODE ? "search" : "selecttab", target);
-    }else {
-        if (mode == BrowserDataInfo::URL_MODE)
-            arguments.append(target);
-        else if (mode == BrowserDataInfo::SEARCH_MODE)
-            arguments.append("? " + target);
-        else {
-            foreach(TabInfo i, m_dataInfoList) {
-              arguments << i.url;
-            }
-            m_showTabWithIndex = target.toInt();
-        }
-        QProcess::startDetached(browser_path, arguments);
+  if(isBrowserRunning()) {
+    if(mode == SEARCH_MODE) 
+      m_interface->showBrowser("search", target);
+    else if(mode == TAB_MODE) 
+      m_interface->showBrowser("selecttab", target);
+    else
+      m_interface->showBrowser("gotourl", target);
+  } else {
+    if (mode == BrowserDataInfo::TAB_MODE) {
+      m_showTabWithIndex = target.toInt();
+    } else if (mode == BrowserDataInfo::SEARCH_MODE) {
+      arguments.append("? " + target);
+    } else {
+      arguments.append(target);
     }
+    QProcess::startDetached(browser_path, arguments);
+  }
 }
 
 void BrowserDataInfo::updateCurrentTab()
 {
+  if(isBrowserRunning())
     m_interface->updateCurrentTab();
 }
 

@@ -34,8 +34,6 @@
 #include "BrowserServiceWrapper.h"
 #include "MeeGoPluginAPI.h"
 
-extern LauncherWindow* g_main_window;
-
 class BrowserServiceBackend : public base::RefCountedThreadSafe<BrowserServiceBackend>
 {
  public:
@@ -277,8 +275,11 @@ void BrowserServiceWrapper::TabInsertedAt(TabContentsWrapper* contents,
                                           bool foreground) {
   TabContents* content = contents->tab_contents();
   const GURL& url = content->GetURL();
-//  if (url.HostNoBrackets() == "newtab")
-//      return;
+
+  // Ignore chrome scheme page, such as chrome://newtab
+  if (url.SchemeIs("chrome"))
+    return;
+
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
                           backend_, &BrowserServiceBackend::AddTabItemImpl,
                           index, 0, url.spec(), UTF16ToUTF8(content->GetTitle()),
@@ -318,6 +319,8 @@ void BrowserServiceWrapper::TabDeselected(TabContents* content)
   if(content)
   {
     const GURL& url = content->GetURL();
+    if(url.SchemeIs("chrome")) return;
+
     TabStripModel* model = browser_->tabstrip_model();
     int index = model->GetWrapperIndex(content);
     MessageLoop::current()->PostTask(FROM_HERE,
@@ -332,6 +335,7 @@ void BrowserServiceWrapper::TabSelectedAt(TabContentsWrapper* old_contents,
   TabContents* content = new_contents->tab_contents();
 
   const GURL& url = content->GetURL();
+  if(url.SchemeIs("chrome")) return;
  
   MessageLoop::current()->PostTask(FROM_HERE,
       factory_.NewRunnableMethod(&BrowserServiceWrapper::GetThumbnail, content, url, index));
@@ -439,6 +443,7 @@ void BrowserServiceWrapper::TabChangedAt(TabContentsWrapper* contents,
   if(content->is_loading()) return;
 
   const GURL& url = content->GetURL();
+  if(url.SchemeIs("chrome")) return;
 
   BrowserThread::PostTask(BrowserThread::DB, FROM_HERE, NewRunnableMethod(
       backend_, &BrowserServiceBackend::TabChangedAtImpl,
@@ -622,11 +627,10 @@ void BrowserServiceWrapper::showBrowser(const char *mode, const char *target)
 {
     if(mode == NULL || target == NULL) return;
 
-    if(g_main_window) {
-      g_main_window->show();
-      g_main_window->activateWindow();
-      g_main_window->raise();
-    }
+    // Show browser window
+    BrowserWindow* window = browser_->window();
+    if(window) window->Show();
+    
     string16 search_term;
     UTF8ToUTF16(target, strlen(target), &search_term);
     GURL url;
@@ -666,12 +670,7 @@ void BrowserServiceWrapper::showBrowser(const char *mode, const char *target)
                 TemplateURLRef::NO_SUGGESTIONS_AVAILABLE, string16()));
     }
 
-    int tab_count = browser_->tab_count();
-    if (tab_count && browser_->GetTabContentsAt(tab_count - 1)->GetURL().spec() == "chrome://newtab/") {
-        browser_->OpenURL(url, GURL(""), CURRENT_TAB, PageTransition::TYPED);
-    }else
-        browser_->OpenURL(url, GURL(""), NEW_FOREGROUND_TAB, PageTransition::TYPED);
-        //browser_->AddSelectedTabWithURL(url, PageTransition::TYPED);
+    browser_->ShowSingletonTab(url);
 }
 
 void BrowserServiceWrapper::closeTab(int index)
