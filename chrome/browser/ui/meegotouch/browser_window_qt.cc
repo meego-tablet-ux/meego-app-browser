@@ -157,6 +157,17 @@ class BrowserWindowQtImpl : public QObject
     window_->GetTabContentsContainer()->OrientationEnd();
   }
 
+  /*Get LauncherApp 's foreground WinId change signal*/
+  void handleForegroundWindowChange()
+  {
+    LauncherApp *app = static_cast<LauncherApp *>(qApp);
+
+    /*IPC to render tab for media player control*/
+    if(window_->window_->winId() != app->getForegroundWindow()) {
+      window_->OnForegroundChanged();
+    }
+  }
+
  protected:
   bool eventFilter(QObject *obj, QEvent *event)
   {
@@ -289,6 +300,7 @@ void BrowserWindowQt::InitWidget()
     }
   }
 
+  impl_->connect(app, SIGNAL(foregroundWindowChanged()),impl_, SLOT(handleForegroundWindowChange()));
   // Expose the DPI to QML
   context->setContextProperty("dpiX", app->desktop()->logicalDpiX());
   context->setContextProperty("dpiY", app->desktop()->logicalDpiY());
@@ -393,6 +405,18 @@ void BrowserWindowQt::ShowInactive()
 {
   window_->show();
   window_->raise();
+}
+
+void BrowserWindowQt::OnForegroundChanged()
+{
+  if (browser_->GetSelectedTabContents()) {
+    TabContents* contents = contents_container_->GetTabContents();
+    if (contents) {
+      contents->render_view_host()->BackgroundPolicy();
+    }
+  }
+  
+  return;
 }
 
 void BrowserWindowQt::Close()

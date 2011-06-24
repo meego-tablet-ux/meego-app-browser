@@ -52,6 +52,7 @@ CallFMenuClass::CallFMenuClass(QObject *parent)
   m_video_total(0),
   m_events(1),
   m_artype(0),
+  m_launchednum(0),
 
   m_play_s(1),
   m_backward_s(0),
@@ -115,6 +116,17 @@ void CallFMenuClass::relEvents()
 {
   if(m_events) m_events--;
   return;
+}
+
+int CallFMenuClass::getLaunchedFlag() const
+{
+  return m_launchednum;
+}
+
+bool CallFMenuClass::setLaunchedFlag(int n)
+{
+  m_launchednum = n;
+  return true;
 }
 
 int CallFMenuClass::getARtype() const

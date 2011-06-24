@@ -68,6 +68,9 @@ public:
   int getEvents() const;
   void relEvents();
 
+  int getLaunchedFlag() const;
+  bool setLaunchedFlag(int);
+
   int getARtype() const;
   void setARtype(int);
 
@@ -76,7 +79,7 @@ public:
   void VideoActive(int c, int t) {emit videoRun(c,t);}
   void VideoRun() {emit videoRun(m_video_current,m_video_total);}
   void SyncRead() {emit syncRead(m_backward_s,m_play_s,m_forward_s,m_fullscreen_s,m_artype);}
-
+  void ForceControlOutside() {emit forceControlOutside(9);}
 
 public Q_SLOTS:
   void cMethod() {
@@ -95,7 +98,8 @@ Q_SIGNALS:
   void cppSignal();
   void syncRead(int cback,int cplay,int cforward,int cfullscreen,int ctype);
   void videoRun(int current, int total);
-  
+  void forceControlOutside(int outsidecode);
+
 private:
   QString m_url;
   bool m_menu_hiden;
@@ -111,5 +115,7 @@ private:
   int m_forward_s;
   int m_fullscreen_s;
   int m_ext_s;
+
+  int m_launchednum;
 };
 #endif

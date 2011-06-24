@@ -389,6 +389,12 @@ void RenderWidgetHost::Focus() {
   Send(new ViewMsg_SetFocus(routing_id_, true));
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+void RenderWidgetHost::BackgroundPolicy() {
+  Send(new ViewMsg_ForegroundChanged(routing_id_));
+}
+#endif
+
 void RenderWidgetHost::Blur() {
   Send(new ViewMsg_SetFocus(routing_id_, false));
 }

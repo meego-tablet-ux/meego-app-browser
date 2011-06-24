@@ -188,7 +188,9 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   // Called to notify the RenderWidget that its associated native window got
   // focused.
   virtual void GotFocus();
-
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void BackgroundPolicy();
+#endif
   // Tells the renderer it got/lost focus.
   void Focus();
   void Blur();

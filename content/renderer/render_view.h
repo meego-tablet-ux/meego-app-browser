@@ -735,6 +735,8 @@ class RenderView : public RenderWidget,
   void OnResourceGet(int type);
   void OnResourceInUsed(void);
 
+  void OnBackgroundPolicy(void);
+
 // reimplement from webviewclient
   virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, int height, bool set);
 #endif

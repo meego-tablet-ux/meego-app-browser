@@ -215,6 +215,9 @@ class VideoDecoder : public Filter {
   // Returns the media format produced by this decoder.
   virtual const MediaFormat& media_format() = 0;
 
+  /*codec id of current video decoder*/
+  unsigned int codec_id_;
+
  protected:
   // A video frame is ready to be consumed. This method invoke
   // |consume_video_frame_callback_| internally.

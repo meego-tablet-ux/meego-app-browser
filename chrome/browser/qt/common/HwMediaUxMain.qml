@@ -488,6 +488,16 @@ Item {
                 vSliderProcess = g_SliderPercentageIn(curstimeValue,fullstimeValue,vSliderDepth);
             }
 
+            onForceControlOutside: {
+                // Commands Code to QML from outside!
+                // console.log("***>>>  ", outsidecode);
+                // Flush all
+                fmenuObject.SyncWriteStatus(backwardValue,playValue,
+                        forwardValue,0/*Skip*/,volumPercValue,
+                        fullScreenValue,9/*Fullscr*/,fullstimeValue,0);
+
+            }
+
             onSyncRead: {
                 // Check code <<TODO>> functions !
                 //console.log("***>>>  ", cback, cplay, cforward, cfullscreen, ctype);

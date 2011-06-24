@@ -74,6 +74,9 @@ class BrowserWindowQt : //public MApplicationWindow,
 
   // Overridden from BrowserWindow
   virtual void Show();
+#if defined (TOOLKIT_MEEGOTOUCH)
+  virtual void OnForegroundChanged();
+#endif
   virtual void ShowInactive();
   virtual void SetBounds(const gfx::Rect& bounds) {DNOTIMPLEMENTED();};
   virtual void Close();

@@ -81,6 +81,7 @@ void FFmpegVideoDecoder::Initialize(DemuxerStream* demuxer_stream,
                           av_stream->codec->extradata_size);
   state_ = kInitializing;
   decode_engine_->Initialize(message_loop_, this, NULL, config);
+  codec_id_ = av_stream->codec->codec_id;
 }
 
 void FFmpegVideoDecoder::OnInitializeComplete(const VideoCodecInfo& info) {
@@ -109,6 +110,11 @@ void FFmpegVideoDecoder::OnInitializeComplete(const VideoCodecInfo& info) {
 }
 
 void FFmpegVideoDecoder::Stop(FilterCallback* callback) {
+#if defined (TOOLKIT_MEEGOTOUCH)
+  if(!message_loop_){
+    return;
+  }
+#endif
   if (MessageLoop::current() != message_loop_) {
     message_loop_->PostTask(FROM_HERE,
                              NewRunnableMethod(this,
@@ -151,6 +157,13 @@ void FFmpegVideoDecoder::Pause(FilterCallback* callback) {
 }
 
 void FFmpegVideoDecoder::Flush(FilterCallback* callback) {
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+  if(!message_loop_){
+    return;
+  }
+#endif
+
   if (MessageLoop::current() != message_loop_) {
     message_loop_->PostTask(FROM_HERE,
                              NewRunnableMethod(this,

@@ -682,6 +682,8 @@ void FFmpegVideoDecodeEngine::Uninitialize() {
   {
     /*FREE what VAAPI allcoate*/
     UnInitializeHwEngine();
+    hw_accel_ = 0;
+    codec_context_->codec_id = CODEC_ID_NONE ;
   }
   
   /* LOGERR << syscall(__NR_gettid));*/

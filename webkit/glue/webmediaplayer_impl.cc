@@ -59,9 +59,7 @@ Window subwin ;
 extern Display *mDisplay ;
 extern unsigned int CodecID ;
 
-static CallFMenuClass *g_ct = NULL;
 static QDeclarativeView *g_qmlView = NULL;
-static Window g_qmlWin = 0;
 
 #endif
 
@@ -175,7 +173,7 @@ void WebMediaPlayerImpl::Proxy::Repaint() {
   if (outstanding_repaints_ < kMaxOutstandingRepaints) {
 
 #if defined (TOOLKIT_MEEGOTOUCH)
-  if(subwin){
+  if(subwin > 3){
     /*only for H264 fullscreen playing*/
     render_loop_->PostTask(FROM_HERE,
                             NewRunnableMethod(this, &WebMediaPlayerImpl::Proxy::H264PaintFullScreen));
@@ -211,6 +209,7 @@ void WebMediaPlayerImpl::Proxy::Paint(SkCanvas* canvas,
 
 void WebMediaPlayerImpl::Proxy::SetSize(const gfx::Rect& rect) {
   DCHECK(MessageLoop::current() == render_loop_);
+
   if (video_renderer_) {
     video_renderer_->SetRect(rect);
   }
@@ -354,111 +353,122 @@ void CtrlPause(WebMediaPlayerImpl *player)
 }
 
 /*
-  Delay Task 2: to listen keyboard event
+  Delay Task 2: to listen QML Click events
 */
 
 void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *proxy, WebMediaPlayerImpl *player)
 {
   static unsigned int SyncFlush = 1;
-  proxy->menu_on_ = !g_ct->getMenuHiden();
+
+  CallFMenuClass *qml_ctrl = (CallFMenuClass *)player->getControlQml();
+
+  if(!qml_ctrl) {
+    goto subwin_exit;
+  }
+
+  proxy->menu_on_ = !qml_ctrl->getMenuHiden();
   
-  while(true) {
-    if(!g_ct->getEvents()){
-      break;
-    }
-    else{
-      g_ct->relEvents();
-    }
-    
-    switch(g_ct->getARtype()){
-      case UXQMLAR_MEDIA_PAUSE /*ARQmlPause*/:
-      {
-        player->pause();
-      }
-      break;
-
-      case UXQMLAR_MEDIA_PLAY /*ARQmlPlay*/:
-      {
-        player->play();
-      }
-      break;
-
-      case UXQMLAR_MEDIA_SEEK /*ARQmlSeek*/:
-      {
-        float timecur = player->currentTime();
-        int retry = 5;
-        float timedur = player->duration();
-        
-        player->seek(timedur*g_ct->getVideoCurTime()/(g_ct->getVideoDurTime()+1));
-      
-        while(retry--){
-          usleep(200*1000);
-          if(abs(player->currentTime() - timecur)>=4.0){
-            g_ct->setVideoCurTime((int)player->currentTime());
-            break;
-          }
-        }
-      }
-      break;
-
-      case UXQMLAR_MEDIA_FFORWARD /*ARQmlFForward*/:
-      {
-        // TODO
-      }
-      break;
-
-      case UXQMLAR_MEDIA_FBACKWARD /*ARQmlFBackward*/:
-      {
-        // TODO
-      }
-      break;
-
-      case UXQMLAR_MEDIA_VOLUME /*ARQmlVolume*/:
-      {
-        float vv = (float)g_ct->getVolumePercentage()/100.0;
-        player->setVolume(vv);
-      }
-      break;
-
-      case UXQMLAR_MEDIA_FULLSCREENQUIT /*ARQmlQuit*/:
-      {
-        //force quit
-        g_qmlView->close();
-
-        proxy->menu_on_ = false;
-        proxy->last_frame_ = 0;
-        if(player->paused()){
-          //Flush Shm Memory with current Surface
-          player->play();
-          msg->PostDelayedTask(FROM_HERE,
-                            NewRunnableFunction(CtrlPause,player), 200);
-        }
-        subwin = 0;
-        return; 
-      }
-      break;
-
-      default:
-      break;
-    }
+  if(!qml_ctrl->getEvents()) {
+    goto subwin_exit;
+  }
+  else{
+    qml_ctrl->relEvents();
   }
   
-  if(!SyncFlush){
-    g_ct->setVideoDurTime((int) player->duration());
-    g_ct->setVideoCurTime((int) player->currentTime());
+  switch(qml_ctrl->getARtype()) {
+    case UXQMLAR_MEDIA_PAUSE /*ARQmlPause*/:
+    {
+      player->pause();
+    }
+    break;
+
+    case UXQMLAR_MEDIA_PLAY /*ARQmlPlay*/:
+    {
+      player->play();
+    }
+    break;
+
+    case UXQMLAR_MEDIA_SEEK /*ARQmlSeek*/:
+    {
+      float timecur = player->currentTime();
+      int retry = 5;
+      float timedur = player->duration();
+      
+      player->seek(timedur*qml_ctrl->getVideoCurTime()/(qml_ctrl->getVideoDurTime()+1));
+    
+      while(retry--) {
+        usleep(200*1000);
+        if(abs(player->currentTime() - timecur)>=4.0) {
+          qml_ctrl->setVideoCurTime((int)player->currentTime());
+          break;
+        }
+      }
+    }
+    break;
+
+    case UXQMLAR_MEDIA_FFORWARD /*ARQmlFForward*/:
+    {
+      // TODO
+    }
+    break;
+
+    case UXQMLAR_MEDIA_FBACKWARD /*ARQmlFBackward*/:
+    {
+      // TODO
+    }
+    break;
+
+    case UXQMLAR_MEDIA_VOLUME /*ARQmlVolume*/:
+    {
+      float vv = (float)qml_ctrl->getVolumePercentage()/100.0;
+      player->setVolume(vv);
+    }
+    break;
+
+    case UXQMLAR_MEDIA_FULLSCREENQUIT /*ARQmlQuit*/:
+    {
+      //force quit
+      g_qmlView->close();
+
+      proxy->menu_on_ = false;
+      proxy->last_frame_ = 0;
+      
+      if(player->paused()) {
+        //Flush Shm Memory with current Surface
+        player->play();
+        msg->PostDelayedTask(FROM_HERE,
+                          NewRunnableFunction(CtrlPause,player), 200);
+      }
+      
+      subwin = 0;
+      return; 
+    }
+    break;
+
+    default:
+    break;
+  }
+  
+  if(!SyncFlush) {
+    qml_ctrl->setVideoDurTime((int) player->duration());
+    qml_ctrl->setVideoCurTime((int) player->currentTime());
     SyncFlush=10;
   }
-  else {SyncFlush--;}
+  else {
+    SyncFlush--;
+  }
   
-  if(player->currentTime() != player->duration()){
+subwin_exit:
+
+  if(player->currentTime() != player->duration()) {
     msg->PostDelayedTask(FROM_HERE,
                         NewRunnableFunction(CtrlSubWindow, msg, dpy, make_scoped_refptr(proxy), player), 50);
     proxy->last_frame_ = 0;
-  }else{
+  }else {
     /*end of stream*/
     /*No CtrlSubwindow, just pause ,close win, seek to start, exit */
-    if(subwin){
-      if(dpy == NULL){
+    if(subwin) {
+      if(dpy == NULL) {
         LOG(ERROR) << "Error in CtrlWindow";
       }
 
@@ -469,6 +479,7 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
       proxy->menu_on_ = false;
     }
   }
+  return;
 }
 
 /*
@@ -476,6 +487,8 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
 */
 void *qml_wsvr(void *arg)
 {
+  CallFMenuClass *qml_ctrl = (CallFMenuClass *)arg;
+
   int qargc = 1;
   char *cstr = NULL;
 
@@ -496,10 +509,8 @@ void *qml_wsvr(void *arg)
   /*full screen*/
   qmlView.setWindowState(Qt::WindowFullScreen);
   
-  g_ct = NULL;
-  g_ct = new CallFMenuClass;
 
-  if(g_ct == NULL){
+  if(qml_ctrl == NULL){
     if(cstr){
       free(cstr);
       cstr = NULL;
@@ -509,7 +520,7 @@ void *qml_wsvr(void *arg)
     pthread_exit(NULL);
   } 
 
-  qmlView.rootContext()->setContextProperty("fmenuObject", g_ct);
+  qmlView.rootContext()->setContextProperty("fmenuObject", qml_ctrl);
 
   QString mainQml = QString("meego-app-browser/") + "HwMediaUxMain.qml";
   QString sharePath;
@@ -528,42 +539,46 @@ void *qml_wsvr(void *arg)
   }
 
   qmlView.setSource(QUrl(sharePath + mainQml));  // Should locate HwMediaUxMain.qml and icons from "meego-app-browser"
-
   qmlView.raise();
   qmlView.setAttribute(Qt::WA_NoSystemBackground, true);
   qmlView.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
   qmlView.show();
-  g_qmlWin = qmlView.winId();
+  subwin = qmlView.winId();
 
   napp.exec();
+  qml_ctrl->setLaunchedFlag(0);
+
   if(cstr){
     free(cstr);
     cstr = NULL;
   }
-  delete g_ct;
-
+  g_qmlView = NULL;
   pthread_exit(NULL);
 }
 
-
-Window WebMediaPlayerImpl::Proxy::CreateSubWindow(void)
+Window WebMediaPlayerImpl::Proxy::CreateSubWindow(WebMediaPlayerImpl *player)
 {
+#define MAX_RETRYQMLWIN_TIMES (150)
   /*reset */
   pthread_t thread_wqml;
   menu_on_ = 0;
   last_frame_ = 0;
-  g_qmlWin = 0;
+  Window qmlNewWin = 1;
 
-  if(pthread_create(&thread_wqml, NULL, qml_wsvr, NULL) != 0){
-    return 0;
+  CallFMenuClass *qml_ctrl = (CallFMenuClass *)player->getControlQml();
+
+  if(pthread_create(&thread_wqml, NULL, qml_wsvr, qml_ctrl) != 0) {
+    return 1;
   }
 
-  while(!g_qmlWin){
-    usleep(200*1000);
+  for(int c = 0;c < MAX_RETRYQMLWIN_TIMES; c++) {
+    if(subwin ) break;
+    else usleep(200*1000);
   }
 
-  return g_qmlWin;
+  return subwin;
 }
+
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
@@ -600,7 +615,7 @@ bool WebMediaPlayerImpl::Initialize(
     return false;
   }
 
-  pipeline_ = new media::PipelineImpl(pipeline_message_loop);
+  pipeline_ = pipelineImpl_ = new media::PipelineImpl(pipeline_message_loop);
 
   // Also we want to be notified of |main_loop_| destruction.
   main_loop_->AddDestructionObserver(this);
@@ -669,10 +684,15 @@ bool WebMediaPlayerImpl::Initialize(
   proxy_->m_ximage_ = 0;
   proxy_->shminfo_.shmid = 0;
   proxy_->shminfo_.shmaddr = NULL;
+  proxy_->codec_id_ = 0;
+
+  CallFMenuClass *qml_ctrl = NULL;
+  
+  qml_ctrl = new CallFMenuClass;
+  this->setControlQml(qml_ctrl);
   }
    
 #endif
-
 
   return true;
 }
@@ -702,6 +722,10 @@ void WebMediaPlayerImpl::load(const WebKit::WebURL& url) {
     filter_collection_->AddVideoDecoder(rtc_video_decoder);
   }
 
+  if(!main_loop_){
+    return ;
+  }
+
   // Handle any volume changes that occured before load().
   setVolume(GetClient()->volume()/2);
   // Get the preload value.
@@ -724,13 +748,23 @@ void WebMediaPlayerImpl::cancelLoad() {
 void WebMediaPlayerImpl::play() {
   DCHECK(MessageLoop::current() == main_loop_);
 
+  if(!main_loop_){
+    return ;
+  }
 
+  if(pipelineImpl_){
+    proxy_->codec_id_ = pipelineImpl_->GetVideoCodecID();
+  }else{
+    LOG(ERROR) << "Error while player";
+    return ;
+  }
+ 
 #if defined (TOOLKIT_MEEGOTOUCH)
   // _FULLSCREEN_
   if((CodecID == 28/*h264*/)&&(subwin == 0) && (mDisplay) && (!proxy_->last_frame_)){
     /*_DEV2_OPT*/
     /*Create a subwin, if mDisplay , and not last frm*/
-    subwin = proxy_->CreateSubWindow();
+    subwin = proxy_->CreateSubWindow(this);
     if(subwin == 0){
       LOG(ERROR) << "proxy_->CreateSubWindow Error";
       return;
@@ -749,6 +783,10 @@ void WebMediaPlayerImpl::play() {
 void WebMediaPlayerImpl::pause() {
   DCHECK(MessageLoop::current() == main_loop_);
 
+  if(!main_loop_){
+    return ;
+  }
+
   paused_ = true;
   pipeline_->SetPlaybackRate(0.0f);
   paused_time_ = pipeline_->GetCurrentTime();
@@ -766,6 +804,9 @@ bool WebMediaPlayerImpl::supportsSave() const {
 
 void WebMediaPlayerImpl::seek(float seconds) {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return ;
+  }
 
   // WebKit fires a seek(0) at the very start, however pipeline already does a
   // seek(0) internally.  Avoid doing seek(0) the second time because this will
@@ -803,6 +844,9 @@ void WebMediaPlayerImpl::setEndTime(float seconds) {
 
 void WebMediaPlayerImpl::setRate(float rate) {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return ;
+  }
 
   // TODO(kylep): Remove when support for negatives is added. Also, modify the
   // following checks so rewind uses reasonable values also.
@@ -825,6 +869,9 @@ void WebMediaPlayerImpl::setRate(float rate) {
 
 void WebMediaPlayerImpl::setVolume(float volume) {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return ;
+  }
 
   pipeline_->SetVolume(volume);
 }
@@ -864,6 +911,9 @@ bool WebMediaPlayerImpl::hasVideo() const {
 
 bool WebMediaPlayerImpl::hasAudio() const {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return 0;
+  }
 
   return pipeline_->HasAudio();
 }
@@ -952,12 +1002,18 @@ float WebMediaPlayerImpl::maxTimeSeekable() const {
 
 unsigned long long WebMediaPlayerImpl::bytesLoaded() const {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return 0;
+  }
 
   return pipeline_->GetBufferedBytes();
 }
 
 unsigned long long WebMediaPlayerImpl::totalBytes() const {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return 0;
+  }
 
   return pipeline_->GetTotalBytes();
 }
@@ -965,6 +1021,9 @@ unsigned long long WebMediaPlayerImpl::totalBytes() const {
 void WebMediaPlayerImpl::setSize(const WebSize& size) {
   DCHECK(MessageLoop::current() == main_loop_);
   DCHECK(proxy_);
+  if(!main_loop_){
+    return;
+  }
 
   proxy_->SetSize(gfx::Rect(0, 0, size.width, size.height));
 }
@@ -1159,6 +1218,9 @@ void WebMediaPlayerImpl::OnPipelineEnded(PipelineStatus status) {
 
 void WebMediaPlayerImpl::OnPipelineError(PipelineStatus error) {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return ;
+  }
   switch (error) {
     case media::PIPELINE_OK:
       LOG(DFATAL) << "PIPELINE_OK isn't an error!";
@@ -1217,6 +1279,9 @@ void WebMediaPlayerImpl::OnNetworkEvent(PipelineStatus status) {
 void WebMediaPlayerImpl::SetNetworkState(
     WebKit::WebMediaPlayer::NetworkState state) {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return ;
+  }
   // Always notify to ensure client has the latest value.
   network_state_ = state;
   GetClient()->networkStateChanged();
@@ -1225,6 +1290,9 @@ void WebMediaPlayerImpl::SetNetworkState(
 void WebMediaPlayerImpl::SetReadyState(
     WebKit::WebMediaPlayer::ReadyState state) {
   DCHECK(MessageLoop::current() == main_loop_);
+  if(!main_loop_){
+    return ;
+  }
   // Always notify to ensure client has the latest value.
   ready_state_ = state;
   GetClient()->readyStateChanged();
@@ -1232,6 +1300,10 @@ void WebMediaPlayerImpl::SetReadyState(
 
 void WebMediaPlayerImpl::Destroy() {
   DCHECK(MessageLoop::current() == main_loop_);
+
+  if(!main_loop_){
+    return;
+  }
 
 #if defined (TOOLKIT_MEEGOTOUCH)
   {
@@ -1279,6 +1351,18 @@ void WebMediaPlayerImpl::Destroy() {
     proxy_->Detach();
     proxy_ = NULL;
   }
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+  /*Free qml controller*/
+  CallFMenuClass *qml_ctrl = (CallFMenuClass *)this->getControlQml();
+
+  if(!qml_ctrl) delete qml_ctrl;
+
+  qml_ctrl = NULL;
+
+  this->setControlQml(qml_ctrl);
+
+#endif
 }
 
 WebKit::WebMediaPlayerClient* WebMediaPlayerImpl::GetClient() {

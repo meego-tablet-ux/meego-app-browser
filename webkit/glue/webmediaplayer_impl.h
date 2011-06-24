@@ -62,6 +62,7 @@
 #include "media/base/filters.h"
 #include "media/base/message_loop_factory.h"
 #include "media/base/pipeline.h"
+#include "media/base/pipeline_impl.h"
 #include "skia/ext/platform_canvas.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebMediaPlayer.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebMediaPlayerClient.h"
@@ -124,7 +125,7 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
 // _FULLSCREEN_
 /*_DEV2_H264_*/
     bool Paused() {return webmediaplayer_->paused();}
-    Window CreateSubWindow();
+    Window CreateSubWindow(WebMediaPlayerImpl *player);
     void H264PaintFullScreen(void) ;
     WebMediaPlayerImpl* GetMediaPlayer() { return webmediaplayer_;}
 
@@ -147,6 +148,7 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
     unsigned int pixmap_h_;
     XImage * m_ximage_;
     base::Lock paint_lock_;
+    unsigned int codec_id_;
 /*_DEV2_H264_*/
 #endif
     bool HasSingleOrigin();
@@ -314,6 +316,12 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
 
   void OnNetworkEvent(media::PipelineStatus status);
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+  Proxy * GetProxy(){ return proxy_;}
+  void *getControlQml() {return m_controlQmlC;}
+  void setControlQml(void *handle) { m_controlQmlC = handle;}
+#endif
+
  private:
   // Helpers that set the network/ready state and notifies the client if
   // they've changed.
@@ -342,6 +350,7 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
 
   // The actual pipeline and the thread it runs on.
   scoped_refptr<media::Pipeline> pipeline_;
+  scoped_refptr<media::PipelineImpl> pipelineImpl_;
 
   scoped_ptr<media::MessageLoopFactory> message_loop_factory_;
 
@@ -365,6 +374,9 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
   WebKit::WebMediaPlayerClient* client_;
 
   scoped_refptr<Proxy> proxy_;
+#if defined (TOOLKIT_MEEGOTOUCH)
+  void *m_controlQmlC;
+#endif
 
 #if WEBKIT_USING_CG
   scoped_ptr<skia::PlatformCanvas> skia_canvas_;

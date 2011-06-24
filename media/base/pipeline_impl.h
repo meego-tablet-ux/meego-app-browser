@@ -127,6 +127,8 @@ class PipelineImpl : public Pipeline, public FilterHost {
 
   void SetClockForTesting(Clock* clock);
 
+  unsigned int GetVideoCodecID() {return video_decoder_->codec_id_;}
+
  private:
   // Pipeline states, as described above.
   enum State {
@@ -440,6 +442,7 @@ class PipelineImpl : public Pipeline, public FilterHost {
   // when playback has finished.
   scoped_refptr<AudioRenderer> audio_renderer_;
   scoped_refptr<VideoRenderer> video_renderer_;
+  scoped_refptr<VideoDecoder> video_decoder_;
 
   // Demuxer reference used for setting the preload value.
   scoped_refptr<Demuxer> demuxer_;

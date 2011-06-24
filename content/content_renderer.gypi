@@ -10,6 +10,7 @@
       'type': '<(library)',
       'dependencies': [
         'content_common',
+        '../build/linux/system.gyp:meegotouch',
         '../jingle/jingle.gyp:jingle_glue',
         '../ppapi/ppapi.gyp:ppapi_proxy',
         '../skia/skia.gyp:skia',

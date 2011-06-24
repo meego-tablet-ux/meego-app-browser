@@ -649,6 +649,7 @@ void PipelineImpl::InitializeTask() {
     // If this method returns false, then there's no audio stream.
     if (InitializeAudioDecoder(demuxer_))
       return;
+
   }
 
   // Assuming audio decoder was created, create audio renderer.
@@ -679,6 +680,9 @@ void PipelineImpl::InitializeTask() {
       return;
     }
   }
+
+
+  video_decoder_ = pipeline_init_state_->video_decoder_;
 
   if (state_ == kInitVideoRenderer) {
     if (!IsPipelineOk() || !(HasAudio() || HasVideo())) {

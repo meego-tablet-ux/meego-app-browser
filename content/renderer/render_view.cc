@@ -4,6 +4,18 @@
 
 #include "content/renderer/render_view.h"
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+#include <QtGui>
+#include <QtDeclarative>
+
+#include <QDeclarativeEngine>
+#include <QDeclarativeView>
+#include <QDeclarativeContext>
+#include <QDeclarativeItem>
+#include <QGraphicsLineItem>
+#include "webkit/glue/hwfmenu_qt.h"
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -153,6 +165,9 @@
 #include "skia/ext/skia_utils_mac.h"
 #endif
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+extern Window subwin;
+#endif
 
 using WebKit::WebAccessibilityCache;
 using WebKit::WebAccessibilityNotification;
@@ -473,6 +488,10 @@ RenderView::~RenderView() {
 
   FOR_EACH_OBSERVER(RenderViewObserver, observers_, set_render_view(NULL));
   FOR_EACH_OBSERVER(RenderViewObserver, observers_, OnDestruct());
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  mediaplayer_ = NULL;
+#endif
 }
 
 /*static*/
@@ -717,6 +736,7 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(ViewMsg_CommitSelection, OnCommitSelection)
     IPC_MESSAGE_HANDLER(ViewMsg_ResourceGet, OnResourceGet)
     IPC_MESSAGE_HANDLER(ViewMsg_ResourceInUsed, OnResourceInUsed)
+    IPC_MESSAGE_HANDLER(ViewMsg_ForegroundChanged, OnBackgroundPolicy)
 #endif
 #if defined(OS_MACOSX) || defined(TOOLKIT_MEEGOTOUCH)
     IPC_MESSAGE_HANDLER(ViewMsg_SelectPopupMenuItem, OnSelectPopupMenuItem)
@@ -758,6 +778,59 @@ void RenderView::OnResourceInUsed(void) {
       /*we get confirm of resource is in used, and keep or trigger pause.*/
       mediaplayer_->pause();
   }
+  return;
+}
+
+/*to control background policy 
+  sw: pause
+  hw: release resource
+*/
+void RenderView::OnBackgroundPolicy(void) {
+
+  if(!mediaplayer_){
+    return;
+  }
+    
+  webkit_glue::WebMediaPlayerImpl *mediaImpl = (webkit_glue::WebMediaPlayerImpl*)mediaplayer_;
+
+  if(mediaImpl->GetProxy()->codec_id_ == 28/*H264*/){
+
+    if(subwin){
+
+      CallFMenuClass *qml_ctrl = (CallFMenuClass *)mediaImpl->getControlQml();
+
+      if(!qml_ctrl) return;
+
+      if(qml_ctrl->getLaunchedFlag()){
+        /*fullscreen playing, close window*/
+        qml_ctrl->ForceControlOutside();
+      }else{
+        /*it's launching process*/
+        qml_ctrl->setLaunchedFlag(1);
+        return;
+      }
+
+    }
+
+    /*release policy aware link of Dbus*/
+    resourceRelease();
+
+    /*pause*/
+    OnResourceInUsed(); // Do Pause
+
+    /*Free resource*/
+    mediaImpl->GetProxy()->SetVideoRenderer(NULL);
+    mediaImpl->WillDestroyCurrentMessageLoop();
+    mediaplayer_ = NULL;
+
+
+  }else if(mediaImpl->GetProxy()->codec_id_ != 0){
+    /*sw version*/
+    /*Not H264*/
+    resourceRelease();
+    OnResourceInUsed(); // Do Pause
+  }
+
   return;
 }
 
@@ -1959,7 +2032,9 @@ int RenderView::resourceRequire(
     /*update mediaplayer*/
     mediaplayer_ = player;
 
-    Send(new ViewHostMsg_ResourceRequire(routing_id_, type));
+    if(mediaplayer_){
+      Send(new ViewHostMsg_ResourceRequire(routing_id_, type));
+    }
     return 0;
 }
 
@@ -1967,6 +2042,7 @@ int RenderView::resourceRequire(
 int RenderView::resourceRelease(void) {
 
     Send(new ViewHostMsg_ResourceRelease(routing_id_));
+   
     return 0;
 }
 

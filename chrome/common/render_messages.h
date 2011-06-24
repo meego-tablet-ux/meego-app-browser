@@ -319,6 +319,9 @@ IPC_SYNC_MESSAGE_ROUTED1_0(ViewMsg_ZoomFactor, double)
 IPC_MESSAGE_ROUTED1(ViewHostMsg_QueryNodeAtPosition_ACK,
                     unsigned int /* node_info */)
 
+/*PolicyAware Media Background Application*/
+IPC_MESSAGE_ROUTED0(ViewMsg_ForegroundChanged)
+
 /*PolicyAware Application*/
 IPC_MESSAGE_ROUTED1(ViewHostMsg_ResourceRequire,
                     int /* type */)
