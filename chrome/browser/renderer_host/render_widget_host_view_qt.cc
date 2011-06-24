@@ -93,7 +93,7 @@ void RenderWidgetHostViewQt::InitAsPopup(
   // as the parent's. 
   RenderWidgetHost* host = parent_host_view_->GetRenderWidgetHost();
   if(host) {
-    scale = host->GetScaleFactor();
+    scale = flatScaleByStep(host->GetScaleFactor());
     host_->SetScaleFactor(scale);
   }
 
@@ -102,18 +102,23 @@ void RenderWidgetHostViewQt::InitAsPopup(
   host_->SetPreferredSize(gfx::Size(pos.width(), pos.height()));
 
   parent_ = parent_host_view_->GetNativeView();
+
+  requested_size_ = gfx::Size(std::min(pos.width(), kMaxWindowWidth),
+                              std::min(pos.height(), kMaxWindowHeight));
+
+  // Initialize the popup widget for showing popup menu item
   RWHVQtWidget* widget = new RWHVQtWidget(this);
+
   widget->setParentItem(parent_->parentItem());
   widget->SetScaleFactor(scale);
-  view_ = widget;
 
-  requested_size_ = gfx::Size(std::min(pos.width()-1, kMaxWindowWidth)*scale,
-      std::min(pos.height()-1, kMaxWindowHeight)*scale);
-  QRect geometry(pos.x()*scale, pos.y()*scale, requested_size_.width(), requested_size_.height());
-  view_->setMinimumSize(requested_size_.width(), requested_size_.height());
-  view_->setMaximumSize(requested_size_.width(), requested_size_.height());
-  view_->setGeometry(geometry);
-  view_->show();
+  QRect geometry(pos.x()*scale, pos.y()*scale, 
+                 requested_size_.width()*scale, 
+                 requested_size_.height()*scale);
+
+  widget->setGeometry(geometry);
+  widget->show();
+  view_ = widget;
   
   host_->WasResized();
 }
@@ -534,6 +539,35 @@ RenderWidgetHostView*
     RenderWidgetHostView::GetRenderWidgetHostViewFromNativeView(
         gfx::NativeView widget) {
   return reinterpret_cast<RWHVQtWidget*>(widget)->hostView();
+}
+
+// Called on receiving ViewHostMsg_RequestMove IPC from
+// render process. 
+void RenderWidgetHostViewQt::SetBounds(const gfx::Rect& pos)
+{
+  if (!IsPopup()) return;
+  
+  // If the number of the suggestion row changes, the bound 
+  // of the widgetshowing popup menu should be also changed.
+  // Render process will send out RequestMove IPC to browser
+  // process
+  requested_size_ = gfx::Size(std::min(pos.width(), kMaxWindowWidth),
+                     std::min(pos.height(), kMaxWindowHeight));
+
+  // Adjust RWHVQtWidget size accordint to the given bounds
+  RWHVQtWidget* rwhv = static_cast<RWHVQtWidget*>(view_);
+  // Do we need to a DCHECK?
+  if (!rwhv) return;
+
+  qreal scale = rwhv->scale();
+  QRect geometry(pos.x()*scale, pos.y()*scale, 
+                 requested_size_.width()*scale, 
+                 requested_size_.height()*scale);
+  rwhv->setGeometry(geometry);
+  rwhv->show();
+  
+  host_->WasResized();
+  return;
 }
 
 void RenderWidgetHostViewQt::UpdateContentsSize(const gfx::Size& size)

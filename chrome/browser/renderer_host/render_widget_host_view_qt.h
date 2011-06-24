@@ -53,7 +53,6 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
   virtual void WasHidden();
   virtual void SetSize(const gfx::Size& size);
   virtual void SetPreferredSize(const gfx::Size& size);
-  virtual void SetBounds(const gfx::Rect& rect) {DNOTIMPLEMENTED();};
   virtual gfx::NativeView GetNativeView();
   virtual void MovePluginWindows(
   const std::vector<webkit::npapi::WebPluginGeometry>& moves);
@@ -90,6 +89,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
   virtual void ImeCancelComposition();
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+  virtual void SetBounds(const gfx::Rect& rect);
 
   // this one is derived from QtPluginContainerManagerHostDelegate
   virtual void OnCloseFSPluginWindow(gfx::PluginWindowHandle id);
