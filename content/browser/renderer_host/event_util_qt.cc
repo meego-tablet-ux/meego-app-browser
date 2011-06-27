@@ -78,6 +78,15 @@ WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(const QGraphicsSceneMouseEven
   case QEvent::GraphicsSceneMouseMove:
     result.type = WebKit::WebInputEvent::MouseMove;
     break;
+  case QEvent::GraphicsSceneHoverEnter:
+    result.type = WebKit::WebInputEvent::MouseEnter;
+    break;
+  case QEvent::GraphicsSceneHoverLeave:
+    result.type = WebKit::WebInputEvent::MouseLeave;
+    break;
+  case QEvent::GraphicsSceneHoverMove:
+    result.type = WebKit::WebInputEvent::MouseMove;
+    break;
   default:
     NOTREACHED();
   }
@@ -120,6 +129,15 @@ WebKit::WebMouseEvent EventUtilQt::ToWebMouseEvent(QEvent::Type type,
     result.type = WebKit::WebInputEvent::MouseUp;
     break;
   case QEvent::GraphicsSceneMouseMove:
+    result.type = WebKit::WebInputEvent::MouseMove;
+    break;
+  case QEvent::GraphicsSceneHoverEnter:
+    result.type = WebKit::WebInputEvent::MouseEnter;
+    break;
+  case QEvent::GraphicsSceneHoverLeave:
+    result.type = WebKit::WebInputEvent::MouseLeave;
+    break;
+  case QEvent::GraphicsSceneHoverMove:
     result.type = WebKit::WebInputEvent::MouseMove;
     break;
   default:

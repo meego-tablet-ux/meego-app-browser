@@ -127,8 +127,12 @@ protected Q_SLOTS:
   QGraphicsObject* GetWebViewItem();
   QGraphicsObject* GetViewportItem();
   
+  bool shouldDeliverHoverLeaveEvent();
+  bool shouldDeliverHoverEnterEvent();
   bool shouldDeliverMouseMove();
   bool shouldDeliverDoubleClick();
+  void deliverFakeHoverLeaveEvent(QGraphicsSceneMouseEvent* event);
+  void deliverFakeHoverEnterEvent(QGraphicsSceneMouseEvent* event);
   void deliverMousePressEvent();
   void deliverMouseDoubleClickEvent();
   bool setDoingGesture(Qt::GestureType);

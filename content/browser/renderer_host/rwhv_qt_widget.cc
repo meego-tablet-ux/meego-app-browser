@@ -460,6 +460,39 @@ void RWHVQtWidget::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   //hostView()->OnMoveEvent(aEvent);
 }
 
+void RWHVQtWidget::deliverFakeHoverEnterEvent(QGraphicsSceneMouseEvent* qevent)
+{
+  // There is not hover/mouseover on Touch device.
+  // So we simulate this event
+  int x = static_cast<int>(qevent->pos().x());
+  int y = static_cast<int>(qevent->pos().y());
+  int globalX = static_cast<int>(qevent->screenPos().x());
+  int globalY = static_cast<int>(qevent->screenPos().y());
+  
+  // Webkit doesn't handle MouseEnter. So we pass MouseMove here.
+  WebKit::WebMouseEvent mouseEnterEvent = EventUtilQt::ToWebMouseEvent(QEvent::GraphicsSceneMouseMove,
+                                                                   Qt::LeftButton, Qt::NoModifier,
+                                                                   x, y, globalX, globalY, scale());
+  if(hostView()->host_)
+    hostView()->host_->ForwardMouseEvent(mouseEnterEvent);
+}
+
+void RWHVQtWidget::deliverFakeHoverLeaveEvent(QGraphicsSceneMouseEvent* qevent)
+{
+  // There is not hover/mouseover on Touch device.
+  // So we simulate this event
+  int x = static_cast<int>(qevent->pos().x());
+  int y = static_cast<int>(qevent->pos().y());
+  int globalX = static_cast<int>(qevent->screenPos().x());
+  int globalY = static_cast<int>(qevent->screenPos().y());
+  
+  WebKit::WebMouseEvent mouseLeaveEvent = EventUtilQt::ToWebMouseEvent(QEvent::GraphicsSceneHoverLeave,
+                                                                   Qt::LeftButton, Qt::NoModifier,
+                                                                   x, y, globalX, globalY, scale());
+  if(hostView()->host_)
+    hostView()->host_->ForwardMouseEvent(mouseLeaveEvent);
+}
+
 void RWHVQtWidget::keyPressEvent(QKeyEvent* event)
 {
   onKeyPressReleaseEvent(event);
@@ -613,6 +646,26 @@ bool RWHVQtWidget::inScrollableArea()
     return false;
 
   return (node_info & WebKit::WebWidget::NODE_INFO_IS_SCROLLABLE_AREA);
+}
+
+bool RWHVQtWidget::shouldDeliverHoverEnterEvent()
+{
+  int node_info = hostView()->webkit_node_info_;
+  
+  if (hostView()->IsPopup())
+    return false;
+
+  return (node_info & (WebKit::WebWidget::NODE_INFO_HAS_MOUSEOVER_LISTENER));
+}
+
+bool RWHVQtWidget::shouldDeliverHoverLeaveEvent()
+{
+  int node_info = hostView()->webkit_node_info_;
+  
+  if (hostView()->IsPopup())
+    return false;
+
+  return (node_info & (WebKit::WebWidget::NODE_INFO_HAS_MOUSEOUT_LISTENER));
 }
 
 bool RWHVQtWidget::shouldDeliverMouseMove()
@@ -1039,6 +1092,12 @@ void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
     // Then query the node under current pos
     hostView()->host_->QueryNodeAtPosition(static_cast<int>(event->pos().x() / scale()),
         static_cast<int>(event->pos().y() / scale()));
+
+    if(shouldDeliverHoverLeaveEvent())
+        deliverFakeHoverLeaveEvent(event);
+
+    if(shouldDeliverHoverEnterEvent())
+       deliverFakeHoverEnterEvent(event);
 
     hostView()->host_->ForwardTouchEvent(touch_start_event_);    
     
