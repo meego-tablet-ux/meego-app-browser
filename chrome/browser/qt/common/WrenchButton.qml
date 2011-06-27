@@ -40,6 +40,7 @@ Item {
   width: childrenRect.width
   property bool shown: false
   property int popupDirection: 0 // 0 up, 1 down, 2 left, 3 right
+  property int offsetHeight: 8
   Image {
     id: wrenchIcon
     anchors.verticalCenter: parent.verticalCenter
@@ -75,7 +76,7 @@ Item {
       if (popupDirection == 0) {
         py = 0
       } else if (popupDirection == 1) {
-        py = py + parent.height
+        py = py + parent.height - offsetHeight
       }
 
       var map = mapToItem(topWidget, px, py);
