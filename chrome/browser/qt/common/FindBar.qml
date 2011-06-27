@@ -56,10 +56,10 @@ Item {
 
     TextEntry {
       id: findboxcontainer
-      width: container.width - matchesLabel.width - prevButton.width - nextButton.width - closeButton.width - 10
       height: parent.height*4/5
       anchors.verticalCenter: parent.verticalCenter
       anchors.right: matchesLabel.left
+      anchors.left: parent.left
       anchors.margins: 5
       onTextChanged: findBarModel.textChanged(text);
     }
@@ -69,7 +69,8 @@ Item {
       objectName: "matchesLabel"
       height: parent.height
       width: matchesText.width
-      anchors.right: prevButton.left
+      anchors.right: divider1.right
+      anchors.rightMargin: 15
       Text {
         id: matchesText
         objectName: "matchesText"
@@ -83,11 +84,17 @@ Item {
         onSetMatchesLabel: matchesText.text = text
       }
     }
+    Image {
+        id: divider1
+        anchors.right: prevButton.left
+        height: parent.height
+        source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
+    }
     Item {
       id: prevButton
       height: parent.height
       width: height
-      anchors.right: nextButton.left
+      anchors.right: divider2.left
       Image {
         id: prevIcon
         anchors.centerIn: parent
@@ -112,11 +119,17 @@ Item {
         onReleased: prevIcon.pressed = false
       }
     }
+    Image {
+        id: divider2
+        anchors.right: nextButton.left
+        height: parent.height
+        source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
+    }
     Item {
       id: nextButton
       height: parent.height
       width: height
-      anchors.right: closeButton.left
+      anchors.right: divider3.left
       Image {
         id: nextIcon
         anchors.centerIn: parent
@@ -141,7 +154,12 @@ Item {
         onReleased: nextIcon.pressed = false
       }
     }
-
+    Image {
+        id: divider3
+        anchors.right: closeButton.left
+        height: parent.height
+        source: "image://themedimage/widgets/common/toolbar/toolbar-item-separator"
+    }
     Item {
       id: closeButton
       objectName: "closeButton"
