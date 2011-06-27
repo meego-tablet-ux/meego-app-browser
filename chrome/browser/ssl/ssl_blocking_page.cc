@@ -96,8 +96,8 @@ std::string SSLBlockingPage::GetHTMLContents() {
 
   Browser* browser = BrowserList::GetLastActive();
   BrowserWindowQt* window = (BrowserWindowQt*)browser->window();
-  SSLDialogQt* sslDialog = window->GetSSLDialogQt();
-  sslDialog->SetDetails(&strings);
+  DCHECK(window->GetSSLDialogModel());
+  window->GetSSLDialogModel()->SetDetails(&strings);
 
   base::StringPiece html(
       ResourceBundle::GetSharedInstance().GetRawDataResource(resource_id));
@@ -120,15 +120,6 @@ void SSLBlockingPage::UpdateEntry(NavigationEntry* entry) {
       NotificationService::NoDetails());
 }
 
-void SSLBlockingPage::Show()
-{
-  Browser* browser = BrowserList::GetLastActive();
-  BrowserWindowQt* window = (BrowserWindowQt*)browser->window();
-  SSLDialogQt* sslDialog = window->GetSSLDialogQt();
-  sslDialog->SetPageHandler(this);
-  InterstitialPage::Show();
-  sslDialog->Show();
-}
 void SSLBlockingPage::CommandReceived(const std::string& command) {
   if (command == "1") {
     Proceed();

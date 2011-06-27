@@ -4,8 +4,8 @@
 
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
-#include "chrome/browser/ssl/ssl_blocking_page.h"
-#include "chrome/browser/ui/browser_list.h"
+#include "chrome/browser/ui/meegotouch/ssl_modal_dialog_qt.h"
+#include "chrome/browser/browser_list.h"
 
 class SSLDialogQt;
 class SSLDialogQtImpl;
@@ -18,17 +18,14 @@ class SSLDialogQt: public QObject
 
     void CommandReceived(const std::string& command);
     void Show();
-    void SetPageHandler(SSLBlockingPage* sslPage);
-    void SetDetails(DictionaryValue* strings);
-    void SetTabContentsHandler(TabContents* tab_contents)
-	  {
-		    tab_contents_ = tab_contents;
-	  }
+    void SetModel(SSLAppModalDialog* model)
+    {
+        model_ = model;
+    }
   private:
     BrowserWindowQt* window_;
-    SSLBlockingPage* ssl_page_;
     SSLDialogQtImpl* impl_;
-    TabContents* tab_contents_;
+    SSLAppModalDialog* model_;
 };
 
 #endif // SSL_DIALOG_QT_H

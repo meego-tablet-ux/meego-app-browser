@@ -410,8 +410,7 @@ Item {
             ssldialog.show()
           }
           onHide: {
-            ssldialog.visible = false
-            ssldialog.hide()
+            sslDialogLoader.source = ""
           }
         }
         Window {

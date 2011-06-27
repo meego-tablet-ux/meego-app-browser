@@ -8,6 +8,7 @@
 #include "chrome/browser/ssl/ssl_cert_error_handler.h"
 #include "chrome/browser/tab_contents/tab_util.h"
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#include "chrome/browser/ui/meegotouch/ssl_modal_dialog_qt.h"
 #include "content/browser/browser_thread.h"
 #include "content/browser/renderer_host/resource_dispatcher_host.h"
 #include "content/browser/renderer_host/resource_dispatcher_host_request_info.h"
@@ -73,7 +74,7 @@ void SSLErrorHandler::Dispatch() {
   manager_ = tab_contents->controller().ssl_manager();
   Browser* browser = BrowserList::GetLastActive();
   BrowserWindowQt* window = (BrowserWindowQt*)browser->window();
-  window->GetSSLDialogQt()->SetTabContentsHandler(tab_contents);
+  window->SetSSLDialogModel(new SSLAppModalDialog(tab_contents));
   OnDispatched();
 }
 

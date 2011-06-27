@@ -12,6 +12,7 @@
 #include "chrome/browser/ssl/ssl_cert_error_handler.h"
 #include "chrome/browser/ssl/ssl_error_info.h"
 #include "chrome/browser/ssl/ssl_request_info.h"
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #include "chrome/common/jstemplate_builder.h"
 #include "chrome/common/time_format.h"
 #include "chrome/common/url_constants.h"
@@ -206,9 +207,10 @@ void SSLPolicy::OnCertErrorInternal(SSLCertErrorHandler* handler,
     handler->DenyRequest();
     return;
   }
-  SSLBlockingPage* blocking_page = new SSLBlockingPage(handler, this,
-                                                       error_level);
-  blocking_page->Show();
+  Browser* browser = BrowserList::GetLastActive();
+  BrowserWindowQt* window = (BrowserWindowQt*)browser->window();
+  DCHECK(window->GetSSLDialogModel());
+  window->GetSSLDialogModel()->SetPageHandler(handler, this, error_level);
 }
 
 void SSLPolicy::InitializeEntryIfNeeded(NavigationEntry* entry) {

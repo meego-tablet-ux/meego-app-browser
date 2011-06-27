@@ -620,9 +620,10 @@ FindBarQt* BrowserWindowQt::GetFindBar()
   return find_bar_;
 }
 
-SSLDialogQt* BrowserWindowQt::GetSSLDialogQt()
+void BrowserWindowQt::ShowSSLDialogQt(SSLAppModalDialog* model)
 {
-  return ssl_dialog_.get();
+  ssl_dialog_.get()->SetModel(model);
+  ssl_dialog_.get()->Show();
 }
 
 NewTabUIQt* BrowserWindowQt::GetNewTabUIQt()

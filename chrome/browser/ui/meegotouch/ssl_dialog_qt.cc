@@ -17,9 +17,8 @@ class SSLDialogQtImpl: public QObject
     {
     }
 
-    void SetDetails(DictionaryValue* strings)
-	  { 
-		    strings_ = strings->DeepCopy();
+    void SetDetails(DictionaryValue* strings){ 
+		    strings_ = strings;
 	  }
 
     void Show() { 
@@ -27,7 +26,7 @@ class SSLDialogQtImpl: public QObject
         strings_->GetString("headLine", &headline);
 		    strings_->GetString("description", &description);
 		    strings_->GetString("moreInfoTitle", &moreInfo);
-        bool error;;
+        bool error;
         if(strings_->GetString("proceed", &buttonYes) && strings_->GetString("exit", &buttonNo))
             error = false;
         else
@@ -46,14 +45,20 @@ class SSLDialogQtImpl: public QObject
     void yesButtonClicked()
     {
         DLOG(INFO)<<"SSL: YES";
-        dialog_->CommandReceived("1");
+        //That`s important for hide() before CommandReceived()
+        //or if there are more than one SSL_Dialog in DialogQueue
+        //they won`t show correct
         emit hide();
+        dialog_->CommandReceived("1");
     }
     void noButtonClicked()
     {
         DLOG(INFO)<<"SSL: NO";
-        dialog_->CommandReceived("0");
+        //That`s important for hide() before CommandReceived()
+        //or if there are more than one SSL_Dialog in DialogQueue
+        //they won`t show correct
         emit hide();
+        dialog_->CommandReceived("0");
     }
   Q_SIGNALS:
     void show(QString headline, QString description, QString moreInfo, QString buttonYes, QString buttonNo, bool error);
@@ -67,8 +72,7 @@ class SSLDialogQtImpl: public QObject
 
 SSLDialogQt::SSLDialogQt(BrowserWindowQt* window):
     window_(window),
-    impl_(new SSLDialogQtImpl(this)),
-    tab_contents_(NULL)
+    impl_(new SSLDialogQtImpl(this))
 {
     QDeclarativeView* view = window_->DeclarativeView();
     QDeclarativeContext *context = view->rootContext();
@@ -82,24 +86,13 @@ SSLDialogQt::~SSLDialogQt()
 
 void SSLDialogQt::CommandReceived(const std::string& command)
 {
-    ssl_page_->CommandReceived(command);
+    model_->ProcessCommand(command);
 }
 
 void SSLDialogQt::Show()
 {
-	  if(tab_contents_)
-    	  tab_contents_->Activate();
-	  impl_->Show();
-}
-
-void SSLDialogQt::SetPageHandler(SSLBlockingPage* sslPage)
-{
-    ssl_page_ = sslPage;
-}
-
-void SSLDialogQt::SetDetails(DictionaryValue* strings)
-{
-    impl_->SetDetails(strings);
+    impl_->SetDetails(model_->GetDetails());
+    impl_->Show();
 }
 
 #include "moc_ssl_dialog_qt.cc"

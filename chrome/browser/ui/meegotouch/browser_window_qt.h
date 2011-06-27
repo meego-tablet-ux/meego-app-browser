@@ -33,6 +33,7 @@
 #include "chrome/browser/ui/meegotouch/crash_tab_qt.h"
 #include "chrome/browser/ui/meegotouch/crash_modal_dialog_qt.h"
 #include "chrome/browser/ui/meegotouch/ssl_dialog_qt.h"
+#include "chrome/browser/ui/meegotouch/ssl_modal_dialog_qt.h"
 #include "chrome/browser/ui/meegotouch/selection_handler_qt.h"
 
 class LauncherWindow;
@@ -58,6 +59,7 @@ class CrashTabQt;
 class CrashAppModalDialog;
 class CrashTabQtModel;
 class SSLDialogQt;
+class SSLAppModalDialog;
 //
 // An implementation of BrowserWindow for QT.
 // Cross-platform code will interact with this object when
@@ -206,7 +208,10 @@ class BrowserWindowQt : //public MApplicationWindow,
   PopupListQt* GetWebPopupList();
   SelectionHandlerQt* GetSelectionHandler();
 
-  SSLDialogQt* GetSSLDialogQt();
+  void ShowSSLDialogQt(SSLAppModalDialog* model);
+  SSLAppModalDialog* GetSSLDialogModel() { return ssl_dialog_model_; }
+  void SetSSLDialogModel(SSLAppModalDialog* ssl_dialog_model) { ssl_dialog_model_ = ssl_dialog_model; }
+
   TabContentsContainerQt* GetTabContentsContainer() { return contents_container_.get(); }
 
   NewTabUIQt* GetNewTabUIQt(); 
@@ -244,6 +249,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   scoped_ptr<DownloadsQtHandler> download_handler_;
   scoped_ptr<PopupListQt> web_popuplist_;
   scoped_ptr<SSLDialogQt> ssl_dialog_;
+  SSLAppModalDialog* ssl_dialog_model_;
 
   FindBarQt* find_bar_; // It will be automatically freed by find bar controller
   BookmarkListData* bookmarklist_data_; // The bookmark data shared between bookmark_bar_ and bookmark_others_

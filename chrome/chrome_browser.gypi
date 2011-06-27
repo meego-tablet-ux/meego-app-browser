@@ -2886,6 +2886,8 @@
         'browser/ui/meegotouch/select_file_dialog_qt.h',
         'browser/ui/meegotouch/moc_select_file_dialog_qt.cc',
         'browser/ui/meegotouch/ssl_client_certificate_selector_qt.cc',
+        'browser/ui/meegotouch/ssl_modal_dialog_qt.h',
+        'browser/ui/meegotouch/ssl_modal_dialog_qt.cc',
         'browser/ui/meegotouch/ssl_dialog_qt.h',
         'browser/ui/meegotouch/ssl_dialog_qt.cc',
         'browser/ui/meegotouch/status_tray_qt.cc',
