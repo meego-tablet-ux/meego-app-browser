@@ -42,11 +42,13 @@ Item {
   property int titleFontSize: 13
   property bool showInstruction: false
   parent: outerContent
+  property bool bookmarkBarHasContents: false
+
   width: parent.width
   states: [
     State {
       name: "hide"
-      when: !scene.showbookmarkbar || scene.fullscreen
+      when: !scene.showbookmarkbar || scene.fullscreen || !bookmarkBarHasContents
       PropertyChanges {
         target: bookmarkBarLoader
           height: 0
@@ -55,7 +57,7 @@ Item {
     },
     State {
       name: "show"
-      when: scene.showbookmarkbar && !scene.fullscreen
+      when: scene.showbookmarkbar && !scene.fullscreen && bookmarkBarHasContents
       PropertyChanges {
         target: bookmarkBarLoader
           height: containerHeight
@@ -96,7 +98,7 @@ Item {
       verticalAlignment: Text.AlignVCenter
       font.pixelSize: container.height*0.5
       text: bookmarkInstruction
-      opacity: scene.showbookmarkbar && !scene.fullscreen && container.showInstruction ? 1.0 : 0.0
+      opacity: scene.showbookmarkbar && !scene.fullscreen && container.showInstruction && bookmarkBarHasContents ? 1.0 : 0.0
     }
     Component {
       id: bookmarkDelegate
@@ -170,6 +172,13 @@ Item {
          name: "ShowBars"
          when: view.movingHorizontally
          PropertyChanges { target: horizontalScrollBar; opacity: 1; height: 5}
+      }
+      onCountChanged: {
+        if(count == 0){
+          bookmarkBarHasContents = false;   
+        }else{
+          bookmarkBarHasContents = true;
+        }
       }
     }
     ScrollBar {
