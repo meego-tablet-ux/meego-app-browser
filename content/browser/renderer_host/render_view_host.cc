@@ -66,6 +66,8 @@ using WebKit::WebInputEvent;
 using WebKit::WebMediaPlayerAction;
 using WebKit::WebTextDirection;
 
+//#define BYPASS_RESOURCE_MANAGER
+
 namespace {
 
 // Delay to wait on closing the tab for a beforeunload/unload handler to fire.
@@ -921,7 +923,9 @@ static void GrantCallback (resource_set_t *resource_set,
 /*PolicyAware Application: receive resource acquire request from render process*/
 void RenderViewHost::OnResourceRequire(int type) 
 {
-
+#if defined(BYPASS_RESOURCE_MANAGER)
+  Send(new ViewMsg_ResourceGet(routing_id(), 3));
+#else
   if(resource_set_){
     resource_set_acquire (resource_set_);
     /*we have create link*/
@@ -933,6 +937,7 @@ void RenderViewHost::OnResourceRequire(int type)
   resource_set_configure_audio (resource_set_, "browser", 0,NULL);
 
   resource_set_acquire (resource_set_);
+#endif
 }
 
 /*PolicyAware Application: receive resource Release request from render process*/

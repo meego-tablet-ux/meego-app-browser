@@ -118,6 +118,7 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
     // Methods for WebMediaPlayerImpl -> Filter communication.
     void Paint(SkCanvas* canvas, const gfx::Rect& dest_rect);
     void SetSize(const gfx::Rect& rect);
+    void SetIsOverlapped(bool overlapped);
     void Detach();
     void GetCurrentFrame(scoped_refptr<media::VideoFrame>* frame_out);
     void PutCurrentFrame(scoped_refptr<media::VideoFrame> frame);
@@ -259,6 +260,8 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
 
   // Methods for painting.
   virtual void setSize(const WebKit::WebSize& size);
+
+  virtual void setIsOverlapped(bool overlapped);
 
   virtual void paint(WebKit::WebCanvas* canvas, const WebKit::WebRect& rect);
 

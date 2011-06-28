@@ -2,11 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "chrome/common/render_messages.h"
+#include "chrome/renderer/render_thread.h"
+
 #include "webkit/glue/media/video_renderer_impl.h"
 
 #include "media/base/video_frame.h"
 #include "media/base/yuv_convert.h"
 #include "webkit/glue/webmediaplayer_impl.h"
+
+//#define CONTROL_UI_DEBUG
 
 #if defined (TOOLKIT_MEEGOTOUCH)
 /*_DEV2_H264_*/
@@ -27,14 +32,249 @@ extern Window subwin;
 /*_DEV2_H264_*/
 #endif
 
+//#define DEF_ENABLE_DOUBLE_PIXMAP
+
 namespace webkit_glue {
 
-VideoRendererImpl::VideoRendererImpl(bool pts_logging)
+VideoRendererImpl::VideoRendererImpl(bool pts_logging, int routing_id)
     : last_converted_frame_(NULL),
-      pts_logging_(pts_logging) {
+      pts_logging_(pts_logging),
+      routing_id_(routing_id),
+      direct_paint_enabled_(false),
+      direct_paint_inited_(false),
+      direct_paint_init_tried_(false),
+      paint_reset_(false),
+      is_overlapped_(true)
+{
+  video_double_pixmap_[0] = 0;
+  video_double_pixmap_[1] = 0;
 }
 
-VideoRendererImpl::~VideoRendererImpl() {}
+VideoRendererImpl::~VideoRendererImpl() {
+  ExitDirectPaint();
+  }
+
+void VideoRendererImpl::Send(IPC::Message* msg) {
+  DCHECK(routing_id_ != MSG_ROUTING_NONE);
+  DCHECK(routing_id_ == msg->routing_id());
+
+  bool result = RenderThread::current()->Send(msg);
+  LOG_IF(ERROR, !result) << "RenderThread::current()->Send(msg) failed";
+}
+
+bool VideoRendererImpl::DirectPaintInited()
+{
+  return ((direct_paint_init_tried_ == false) ? false : direct_paint_inited_);
+}
+
+void VideoRendererImpl::EnableDirectPaint(bool enable)
+{
+  if (direct_paint_enabled_ != enable)
+  {
+    direct_paint_enabled_ = enable;
+    if (DirectPaintInited() == true)
+    {
+      Send(new ViewHostMsg_EnableVideoWidget(routing_id_, reinterpret_cast<unsigned int>(this), enable));
+    }
+  }
+}
+
+void VideoRendererImpl::FreeVideoPixmap(bool notify)
+{
+  if (notify == false)
+  {
+    Display* display = (Display*)video_display_;
+    if (video_double_pixmap_[0] != 0)
+    {
+      XFreePixmap(display, video_double_pixmap_[0]);
+
+    }
+#if defined(DEF_ENABLE_DOUBLE_PIXMAP)
+    if (video_double_pixmap_[1] != 0)
+    {
+      XFreePixmap(display, video_double_pixmap_[1]);
+    }
+#endif
+  }
+  else
+  {
+    Send(new ViewHostMsg_UpdateVideoWidget(routing_id_, reinterpret_cast<unsigned int>(this), 0, video_rect_));
+    Send(new ViewHostMsg_DestroyVideoWidgetPixmap(routing_id_, reinterpret_cast<unsigned int>(this), video_double_pixmap_[0]));
+#if defined(DEF_ENABLE_DOUBLE_PIXMAP)
+    Send(new ViewHostMsg_DestroyVideoWidgetPixmap(routing_id_, reinterpret_cast<unsigned int>(this), video_double_pixmap_[1]));
+#endif
+  }
+
+  video_double_pixmap_[0] = 0;
+#if defined(DEF_ENABLE_DOUBLE_PIXMAP)
+  video_double_pixmap_[1] = 0;
+#endif
+}
+
+int VideoRendererImpl::GetVideoPixmap(bool create)
+{
+  if (create == true)
+  {
+    Display *display = (Display*)video_display_;
+    int screen = DefaultScreen(display);
+    int root_window = RootWindow(display, screen);
+    Window root = root_window;
+    XWindowAttributes attr;
+    XGetWindowAttributes (display, root, &attr);
+
+    video_double_pixmap_[0] = XCreatePixmap(display, root, video_rect_.width(), video_rect_.height(), attr.depth);
+#if defined(DEF_ENABLE_DOUBLE_PIXMAP)
+    video_double_pixmap_[1] = XCreatePixmap(display, root, video_rect_.width(), video_rect_.height(), attr.depth);
+    if ((video_double_pixmap_[0] == 0) || (video_double_pixmap_[1] == 0))
+#else
+    if (video_double_pixmap_[0] == 0)
+#endif
+    {
+      FreeVideoPixmap(false);
+    }
+    video_seq_ = 0;
+  }
+#if defined(DEF_ENABLE_DOUBLE_PIXMAP)
+  video_seq_ ++;
+  return (video_double_pixmap_[video_seq_ & 0x01]);
+#else
+  return (video_double_pixmap_[0]);
+#endif
+}
+
+void VideoRendererImpl::InitDirectPaint(const gfx::Rect& dest_rect)
+{
+#if defined(CONTROL_UI_DEBUG)
+  if (direct_paint_init_tried_ == true)
+  {
+    return;
+  }
+
+  direct_paint_inited_ = true;
+  direct_paint_init_tried_ = true;
+  video_rect_ = dest_rect;
+#else
+  bool size_changed = (video_rect_.width() != dest_rect.width()) || (video_rect_.height() != dest_rect.height());
+  video_rect_ = dest_rect;
+  // We only try init once.
+  if (direct_paint_init_tried_ == true)
+  {
+    if (direct_paint_inited_ == false)
+    {
+      return;
+    }
+
+    // If pixmap size changed, update them
+    if (size_changed == true)
+    {
+      FreeVideoPixmap(true);
+      if (GetVideoPixmap(true) == 0)
+      {
+        ExitDirectPaint();
+      }
+    }
+    return;
+  }
+
+  scoped_refptr<media::VideoFrame> frame;
+  GetCurrentFrame(&frame);
+  if (frame == NULL)
+  {
+    PutCurrentFrame(frame);
+    return;
+  }
+
+  if (frame->data_[1] == (uint8_t*)0x264)
+  {
+    video_display_ = frame->data_[0];
+
+    if (GetVideoPixmap(true) > 0)
+    {
+      direct_paint_inited_ = true;
+    }
+  }
+
+  PutCurrentFrame(frame);
+  direct_paint_init_tried_ = true;
+#endif
+
+  if (direct_paint_inited_ == true)
+  {
+    // Notify browser create video widget
+    Send(new ViewHostMsg_CreateVideoWidget(routing_id_, reinterpret_cast<unsigned int>(this), video_size_));
+    Send(new ViewHostMsg_EnableVideoWidget(routing_id_, reinterpret_cast<unsigned int>(this), direct_paint_enabled_));
+  }
+}
+
+void VideoRendererImpl::DirectPaint()
+{
+#if !defined(CONTROL_UI_DEBUG) // controls UI test
+  DCHECK(MessageLoop::current() == proxy_->message_loop());
+
+  if (video_rect_.IsEmpty() == true)
+  {
+    return;
+  }
+
+  scoped_refptr<media::VideoFrame> frame;
+  GetCurrentFrame(&frame);
+  if (frame == NULL)
+  {
+    PutCurrentFrame(frame);
+    return;
+  }
+
+  CHECK(frame->width() == static_cast<size_t>(video_size_.width()));
+  CHECK(frame->height() == static_cast<size_t>(video_size_.height()));
+
+  unsigned int video_pixmap = GetVideoPixmap(false);
+  if (video_pixmap == 0)
+  {
+    PutCurrentFrame(frame);
+    return;
+  }
+  void *hw_ctx_display = (void*)frame->data_[2];
+  VASurfaceID surface_id = (VASurfaceID)frame->idx_;
+  VAStatus status;
+
+  /*CC and Resize*/
+  status = vaPutSurface(hw_ctx_display, surface_id, video_pixmap,
+                        0, 0, frame->width(), frame->height(), /*src*/
+                        0, 0, video_rect_.width(), video_rect_.height(), /*dst*/
+                        NULL, 0,
+                        VA_FRAME_PICTURE );
+
+  PutCurrentFrame(frame);
+
+  Send(new ViewHostMsg_UpdateVideoWidget(routing_id_,
+                                         reinterpret_cast<unsigned int>(this),
+                                         video_pixmap,
+                                         video_rect_));
+#else
+  unsigned int video_pixmap = 0;
+  Send(new ViewHostMsg_UpdateVideoWidget(routing_id_,
+                                         reinterpret_cast<unsigned int>(this),
+                                         video_pixmap,
+                                         video_rect_));
+#endif
+  return;
+}
+
+void VideoRendererImpl::ExitDirectPaint()
+{
+  if (DirectPaintInited() == false)
+  {
+    direct_paint_inited_ = false;
+    direct_paint_init_tried_ = false;
+    return;
+  }
+
+  DCHECK(MessageLoop::current() == proxy_->message_loop());
+  Send(new ViewHostMsg_DestroyVideoWidget(routing_id_, reinterpret_cast<unsigned int>(this)));
+  FreeVideoPixmap(true);
+  direct_paint_inited_ = false;
+  direct_paint_init_tried_ = false;
+}
 
 bool VideoRendererImpl::OnInitialize(media::VideoDecoder* decoder) {
   video_size_.SetSize(width(), height());
@@ -48,7 +288,23 @@ bool VideoRendererImpl::OnInitialize(media::VideoDecoder* decoder) {
   return false;
 }
 
+void VideoRendererImpl::SetIsOverlapped(bool overlapped)
+{
+  is_overlapped_ = overlapped;
+  if (overlapped)
+  {
+    EnableDirectPaint(false);
+  }
+  else
+  {
+    EnableDirectPaint(true);
+  }
+}
+
+
 void VideoRendererImpl::OnStop(media::FilterCallback* callback) {
+  ExitDirectPaint();
+
   if (callback) {
     callback->Run();
     delete callback;
@@ -56,6 +312,13 @@ void VideoRendererImpl::OnStop(media::FilterCallback* callback) {
 }
 
 void VideoRendererImpl::OnFrameAvailable() {
+  if ((paint_reset_ == false) && (direct_paint_enabled_ == true) && (DirectPaintInited() == true) && subwin == 0)
+  {
+    proxy_->message_loop()->PostTask(FROM_HERE, NewRunnableMethod(this, &VideoRendererImpl::DirectPaint));
+    return;
+  }
+
+  paint_reset_ = false;
   proxy_->Repaint();
 }
 
@@ -65,11 +328,23 @@ void VideoRendererImpl::SetWebMediaPlayerImplProxy(
 }
 
 void VideoRendererImpl::SetRect(const gfx::Rect& rect) {
+  if ((video_rect_.width() != rect.width()) || (video_rect_.height() != rect.height()))
+  {
+    paint_reset_ = true;
+  }
 }
 
 // This method is always called on the renderer's thread.
 void VideoRendererImpl::Paint(SkCanvas* canvas,
                               const gfx::Rect& dest_rect) {
+  InitDirectPaint(dest_rect);
+
+  if ((direct_paint_enabled_ == true) && (DirectPaintInited() == true))
+  {
+    DirectPaint();
+    return;
+  }
+
   scoped_refptr<media::VideoFrame> video_frame;
   GetCurrentFrame(&video_frame);
   if (!video_frame) {
@@ -393,6 +668,8 @@ void VideoRendererImpl::H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::Video
       LOG(ERROR) << "vaPutsurface Error " ;
     }
 
+    XShmSegmentInfo shminfo = {0};
+
     XImage * mXImage = proxy->m_ximage_;
 
 #ifdef _Shared_
@@ -459,8 +736,6 @@ void VideoRendererImpl::H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::Video
 }
 
 #endif
-
-
 
 void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
                                   SkCanvas* canvas,
@@ -564,7 +839,7 @@ void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
 
     bitmap.unlockPixels();
 
-    return ;
+   return ;
 
   }/*H.264 Painting*/
 

@@ -219,6 +219,16 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
                         OnMsgDidContentsSizeChanged)
     IPC_MESSAGE_HANDLER(ViewHostMsg_GetFSPluginWinSize,
                         OnMsgGetFSPluginWinSize)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_CreateVideoWidget,
+                        OnMsgCreateVideoWidget)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_UpdateVideoWidget,
+                        OnMsgUpdateVideoWidget)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_EnableVideoWidget,
+                        OnMsgEnableVideoWidget)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_DestroyVideoWidgetPixmap,
+                        OnMsgDestroyVideoWidgetPixmap)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_DestroyVideoWidget,
+                        OnMsgDestroyVideoWidget)
 #endif
 
     IPC_MESSAGE_UNHANDLED(handled = false)
@@ -1361,9 +1371,49 @@ void RenderWidgetHost::OnMsgQueryNodeAtPositionACK(unsigned int node_info) {
 
 void RenderWidgetHost::OnMsgDidContentsSizeChanged(const gfx::Size& size)
 {
-  if(!view_)return;
+  if(!view_)
+    return;
   view_->UpdateContentsSize(size);
 }
+
+void RenderWidgetHost::OnMsgCreateVideoWidget(unsigned int video_id, const gfx::Size& size)
+{
+  if(!view_)
+    return;
+  view_->CreateVideoWidget(video_id, size);
+
+}
+
+void RenderWidgetHost::OnMsgUpdateVideoWidget(unsigned int video_id, unsigned int pixmap_id, const gfx::Rect& video_rect)
+{
+  if(!view_)
+    return;
+  view_->UpdateVideoWidget(video_id, pixmap_id, video_rect);
+}
+
+void RenderWidgetHost::OnMsgEnableVideoWidget(unsigned int video_id, bool enabled)
+{
+  if (!view_)
+    return;
+
+  view_->EnableVideoWidget(video_id, enabled);
+}
+
+void RenderWidgetHost::OnMsgDestroyVideoWidgetPixmap(unsigned int video_id, unsigned int pixmap)
+{
+  if (!view_)
+    return;
+
+  view_->DestroyVideoWidgetPixmap(video_id, pixmap);
+}
+
+void RenderWidgetHost::OnMsgDestroyVideoWidget(unsigned int video_id)
+{
+  if(!view_)
+    return;
+  view_->DestroyVideoWidget(video_id);
+}
+
 #endif
 
 void RenderWidgetHost::PaintBackingStoreRect(

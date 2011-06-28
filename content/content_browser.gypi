@@ -296,6 +296,9 @@
         'browser/renderer_host/resource_request_details.h',
         'browser/renderer_host/rwhv_qt_widget.cc',
         'browser/renderer_host/rwhv_qt_widget.h',
+        'browser/renderer_host/video_renderer_widget.h',
+        'browser/renderer_host/video_renderer_widget.cc',
+        'browser/renderer_host/moc_video_renderer_widget.cc',
         'browser/renderer_host/socket_stream_dispatcher_host.cc',
         'browser/renderer_host/socket_stream_dispatcher_host.h',
         'browser/renderer_host/socket_stream_host.cc',
@@ -400,6 +403,21 @@
                   ],
                   'outputs': [
                     'browser/renderer_host/moc_rwhv_qt_widget.cc',
+                  ],
+                  'action': [
+                    'moc',
+                    '<(_inputs)',
+                    '-o',
+                    '<(_outputs)',
+                  ],
+                },
+                {
+                  'action_name': 'moc_video_renderer_widget.h',
+                  'inputs': [
+                    'browser/renderer_host/video_renderer_widget.h',
+                  ],
+                  'outputs': [
+                    'browser/renderer_host/moc_video_renderer_widget.cc',
                   ],
                   'action': [
                     'moc',

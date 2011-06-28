@@ -215,6 +215,13 @@ void WebMediaPlayerImpl::Proxy::SetSize(const gfx::Rect& rect) {
   }
 }
 
+void WebMediaPlayerImpl::Proxy::SetIsOverlapped(bool overlapped) {
+  DCHECK(MessageLoop::current() == render_loop_);
+  if (video_renderer_) {
+    video_renderer_->SetIsOverlapped(overlapped);
+  }  
+}
+
 bool WebMediaPlayerImpl::Proxy::HasSingleOrigin() {
   DCHECK(MessageLoop::current() == render_loop_);
 
@@ -1026,6 +1033,10 @@ void WebMediaPlayerImpl::setSize(const WebSize& size) {
   }
 
   proxy_->SetSize(gfx::Rect(0, 0, size.width, size.height));
+}
+
+void WebMediaPlayerImpl::setIsOverlapped(bool overlapped) {
+  proxy_->SetIsOverlapped(overlapped);
 }
 
 void WebMediaPlayerImpl::paint(WebCanvas* canvas,

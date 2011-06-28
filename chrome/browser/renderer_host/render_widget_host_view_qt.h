@@ -5,7 +5,7 @@
 #ifndef CHROME_BROWSER_RENDERER_HOST_RENDER_WIDGET_HOST_VIEW_QT_H_
 #define CHROME_BROWSER_RENDERER_HOST_RENDER_WIDGET_HOST_VIEW_QT_H_
 
-#include <map>
+#include <QMap>
 #include <vector>
 #include <string>
 
@@ -30,6 +30,8 @@ static const char* kRenderWidgetHostViewKey = "__RENDER_WIDGET_HOST_VIEW__";
 
 class RenderWidgetHost;
 struct NativeWebKeyboardEvent;
+
+class VideoRendererWidget;
 
 // -----------------------------------------------------------------------------
 // See comments in render_widget_host_view.h about this class and its members.
@@ -117,6 +119,15 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
 
   void SetPluginWindowSize();
  ////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
+
+  //// for HW accelerated HTML5 video
+  virtual void CreateVideoWidget(unsigned int id, const gfx::Size& size);
+  virtual void UpdateVideoWidget(unsigned int id, unsigned int pixmap, const gfx::Rect& rect);
+  virtual void EnableVideoWidget(unsigned int id, bool enabled);
+  virtual void DestroyVideoWidgetPixmap(unsigned int id, unsigned int pixmap);
+  virtual void DestroyVideoWidget(unsigned int id);
+
 #endif
 
   gfx::NativeView native_view() const {return view_;}
@@ -209,6 +220,8 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
   gfx::Point scene_pos_;
 
   unsigned int webkit_node_info_;
+
+  QMap<unsigned int, VideoRendererWidget* > video_widgets_map_;
 };
 
 #endif  // CHROME_BROWSER_RENDERER_HOST_RENDER_WIDGET_HOST_VIEW_QT_H_

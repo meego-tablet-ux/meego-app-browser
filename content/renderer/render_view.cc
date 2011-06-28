@@ -2087,7 +2087,7 @@ WebMediaPlayer* RenderView::createMediaPlayer(
   scoped_refptr<webkit_glue::WebVideoRenderer> video_renderer;
   bool pts_logging = cmd_line->HasSwitch(switches::kEnableVideoLogging);
   scoped_refptr<webkit_glue::VideoRendererImpl> renderer(
-      new webkit_glue::VideoRendererImpl(pts_logging));
+      new webkit_glue::VideoRendererImpl(pts_logging, routing_id_));
   collection->AddVideoRenderer(renderer);
   video_renderer = renderer;
 

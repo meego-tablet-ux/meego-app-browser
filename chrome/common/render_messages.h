@@ -380,6 +380,26 @@ IPC_MESSAGE_ROUTED4(ViewHostMsg_PaintTile_ACK,
 
 IPC_MESSAGE_ROUTED1(ViewHostMsg_SetScrollPosition, gfx::Point)
 
+IPC_MESSAGE_ROUTED2(ViewHostMsg_CreateVideoWidget,
+                    unsigned int /* video renderer id */,
+                    gfx::Size)
+
+IPC_MESSAGE_ROUTED3(ViewHostMsg_UpdateVideoWidget,
+                    unsigned int /* video renderer id */,
+                    unsigned int /* pixmap id */,
+                    gfx::Rect /* video rect */);
+
+IPC_MESSAGE_ROUTED2(ViewHostMsg_EnableVideoWidget,
+                    unsigned int /* video renderer id */,
+                    bool /* enabled */);
+
+IPC_MESSAGE_ROUTED2(ViewHostMsg_DestroyVideoWidgetPixmap,
+                    unsigned int /* video renderer id */,
+                    unsigned int /* pixmap id */);
+
+IPC_MESSAGE_ROUTED1(ViewHostMsg_DestroyVideoWidget,
+                    unsigned int /* video renderer id */)
+
 IPC_SYNC_MESSAGE_ROUTED2_1(ViewMsg_QueryElementAreaAt,
                            gfx::Point, /* (x, y) */
                            gfx::Size,  /* (max_width, max_height) */

@@ -532,6 +532,12 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void OnMsgPaintTileAck(unsigned int seq, unsigned int tag, const gfx::Rect& rect, const gfx::Rect& pixmap_rect);
   void OnMsgDidContentsSizeChanged(const gfx::Size& size);
   void OnSetScrollPosition(const gfx::Point& pos);
+  void OnMsgCreateVideoWidget(unsigned int video_id, const gfx::Size& size);
+  void OnMsgUpdateVideoWidget(unsigned int video_id, unsigned int pixmap_id,
+                              const gfx::Rect& video_rect);
+  void OnMsgEnableVideoWidget(unsigned int video_id, bool enabled);
+  void OnMsgDestroyVideoWidgetPixmap(unsigned int video_id, unsigned int pixmap);
+  void OnMsgDestroyVideoWidget(unsigned int video_id);
   
   void OnMsgSetCursor(const WebCursor& cursor);
   void OnMsgImeUpdateTextInputState(WebKit::WebTextInputType type,

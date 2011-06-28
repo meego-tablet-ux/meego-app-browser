@@ -19,12 +19,13 @@
 #include "ui/gfx/size.h"
 #include "webkit/glue/media/web_video_renderer.h"
 #include "webkit/glue/webmediaplayer_impl.h"
+#include "ipc/ipc_message.h"
 
 namespace webkit_glue {
 
 class VideoRendererImpl : public WebVideoRenderer {
  public:
-  explicit VideoRendererImpl(bool pts_logging);
+  explicit VideoRendererImpl(bool pts_logging, int routing_id);
   virtual ~VideoRendererImpl();
 
   // WebVideoRenderer implementation.
@@ -34,6 +35,9 @@ class VideoRendererImpl : public WebVideoRenderer {
   virtual void GetCurrentFrame(scoped_refptr<media::VideoFrame>* frame_out);
   virtual void PutCurrentFrame(scoped_refptr<media::VideoFrame> frame);
 
+  gfx::Rect Rect() {return video_rect_;}
+
+  void SetIsOverlapped(bool overlapped);
  protected:
   // Method called by VideoRendererBase during initialization.
   virtual bool OnInitialize(media::VideoDecoder* decoder);
@@ -45,6 +49,21 @@ class VideoRendererImpl : public WebVideoRenderer {
   virtual void OnFrameAvailable();
 
  private:
+  // Send an IPC message to the browser process.  The routing ID of the message
+  // is assumed to match |routing_id_|.
+  void Send(IPC::Message* msg);
+
+  // handle double pixmap
+  void FreeVideoPixmap(bool notify);
+  int GetVideoPixmap(bool create);
+
+  // handle DirectPaint
+  void InitDirectPaint(const gfx::Rect& dest_rect);
+  void ExitDirectPaint();
+  bool DirectPaintInited();
+  void DirectPaint();
+  void EnableDirectPaint(bool enable);
+
   // Determine the conditions to perform fast paint. Returns true if we can do
   // fast paint otherwise false.
   bool CanFastPaint(SkCanvas* canvas, const gfx::Rect& dest_rect);
@@ -91,9 +110,24 @@ class VideoRendererImpl : public WebVideoRenderer {
   // The size of the video.
   gfx::Size video_size_;
 
+  gfx::Size video_window_size_;
+
   // Whether we're logging video presentation timestamps (PTS).
   bool pts_logging_;
+  int routing_id_;
 
+  unsigned int video_seq_;
+  unsigned int video_double_pixmap_[2];
+
+  gfx::Rect video_rect_;
+  void *video_display_;
+  bool direct_paint_enabled_;
+  bool direct_paint_inited_;
+  bool direct_paint_init_tried_;
+  bool paint_reset_;
+
+  bool is_overlapped_;
+  
   DISALLOW_COPY_AND_ASSIGN(VideoRendererImpl);
 };
 

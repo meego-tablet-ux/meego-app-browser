@@ -105,6 +105,14 @@ class RenderWidgetHostView {
   virtual gfx::Size GetFSPluginWindowSize() {}
 
   ////////////////////////////////////////////
+
+  //// for HW accelerated HTML5 video
+  virtual void CreateVideoWidget(unsigned int id, const gfx::Size& size) {}
+  virtual void UpdateVideoWidget(unsigned int id, unsigned int pixmap, const gfx::Rect& rect) {}
+  virtual void EnableVideoWidget(unsigned int id, bool enabled) {}
+  virtual void DestroyVideoWidgetPixmap(unsigned int id, unsigned int pixmap) {}
+  virtual void DestroyVideoWidget(unsigned int id) {}
+  
 #endif
 
   // Returns the associated RenderWidgetHost.

@@ -931,6 +931,8 @@ void RenderWidget::didSetScrollPosition(const WebPoint& pos)
   Send(new ViewHostMsg_SetScrollPosition(routing_id_, gfx_pos));  
 }
 
+//#define RENDER_PAINT_DEBUG
+
 void RenderWidget::didInvalidateRect(const WebRect& rect) {
   // We only want one pending DoDeferredUpdate call at any time...
   bool update_pending = paint_aggregator_.HasPendingUpdate();
@@ -938,6 +940,7 @@ void RenderWidget::didInvalidateRect(const WebRect& rect) {
   // The invalidated rect might be outside the bounds of the view.
   //gfx::Rect view_rect(size_);
   //gfx::Rect damaged_rect = view_rect.Intersect(rect);
+#if defined(RENDER_PAINT_DEBUG)
   DLOG(INFO) << "rect " << rect.x
              << " " << rect.y
              << " " << rect.width
@@ -947,14 +950,17 @@ void RenderWidget::didInvalidateRect(const WebRect& rect) {
              << " " << visible_rect_.y()
              << " " << visible_rect_.width()
              << " " << visible_rect_.height();
+#endif
   gfx::Rect viewport_rect = visible_rect_;
   if (viewport_rect.width() == 0 && viewport_rect.height() == 0)
     viewport_rect = gfx::Rect(preferred_contents_size_);
   gfx::Rect damaged_rect = viewport_rect.Intersect(rect);
+#if defined(RENDER_PAINT_DEBUG)
   DLOG(INFO) << "didInvalidateRect damaged_rect " << damaged_rect.x()
              << " " << damaged_rect.y()
              << " " << damaged_rect.width()
              << " " << damaged_rect.height();
+#endif
   if (damaged_rect.IsEmpty())
     return;
 

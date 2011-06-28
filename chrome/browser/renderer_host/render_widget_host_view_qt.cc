@@ -36,6 +36,7 @@
 #include "content/browser/renderer_host/backing_store_x.h"
 #include "content/browser/renderer_host/render_widget_host.h"
 #include "content/browser/renderer_host/rwhv_qt_widget.h"
+#include "content/browser/renderer_host/video_renderer_widget.h"
 #include "chrome/common/chrome_switches.h"
 #include "content/common/native_web_keyboard_event.h"
 #include "content/common/view_messages.h"
@@ -655,6 +656,12 @@ void RenderWidgetHostViewQt::DidBackingStoreScale()
     view_->setScale(1.0);
     reinterpret_cast<RWHVQtWidget*>(view_)->DidBackingStoreScale();
   }
+
+  QMap<unsigned int, VideoRendererWidget* >::iterator it = video_widgets_map_.begin();
+  for(; it != video_widgets_map_.end(); it++)
+  {
+    (*it)->setScaleFactor(host_->GetScaleFactor());
+  }
 }
 
 void RenderWidgetHostViewQt::DidBackingStorePaint(const gfx::Rect& rect)
@@ -663,4 +670,57 @@ void RenderWidgetHostViewQt::DidBackingStorePaint(const gfx::Rect& rect)
   {
     view_->update(rect.x(), rect.y(), rect.width(), rect.height());
   }
+}
+
+void RenderWidgetHostViewQt::CreateVideoWidget(unsigned int id, const gfx::Size& size)
+{
+  if (video_widgets_map_.find(id) != video_widgets_map_.end())
+    return;
+  
+  video_widgets_map_.insert(id, new VideoRendererWidget(view_));
+}
+
+void RenderWidgetHostViewQt::UpdateVideoWidget(unsigned int id, unsigned int pixmap, const gfx::Rect& rect)
+{
+  if (video_widgets_map_.find(id) == video_widgets_map_.end())
+    return;
+  
+  QRect qrect(rect.x(), rect.y(), rect.width(), rect.height());
+  video_widgets_map_.value(id)->updateVideoFrame(pixmap, qrect);
+}
+
+void RenderWidgetHostViewQt::EnableVideoWidget(unsigned int id, bool enabled)
+{
+  if (video_widgets_map_.find(id) == video_widgets_map_.end())
+    return;
+
+  if (enabled)
+  {
+    video_widgets_map_.value(id)->show();
+  }
+  else
+  {
+    video_widgets_map_.value(id)->hide();
+  }
+}
+
+void RenderWidgetHostViewQt::DestroyVideoWidgetPixmap(unsigned int id, unsigned int pixmap)
+{
+  if (video_widgets_map_.find(id) == video_widgets_map_.end())
+    return;
+
+  if (pixmap != 0)
+  {
+    ui::FreePixmap(ui::GetXDisplay(), pixmap);
+  }
+}
+
+void RenderWidgetHostViewQt::DestroyVideoWidget(unsigned int id)
+{
+  if (video_widgets_map_.find(id) == video_widgets_map_.end())
+    return;
+
+  
+  delete video_widgets_map_.value(id);
+  video_widgets_map_.remove(id);
 }

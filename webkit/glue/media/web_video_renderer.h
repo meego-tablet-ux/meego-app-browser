@@ -44,6 +44,7 @@ class WebVideoRenderer : public media::VideoRendererBase {
   virtual void GetCurrentFrame(scoped_refptr<media::VideoFrame>* frame_out) {}
   virtual void PutCurrentFrame(scoped_refptr<media::VideoFrame> frame) {}
 
+  virtual void SetIsOverlapped(bool overlapped) {}
  private:
   DISALLOW_COPY_AND_ASSIGN(WebVideoRenderer);
 };
