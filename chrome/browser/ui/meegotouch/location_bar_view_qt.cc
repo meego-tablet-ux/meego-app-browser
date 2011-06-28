@@ -99,6 +99,7 @@ void LocationBarViewQt::Update(const TabContents* contents) {
 //  UpdateContentSettingsIcons();
 //  UpdatePageActions();
   location_entry_->Update(contents);
+  location_entry_->model()->SetInputInProgress(!IsTitleSet());
   location_entry_->SetUserText(WideToUTF16(GetInputString()), GetTitle(), false);
 }
 
@@ -110,7 +111,6 @@ void LocationBarViewQt::OnInputInProgress(bool in_progress) {
   DCHECK(toolbar_model_->input_in_progress() != in_progress);
 
   toolbar_model_->set_input_in_progress(in_progress);
-  Update(NULL);
 }
 
 void LocationBarViewQt::OnKillFocus() {
@@ -121,6 +121,7 @@ void LocationBarViewQt::OnKillFocus() {
 
 void LocationBarViewQt::OnSetFocus() {
   BrowserWindowQt* browser_window = (BrowserWindowQt*)browser_->window();
+  location_entry_->model()->SetInputInProgress(true);
   if (GetTabContents()) {
     if (GetTabContents()->ShouldDisplayURL())
       location_entry_->SetUserText(ASCIIToUTF16(GetTabContents()->GetURL().spec()));
@@ -141,6 +142,12 @@ string16 LocationBarViewQt::GetTitle() const {
   if (!GetTabContents())
     return string16();
   return GetTabContents()->GetTitle();
+}
+
+bool LocationBarViewQt::IsTitleSet() const {
+  if (!GetTabContents())
+    return false;
+  return GetTabContents()->IsTitleSet();
 }
 
 void LocationBarViewQt::ShowFirstRunBubble(FirstRun::BubbleType bubble_type) {

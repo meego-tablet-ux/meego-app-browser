@@ -378,6 +378,8 @@ void AutocompleteEditViewQt::SetUserText(const string16& text,
 
 void AutocompleteEditViewQt::SetWindowTextAndCaretPos(const string16& text,
                                                        size_t caret_pos) {
+  if (model_->has_focus()&& !model_->user_input_in_progress())
+    return;
   CharRange range(static_cast<int>(caret_pos), static_cast<int>(caret_pos));
   SetTextAndSelectedRange(text, range);
 }
@@ -428,6 +430,9 @@ void AutocompleteEditViewQt::UpdatePopup() {
 }
 
 void AutocompleteEditViewQt::ClosePopup() {
+  if (model_->has_focus()) {
+    return;
+  }
   model_->StopAutocomplete();
 }
 
@@ -555,10 +560,10 @@ void AutocompleteEditViewQt::HandleFocusIn()
 
 void AutocompleteEditViewQt::HandleFocusOut()
 {
-  // Close the popup.
-  ClosePopup();
   // Tell the model to reset itself.
   model_->OnKillFocus();
+  // Close the popup.
+  ClosePopup();
   controller_->OnKillFocus();
 }
 

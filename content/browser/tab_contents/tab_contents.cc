@@ -478,6 +478,11 @@ const string16& TabContents::GetTitle() const {
   return EmptyString16();
 }
 
+const bool TabContents::IsTitleSet() const {
+  NavigationEntry* entry = controller_.GetActiveEntry();
+  return entry ? !entry->title().empty() : false;
+}
+
 int32 TabContents::GetMaxPageID() {
   if (GetSiteInstance())
     return GetSiteInstance()->max_page_id();

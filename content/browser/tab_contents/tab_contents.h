@@ -177,6 +177,7 @@ class TabContents : public PageNavigator,
   // download, in which case the URL would revert to what it was previously).
   virtual const GURL& GetURL() const;
   virtual const string16& GetTitle() const;
+  virtual const bool IsTitleSet() const;
 
   // The max PageID of any page that this TabContents has loaded.  PageIDs
   // increase with each new page that is loaded by a tab.  If this is a
