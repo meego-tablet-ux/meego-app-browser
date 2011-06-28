@@ -46,7 +46,6 @@ Item {
   property int  bubbleY: 0
   property variant model: bookmarkBubbleObject
   property double bubbleOpacity: 1
-  property double fogOpacity: 0.4
 
   property int fingerX: 0
   property int fingerY: 0
@@ -95,15 +94,7 @@ Item {
       id: everything
       anchors.fill: parent
       property int bubbleHeight: bubble.height
-      Rectangle {
-        id: fog
-        anchors.fill: parent
-        color: "gray"
-        opacity: container.fogOpacity
-        Behavior on opacity {
-          PropertyAnimation { duration: 500 }
-        }
-      }
+      ModalFogBrowser {}
 
       MouseArea {
         anchors.fill: parent

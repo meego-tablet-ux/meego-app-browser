@@ -45,13 +45,7 @@ Item {
   property int maxSideBarHeight: tabSideBarLoader.maxSideBarHeight
   property bool isLandscape: scene.isLandscapeView()
 
-  Rectangle {
-    id: fog
-    z: -2
-    anchors.fill: parent
-    color: "#000000"
-    opacity: 0.5
-  }
+  ModalFogBrowser {}
 
   Image {
     id: arrow

@@ -33,16 +33,7 @@ Item {
         picker.selected.connect (pickerSelected);
     }
 
-    Rectangle {
-        id: fog
-
-        anchors.fill: parent
-        color: theme_dialogFogColor
-        opacity: theme_dialogFogOpacity
-        Behavior on opacity {
-            PropertyAnimation { duration: theme_dialogAnimationDuration }
-        }
-    }
+    ModalFogBrowser {}
 
     MouseArea {
         anchors.fill: parent

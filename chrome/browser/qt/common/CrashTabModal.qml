@@ -64,12 +64,7 @@ Item {
     to: 1
     duration: theme_dialogAnimationDuration
   }
-  Rectangle {
-    id: fogRect
-    anchors.fill: parent
-    color: "gray"
-    opacity: 0.5
-  }
+  ModalFogBrowser {}
   MouseArea {
     id: blocker
     anchors.fill: parent

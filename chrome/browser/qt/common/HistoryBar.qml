@@ -49,12 +49,7 @@ Item {
     property int fingerX: 0
     property int fingerY: 0
 
-    Rectangle {
-      id: fog
-      anchors.fill: parent
-      color: "gray"
-      opacity: 0.4 
-    }
+    ModalFogBrowser {}
 
     Item {
       id: historyContainer

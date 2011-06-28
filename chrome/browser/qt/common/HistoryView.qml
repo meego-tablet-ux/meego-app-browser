@@ -112,7 +112,7 @@ Item {
               font.pointSize: 10
               text: title
               font.pixelSize: theme_fontPixelSizeNormal
-              font.family: theme_fontFamilyaadsf
+              font.family: theme_fontFamily
               clip: true
               color: "#ffffff"
               elide: Text.ElideRight
