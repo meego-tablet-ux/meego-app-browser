@@ -1906,7 +1906,7 @@ void RWHVQtWidget::fakeMouseRightButtonClick(QGestureEvent* event, QTapAndHoldGe
 {
   int globalX = static_cast<int>(gesture->hotSpot().x());
   int globalY = static_cast<int>(gesture->hotSpot().y());
-  QPointF pos = hostView()->native_view()->mapFromScene(gesture->position());
+  QPointF pos = hostView()->native_view()->mapFromScene(event->mapToGraphicsScene(gesture->position()));
   int x = static_cast<int>(pos.x());
   int y = static_cast<int>(pos.y());
 
