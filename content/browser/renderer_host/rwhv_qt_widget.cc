@@ -972,18 +972,8 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     // forward touch events to the element which listen to touch events
     WebKit::WebTouchEvent touchEvent = EventUtilQt::ToWebTouchEvent(event, scale());
     hostView()->host_->ForwardTouchEvent(touchEvent);
-    //if we also need mouseMove event, we deliver mouse move event too.
-    if (shouldDeliverMouseMove()) {
-      // send out mouse press event, if it hadn't been sent out.
-      deliverMousePressEvent();
-      if (delay_for_click_timer_->isActive()) {
-        delay_for_click_timer_->stop();
-      }
-      WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
-      if(hostView()->host_)
-        hostView()->host_->ForwardMouseEvent(mouseEvent);
-    }
-  } else if (shouldDeliverMouseMove()) {
+  } 
+  if (shouldDeliverMouseMove()) {
 
     setViewportInteractive(false);
     // although it may be forwarded to plugin, but it's okay to set this flag
@@ -995,11 +985,11 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (delay_for_click_timer_->isActive()) {
       delay_for_click_timer_->stop();
     }
-   
     WebKit::WebMouseEvent mouseEvent = EventUtilQt::ToWebMouseEvent(event, scale());
     if(hostView()->host_)
       hostView()->host_->ForwardMouseEvent(mouseEvent);
-  } else if (inScrollableArea())
+  } 
+  if (inScrollableArea())
   {
     if (is_scrolling_scrollable_ == false)
     {
