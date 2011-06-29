@@ -45,6 +45,7 @@
 #include "webkit/glue/media/web_video_renderer.h"
 #include "webkit/glue/webvideoframe_impl.h"
 
+
 using WebKit::WebCanvas;
 using WebKit::WebRect;
 using WebKit::WebSize;
@@ -134,6 +135,9 @@ WebMediaPlayerImpl::Proxy::~Proxy() {
 #if defined (TOOLKIT_MEEGOTOUCH)
 void WebMediaPlayerImpl::Proxy::H264PaintFullScreen() {
 
+  /*add lock for share resource*/
+  base::AutoLock auto_lock(paint_lock_);
+
   scoped_refptr<media::VideoFrame> video_frame;
   GetCurrentFrame(&video_frame);
   
@@ -169,11 +173,11 @@ void WebMediaPlayerImpl::Proxy::H264PaintFullScreen() {
 #endif
 
 void WebMediaPlayerImpl::Proxy::Repaint() {
-  base::AutoLock auto_lock(lock_);
+
   if (outstanding_repaints_ < kMaxOutstandingRepaints) {
 
 #if defined (TOOLKIT_MEEGOTOUCH)
-  if(subwin > 3){
+  if(subwin != 0){
     /*only for H264 fullscreen playing*/
     render_loop_->PostTask(FROM_HERE,
                             NewRunnableMethod(this, &WebMediaPlayerImpl::Proxy::H264PaintFullScreen));
@@ -385,12 +389,18 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
   switch(qml_ctrl->getARtype()) {
     case UXQMLAR_MEDIA_PAUSE /*ARQmlPause*/:
     {
+      if(player->view_){
+        player->view_->resourceRelease();
+      }
       player->pause();
     }
     break;
 
     case UXQMLAR_MEDIA_PLAY /*ARQmlPlay*/:
     {
+      if(player->view_){
+        player->view_->resourceRequire(NULL, player);
+      }
       player->play();
     }
     break;
@@ -434,6 +444,9 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
 
     case UXQMLAR_MEDIA_FULLSCREENQUIT /*ARQmlQuit*/:
     {
+      /*lock share resource*/
+      base::AutoLock auto_lock(proxy->paint_lock_);
+
       //force quit
       g_qmlView->close();
 
@@ -473,8 +486,16 @@ subwin_exit:
     proxy->last_frame_ = 0;
   }else {
     /*end of stream*/
+
+    base::AutoLock auto_lock(proxy->paint_lock_);
+
+    if(player->view_){
+      player->view_->resourceRelease();
+    }
+
     /*No CtrlSubwindow, just pause ,close win, seek to start, exit */
     if(subwin) {
+
       if(dpy == NULL) {
         LOG(ERROR) << "Error in CtrlWindow";
       }
@@ -1172,6 +1193,13 @@ void WebMediaPlayerImpl::WillDestroyCurrentMessageLoop() {
 
 void WebMediaPlayerImpl::Repaint() {
   DCHECK(MessageLoop::current() == main_loop_);
+  int d = duration();
+  int c = currentTime();
+  if(c == d){
+    if(view_){
+      view_->resourceRelease();
+    }
+  }
   GetClient()->repaint();
 }
 
@@ -1222,6 +1250,13 @@ void WebMediaPlayerImpl::OnPipelineSeek(PipelineStatus status) {
 
 void WebMediaPlayerImpl::OnPipelineEnded(PipelineStatus status) {
   DCHECK(MessageLoop::current() == main_loop_);
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+  if(view_){
+    view_->resourceRelease();
+  }
+#endif
+  
   if (status == media::PIPELINE_OK) {
     GetClient()->timeChanged();
   }

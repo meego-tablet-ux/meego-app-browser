@@ -2102,6 +2102,7 @@ WebMediaPlayer* RenderView::createMediaPlayer(
   }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+  result->view_ = this;
   mediaplayer_ = result.release();
   return mediaplayer_;
 #else

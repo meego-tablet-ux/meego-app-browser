@@ -80,6 +80,7 @@
  
 #endif
 
+#include "./content/renderer/render_view.h"
 #include "ui/gfx/size.h"
 #include "webkit/glue/media/web_data_source.h"
 
@@ -323,6 +324,7 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
   Proxy * GetProxy(){ return proxy_;}
   void *getControlQml() {return m_controlQmlC;}
   void setControlQml(void *handle) { m_controlQmlC = handle;}
+  RenderView *view_;
 #endif
 
  private:
