@@ -67,10 +67,8 @@ WebPluginDelegateImpl::WebPluginDelegateImpl(
     // right-clicks in windowless content since Flash 10.1 (initial release, at
     // least) hangs in that case. Remove this once Flash is fixed.
     quirks_ |= PLUGIN_QUIRK_WINDOWLESS_OFFSET_WINDOW_TO_DRAW
-        | PLUGIN_QUIRK_WINDOWLESS_INVALIDATE_AFTER_SET_WINDOW;
-
-    // Seems Flash 10.2 do not have this issue?  Comment this out
-        //| PLUGIN_QUIRK_WINDOWLESS_NO_RIGHT_CLICK;
+        | PLUGIN_QUIRK_WINDOWLESS_INVALIDATE_AFTER_SET_WINDOW
+        | PLUGIN_QUIRK_WINDOWLESS_NO_RIGHT_CLICK;
   }
 
   // TODO(evanm): I played with this for quite a while but couldn't
