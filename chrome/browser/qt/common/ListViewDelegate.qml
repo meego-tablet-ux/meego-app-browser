@@ -57,10 +57,13 @@ Item {
       }
     }
 
-    Image {
+    BorderImage {
       id: sector_bg
       anchors.fill: parent
-      fillMode: Image.Stretch
+      border.left:   12
+      border.top:    0
+      border.bottom: 0
+      border.right:  12
       source: "image://themedimage/widgets/apps/browser/new-tabs-closed-bar-background"
       visible: index%2 == 0
     }

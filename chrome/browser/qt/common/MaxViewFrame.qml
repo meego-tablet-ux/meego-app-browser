@@ -107,19 +107,11 @@ Item {
 	height: getCategoryHeight()
         source: "image://themedimage/images/bg_application_p"
 	
-	Image {
-	    id: arrow
-     	    anchors.verticalCenter: title.verticalCenter
-	    anchors.left: parent.left
-	    anchors.leftMargin: getGridLeftMargin()
-	    source: "image://themedimage/images/notes/icn_dropdown_off"
-	}
-	
 	Text {
 	    id: title
 	    anchors.bottom: parent.bottom
-	    anchors.left: arrow.right
-	    anchors.leftMargin: 20
+	    anchors.left: parent.left
+	    anchors.leftMargin: getGridLeftMargin()
             font.pixelSize: theme_fontPixelSizeLarge
 	    font.family: "Droid Sans"
 	    color: theme_fontColorNormal
@@ -154,58 +146,19 @@ Item {
 	    //radius: 1
 	}
 */
-	states: [
-	    State {
-		name: "highlight"
-		when: mouseArea.pressed
-		PropertyChanges { target: title; color: theme_fontColorHighlight }
-		//PropertyChanges { target: line; color: theme_fontColorHighlight }
-	    }
-	]
 
-        MouseArea {
-	  id: mouseArea
-          anchors.fill: category
-          onClicked: {
-	    mouse.accepted = true;
-            if(collapseState == 1)
-              collapseState = 2;
-            else if(collapseState == 2)
-              collapseState = 1;
-            else
-              return;
-            
-	    gridModel.setCollapsedState(collapseState);
-          }
-          onPressed: { 
-	    sector.focus = true;
-            mouse.accepted = true;
-	  }
-          onReleased: { 
-	    mouse.accepted = true;
-	  }
-
-        }
     }
 
     states: [
 	State {
-	    name: "collapsed"
-	    when: collapseState == 2
-	    PropertyChanges { target: maxViewLoader; sourceComponent: miniView }
-	    PropertyChanges { target: arrow; rotation: 270 }
-	},
-	State {
 	    name: "non-collapsed"
 	    when: collapseState == 1
 	    PropertyChanges { target: maxViewLoader; sourceComponent: maxView }
-	    PropertyChanges { target: arrow; rotation: 0 }
 	},
 	State {
 	    name: "list"
 	    when: collapseState == 3
 	    PropertyChanges { target: maxViewLoader; sourceComponent: listView }
-	    PropertyChanges { target: arrow; rotation: 0 }
         }
     ]
 
