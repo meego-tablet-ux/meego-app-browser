@@ -576,8 +576,25 @@ void RenderWidgetHostViewQt::UpdateContentsSize(const gfx::Size& size)
     // a flag whether width is changed
     bool width_changed = (contents_size_.width() != size.width());
     contents_size_ = size;
-    if (view_)
-      reinterpret_cast<RWHVQtWidget*>(view_)->AdjustSize();
+
+    if (view_) {
+      RWHVQtWidget* rwhv = reinterpret_cast<RWHVQtWidget*>(view_);
+
+      // In case of orientation changes, the contents width is possible
+      // to be changed due to the preferred size for page rendering is 
+      // updated and the page will be re-layout.
+      // The desired preferred size for scaling
+      gfx::Size desired_preferred_size;
+      if(!rwhv->CheckContentsSize(desired_preferred_size)) {
+        // Reset PreferedSize and relayout the page with the right
+        // size to make sure the scaled page content can be fit 
+        // exactly the full viewport.
+        SetPreferredSize(desired_preferred_size);
+        return;
+      }
+      rwhv->AdjustSize();
+    }
+
     BackingStoreX* backing_store = static_cast<BackingStoreX*>(
       host_->GetBackingStore(false));
 #if defined(TILED_BACKING_STORE)

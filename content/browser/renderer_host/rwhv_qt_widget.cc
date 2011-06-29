@@ -181,7 +181,8 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
 
   pinchEmulationEnabled = false;
   pinch_completing_ = false;
-  scale_ = pending_scale_ = kNormalContentsScale;
+  scale_to_screen_factor_ = 1.0;
+  scale_ = pending_scale_ = 1.0;
 
   delay_for_click_timer_ = new QTimer(this);
   connect(delay_for_click_timer_, SIGNAL(timeout()), this, SLOT(deliverMouseClickEvent()));
@@ -1356,19 +1357,24 @@ void RWHVQtWidget::onAnimationFinished()
   QGraphicsObject* viewport_item = GetViewportItem();
   if (!viewport_item)
     return;
- 
-  if((scale_ == kNormalContentsScale 
-      && pending_scale_ < kNormalContentsScale) 
-     || (scale_ == kMaxContentsScale 
-         && pending_scale_ > kMaxContentsScale)) {
+
+  // No need to repaint in case of the content of web page is 
+  // exactly scaled to screen and
+  // 1. the pending scale will make the web content smaller
+  //    than screen horizontally
+  // 2. the pending scale is bigger than kMaxContentsScale
+  if((scale_ == scale_to_screen_factor_ 
+      && pending_scale_ <= scale_to_screen_factor_)
+    || (scale_ == kMaxContentsScale 
+        && pending_scale_ >= kMaxContentsScale))
+  {
     pinch_completing_ = false;
   }
- 
-  if(pending_scale_ < kNormalContentsScale)
-  {
-    host_view_->host_->SetScaleFactor(kNormalContentsScale);
-    pinch_scale_factor_ = kNormalContentsScale/scale_;
-    pending_scale_ = kNormalContentsScale;
+
+  if(pending_scale_ < scale_to_screen_factor_) {
+    host_view_->host_->SetScaleFactor(scale_to_screen_factor_);
+    pinch_scale_factor_ = scale_to_screen_factor_/scale_;
+    pending_scale_ = scale_to_screen_factor_;
   } else if(pending_scale_ > kMaxContentsScale) {
     host_view_->host_->SetScaleFactor(kMaxContentsScale);
     pinch_scale_factor_ = kMaxContentsScale/scale_;
@@ -1486,8 +1492,9 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
         pinch_scale_factor_ = pending_scale_ / scale_;
         setScale(pinch_scale_factor_);
 
-        if(pending_scale_ < kNormalContentsScale 
-            || pending_scale_ > kMaxContentsScale) {
+        if(pending_scale_ > kMaxContentsScale ||
+            pending_scale_ < scale_to_screen_factor_)
+        {
           rebounce_animation_->setStartValue(pinch_scale_factor_);
         } 
 
@@ -1521,12 +1528,12 @@ void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gestur
 
         setViewportInteractive(true);
 
-        if(pending_scale_ < kNormalContentsScale) 
-        {
+        if(pending_scale_ < scale_to_screen_factor_) {
           rebounce_animation_->setStartValue(pinch_scale_factor_);
-          rebounce_animation_->setEndValue(kNormalContentsScale/scale_);
+          rebounce_animation_->setEndValue(scale_to_screen_factor_/scale_);
           rebounce_animation_->start();
-        } else if(pending_scale_ > kMaxContentsScale) {
+        }
+        else if(pending_scale_ > kMaxContentsScale) {
           rebounce_animation_->setStartValue(pinch_scale_factor_);
           rebounce_animation_->setEndValue(kMaxContentsScale/scale_);
           rebounce_animation_->start();
@@ -1667,8 +1674,9 @@ void RWHVQtWidget::doubleTapAction(const QPointF& pos)
 
   pending_scale_ = qMin((qreal)flatScaleByStep(pending_scale_), kMaxDoubleTapScale);
 
-  if(pending_scale_ < kNormalContentsScale 
-      && scale_ == kNormalContentsScale) return;
+  if(pending_scale_ < scale_to_screen_factor_
+        && scale_ == scale_to_screen_factor_)
+    return;
 
   pinch_scale_factor_ = pending_scale_/scale_;
 
@@ -2052,7 +2060,6 @@ void RWHVQtWidget::ModifySelection(SelectionHandlerID handler, gfx::Point new_po
   }
 }
 
-
 void RWHVQtWidget::onSizeAdjusted()
 {
   DLOG(INFO) << "onSizeAdjusted " << this << " "
@@ -2131,13 +2138,14 @@ void RWHVQtWidget::SetWebViewSize()
   QGraphicsObject* webview = GetWebViewItem();
   if (!webview)
     return;
-  
+
   //If host view is hidden, no need to update
   //size of web view.
   if(hostView() && hostView()->is_hidden_) return;
 
   webview->setProperty("width", QVariant(size().width()));
   webview->setProperty("height", QVariant(size().height()));
+
   DLOG(INFO) << "set Web View size " << size().width() << " "
              << size().height();
 }
@@ -2266,11 +2274,69 @@ void RWHVQtWidget::DidBackingStoreScale()
   }
 }
 
+bool RWHVQtWidget::CheckContentsSize(gfx::Size& desired_preferred_size)
+{
+  if(!host_view_) return true;
+
+  gfx::Size contents_size = host_view_->contents_size_;
+
+  QGraphicsObject* viewport_item = GetViewportItem();
+  if(!viewport_item) return true;
+  QRectF viewport_rect = viewport_item->boundingRect();
+
+  // Return back in case of content width is less than that
+  // of viewport. The content width is definitely equal
+  // to or larger than viewport width once the page is
+  // completed to load. It is possible that the content
+  // width is less than viewport width during page loading
+  if(contents_size.width() < viewport_rect.width())
+    return true;
+
+  // Calculate the desired scale factor according to the
+  // viewport size and content size
+
+  // Adjustment factor is used to revise the error introduced
+  // by flatten scale. For example, if desired_scale equals to 
+  // 0.789, it will be flatten as 0.780000. As a result, the 
+  // size of RWHVQtWidget is flatScale*content_size which
+  // is definitely less than viewport size.
+  const qreal adjument_factor = 0.005;
+  qreal desired_scale = viewport_rect.width()/contents_size.width()
+                        + adjument_factor;
+
+  if(flatScaleByStep(desired_scale) <= scale_to_screen_factor_) {
+    scale_to_screen_factor_ = flatScaleByStep(desired_scale);
+    return true;
+  }
+ 
+  // Height of scaled page may be shorter than viewport height and cause
+  // ugly appearance, calculate the right preferred size
+  if(desired_scale*contents_size.height() < viewport_rect.height())
+  {
+    desired_preferred_size.SetSize(viewport_rect.width(), 
+        viewport_rect.height()/(desired_scale - adjument_factor));
+    return false;
+  }
+
+  scale_to_screen_factor_ = flatScaleByStep(desired_scale);
+
+  // If current scale is larger than 1.1, no need to change
+  // the contents scale
+  if(scale_ > 1.1) return true;
+
+  if(host_view_->host_)
+    host_view_->host_->SetScaleFactor(scale_to_screen_factor_);
+
+  this->SetScaleFactor(scale_to_screen_factor_);
+  return true;
+}
+
 void RWHVQtWidget::AdjustSize()
 {
-  setGeometry(QRectF(geometry().topLeft(),
-                     QSizeF(host_view_->contents_size_.width() * scale(),
-                            host_view_->contents_size_.height() * scale())));
+  if(!host_view_) return;
+  gfx::Size contents_size = host_view_->contents_size_;
+  setGeometry(QRectF(geometry().topLeft(), 
+        QSizeF(contents_size.width(), contents_size.height()))); 
   emit sizeAdjusted();
 }
 

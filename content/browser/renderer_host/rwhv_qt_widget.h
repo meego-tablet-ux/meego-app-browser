@@ -76,6 +76,13 @@ class RWHVQtWidget : public QGraphicsWidget
   qreal scale() { return flatScaleByStep(scale_); }
   void SetScaleFactor(double scale);
   
+  // Check the contents size and calculate the proper
+  // scale factor as the bottom value
+  // Return false in case of it needs to reset preferred size, and
+  // the desired_preferred_size is returned as the right size
+  // Return true if no additional action is required.
+  bool CheckContentsSize(gfx::Size& desired_preferred_size);
+
  protected:
   virtual bool eventFilter ( QObject * watched, QEvent * event );
   //! \reimp
@@ -123,7 +130,7 @@ protected Q_SLOTS:
   } SelectionHandlerID;
   
   void SetWebViewSize();
-
+  
   QGraphicsObject* GetWebViewItem();
   QGraphicsObject* GetViewportItem();
   
@@ -258,6 +265,9 @@ protected Q_SLOTS:
   qreal scale_;
   qreal pending_scale_;
   qreal pinch_scale_factor_;
+
+  // factor for scaling to screen
+  qreal scale_to_screen_factor_;
 };
 
 #endif  // CHROME_BROWSER_RWHV_QT_WIDGET_H_
