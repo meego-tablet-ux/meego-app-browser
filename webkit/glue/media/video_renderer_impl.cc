@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "chrome/common/render_messages.h"
-#include "chrome/renderer/render_thread.h"
+#include "content/renderer/render_thread.h"
 
 #include "webkit/glue/media/video_renderer_impl.h"
 
