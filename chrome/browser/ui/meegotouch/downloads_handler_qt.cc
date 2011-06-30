@@ -181,9 +181,10 @@ public:
     endResetModel();
   }
 
-  bool downloadItemUpdated(DownloadViewItem item)
+  bool downloadItemUpdated(DownloadViewItem item, int id)
   {
-    int item_index = m_downloadList.indexOf(item);
+    //int item_index = m_downloadList.indexOf(item);
+    int item_index = id;
     m_downloadList[item_index] = item;
     if (item_index >=0 && item_index < m_downloadList.size())
     {
@@ -554,7 +555,7 @@ int DownloadsQtHandler::FetchMimetypeIconID(const std::string& path) {
 
 void DownloadsQtHandler::UpdateCurrentDownload(DownloadItem* download, const int id) {
       DownloadViewItem* item =  CreateDownloadViewItem(download);
-      impl_->downloadItemUpdated(*item);
+      impl_->downloadItemUpdated(*item, id);
 }
 
 void DownloadsQtHandler::SendCurrentDownloads() {
