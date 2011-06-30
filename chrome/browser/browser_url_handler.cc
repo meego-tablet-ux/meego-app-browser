@@ -4,11 +4,13 @@
 
 #include "chrome/browser/browser_url_handler.h"
 
+#include "base/command_line.h"
 #include "base/string_util.h"
 #include "chrome/browser/browser_about_handler.h"
 #include "chrome/browser/extensions/extension_web_ui.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/webui/chrome_web_ui_factory.h"
+#include "chrome/common/chrome_switches.h"
 #include "chrome/common/url_constants.h"
 #include "content/browser/webui/web_ui.h"
 #include "googleurl/src/gurl.h"
@@ -62,8 +64,23 @@ static bool ReverseViewSource(GURL* url, Profile* profile) {
 
 // Handles rewriting Web UI URLs.
 static bool HandleWebUI(GURL* url, Profile* profile) {
+#if !defined(TOOLKIT_MEEGOTOUCH)
   if (!ChromeWebUIFactory::GetInstance()->UseWebUIForURL(profile, *url))
     return false;
+#else
+  if (!ChromeWebUIFactory::GetInstance()->UseWebUIForURL(profile, *url)) {
+    // Let browser handle chrome:// urls like about:blank
+    if(CommandLine::ForCurrentProcess()->HasSwitch(
+       switches::kDisableChromeWebUi)) {
+      if (url->SchemeIs(chrome::kChromeUIScheme) ||
+          url->SchemeIs(chrome::kChromeDevToolsScheme) ||
+          url->SchemeIs(chrome::kChromeInternalScheme)) {
+        *url = GURL(chrome::kAboutBlankURL);
+      }
+    }
+    return false;
+  }
+#endif
 
   // Special case the new tab page. In older versions of Chrome, the new tab
   // page was hosted at chrome-internal:<blah>. This might be in people's saved
