@@ -806,9 +806,9 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
       ic->setFocusWidget(qApp->focusWidget());
       ic->filterEvent(&sip_request);
       im_enabled_ = true;
-    } else {
+    } /*else {
       scrollAndZoomForTextInput(cursor_rect_, false);
-    }
+    }*/
   }
   
   if (type == WebKit::WebTextInputTypePassword) {
