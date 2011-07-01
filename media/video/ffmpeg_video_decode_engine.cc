@@ -567,12 +567,7 @@ void FFmpegVideoDecodeEngine::DecodeFrame(scoped_refptr<Buffer> buffer) {
       LOG(ERROR) << "End Of Stream Event";
 #if defined (TOOLKIT_MEEGOTOUCH)
 // _DEV2_H264_
-      /*lost here?*/
-      if(!hw_accel_){
-      //if(CODEC_ID_H264 != codec_context_->codec_id){
-    /*not H264 , run consume*/
       event_handler_->ConsumeVideoFrame(video_frame, statistics);
-      }
 #else
       event_handler_->ConsumeVideoFrame(video_frame, statistics);
 #endif
