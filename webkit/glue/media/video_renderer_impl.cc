@@ -303,7 +303,7 @@ void VideoRendererImpl::SetIsOverlapped(bool overlapped)
 
 
 void VideoRendererImpl::OnStop(media::FilterCallback* callback) {
-  ExitDirectPaint();
+  proxy_->message_loop()->PostTask(FROM_HERE, NewRunnableMethod(this, &VideoRendererImpl::ExitDirectPaint));
 
   if (callback) {
     callback->Run();
