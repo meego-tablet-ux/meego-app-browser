@@ -45,6 +45,15 @@
 
 #include <stdio.h>
 
+#define UXQMLAR_MEDIA_PAUSE (1)
+#define UXQMLAR_MEDIA_PLAY (0)
+#define UXQMLAR_MEDIA_SEEK (4)
+#define UXQMLAR_MEDIA_FFORWARD (2)
+#define UXQMLAR_MEDIA_FBACKWARD (3)
+#define UXQMLAR_MEDIA_VOLUME (5)
+#define UXQMLAR_MEDIA_FULLSCREENQUIT (9)
+
+
 class CallFMenuClass : public QObject
 {
   Q_OBJECT
@@ -52,9 +61,6 @@ class CallFMenuClass : public QObject
 public:
   CallFMenuClass(QObject *parent = 0);
   ~CallFMenuClass() {}
-
-  QString getURLName() const;
-  void setURLName(const QString &);
 
   int getVideoCurTime() const;
   void setVideoCurTime(int);
@@ -71,6 +77,9 @@ public:
   int getLaunchedFlag() const;
   bool setLaunchedFlag(int);
 
+  void setAvailable(bool);
+  bool isAvailable(void) const;
+
   int getARtype() const;
   void setARtype(int);
 
@@ -79,7 +88,11 @@ public:
   void VideoActive(int c, int t) {emit videoRun(c,t);}
   void VideoRun() {emit videoRun(m_video_current,m_video_total);}
   void SyncRead() {emit syncRead(m_backward_s,m_play_s,m_forward_s,m_fullscreen_s,m_artype);}
-  void ForceControlOutside() {emit forceControlOutside(9);}
+  void ForceControlOutside() {
+    m_events++; 
+    m_artype = UXQMLAR_MEDIA_FULLSCREENQUIT;
+    emit forceControlOutside(UXQMLAR_MEDIA_FULLSCREENQUIT);
+  }
 
 public Q_SLOTS:
   void cMethod() {
@@ -87,7 +100,6 @@ public Q_SLOTS:
     emit videoRun(m_video_current,m_video_total);
     emit syncRead(m_backward_s,m_play_s,m_forward_s,m_fullscreen_s,m_artype);
   }
-
 
   void SyncWriteStatus(int,int,int,int,int,int,int,int,int);
   void setMenuHiden(bool);
@@ -101,7 +113,6 @@ Q_SIGNALS:
   void forceControlOutside(int outsidecode);
 
 private:
-  QString m_url;
   bool m_menu_hiden;
   int m_volume_percentage;
   int m_video_current;

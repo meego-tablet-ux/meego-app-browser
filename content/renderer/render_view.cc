@@ -796,14 +796,26 @@ void RenderView::OnBackgroundPolicy(void) {
   if(mediaImpl->GetProxy()->codec_id_ == 28/*H264*/){
 
     if(subwin){
-
+      //base::AutoLock auto_qlock(mediaImpl->GetProxy()->hwfqml_lock_);
       CallFMenuClass *qml_ctrl = (CallFMenuClass *)mediaImpl->getControlQml();
 
       if(!qml_ctrl) return;
+      void *tret = NULL;
 
       if(qml_ctrl->getLaunchedFlag()){
-        /*fullscreen playing, close window*/
+
+	/*release policy aware link of Dbus*/
+	resourceRelease();
+
+	/*pause*/
+	OnResourceInUsed(); // Do Pause
+
         qml_ctrl->ForceControlOutside();
+
+	if((mediaImpl->GetProxy()->thread_hwfqml)&&(pthread_join(mediaImpl->GetProxy()->thread_hwfqml, &tret)) == 0){
+	  mediaImpl->GetProxy()->thread_hwfqml = 0;
+	}
+
       }else{
         /*it's launching process*/
         qml_ctrl->setLaunchedFlag(1);
@@ -817,12 +829,11 @@ void RenderView::OnBackgroundPolicy(void) {
 
     /*pause*/
     OnResourceInUsed(); // Do Pause
-
+    base::AutoLock auto_qlock(mediaImpl->GetProxy()->hwfqml_lock_);
     /*Free resource*/
     mediaImpl->GetProxy()->SetVideoRenderer(NULL);
     mediaImpl->WillDestroyCurrentMessageLoop();
     mediaplayer_ = NULL;
-
 
   }else if(mediaImpl->GetProxy()->codec_id_ != 0){
     /*sw version*/

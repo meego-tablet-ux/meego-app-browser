@@ -17,6 +17,10 @@
 
 #include "webkit/glue/webmediaplayer_impl.h"
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+#include "webkit/glue/mainhwfqml.h"
+#endif
+
 #include <limits>
 #include <string>
 
@@ -59,9 +63,6 @@ using WebKit::WebSize;
 Window subwin ;
 extern Display *mDisplay ;
 extern unsigned int CodecID ;
-
-static QDeclarativeView *g_qmlView = NULL;
-
 #endif
 
 using media::PipelineStatus;
@@ -367,10 +368,19 @@ void CtrlPause(WebMediaPlayerImpl *player)
   Delay Task 2: to listen QML Click events
 */
 
+
+#define QML_DELAY 2
 void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *proxy, WebMediaPlayerImpl *player)
 {
   static unsigned int SyncFlush = 1;
+  void *tret = NULL;
+  int err;
 
+  if(player->getMainMsgLoop() == NULL){
+      return;
+  }
+
+  base::AutoLock auto_qlock(proxy->hwfqml_lock_);
   CallFMenuClass *qml_ctrl = (CallFMenuClass *)player->getControlQml();
 
   if(!qml_ctrl) {
@@ -379,7 +389,17 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
 
   proxy->menu_on_ = !qml_ctrl->getMenuHiden();
   
+
   if(!qml_ctrl->getEvents()) {
+    if(!SyncFlush) {
+      qml_ctrl->setVideoDurTime((int) player->duration());
+      qml_ctrl->setVideoCurTime((int) player->currentTime());
+      SyncFlush=10;
+    }
+    else {
+      SyncFlush--;
+    }
+
     goto subwin_exit;
   }
   else{
@@ -446,22 +466,16 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
     {
       /*lock share resource*/
       base::AutoLock auto_lock(proxy->paint_lock_);
-
       //force quit
-      g_qmlView->close();
-
+      subwin = 0;
       proxy->menu_on_ = false;
       proxy->last_frame_ = 0;
       
-      if(player->paused()) {
-        //Flush Shm Memory with current Surface
-        player->play();
-        msg->PostDelayedTask(FROM_HERE,
-                          NewRunnableFunction(CtrlPause,player), 200);
+      if((proxy->thread_hwfqml)&&(err = pthread_join(proxy->thread_hwfqml, &tret)) == 0){
+	proxy->thread_hwfqml = 0;
+	return;
       }
-      
-      subwin = 0;
-      return; 
+
     }
     break;
 
@@ -479,20 +493,14 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
   }
   
 subwin_exit:
-
-  if(player->currentTime() != player->duration()) {
+  if(player->currentTime()+ QML_DELAY < player->duration()) {
     msg->PostDelayedTask(FROM_HERE,
-                        NewRunnableFunction(CtrlSubWindow, msg, dpy, make_scoped_refptr(proxy), player), 50);
+                        NewRunnableFunction(CtrlSubWindow, msg, dpy, make_scoped_refptr(proxy), player), 100);
     proxy->last_frame_ = 0;
   }else {
     /*end of stream*/
 
     base::AutoLock auto_lock(proxy->paint_lock_);
-
-    if(player->view_){
-      player->view_->resourceRelease();
-    }
-
     /*No CtrlSubwindow, just pause ,close win, seek to start, exit */
     if(subwin) {
 
@@ -500,12 +508,21 @@ subwin_exit:
         LOG(ERROR) << "Error in CtrlWindow";
       }
 
-      g_qmlView->close();
-      subwin = 0;
-      proxy->last_frame_ = 1;
-      player->Repaint();
-      proxy->menu_on_ = false;
+      /*lock share resource*/
+      if(qml_ctrl){
+
+	qml_ctrl->ForceControlOutside();
+	msg->PostDelayedTask(FROM_HERE,
+			     NewRunnableFunction(CtrlSubWindow, msg, dpy, make_scoped_refptr(proxy), player), 50);
+	proxy->last_frame_ = 0;
+	return;
+      }
     }
+
+    if(player->view_){
+      player->view_->resourceRelease();
+    }
+
   }
   return;
 }
@@ -517,70 +534,18 @@ void *qml_wsvr(void *arg)
 {
   CallFMenuClass *qml_ctrl = (CallFMenuClass *)arg;
 
-  int qargc = 1;
-  char *cstr = NULL;
+  int qargc = 0;
+  QApplication napp(qargc,NULL);
+  MainhwfQml *window = new MainhwfQml((void *)qml_ctrl, &napp);
 
-  pthread_detach(pthread_self());
-  cstr = (char *)malloc(16);
-
-  if(cstr == NULL){
-    LOG(ERROR) << "[Error] Init UXAppArgs!";
-    pthread_exit(NULL);
-  }  
-
-  char **qargv = &cstr;
-  QApplication napp(qargc,qargv);
-  
-  QDeclarativeView qmlView;
-  g_qmlView = &qmlView;
-  
-  /*full screen*/
-  qmlView.setWindowState(Qt::WindowFullScreen);
-  
-
-  if(qml_ctrl == NULL){
-    if(cstr){
-      free(cstr);
-      cstr = NULL;
-    }
-
-    LOG(ERROR) << "[Error] Init CallFMenuClass!";
-    pthread_exit(NULL);
-  } 
-
-  qmlView.rootContext()->setContextProperty("fmenuObject", qml_ctrl);
-
-  QString mainQml = QString("meego-app-browser/") + "HwMediaUxMain.qml";
-  QString sharePath;
-
-  if (QFile::exists(mainQml))
-  {
-    sharePath = QDir::currentPath() + "/";
-  }
-  else
-  {
-    sharePath = QString("/usr/share/");
-    if (!QFile::exists(sharePath + mainQml))
-    {
-      qFatal("%s does not exist!", mainQml.toUtf8().data());
-    }
-  }
-
-  qmlView.setSource(QUrl(sharePath + mainQml));  // Should locate HwMediaUxMain.qml and icons from "meego-app-browser"
-  qmlView.raise();
-  qmlView.setAttribute(Qt::WA_NoSystemBackground, true);
-  qmlView.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-  qmlView.show();
-  subwin = qmlView.winId();
+  subwin = window->winId();
+  window->show();
 
   napp.exec();
+  
   qml_ctrl->setLaunchedFlag(0);
+  delete window;
 
-  if(cstr){
-    free(cstr);
-    cstr = NULL;
-  }
-  g_qmlView = NULL;
   pthread_exit(NULL);
 }
 
@@ -588,14 +553,14 @@ Window WebMediaPlayerImpl::Proxy::CreateSubWindow(WebMediaPlayerImpl *player)
 {
 #define MAX_RETRYQMLWIN_TIMES (150)
   /*reset */
-  pthread_t thread_wqml;
   menu_on_ = 0;
   last_frame_ = 0;
-  Window qmlNewWin = 1;
+  thread_hwfqml = 0;
 
+  //base::AutoLock auto_qlock(hwfqml_lock_);
   CallFMenuClass *qml_ctrl = (CallFMenuClass *)player->getControlQml();
 
-  if(pthread_create(&thread_wqml, NULL, qml_wsvr, qml_ctrl) != 0) {
+  if(pthread_create(&thread_hwfqml, NULL, qml_wsvr, qml_ctrl) != 0) {
     return 1;
   }
 
@@ -713,6 +678,7 @@ bool WebMediaPlayerImpl::Initialize(
   proxy_->shminfo_.shmid = 0;
   proxy_->shminfo_.shmaddr = NULL;
   proxy_->codec_id_ = 0;
+  proxy_->thread_hwfqml = 0;
 
   CallFMenuClass *qml_ctrl = NULL;
   
@@ -786,10 +752,10 @@ void WebMediaPlayerImpl::play() {
     LOG(ERROR) << "Error while player";
     return ;
   }
- 
+
 #if defined (TOOLKIT_MEEGOTOUCH)
   // _FULLSCREEN_
-  if((CodecID == 28/*h264*/)&&(subwin == 0) && (mDisplay) && (!proxy_->last_frame_)){
+  if((CodecID == 28/*h264*/)&&(subwin == 0) && (mDisplay) /*&& (!proxy_->last_frame_)*/){
     /*_DEV2_OPT*/
     /*Create a subwin, if mDisplay , and not last frm*/
     subwin = proxy_->CreateSubWindow(this);

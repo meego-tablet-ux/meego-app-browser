@@ -53,7 +53,6 @@ CallFMenuClass::CallFMenuClass(QObject *parent)
   m_events(1),
   m_artype(0),
   m_launchednum(0),
-
   m_play_s(1),
   m_backward_s(0),
   m_forward_s(0),
@@ -61,16 +60,6 @@ CallFMenuClass::CallFMenuClass(QObject *parent)
   m_ext_s(0) 
 {
     
-}
-
-QString CallFMenuClass::getURLName() const
-{
-  return m_url;
-}
-
-void CallFMenuClass::setURLName(const QString &url)
-{
-  m_url = url;
 }
 
 int CallFMenuClass::getVideoCurTime() const

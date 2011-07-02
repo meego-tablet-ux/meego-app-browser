@@ -144,6 +144,25 @@ Item {
         }
     }
 
+    Timer {
+        id: _tmp_sleep003
+        interval: 100
+        running: false
+        repeat: false
+        onTriggered: {
+            // Flush all
+            _tmp_sleep002.running = true;
+            _tmp_sleep002.interval = 1;
+            _tmp_sleep002.restart();
+
+            fmenuObject.SyncWriteStatus(backwardValue,playValue,
+                    forwardValue,0/*Skip*/,volumPercValue,
+                    fullScreenValue,9/*Fullscr*/,fullstimeValue,0);
+
+            Qt.quit();
+        }
+    }
+
     Item {
         id: _total
         y: _farther.height;
@@ -467,10 +486,13 @@ Item {
                     anchors.fill: parent
                     onClicked: { 
                         _fullScreenIRec.clicked()
-                        // Flush all
-                        fmenuObject.SyncWriteStatus(backwardValue,playValue,
-                                forwardValue,0/*Skip*/,volumPercValue,
-                                fullScreenValue,9/*Fullscr*/,fullstimeValue,0);
+                        menu_hiden = true;
+                        fmenuObject.setMenuHiden(menu_hiden);
+
+                        _tmp_sleep003.running = true;
+                        _tmp_sleep003.interval = 200;
+                        _tmp_sleep003.restart();
+
                     }
                 }
             }
@@ -490,11 +512,14 @@ Item {
 
             onForceControlOutside: {
                 // Commands Code to QML from outside!
-                // console.log("***>>>  ", outsidecode);
-                // Flush all
-                fmenuObject.SyncWriteStatus(backwardValue,playValue,
-                        forwardValue,0/*Skip*/,volumPercValue,
-                        fullScreenValue,9/*Fullscr*/,fullstimeValue,0);
+                menu_hiden = true;
+                fmenuObject.setMenuHiden(menu_hiden);
+
+                _tmp_sleep002.running = true;
+                _tmp_sleep002.interval = 1;
+                _tmp_sleep002.restart();
+
+                Qt.quit();
 
             }
 

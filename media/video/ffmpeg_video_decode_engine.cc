@@ -565,7 +565,7 @@ void FFmpegVideoDecodeEngine::DecodeFrame(scoped_refptr<Buffer> buffer) {
   if (frame_decoded == 0) {
     if (buffer->IsEndOfStream()) {  // We had started flushing.
       LOG(ERROR) << "End Of Stream Event";
-#if defined (TOOLKIT_MEEGOTOUCH)
+#if 0//defined (TOOLKIT_MEEGOTOUCH)
 // _DEV2_H264_
       event_handler_->ConsumeVideoFrame(video_frame, statistics);
 #else

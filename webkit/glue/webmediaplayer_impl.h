@@ -151,6 +151,8 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
     XImage * m_ximage_;
     base::Lock paint_lock_;
     unsigned int codec_id_;
+    pthread_t thread_hwfqml;
+    base::Lock hwfqml_lock_;
 /*_DEV2_H264_*/
 #endif
     bool HasSingleOrigin();
@@ -325,6 +327,7 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
   void *getControlQml() {return m_controlQmlC;}
   void setControlQml(void *handle) { m_controlQmlC = handle;}
   RenderView *view_;
+  MessageLoop *getMainMsgLoop() {return main_loop_;}
 #endif
 
  private:

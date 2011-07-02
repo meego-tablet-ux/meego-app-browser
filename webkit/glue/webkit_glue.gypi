@@ -406,6 +406,8 @@
         'hwfmenu_qt.h',
         'hwfmenu_qt.cc',
         'webmenuitem.cc',
+        'mainhwfqml.h',
+        'mainhwfqml.cc',
         'webmenuitem.h',
         'webmenurunner_mac.h',
         'webmenurunner_mac.mm',
@@ -469,6 +471,22 @@
               ],
               'outputs': [
                 'moc_hwfmenu_qt.cc',
+              ],
+              'action': [
+                'moc',
+                '<(_inputs)',
+                '-o',
+                '<(_outputs)',
+              ],
+            },
+
+            {
+              'action_name': 'moc_mainhwfqml.cc',
+              'inputs': [
+                'mainhwfqml.h',
+              ],
+              'outputs': [
+                'moc_mainhwfqml.cc',
               ],
               'action': [
                 'moc',
