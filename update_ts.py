@@ -11,7 +11,7 @@
 import os, glob, shutil, re, codecs
 from xml.dom import minidom
 
-base_commit = "11f08e2f99afdeced163d464ab029bfbbb11b71e"
+base_commit = "4b83a70f80c16276904a464fdd53992066646a61"
 
 grd_files = ['chrome/app/generated_resources.grd',
              'chrome/app/chromium_strings.grd',
