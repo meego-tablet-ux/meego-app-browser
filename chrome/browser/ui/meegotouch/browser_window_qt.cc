@@ -285,7 +285,8 @@ void BrowserWindowQt::InitWidget()
   context->setContextProperty("browserWindow", impl_);
 
   LauncherApp *app = static_cast<LauncherApp *>(qApp);
-  QString mainQml = app->applicationName() + "/main.qml";
+  //hardcode appname for multiprocess
+  QString mainQml = "meego-app-browser/main.qml";
   QString sharePath;
   if (QFile::exists(mainQml))
   {
@@ -353,6 +354,9 @@ void BrowserWindowQt::InitWidget()
 
   //Init TopSitesCache
   browser_->profile()->GetTopSites();
+
+  if(browser_->type()==Browser::TYPE_APP)
+    return;
 
   BrowserServiceWrapper* service = BrowserServiceWrapper::GetInstance();
   service->Init(browser_.get());

@@ -371,7 +371,13 @@ NavigateParams::~NavigateParams() {
 void Navigate(NavigateParams* params) {
   Browser* source_browser = params->browser;
   AdjustNavigateParamsForURL(params);
-
+  if(!source_browser ||
+     (source_browser->type()==Browser::TYPE_APP &&
+      params->disposition!=CURRENT_TAB &&
+      !source_browser->tabstrip_model()->empty()))
+  {
+    params->disposition = CURRENT_TAB;
+  }
   params->browser = GetBrowserForDisposition(params);
   if (!params->browser)
     return;

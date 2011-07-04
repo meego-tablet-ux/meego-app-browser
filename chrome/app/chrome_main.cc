@@ -34,6 +34,7 @@
 #include "base/string_number_conversions.h"
 #include "base/string_util.h"
 #include "base/utf_string_conversions.h"
+#include "base/file_util.h"
 #include "build/build_config.h"
 #include "crypto/nss_util.h"
 #include "chrome/browser/defaults.h"
@@ -177,6 +178,8 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
   QString cdata;
   bool appmode = false;
   QString appUrl = "";
+  QString appName = "";
+  bool hasUserDataDirInCmd = false;
 
   char ** passDownArgv = new char* [2*argc-1];
   if(argc>0)
@@ -230,6 +233,15 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
         //now directly pass down --app=url to chromium core, let them deal with it
         appUrl = s.remove(0,equalPos+1);
       }
+      else if (s.startsWith("--appname"))
+      {
+        int equalPos = s.indexOf("=",0);
+        appName = s.remove(0,equalPos+1);
+      }
+      else if (s.startsWith("--user-data-dir"))
+      {
+        hasUserDataDirInCmd = true;
+      }
     }
     else
     {
@@ -242,9 +254,28 @@ void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
     }
   }
 
+  if(appmode)
+  {
+    if(appName.length()==0)
+      appName = appUrl;
+    FilePath user_data_dir;
+    if(appName.length()>0 && !hasUserDataDirInCmd)
+    {
+  #if defined(OS_POSIX)
+      user_data_dir = file_util::GetHomeDir().Append(".config/"+appName.toStdString()+"/");
+  #elif defined(OS_LINUX)
+      user_data_dir = file_util::GetHomeDir().Append(".config/"+appName.toStdString()+"/");
+  #endif
+    }
+    if(!user_data_dir.empty())
+      CHECK(PathService::Override(chrome::DIR_USER_DATA, user_data_dir));
+  }else
+  {
+    appName = QString("meego-app-browser");
+  }
 
   g_launcher_app = new LauncherApp(argc, argv);
-  g_launcher_app->setApplicationName(QString("meego-app-browser"));
+  g_launcher_app->setApplicationName(appName);
   g_launcher_app->dbusInit(passDownArgc, passDownArgv);
 
   initAtoms ();

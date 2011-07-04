@@ -363,6 +363,8 @@ Item {
         Connections {
           target: bookmarkBarModel
           onShow: {
+            if (appmode)
+              return;
             var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
             bookmarkBarLoader.source = "BookmarkBar.qml"
             bookmarkBarLoader.item.x = mappedPos.x 
@@ -385,7 +387,8 @@ Item {
         Connections {
           target: infobarContainerModel
           onShow: {
-            infobarLoader.source = "InfoBarContainer.qml"
+            if (!appmode)
+              infobarLoader.source = "InfoBarContainer.qml"
           }
         }
         Loader {
