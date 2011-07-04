@@ -1443,6 +1443,23 @@ void Browser::NewTab() {
   }
 }
 
+void Browser::NewOrActivateTab() {
+  TabStripModel* model = tabstrip_model();
+  for(int i = 0; i < model->count(); i++)
+  {
+    if(model->ContainsIndex(i))
+    {
+      TabContents* contents = model->GetTabContentsAt(i)->tab_contents();
+      if(contents->GetURL().HostNoBrackets() == "newtab")
+      {
+        model->ActivateTabAt(i, true);
+          return;
+      }
+    }
+  }
+  NewTab();
+}
+
 void Browser::CloseTab() {
   UserMetrics::RecordAction(UserMetricsAction("CloseTab_Accelerator"),
                             profile_);
@@ -2236,7 +2253,7 @@ void Browser::ExecuteCommandWithDisposition(
     case IDC_NEW_WINDOW:            NewWindow();                      break;
     case IDC_NEW_INCOGNITO_WINDOW:  NewIncognitoWindow();             break;
     case IDC_CLOSE_WINDOW:          CloseWindow();                    break;
-    case IDC_NEW_TAB:               NewTab();                         break;
+    case IDC_NEW_TAB:               NewOrActivateTab();               break;
     case IDC_CLOSE_TAB:             CloseTab();                       break;
     case IDC_SELECT_NEXT_TAB:       SelectNextTab();                  break;
     case IDC_SELECT_PREVIOUS_TAB:   SelectPreviousTab();              break;

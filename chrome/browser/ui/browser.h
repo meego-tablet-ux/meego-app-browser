@@ -462,6 +462,7 @@ class Browser : public TabHandlerDelegate,
   void NewIncognitoWindow();
   void CloseWindow();
   void NewTab();
+  void NewOrActivateTab();
   void CloseTab();
   void SelectNextTab();
   void SelectPreviousTab();

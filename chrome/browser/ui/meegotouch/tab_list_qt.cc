@@ -454,8 +454,7 @@ void TabListQt::closeTab(int index)
 
 void TabListQt::newTab()
 {
-  TabStripModel* model = browser()->tabstrip_model();
-  model->delegate()->AddBlankTab(true);
+  browser()->NewOrActivateTab();
   Hide();
 }
 
