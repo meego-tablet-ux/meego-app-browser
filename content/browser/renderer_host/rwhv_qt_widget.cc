@@ -116,6 +116,7 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   setHostView(host_view);
   gesture_flags_ = 0;
   im_enabled_ = false;
+  is_enabled_ = false;
   im_cursor_pos_ = -1;
   cancel_next_mouse_release_event_ = false;
   mouse_press_event_delivered_ = false;
