@@ -197,7 +197,8 @@ Item {
         innerContent.forceActiveFocus();
       }
       Keys.onPressed: {
-        if (event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete)
+        // ignore delete/backspace key press, when the input field is empty
+        if ((event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) && text != "")
           isDelete = true;
 	if(activeFocus == true)
 	  urlTextInput.autoScroll = true;
