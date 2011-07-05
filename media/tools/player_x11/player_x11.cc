@@ -132,6 +132,86 @@ bool InitX11() {
   return true;
 }
 
+media::FilterCollection* CreateCollection(MessageLoop* message_loop, 
+                              		   bool enable_audio, 
+                                           MessageLoop* paint_message_loop,
+                                           media::MessageLoopFactory* message_loop_factory)
+{
+
+  media::FilterCollection* collection =  new media::FilterCollection() ;
+
+  (collection)->SetDemuxerFactory(
+      new media::AdaptiveDemuxerFactory(
+          new media::FFmpegDemuxerFactory(
+              new media::FileDataSourceFactory(), message_loop)));
+
+  (collection)->AddAudioDecoder(new media::FFmpegAudioDecoder(
+      message_loop_factory->GetMessageLoop("AudioDecoderThread")));
+
+  if (CommandLine::ForCurrentProcess()->HasSwitch(
+          switches::kEnableOpenMax)) {
+    collection->AddVideoDecoder(new media::OmxVideoDecoder(
+        message_loop_factory->GetMessageLoop("VideoDecoderThread"),
+        NULL));
+  } else {
+    (collection)->AddVideoDecoder(new media::FFmpegVideoDecoder(
+        message_loop_factory->GetMessageLoop("VideoDecoderThread"),
+        NULL));
+  }
+  (collection)->AddVideoRenderer(new Renderer(g_display,
+                                            g_window,
+                                            paint_message_loop));
+
+  if (enable_audio){
+    (collection)->AddAudioRenderer(new media::AudioRendererImpl());
+  }else{
+    (collection)->AddAudioRenderer(new media::NullAudioRenderer());
+  }
+
+  /*No Need to free collection, it will be reset to pipeline_ internal scoped_ptr.*/
+  /*refer to PipelineImpl::StartTask*/
+  return collection;
+}
+
+int PipelineRestart(media::PipelineImpl* pipeline)
+{
+  /*create a new collection*/
+  media::FilterCollection* collection = NULL;
+  const char* filename = pipeline->filename;
+  int ret = 0;
+
+  collection = CreateCollection(pipeline->message_loop, pipeline->enable_audio, 
+                   pipeline->paint_message_loop, pipeline->message_loop_factory);
+  if(!collection){
+    /*Fail to Create Collection*/
+    std::cout << "Error in CreateCollection" << std::endl;
+    return ret;
+  }
+  /*start*/
+  media::PipelineStatusNotification note;
+  (pipeline)->Start(collection, filename, note.Callback());
+
+  // Wait until the pipeline is fully initialized.
+  note.Wait();
+  if (note.status() != media::PIPELINE_OK) {
+    std::cout << "Start : " << note.status() << std::endl;
+    (pipeline)->Stop(NULL);
+    return ret;
+  }
+
+  /*check result*/
+  if(pipeline->IsInitialized()){
+    ret = 1;
+  }else{
+    ret = 0;
+  }
+
+  // And start the playback.
+  (pipeline)->SetPlaybackRate(1.0f);
+
+  return ret;
+}
+
 bool InitPipeline(MessageLoop* message_loop,
                   const char* filename, bool enable_audio,
                   scoped_refptr<media::PipelineImpl>* pipeline,
@@ -158,8 +238,10 @@ bool InitPipeline(MessageLoop* message_loop,
       new media::AdaptiveDemuxerFactory(
           new media::FFmpegDemuxerFactory(
               new media::FileDataSourceFactory(), message_loop)));
+
   collection->AddAudioDecoder(new media::FFmpegAudioDecoder(
       message_loop_factory->GetMessageLoop("AudioDecoderThread")));
+
   if (CommandLine::ForCurrentProcess()->HasSwitch(
           switches::kEnableOpenMax)) {
     collection->AddVideoDecoder(new media::OmxVideoDecoder(
@@ -173,16 +255,24 @@ bool InitPipeline(MessageLoop* message_loop,
   collection->AddVideoRenderer(new Renderer(g_display,
                                             g_window,
                                             paint_message_loop));
-
-  if (enable_audio)
+  if (enable_audio){
     collection->AddAudioRenderer(new media::AudioRendererImpl());
-  else
+  }else{
     collection->AddAudioRenderer(new media::NullAudioRenderer());
+  }
 
   // Create the pipeline and start it.
   *pipeline = new media::PipelineImpl(message_loop);
+
   media::PipelineStatusNotification note;
   (*pipeline)->Start(collection.release(), filename, note.Callback());
+
+  /*saving*/
+  (*pipeline)->filename = filename ;
+  (*pipeline)->message_loop = message_loop ;
+  (*pipeline)->enable_audio = enable_audio;
+  (*pipeline)->paint_message_loop = paint_message_loop;
+  (*pipeline)->message_loop_factory = message_loop_factory;
 
   // Wait until the pipeline is fully initialized.
   note.Wait();
@@ -320,15 +410,37 @@ void PeriodicalUpdate(
             MessageLoopQuitter* quitter = new MessageLoopQuitter(message_loop);
             pipeline->Stop(NewCallback(quitter, &MessageLoopQuitter::Quit));
             return;
-          } else if (key == XK_space) {
-        g_menu_do = (++g_menu_do%2);
 
-        /*
+          } else if (key == XK_space) {
             if (pipeline->GetPlaybackRate() < 0.01f) // paused
               pipeline->SetPlaybackRate(1.0f);
             else
               pipeline->SetPlaybackRate(0.0f);
-        */
+          }else if (key == XK_BackSpace){
+            /*Stop and Restart*/
+            if(pipeline->IsInitialized()){
+              //MessageLoopQuitter* quitter = new MessageLoopQuitter(message_loop);
+              //pipeline->Stop(NewCallback(quitter, &MessageLoopQuitter::Quit2));
+              media::PipelineStatusNotification note;
+              pipeline->Stop(note.Callback());
+              note.Wait();
+
+              if(pipeline->IsInitialized()){
+                std::cout << "Fail To Stop Pipeline"<< std::endl;
+              }else{
+                std::cout << "Stop Pipeline"<< std::endl;
+              }
+            }else{
+   
+              if(PipelineRestart(pipeline)){
+                std::cout<< "Restart Pipeline" << std::endl;
+              }else{
+                std::cout<< "Fail To Restart Pipeline" << std::endl;
+              };
+
+            }
+            break;
+
           }
         }
         break;
@@ -409,6 +521,7 @@ int main(int argc, char** argv) {
               << "  [--alsa-device=DEVICE]" << std::endl
               << " Press [ESC] to stop" << std::endl
               << " Press [SPACE] to toggle pause/play" << std::endl
+              << " Press [BackSpace] to toggle Pipeline Stop/Restart" << std::endl
               << " Press mouse left button to seek" << std::endl;
     return 1;
   }

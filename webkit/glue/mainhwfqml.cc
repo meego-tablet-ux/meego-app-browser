@@ -50,6 +50,7 @@ MainhwfQml::MainhwfQml(void *arg, QApplication *app, QWidget *parent) :
   qmlView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
   qmlView->show();
 
+  subwindow = qmlView->winId();
 }
 
 

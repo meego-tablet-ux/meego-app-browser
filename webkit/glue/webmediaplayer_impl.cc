@@ -30,6 +30,8 @@
 #include "media/base/filter_collection.h"
 #include "media/base/limits.h"
 #include "media/base/media_format.h"
+#include "content/common/content_switches.h"
+#include "content/renderer/media/audio_renderer_impl.h"
 #include "media/base/media_switches.h"
 #include "media/base/pipeline_impl.h"
 #include "media/base/video_frame.h"
@@ -142,10 +144,16 @@ void WebMediaPlayerImpl::Proxy::H264PaintFullScreen() {
   scoped_refptr<media::VideoFrame> video_frame;
   GetCurrentFrame(&video_frame);
   
-  void* hw_ctx_display = (void*)video_frame->data_[2];
+  if(!video_frame->data_[1]){
+    PutCurrentFrame(video_frame);
+    return;
+  }
+  VA_Buffer *pVaBuf = (VA_Buffer*)video_frame->data_[1];
+
+  void* hw_ctx_display = pVaBuf->hwDisplay;
   VASurfaceID surface_id = (VASurfaceID)video_frame->idx_;
   VAStatus status;
-  Display *dpy = (Display*) video_frame->data_[0];
+  Display *dpy = (Display*) pVaBuf->mDisplay;
   
   int w_ = WIDTH, h_ = (!menu_on_)? HEIGHT:HEIGHT-60;
   
@@ -170,7 +178,7 @@ void WebMediaPlayerImpl::Proxy::H264PaintFullScreen() {
   PutCurrentFrame(video_frame);
   return;
 }
-  
+
 #endif
 
 void WebMediaPlayerImpl::Proxy::Repaint() {
@@ -470,14 +478,14 @@ void CtrlSubWindow(MessageLoop *msg, Display *dpy, WebMediaPlayerImpl::Proxy *pr
       subwin = 0;
       proxy->menu_on_ = false;
       proxy->last_frame_ = 0;
-      
+
       if((proxy->thread_hwfqml)&&(err = pthread_join(proxy->thread_hwfqml, &tret)) == 0){
 	proxy->thread_hwfqml = 0;
+        proxy->reload_ = false;
 	return;
-      }
+      } 
 
     }
-    break;
 
     default:
     break;
@@ -538,7 +546,7 @@ void *qml_wsvr(void *arg)
   QApplication napp(qargc,NULL);
   MainhwfQml *window = new MainhwfQml((void *)qml_ctrl, &napp);
 
-  subwin = window->winId();
+  subwin = window->subwindow;
   window->show();
 
   napp.exec();
@@ -667,6 +675,8 @@ bool WebMediaPlayerImpl::Initialize(
 #if defined (TOOLKIT_MEEGOTOUCH)
 /*_DEV2_OPT*/
   {
+  frame_ = frame;
+  use_simple_data_source_ = use_simple_data_source;
   base::AutoLock auto_lock(proxy_->paint_lock_);
   subwin = 0;
   proxy_->menu_on_ = 0;
@@ -679,6 +689,7 @@ bool WebMediaPlayerImpl::Initialize(
   proxy_->shminfo_.shmaddr = NULL;
   proxy_->codec_id_ = 0;
   proxy_->thread_hwfqml = 0;
+  proxy_->reload_ = false;
 
   CallFMenuClass *qml_ctrl = NULL;
   
@@ -701,6 +712,95 @@ WebMediaPlayerImpl::~WebMediaPlayerImpl() {
   }
 }
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+
+media::FilterCollection* WebMediaPlayerImpl::CreateCollection( WebKit::WebFrame* frame,
+                                                              bool use_simple_data_source)
+{
+
+  media::FilterCollection* collection_ =  new media::FilterCollection() ;
+
+  //filter_collection_.reset(collection_);
+
+  MessageLoop* pipeline_message_loop =
+      message_loop_factory_->GetMessageLoop("PipelineThread");
+  if (!pipeline_message_loop) {
+    NOTREACHED() << "Could not start PipelineThread";
+    return NULL;
+  }
+
+  // Add in any custom filter factories first.
+  const CommandLine* cmd_line = CommandLine::ForCurrentProcess();
+  if (!cmd_line->HasSwitch(switches::kDisableAudio)) {
+    // Add the chrome specific audio renderer.
+    collection_->AddAudioRenderer(new AudioRendererImpl(view_->audio_message_filter()));
+  }
+
+  /*reset video render*/
+  scoped_refptr<WebVideoRenderer> video_renderer;
+  scoped_refptr<VideoRendererImpl> renderer;
+  renderer = renderer_;
+
+  collection_->AddVideoRenderer(renderer);
+
+  video_renderer = renderer;
+
+  video_renderer->SetWebMediaPlayerImplProxy(proxy_);
+  proxy_->SetVideoRenderer(video_renderer);
+
+  // Set our pipeline callbacks.
+  pipeline_->Init(
+      NewCallback(proxy_.get(),
+                  &WebMediaPlayerImpl::Proxy::PipelineEndedCallback),
+      NewCallback(proxy_.get(),
+                  &WebMediaPlayerImpl::Proxy::PipelineErrorCallback),
+      NewCallback(proxy_.get(),
+                  &WebMediaPlayerImpl::Proxy::NetworkEventCallback));
+
+// A simple data source that keeps all data in memory.
+  scoped_ptr<media::DataSourceFactory> simple_data_source_factory(
+      SimpleDataSource::CreateFactory(MessageLoop::current(), frame,
+                                      proxy_->GetBuildObserver()));
+
+  // A sophisticated data source that does memory caching.
+  scoped_ptr<media::DataSourceFactory> buffered_data_source_factory(
+      BufferedDataSource::CreateFactory(MessageLoop::current(), frame,
+                                        proxy_->GetBuildObserver()));
+
+  scoped_ptr<media::CompositeDataSourceFactory> data_source_factory(
+    new media::CompositeDataSourceFactory());
+
+  if (use_simple_data_source) {
+    data_source_factory->AddFactory(simple_data_source_factory.release());
+    data_source_factory->AddFactory(buffered_data_source_factory.release());
+  } else {
+    data_source_factory->AddFactory(buffered_data_source_factory.release());
+    data_source_factory->AddFactory(simple_data_source_factory.release());
+  }
+
+  scoped_ptr<media::DemuxerFactory> demuxer_factory(
+      new media::FFmpegDemuxerFactory(data_source_factory.release(),
+                                      pipeline_message_loop));
+  if (cmd_line->HasSwitch(switches::kEnableAdaptive)) {
+    demuxer_factory.reset(new media::AdaptiveDemuxerFactory(
+        demuxer_factory.release()));
+  }
+  
+  //filter_collection_->SetDemuxerFactory(demuxer_factory.release());
+  collection_->SetDemuxerFactory(demuxer_factory.release());
+
+  // Add in the default filter factories.
+  collection_->AddAudioDecoder(new media::FFmpegAudioDecoder(
+      message_loop_factory_->GetMessageLoop("AudioDecoderThread")));
+  collection_->AddVideoDecoder(new media::FFmpegVideoDecoder(
+      message_loop_factory_->GetMessageLoop("VideoDecoderThread"), NULL));
+  collection_->AddAudioRenderer(new media::NullAudioRenderer());
+
+  return collection_;
+}
+
+#endif
+
 void WebMediaPlayerImpl::load(const WebKit::WebURL& url) {
   DCHECK(MessageLoop::current() == main_loop_);
   DCHECK(proxy_);
@@ -720,7 +820,11 @@ void WebMediaPlayerImpl::load(const WebKit::WebURL& url) {
     return ;
   }
 
-  // Handle any volume changes that occured before load().
+#if defined (TOOLKIT_MEEGOTOUCH)
+  url_ = url;
+#endif
+
+// Handle any volume changes that occured before load().
   setVolume(GetClient()->volume()/2);
   // Get the preload value.
   setPreload(GetClient()->preload());
@@ -728,11 +832,15 @@ void WebMediaPlayerImpl::load(const WebKit::WebURL& url) {
   // Initialize the pipeline.
   SetNetworkState(WebKit::WebMediaPlayer::Loading);
   SetReadyState(WebKit::WebMediaPlayer::HaveNothing);
-  pipeline_->Start(
+
+  {
+    pipeline_->Start(
       filter_collection_.release(),
       url.spec(),
       NewCallback(proxy_.get(),
                   &WebMediaPlayerImpl::Proxy::PipelineInitializationCallback));
+  }
+
 }
 
 void WebMediaPlayerImpl::cancelLoad() {
@@ -742,6 +850,7 @@ void WebMediaPlayerImpl::cancelLoad() {
 void WebMediaPlayerImpl::play() {
   DCHECK(MessageLoop::current() == main_loop_);
 
+#if defined (TOOLKIT_MEEGOTOUCH)
   if(!main_loop_){
     return ;
   }
@@ -753,9 +862,36 @@ void WebMediaPlayerImpl::play() {
     return ;
   }
 
-#if defined (TOOLKIT_MEEGOTOUCH)
+  /*ToDo: resume pipeline recreate while it's destroyed.*/
+  if(pipelineImpl_->IsInitialized()){
+    LOG(INFO) << "Yes. Do Nothing";
+  }else{
+    if(proxy_->codec_id_ == 28){
+      LOG(INFO) << "No , Restart Pipeline";
+      /*only hw resource is freed.*/
+
+      pipelineImpl_->ResetStateImpl();
+
+      media::FilterCollection* collection = CreateCollection(frame_, use_simple_data_source_);
+      filter_collection_.reset(collection);
+
+      proxy_->reload_ = true;
+
+      load(url_);
+
+      if(view_){
+        view_->resourceRelease();
+      }
+
+      paused_ = true;
+      pipeline_->SetPlaybackRate(0.0f);
+
+      return;
+    }
+  }
+
   // _FULLSCREEN_
-  if((CodecID == 28/*h264*/)&&(subwin == 0) && (mDisplay) /*&& (!proxy_->last_frame_)*/){
+  if((proxy_->codec_id_ == 28/*h264*/)&&(subwin == 0) && (mDisplay) /*&& (!proxy_->last_frame_)*/){
     /*_DEV2_OPT*/
     /*Create a subwin, if mDisplay , and not last frm*/
     subwin = proxy_->CreateSubWindow(this);
@@ -1198,6 +1334,11 @@ void WebMediaPlayerImpl::OnPipelineInitialize(PipelineStatus status) {
 
   // Repaint to trigger UI update.
   Repaint();
+#if defined (TOOLKIT_MEEGOTOUCH)
+  if((proxy_ != NULL) && (pipelineImpl_ != NULL)){
+    proxy_->codec_id_ = pipelineImpl_->GetVideoCodecID();
+  }
+#endif
 }
 
 void WebMediaPlayerImpl::OnPipelineSeek(PipelineStatus status) {
@@ -1320,6 +1461,10 @@ void WebMediaPlayerImpl::Destroy() {
 #if defined (TOOLKIT_MEEGOTOUCH)
   {
   base::AutoLock auto_lock(proxy_->paint_lock_);
+
+  if(view_){
+    view_->resourceRelease();
+  }
   /*Free shm memeory for H264*/
   if((proxy_->shminfo_.shmid !=0) && proxy_->shminfo_.shmaddr){
  
@@ -1333,6 +1478,7 @@ void WebMediaPlayerImpl::Destroy() {
     proxy_->shminfo_.shmid = 0;
     proxy_->shminfo_.shmaddr = NULL;
   }
+  subwin = 0;
 
   if((mDisplay != NULL) && proxy_->hw_pixmap_){
     proxy_->hw_pixmap_ = 0;

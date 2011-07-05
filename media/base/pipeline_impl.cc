@@ -350,6 +350,11 @@ int64 PipelineImpl::GetCurrentReadPosition() {
   return current_bytes_;
 }
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+void PipelineImpl::ResetStateImpl() {
+  ResetState();
+}
+#endif
 void PipelineImpl::ResetState() {
   base::AutoLock auto_lock(lock_);
   const base::TimeDelta kZero;
@@ -1098,8 +1103,9 @@ void PipelineImpl::OnDemuxerBuilt(PipelineStatus status, Demuxer* demuxer) {
     return;
   }
 
-  if (!PrepareFilter(demuxer))
+  if (!PrepareFilter(demuxer)){
     return;
+  }
 
   demuxer_ = demuxer;
   OnFilterInitialize();

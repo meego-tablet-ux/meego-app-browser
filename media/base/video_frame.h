@@ -7,6 +7,14 @@
 
 #include "media/base/buffers.h"
 
+#if defined (TOOLKIT_MEEGOTOUCH)
+typedef struct VA_Buffer_{
+  uint8_t* mDisplay;
+  uint32_t IsH264;
+  uint8_t *hwDisplay;
+}VA_Buffer;
+#endif
+
 namespace media {
 
 class VideoFrame : public StreamSample {

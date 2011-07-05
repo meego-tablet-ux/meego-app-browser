@@ -453,9 +453,18 @@ RenderView::RenderView(RenderThreadBase* render_thread,
     p2p_socket_dispatcher_ = new P2PSocketDispatcher(this);
 
   content::GetContentClient()->renderer()->RenderViewCreated(this);
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  /*each one need to release link if yes*/
+  resourceRelease();
+#endif
+
 }
 
 RenderView::~RenderView() {
+#if defined(TOOLKIT_MEEGOTOUCH)
+  resourceRelease();
+#endif
   if (decrement_shared_popup_at_destruction_)
     shared_popup_counter_->data--;
 
@@ -492,6 +501,10 @@ RenderView::~RenderView() {
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   mediaplayer_ = NULL;
+  
+  /*Del all player */
+  player_vec_.erase(player_vec_.begin(), player_vec_.end());
+
 #endif
 }
 
@@ -782,6 +795,108 @@ void RenderView::OnResourceInUsed(void) {
   return;
 }
 
+/*
+ * pause sw version codec
+ * free hw version codec
+ * be called in two cases:
+ * 1. while in in-active tab.
+ * 2. and switched to background
+ */
+
+void RenderView::FreeHwResource(void) {
+  /*while hidden, resource of h264 mediaplayer will be released*/
+  if(player_vec_.empty() != true){
+    /*Some medaiplayer is involved, and then to find h264*/
+    int size = player_vec_.size();
+
+    for(int i = 0; i < size; i++){
+      if(!player_vec_[i]){
+        return;
+      }
+
+      WebKit::WebMediaPlayer * tmp = player_vec_[i];
+      webkit_glue::WebMediaPlayerImpl *mediaImpl = (webkit_glue::WebMediaPlayerImpl*)tmp;
+
+      /*each H264 */
+      if((mediaImpl != NULL) && (mediaImpl->GetProxy() != NULL)){
+        /*LOG<<("Num Of MediaPlayer %d in %d, ID: %d\n", i , size, mediaImpl->GetProxy()->codec_id_ );*/
+        if(mediaImpl->GetProxy()->codec_id_ == 28/*H264*/){
+
+          if(mediaImpl->pipelineImpl_->IsInitialized() == 0){
+            return; 
+          }
+
+          if(subwin){
+            /*yes, we are in fullscreen while background switch
+             *close QML related resource
+             *FIXME: 
+             */
+
+	    //base::AutoLock auto_qlock(mediaImpl->GetProxy()->hwfqml_lock_);
+            CallFMenuClass *qml_ctrl = (CallFMenuClass *)mediaImpl->getControlQml();
+
+            if(!qml_ctrl) return;
+
+            void *tret = NULL;
+
+            if(qml_ctrl->getLaunchedFlag()){
+
+              /*release policy aware link of Dbus*/
+              resourceRelease();
+              /*pause*/
+              mediaImpl->pause();
+
+              /*reset*/
+              subwin = 0;
+              mediaImpl->GetProxy()->menu_on_ = false;
+              mediaImpl->GetProxy()->last_frame_ = 0;
+
+              qml_ctrl->ForceControlOutside();
+
+	      if((mediaImpl->GetProxy()->thread_hwfqml)&&(pthread_join(mediaImpl->GetProxy()->thread_hwfqml, &tret)) == 0){
+	        mediaImpl->GetProxy()->thread_hwfqml = 0;
+	      }
+
+            }else{
+              /*it's launching process*/
+              qml_ctrl->setLaunchedFlag(1);
+              return;
+            }
+
+          }
+
+          /*release policy aware link of Dbus*/
+          resourceRelease();
+          /*pause*/
+          mediaImpl->pause();
+
+          mediaImpl->GetProxy()->AbortDataSources();
+          /*free resource, with pipeline Stop, not fullscreen*/  
+          media::PipelineImpl* pipeline_ = mediaImpl->pipelineImpl_;
+          if (pipeline_) {
+            /*Release resource*/
+            media::PipelineStatusNotification note;
+            pipeline_->Stop(note.Callback());
+            note.Wait();
+          }/*E free*/
+
+          /*Erase released one*/
+          //player_vec_.erase(player_vec_.begin() + i);
+          
+        }/*E H264*/else if(mediaImpl->GetProxy()->codec_id_ != 0){
+          /*sw version*/
+          /*Not H264*/
+          resourceRelease();
+          /*pause*/
+          mediaImpl->pause();
+        }
+      }
+
+    }/*End Of All Mediaplayer*/
+  }
+  return;
+}
+
 /*to control background policy 
   sw: pause
   hw: release resource
@@ -791,57 +906,8 @@ void RenderView::OnBackgroundPolicy(void) {
   if(!mediaplayer_){
     return;
   }
-    
-  webkit_glue::WebMediaPlayerImpl *mediaImpl = (webkit_glue::WebMediaPlayerImpl*)mediaplayer_;
 
-  if(mediaImpl->GetProxy()->codec_id_ == 28/*H264*/){
-
-    if(subwin){
-      //base::AutoLock auto_qlock(mediaImpl->GetProxy()->hwfqml_lock_);
-      CallFMenuClass *qml_ctrl = (CallFMenuClass *)mediaImpl->getControlQml();
-
-      if(!qml_ctrl) return;
-      void *tret = NULL;
-
-      if(qml_ctrl->getLaunchedFlag()){
-
-	/*release policy aware link of Dbus*/
-	resourceRelease();
-
-	/*pause*/
-	OnResourceInUsed(); // Do Pause
-
-        qml_ctrl->ForceControlOutside();
-
-	if((mediaImpl->GetProxy()->thread_hwfqml)&&(pthread_join(mediaImpl->GetProxy()->thread_hwfqml, &tret)) == 0){
-	  mediaImpl->GetProxy()->thread_hwfqml = 0;
-	}
-
-      }else{
-        /*it's launching process*/
-        qml_ctrl->setLaunchedFlag(1);
-        return;
-      }
-
-    }
-
-    /*release policy aware link of Dbus*/
-    resourceRelease();
-
-    /*pause*/
-    OnResourceInUsed(); // Do Pause
-    base::AutoLock auto_qlock(mediaImpl->GetProxy()->hwfqml_lock_);
-    /*Free resource*/
-    mediaImpl->GetProxy()->SetVideoRenderer(NULL);
-    mediaImpl->WillDestroyCurrentMessageLoop();
-    mediaplayer_ = NULL;
-
-  }else if(mediaImpl->GetProxy()->codec_id_ != 0){
-    /*sw version*/
-    /*Not H264*/
-    resourceRelease();
-    OnResourceInUsed(); // Do Pause
-  }
+  FreeHwResource();
 
   return;
 }
@@ -2044,7 +2110,7 @@ int RenderView::resourceRequire(
     /*update mediaplayer*/
     mediaplayer_ = player;
 
-    if(mediaplayer_){
+    if(mediaplayer_ ){
       Send(new ViewHostMsg_ResourceRequire(routing_id_, type));
     }
     return 0;
@@ -2115,7 +2181,11 @@ WebMediaPlayer* RenderView::createMediaPlayer(
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   result->view_ = this;
+  result->routing_id_ = routing_id_;
+  result->renderer_ = renderer;
   mediaplayer_ = result.release();
+  /*add one into vector*/
+  player_vec_.push_back(mediaplayer_);
   return mediaplayer_;
 #else
   return result.release();
@@ -4284,6 +4354,10 @@ int RenderView::isHidden() {
 
 void RenderView::OnWasHidden() {
   RenderWidget::OnWasHidden();
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  FreeHwResource();
+#endif
 
   if (webview()) {
     webview()->settings()->setMinimumTimerInterval(

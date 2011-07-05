@@ -109,6 +109,7 @@ struct FileUploadData;
 struct FormData;
 struct PasswordFormFillData;
 class ResourceFetcher;
+class VideoRendererImpl;
 }
 
 namespace WebKit {
@@ -736,6 +737,7 @@ class RenderView : public RenderWidget,
   void OnResourceInUsed(void);
 
   void OnBackgroundPolicy(void);
+  void FreeHwResource(void);
 
 // reimplement from webviewclient
   virtual void UpdateSelectionRange(WebKit::WebPoint&, WebKit::WebPoint&, int height, bool set);
@@ -1197,7 +1199,10 @@ class RenderView : public RenderWidget,
   scoped_ptr<LoadProgressTracker> load_progress_tracker_;
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+  /*current media player handler*/
   WebKit::WebMediaPlayer* mediaplayer_;
+  /*vector for all media player handler*/
+  std::vector<WebKit::WebMediaPlayer*> player_vec_;
 #endif
 
   // All the registered observers.  We expect this list to be small, so vector

@@ -321,17 +321,20 @@ void X11VideoRenderer::Paint() {
     return;
   }
 
-  if(video_frame->data_[1] == (uint8_t*)0x264){
+  VA_Buffer *pVaBuf = (VA_Buffer*)video_frame->data_[1];
+
+  if(pVaBuf->IsH264 == 0x264){
    
     int w = video_frame->width();
     int h = video_frame->height();
 
 
-    void* hw_ctx_display = (void*)video_frame->data_[2];
+    void* hw_ctx_display = pVaBuf->hwDisplay;
+    //void* hw_ctx_display = (void*)video_frame->data_[2];
     VASurfaceID surface_id = (VASurfaceID)video_frame->idx_;
     VAStatus status;
     //Display *display2 = display_; 
-    Display *display2 = (Display *)video_frame->data_[0];
+    Display *display2 = (Display *)pVaBuf->mDisplay;
 
     /*do render here for ffmpeg/libva case*/
     Display *dTmp = display_;

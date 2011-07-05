@@ -24,6 +24,7 @@
 #include "media/base/composite_filter.h"
 #include "media/base/filter_host.h"
 #include "media/base/pipeline.h"
+#include "media/base/message_loop_factory_impl.h"
 
 namespace media {
 
@@ -128,6 +129,17 @@ class PipelineImpl : public Pipeline, public FilterHost {
   void SetClockForTesting(Clock* clock);
 
   unsigned int GetVideoCodecID() {if(video_decoder_){return video_decoder_->codec_id_;}else{return 0;};}
+
+#if defined (TOOLKIT_MEEGOTOUCH)
+  void ResetStateImpl();
+
+  /*Saving to recreate filter collection */
+  MessageLoop* message_loop;
+  const char* filename ;
+  bool enable_audio;
+  MessageLoop* paint_message_loop;
+  MessageLoopFactory* message_loop_factory;
+#endif
 
  private:
   // Pipeline states, as described above.

@@ -153,6 +153,7 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
     unsigned int codec_id_;
     pthread_t thread_hwfqml;
     base::Lock hwfqml_lock_;
+    bool reload_;
 /*_DEV2_H264_*/
 #endif
     bool HasSingleOrigin();
@@ -326,8 +327,18 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
   Proxy * GetProxy(){ return proxy_;}
   void *getControlQml() {return m_controlQmlC;}
   void setControlQml(void *handle) { m_controlQmlC = handle;}
+  media::FilterCollection* CreateCollection( WebKit::WebFrame* frame,bool use_simple_data_source);
+
   RenderView *view_;
+
+  media::PipelineImpl* pipelineImpl_;
+  WebKit::WebURL url_;
+  WebKit::WebFrame * frame_;
+  bool use_simple_data_source_;
+  unsigned int routing_id_;
   MessageLoop *getMainMsgLoop() {return main_loop_;}
+  scoped_refptr<VideoRendererImpl> renderer_;
+
 #endif
 
  private:
@@ -358,7 +369,6 @@ class WebMediaPlayerImpl : public WebKit::WebMediaPlayer,
 
   // The actual pipeline and the thread it runs on.
   scoped_refptr<media::Pipeline> pipeline_;
-  scoped_refptr<media::PipelineImpl> pipelineImpl_;
 
   scoped_ptr<media::MessageLoopFactory> message_loop_factory_;
 

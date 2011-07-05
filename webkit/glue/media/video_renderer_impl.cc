@@ -178,15 +178,17 @@ void VideoRendererImpl::InitDirectPaint(const gfx::Rect& dest_rect)
 
   scoped_refptr<media::VideoFrame> frame;
   GetCurrentFrame(&frame);
-  if (frame == NULL)
+  if ((frame == NULL) || (frame->data_[1] == NULL))
   {
     PutCurrentFrame(frame);
     return;
   }
 
-  if (frame->data_[1] == (uint8_t*)0x264)
+  VA_Buffer *pVaBuf = (VA_Buffer*)frame->data_[1];
+
+  if (pVaBuf->IsH264 == 0x264)
   {
-    video_display_ = frame->data_[0];
+    video_display_ = pVaBuf->mDisplay;
 
     if (GetVideoPixmap(true) > 0)
     {
@@ -228,12 +230,13 @@ void VideoRendererImpl::DirectPaint()
   CHECK(frame->height() == static_cast<size_t>(video_size_.height()));
 
   unsigned int video_pixmap = GetVideoPixmap(false);
-  if (video_pixmap == 0)
+  if ((video_pixmap == 0)|| (frame->data_[1] == NULL))
   {
     PutCurrentFrame(frame);
     return;
   }
-  void *hw_ctx_display = (void*)frame->data_[2];
+  VA_Buffer *pVaBuf = (VA_Buffer*)frame->data_[1];
+  void *hw_ctx_display = pVaBuf->hwDisplay;
   VASurfaceID surface_id = (VASurfaceID)frame->idx_;
   VAStatus status;
 
@@ -304,6 +307,9 @@ void VideoRendererImpl::SetIsOverlapped(bool overlapped)
 
 void VideoRendererImpl::OnStop(media::FilterCallback* callback) {
   proxy_->message_loop()->PostTask(FROM_HERE, NewRunnableMethod(this, &VideoRendererImpl::ExitDirectPaint));
+
+  /*free hw pixmap*/
+  H264FreePixmap(proxy_, (Display*)video_display_);
 
   if (callback) {
     callback->Run();
@@ -626,11 +632,16 @@ void VideoRendererImpl::H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::Video
   int h_ = dst_h;
   
   WebMediaPlayerImpl * wp = proxy->GetMediaPlayer();
+
+  if(!video_frame->data_[1]){
+    return;
+  }
+  VA_Buffer *pVaBuf = (VA_Buffer*)video_frame->data_[1];
     
-  void *hw_ctx_display = (void*)video_frame->data_[2];
+  void *hw_ctx_display = pVaBuf->hwDisplay;
   VASurfaceID surface_id = (VASurfaceID)video_frame->idx_;
   VAStatus status;
-  Display *dpy = (Display*) video_frame->data_[0];
+  Display *dpy = (Display*) pVaBuf->mDisplay;
   XShmSegmentInfo *shminfo = &proxy->shminfo_;
 
   base::AutoLock auto_lock(proxy->paint_lock_);
@@ -646,7 +657,7 @@ void VideoRendererImpl::H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::Video
   }else{
     /*if paused , just copy to shm, and .*/
 
-    Display *dTmp = (Display *)video_frame->data_[0];
+    Display *dTmp = (Display *)pVaBuf->mDisplay;
 
     XShmSegmentInfo shm = {0};
     /*get a pixmap and mxImage for RGBA data retrieve*/
@@ -658,6 +669,10 @@ void VideoRendererImpl::H264Paint(WebMediaPlayerImpl::Proxy* proxy, media::Video
 
     unsigned long pixmap = proxy->hw_pixmap_;
     
+    //return ;
+    if(proxy_->reload_){
+      return;
+    }
     /*CC and Resize*/
     status = vaPutSurface(hw_ctx_display, surface_id, pixmap,
                               0, 0, w, h, /*src*/
@@ -828,7 +843,9 @@ void VideoRendererImpl::FastPaint(media::VideoFrame* video_frame,
 #if defined (TOOLKIT_MEEGOTOUCH)
 // _DEV2_H264_
 
- if(video_frame->data_[1] == (uint8_t*)0x264){
+  VA_Buffer *pVaBuf = (VA_Buffer*)video_frame->data_[1];
+
+  if(pVaBuf->IsH264 == 0x264){
 
     if(local_dest_irect.width() == dest_rect.width()){
       if(local_dest_irect.height() == dest_rect.height()){

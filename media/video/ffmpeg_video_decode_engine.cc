@@ -282,7 +282,7 @@ int FFmpegVideoDecodeEngine::CopyBufferFrmSurface(scoped_refptr<VideoFrame> vide
     VASurfaceID surface_id = (VASurfaceID)frame->data[3];
 
     DEV2_TRACE();
-
+#if 0
     /* return Surface to Render Engine */
     video_frame->data_[0] = (uint8_t*)mDisplay; /*VaapiSurface, structure*/
     //video_frame->data_[0] = frame->data[0]; /*VaapiSurface, structure*/
@@ -295,7 +295,15 @@ int FFmpegVideoDecodeEngine::CopyBufferFrmSurface(scoped_refptr<VideoFrame> vide
 
     /*hw_context*/
     video_frame->data_[2] = (uint8_t*)hw_context_->display;
-    
+#endif
+    if(video_frame->data_[1]){
+      VA_Buffer *pVaBuf = (VA_Buffer*)video_frame->data_[1];
+      pVaBuf->mDisplay = (uint8_t*)mDisplay; /*display handler*/
+      pVaBuf->IsH264 = 0x264;
+      pVaBuf->hwDisplay = (uint8_t*)hw_context_->display;
+      video_frame->idx_ = (int)frame->data[3]; /*Surface Id*/
+    }
+
     return ret;
 }
 

@@ -14,6 +14,7 @@ public:
   ~MainhwfQml();
 
   QDeclarativeView* getDeclarativeView() {return qmlView;}
+  Window subwindow;
 
 public Q_SLOTS:
   void handleChange()
