@@ -2059,7 +2059,7 @@ void RWHVQtWidget::onSizeAdjusted()
              << geometry().height();
   QSizeF size(geometry().width(), geometry().height());
   setViewportInteractive(true);
-  
+
   if (previous_size_ != size)
   {
     previous_size_ = size;
@@ -2324,9 +2324,12 @@ bool RWHVQtWidget::CheckContentsSize(gfx::Size& desired_preferred_size)
 void RWHVQtWidget::AdjustSize()
 {
   if(!host_view_) return;
+
+  float flat = flatScaleByStep(scale_);
   gfx::Size contents_size = host_view_->contents_size_;
+
   setGeometry(QRectF(geometry().topLeft(), 
-        QSizeF(contents_size.width(), contents_size.height()))); 
+        QSizeF(contents_size.width() * flat, contents_size.height() * flat))); 
   emit sizeAdjusted();
 }
 
