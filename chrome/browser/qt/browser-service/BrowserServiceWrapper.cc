@@ -402,10 +402,30 @@ void BrowserServiceWrapper::GetThumbnail(TabContents* contents, const GURL& url,
   }
   
   url2timestamp_[url] = new_timestamp;
-   // We use new method to get thumbnail here for higher qulity for web panel.
-  SnapshotTaker* taker = new SnapshotTaker(backend_, url, index);
-  taker->SnapshotOnContents(contents);
-  snapshotList_.push_back(taker);
+
+  // make sure the contents is valid when taking snapshot
+  TabStripModel* model = browser_->tabstrip_model();
+
+  bool alive_ = false;
+  
+  for (int i = 0; i < model->count(); i++)
+  {
+    TabContents* contents_ = model->GetTabContentsAt(i)->tab_contents();
+    if (contents_ && (contents_ == contents))
+    {
+        alive_ = true;
+        break;
+    }
+  }
+  
+  if (alive_)
+  {    
+      // We use new method to get thumbnail here for higher qulity for web panel.
+      SnapshotTaker* taker = new SnapshotTaker(backend_, url, index);
+      taker->SnapshotOnContents(contents);
+      snapshotList_.push_back(taker);
+  }
+  
 }
 
 void BrowserServiceWrapper::GetFavIcon(const GURL& url)
