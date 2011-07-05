@@ -108,7 +108,9 @@ void CrashTabQtImpl::onCloseButtonClicked( ) {
 CrashTabQtModel::CrashTabQtModel(){
   headContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_HEAD_CONTENT).c_str());
   bodyContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_BODY_CONTENT).c_str());
-  closeButtonContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_CLOSE_BUTTON_CONTENT).c_str());
+  //closeButtonContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CRASH_TAB_CLOSE_BUTTON_CONTENT).c_str());
+  //here is a temporary fix, because of string freeze.
+  closeButtonContent_ = QString::fromUtf8(l10n_util::GetStringUTF8(IDS_CLOSE).c_str());
 }
 
 #include "moc_crash_tab_qt.cc"
