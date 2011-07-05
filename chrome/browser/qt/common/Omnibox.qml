@@ -200,12 +200,12 @@ Item {
         // ignore delete/backspace key press, when the input field is empty
         if ((event.key == Qt.Key_Backspace || event.key == Qt.Key_Delete) && text != "")
           isDelete = true;
-	if(activeFocus == true)
-	  urlTextInput.autoScroll = true;
+        if(activeFocus == true)
+          urlTextInput.autoScroll = true;
       }
       onTextChanged: {
-	if(activeFocus == true)
-	   urlTextInput.autoScroll = true ;
+        if(activeFocus == true)
+          urlTextInput.autoScroll = true ;
         autocompleteEditViewModel.textChanged(text, isDelete);
         isDelete = false;
       }
@@ -247,6 +247,7 @@ Item {
         onTriggered: {
           urlTextInput.selectAll();
           urlTextInput.cursorVisible = true; // show cursor after selectAll
+          urlTextInput.autoScroll = false;
         }
       }
       Connections {
