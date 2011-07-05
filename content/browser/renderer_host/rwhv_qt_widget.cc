@@ -815,9 +815,9 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
   }
   
   if (type == WebKit::WebTextInputTypePassword) {
-    setInputMethodHints(inputMethodHints() | Qt::ImhHiddenText | Qt::ImhNoPredictiveText );
+    setInputMethodHints(inputMethodHints() | Qt::ImhHiddenText | Qt::ImhNoPredictiveText | Qt::ImhNoAutoUppercase);
   } else {
-    setInputMethodHints(inputMethodHints() & ~(Qt::ImhHiddenText | Qt::ImhNoPredictiveText) );
+    setInputMethodHints(inputMethodHints() & ~(Qt::ImhHiddenText | Qt::ImhNoPredictiveText) | Qt::ImhNoAutoUppercase);
   }
 
   if(hostView()->host_) {
