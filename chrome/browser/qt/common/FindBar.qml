@@ -58,30 +58,35 @@ Item {
       id: findboxcontainer
       height: parent.height*4/5
       anchors.verticalCenter: parent.verticalCenter
-      anchors.right: matchesLabel.left
+      anchors.right: divider1.left
       anchors.left: parent.left
       anchors.margins: 5
       onTextChanged: findBarModel.textChanged(text);
-    }
-
-    Item {
-      id: matchesLabel
-      objectName: "matchesLabel"
-      height: parent.height
-      width: matchesText.width
-      anchors.right: divider1.right
-      anchors.rightMargin: 15
-      Text {
-        id: matchesText
-        objectName: "matchesText"
-        anchors.centerIn: parent
-//        color: "black"
-        color: theme_fontColorHighlight
-        font.pixelSize: 24
-      }
-      Connections {
-        target: findBarModel
-        onSetMatchesLabel: matchesText.text = text
+      horizontalMargins: 20
+      textInput.width: textInput.parent.width - horizontalMargins * 2 - matchesLabel.width
+      textInput.anchors.right: matchesLabel.left
+      textInput.anchors.rightMargin: 10
+      
+      Item {
+        id: matchesLabel
+        objectName: "matchesLabel"
+        parent: findboxcontainer.textInput.parent
+        height: findboxcontainer.height
+        width: matchesText.width
+        anchors.right: parent.right
+        anchors.rightMargin: 15
+        Text {
+          id: matchesText
+          objectName: "matchesText"
+          anchors.centerIn: parent
+          color: "#999999"
+          font.family: "Droid Sans"
+          font.pixelSize: 15
+        }
+        Connections {
+          target: findBarModel
+          onSetMatchesLabel: matchesText.text = text
+        }
       }
     }
     Image {
