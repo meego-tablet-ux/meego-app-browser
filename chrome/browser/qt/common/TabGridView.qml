@@ -63,7 +63,7 @@ Item {
   GridView {
     id: gridView
     cellHeight: 136
-    cellWidth:  202
+    cellWidth:  192
     anchors.fill: parent
     boundsBehavior: Flickable.StopAtBounds
 

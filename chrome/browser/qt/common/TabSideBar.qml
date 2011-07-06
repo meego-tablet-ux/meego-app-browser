@@ -37,7 +37,7 @@ import Qt.labs.gestures 2.0
 Item {
   id: container
   anchors.fill: parent
-  property int start_y: up?tabSideBarLoader.start_y - 15:tabSideBarLoader.start_y
+  property int start_y: tabSideBarLoader.start_y
   property int start_x: tabSideBarLoader.start_x
   property bool up: tabSideBarLoader.up
   property int sidebarMargin: 5
@@ -45,22 +45,33 @@ Item {
   property int maxSideBarHeight: tabSideBarLoader.maxSideBarHeight
   property bool isLandscape: scene.isLandscapeView()
 
-  ModalFogBrowser {}
+  ModalFogBrowser {
+    opacity : 0
+  }
 
   Image {
     id: arrow
     x: start_x - width / 2
-    y: up?start_y-height/4:start_y - height
+    y: up?start_y-(3*height)/4 : start_y-height
     z: 1
-    source: up? "image://themedimage/images/popupbox_arrow_top":"image://themedimage/images/popupbox_arrow_bottom"
+    source: up? "image://themedimage/widgets/common/menu/menu-arrow-north":"image://themedimage/widgets/common/menu/menu-arrow-south"
   }
 
-  Column {
+  BorderImage {
+    id: background
+    source: "image://themedimage/widgets/common/menu/menu-background"
+    border.top: 10
+    border.bottom: 10
+    border.left: 10
+    border.right: 10
+    anchors.margins: sidebarMargin
+    verticalTileMode: BorderImage.Repeat
+    
     width: tabgridview.width
-    height: tabgridview.height + borderImage1.height + newtab.height + borderImage2.height + 10
+    height: tabgridview.height + newtab.height + 20
 
     x: calcX()
-    y: up?arrow.y + arrow.height-2:start_y - arrow.height - height +2
+    y: up?arrow.y + arrow.height : start_y - arrow.height - height
 
     function calcX () {
       var minimumX = 4
@@ -74,63 +85,46 @@ Item {
     }
 
     BorderImage {
-      id: borderImage1
-      width: parent.width
-      border.left: 10
-      border.right: 10
-      source: "image://themedimage/images/popupbox_1"
+      id: shadow
+      source: "image://themedimage/widgets/common/menu/menu-background-shadow"
+      smooth: true
+      anchors.fill: background
+      border.top: 11
+      border.bottom: 11
+      border.left: 11
+      border.right: 11
+      anchors.margins: -4
     }
 
-    BorderImage {
-      source: "image://themedimage/images/popupbox_2"
-      verticalTileMode: BorderImage.Repeat
-      clip: true
-      width: parent.width
-      height: parent.height - borderImage1.height - borderImage2.height
-      border.left: 10
-      border.right: 10
+    NewTab {
+      id: newtab
+      width: 182
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.rightMargin: 10
+      anchors.topMargin: 10
+      height: 50
+      z: 1000
+    }
 
-      NewTab {
-        id: newtab
-        width: isLandscape ? 192 : 182
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        anchors.topMargin: 10 - borderImage1.height
-        height: 50
-        z: 1000
-      }
+    TabGridView {
+      id: tabgridview
+      anchors.left: parent.left
+      anchors.top: newtab.bottom
+      anchors.topMargin: 10
+      maxHeight: maxSideBarHeight - 20 - newtab.height
+    }
 
-      TabGridView {
-        id: tabgridview
-        anchors.left: parent.left
-        anchors.top: newtab.bottom
-        anchors.topMargin: 10
-        maxHeight: maxSideBarHeight - 20 - newtab.height - arrow.height - borderImage1.height - borderImage2.height
-      }
-
-      Connections {
-        target: tabSideBarModel
-
-        onSetNewTabEnabled: {
-          if (enabled) {
-            newtab.state = "normal"
-          } else {
-            newtab.state = "overLimit"
-          }
+    Connections {
+      target: tabSideBarModel
+      onSetNewTabEnabled: {
+        if (enabled) {
+          newtab.state = "normal"
+        } else {
+          newtab.state = "overLimit"
         }
       }
     }
-
-    BorderImage {
-      id: borderImage2
-      width: parent.width
-      border.left: 10
-      border.right: 10
-      source: "image://themedimage/images/popupbox_3"
-    }
-
   }
 
   GestureArea {

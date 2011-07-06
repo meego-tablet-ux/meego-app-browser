@@ -7,72 +7,95 @@ Component {
 
     Item {
         anchors.bottomMargin: 10
-        width: GridView.view.cellWidth
-        height: GridView.view.cellHeight
+        width: gridView.cellWidth
+        height: gridView.cellHeight
 
         Image {
             id: divide0
-            height: 2
             anchors.top: parent.top
-            width: parent.width
+            anchors.left: parent.left
+            anchors.right: parent.right
+            //anchors.leftMargin: -10
+            //anchors.rightMargin: -5
             fillMode: Image.Stretch
+            height: 2
             source: "image://themedimage/widgets/common/menu/menu-item-separator"
         }
 
-        Rectangle {
+        BorderImage {
             id: tabContainer
+            source:"image://themedimage/widgets/apps/browser/tabs-border-overlay"
             height: 114
-            width: parent.width
-            anchors.margins: 10
-            anchors.centerIn: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: divide0.bottom
+            anchors.topMargin: 10
+            anchors.leftMargin: 5
+            anchors.rightMargin: 5
+            verticalTileMode: BorderImage.Repeat
+            horizontalTileMode: BorderImage.Repeat
+
+            border.top: 2
+            border.bottom: 2
+            border.left: 2
+            border.right: 2
+            smooth: true
+
             property bool isCurrentTab: false
             property string thumbnailPath: selectThumbnail (pageType, index, thumbnail)
             function selectThumbnail (pageType, index, thumbnail) {
+                thumbnails.width = tabContainer.width - 4
+                thumbnails.anchors.left = tabContainer.left
+                thumbnails.anchors.top = tabContainer.top
+                thumbnails.anchors.leftMargin = 2
+                thumbnails.anchors.topMargin = 2
                 if (pageType == "newtab") {
-                    thumbnails.height = tabContainer.height - titleRect.height
+                    thumbnails.height = tabContainer.height - titleRect.height - 4
                     newtabBg.visible = true
                     return "image://themedimage/widgets/apps/browser/web-favorite-medium"
                 } else if (pageType == "bookmarks") {
-                    thumbnails.height = tabContainer.height - titleRect.height
+                    thumbnails.height = tabContainer.height - titleRect.height - 4
                     newtabBg.visible = true
                     return "image://themedimage/widgets/apps/browser/web-favorite-medium"
                 } else if (pageType == "downloads") {
-                    thumbnails.height = tabContainer.height - titleRect.height
+                    thumbnails.height = tabContainer.height - titleRect.height - 4
                     newtabBg.visible = true
                     return "image://themedimage/widgets/apps/browser/web-favorite-medium"
                 }
-                thumbnails.height = tabContainer.height
+                thumbnails.height = tabContainer.height - 4
                 newtabBg.visible = false
                 return "image://tabsidebar/thumbnail_" + index + "_" + thumbnail
             }
 
             Image {
                 id:thumbnails
-                height: parent.height
-                width: parent.width
+                height: parent.height - parent.border.top - parent.border.bottom
+                width: parent.width - parent.border.left - parent.border.right
                 z: newtabBg.z + 1
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 source: parent.thumbnailPath
             }
             Image {
-                id: tabPageBg
-                anchors.fill: parent
-                source: "image://themedimage/widgets/apps/browser/tabs-border-overlay"
-            }
-            Image {
                 id: newtabBg
                 anchors.fill: parent
+                anchors.leftMargin: 2
+                anchors.rightMargin: 2
+                anchors.topMargin: 2
                 source: "image://themedimage/widgets/apps/browser/new-tab-background"
                 visible: false
             }
 
             // title of the tab
             Rectangle {
-                id: titleRect
-                width: parent.width
+                id: titleRect                
                 height: 30
+                anchors.left: parent.left
+                anchors.right: parent.right
                 anchors.bottom: parent.bottom
+                anchors.leftMargin: 2
+                anchors.rightMargin: 2
+                anchors.bottomMargin: 2
                 z: 1
                 Image {
                     id: textBg
@@ -100,8 +123,7 @@ Component {
                     id: sepImage
                     source: "image://themedimage/widgets/apps/browser/tabs-line-spacer"
                     height: parent.height
-                    width: 2
-                    anchors.left: tabtitle.right
+                    //anchors.left: tabtitle.right
                     anchors.right: close.left
                 }
 
@@ -114,7 +136,7 @@ Component {
                     Image {
                         id: closeIcon
                         anchors.centerIn: parent
-                        source: "image://themedimage/images/icn_close_up"
+                        source: "image://themedimage/widgets/apps/browser/stop-reload"
                         property bool pressed: false
                         states: [
                             State {
@@ -122,7 +144,7 @@ Component {
                                 when: closeIcon.pressed
                                 PropertyChanges {
                                     target: closeIcon
-                                    source: "image://themedimage/images/icn_close_dn"
+                                    source: "image://themedimage/widgets/apps/browser/stop-reload"
                                 }
                             }
                         ]
@@ -186,7 +208,7 @@ Component {
                     name: "highlight"
                     when: index == gridView.currentIndex
                     PropertyChanges {
-                        target: tabPageBg
+                        target: tabContainer
                         source: "image://themedimage/widgets/apps/browser/tabs-border-overlay-active"
                     }
                     PropertyChanges {
@@ -203,7 +225,7 @@ Component {
                     }
                 }
             ]
-        } // tabContainer Rectangle
+        } // tabContainer
 
         // This function is used in place of GridView.onRemove
         // because GridView.onRemove is not called when removing blank tab
