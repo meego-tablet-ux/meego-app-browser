@@ -578,7 +578,10 @@ void RWHVQtWidget::inputMethodEvent(QInputMethodEvent *event)
     //hostView()->GetRenderWidgetHost()->ImeSetComposition(
     //    preedit.utf16(), cursor_pos, -1, -1);
   } else {
-    hostView()->GetRenderWidgetHost()->ImeCancelComposition();
+    //The context menu jumping cause SIP be closed and this event be triggered, the selection in text input should not be removed when the SIP hidding.
+    QVariant textSelection = inputMethodQuery(Qt::ImCurrentSelection);
+    if(textSelection.toString().isEmpty())
+      hostView()->GetRenderWidgetHost()->ImeCancelComposition();
   //  hostView()->GetRenderWidgetHost()->ImeConfirmComposition();
   }
 }
