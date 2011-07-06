@@ -94,7 +94,9 @@ Item {
       id: everything
       anchors.fill: parent
       property int bubbleHeight: bubble.height
-      ModalFogBrowser {}
+      ModalFogBrowser {
+        opacity: 0
+      }
 
       MouseArea {
         anchors.fill: parent
