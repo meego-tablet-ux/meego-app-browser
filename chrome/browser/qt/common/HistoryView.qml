@@ -51,6 +51,7 @@ Item {
   // default margin is 5
   property int commonMargin: 5
   property int innerCommonMargin: 1
+  property int textMargin: 10
 
   // delegate to show thumbnail of each web page in the history list
   Component {
@@ -106,12 +107,14 @@ Item {
             }
             Text {
               id: titleText
-              width: parent.width - 20
-              x: 10
-              y: 7
+              width: parent.width - 2 * textMargin;
+              anchors.leftMargin: textMargin;
+              anchors.left: parent.left;
+              anchors.topMargin: (historyTitle.height - font.pixelSize)/2
+              anchors.top: parent.top
               font.pointSize: 10
               text: title
-              font.pixelSize: theme_fontPixelSizeNormal
+              font.pixelSize: theme_fontPixelSizeSmall
               font.family: theme_fontFamily
               clip: true
               color: "#ffffff"

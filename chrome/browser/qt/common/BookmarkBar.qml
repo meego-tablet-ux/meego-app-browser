@@ -38,7 +38,7 @@ Item {
   property alias model: view.model
   property int itemMaxWidth: 200
   property int itemMinWidth: 60
-  property int containerHeight: 55
+  property int containerHeight: 51
   property int titleFontSize: 13
   property bool showInstruction: false
   parent: outerContent

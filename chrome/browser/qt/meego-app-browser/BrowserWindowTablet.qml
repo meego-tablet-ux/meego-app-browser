@@ -245,7 +245,7 @@ Item {
         id: statusbar
         anchors.top: parent.top
         width: container.width
-        height: 30
+        height: 25
         z: 10
         MouseArea {
 			id: mouseArea
@@ -293,7 +293,7 @@ Item {
                 when: !scene.fullscreen
                 PropertyChanges {
                     target: statusbar
-                    height: 30
+                    height: 25
                     opacity: 1
                 }
             }

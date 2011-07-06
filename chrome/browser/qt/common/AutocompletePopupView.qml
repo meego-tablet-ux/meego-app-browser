@@ -39,8 +39,8 @@ Item {
 
   // hardcoded property, should be replaced by property from themedata
   property color suggestionColor: "#4e4e4e"
-  property int suggestionItemHeight: 57
-  property int maxPopupHeight: suggestionItemHeight*10  // at most 10 items
+  property int suggestionItemHeight: 45
+  property int maxPopupHeight: suggestionItemHeight*4  // at most 4 items
   // 
 
   property alias model: view.model
@@ -52,7 +52,7 @@ Item {
   property int spaceOutOfVkb: maxHeight
 
   //The margin size of menu items
-  property int textMargin: 16
+  property int textMargin: 20
  
   Image {
     id: finger
@@ -105,17 +105,17 @@ Item {
       id: suggestionDelegate
       Item {
         width: parent.width;
-        height: urltext.paintedHeight + textMargin*2
+        height: 45;
         opacity: 1
           Text {
             id: urltext
-	    x: textMargin
+	        x: textMargin
             width: parent.width-textMargin*2
             height: parent.height - 1
-            color: theme_contextMenuFontColor
-	    elide: Text.ElideRight
+            color: theme_blockColorHighlight
+	        elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
-            font.pixelSize: theme_contextMenuFontPixelSize
+            font.pixelSize: theme_fontPixelSizeNormal
             text: url
           }
 	  Image {
