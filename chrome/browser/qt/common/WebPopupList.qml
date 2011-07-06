@@ -44,9 +44,9 @@ Item {
     property int currentIndex : 0
     property Item targetContainer : null
     property Item contentItem: null
-    property int screenHeight: 800
+    property int screenHeight: scene.height
     property int toolbarHeight: 85
-    property int contextMenuExtraHeight: 40
+    property int contextMenuExtraHeight: 60
     property int midOfPage: (screenHeight - toolbarHeight)/2 + toolbarHeight
     property int maxAllowedHeight: 0
     anchors.fill : parent
