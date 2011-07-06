@@ -954,6 +954,12 @@ NPError NPN_SetValue(NPP id, NPPVariable variable, void* value) {
       return NPERR_GENERIC_ERROR;
     }
   #endif
+  #if defined(TOOLKIT_MEEGOTOUCH)
+    case NPPVpluginPauseBool: {
+      plugin->set_pause(value == 0);
+      return NPERR_NO_ERROR;
+    }
+  #endif
     default:
       // TODO: implement me
       DVLOG(1) << "NPN_SetValue(" << variable << ") is not implemented.";

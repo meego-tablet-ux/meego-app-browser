@@ -86,10 +86,18 @@ class PluginLib : public base::RefCounted<PluginLib> {
   char** NP_GetSitesWithData();
 
   int instance_count() const { return instance_count_; }
+#if defined(TOOLKIT_MEEGOTOUCH)
+  int flash_playing_count() const { return flash_playing_count_; }
+#endif
 
   // Prevents the library code from being unload when Unload() is called (since
   // some plugins crash if unloaded).
   void PreventLibraryUnload();
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  // Trigger screen saver if needed
+  void OnFlashInstancePaused(bool paused);
+#endif
 
   // protected for testability.
  protected:
@@ -120,6 +128,9 @@ class PluginLib : public base::RefCounted<PluginLib> {
   bool initialized_;  // Is the plugin initialized?
   NPSavedData *saved_data_;  // Persisted plugin info for NPAPI.
   int instance_count_;  // Count of plugins in use.
+#if defined(TOOLKIT_MEEGOTOUCH)
+  int flash_playing_count_;  // Count of flash plugins is playing.
+#endif
   bool skip_unload_;  // True if library_ should not be unloaded.
 
   // Function pointers to entry points into the plugin.

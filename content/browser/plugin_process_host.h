@@ -107,6 +107,10 @@ class PluginProcessHost : public BrowserChildProcessHost {
                      gfx::NativeWindow caller_window);
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void OnInhibitScreenSaver(bool inhibit);
+#endif
+
 #if defined(USE_X11)
   void OnMapNativeViewId(gfx::NativeViewId id, gfx::PluginWindowHandle* output);
 #endif

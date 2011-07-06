@@ -53,6 +53,11 @@
 #include "ui/gfx/rect.h"
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include <launcherwindow.h>
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
+#endif
+
 static const char kDefaultPluginFinderURL[] =
     "https://dl-ssl.google.com/edgedl/chrome/plugins/plugins2.xml";
 
@@ -83,6 +88,15 @@ void PluginProcessHost::AddWindow(HWND window) {
 }
 
 #endif  // defined(OS_WIN)
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginProcessHost::OnInhibitScreenSaver(bool inhibit) {
+  BrowserThread::PostTask(
+    BrowserThread::UI, FROM_HERE,
+    NewRunnableFunction(BrowserWindowQt::InhibitScreenSaver,
+                        inhibit));
+}
+#endif // defined(TOOLKIT_MEEGOTOUCH)
 
 #if defined(TOOLKIT_USES_GTK)
 void PluginProcessHost::OnMapNativeViewId(gfx::NativeViewId id,
@@ -264,6 +278,9 @@ bool PluginProcessHost::OnMessageReceived(const IPC::Message& msg) {
     IPC_MESSAGE_HANDLER(PluginProcessHostMsg_PluginWindowDestroyed,
                         OnPluginWindowDestroyed)
     IPC_MESSAGE_HANDLER(PluginProcessHostMsg_DownloadUrl, OnDownloadUrl)
+#endif
+#if defined(TOOLKIT_MEEGOTOUCH)
+    IPC_MESSAGE_HANDLER(PluginProcessHostMsg_InhibitScreenSaver, OnInhibitScreenSaver)
 #endif
 #if defined(TOOLKIT_USES_GTK)
     IPC_MESSAGE_HANDLER(PluginProcessHostMsg_MapNativeViewId,

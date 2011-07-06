@@ -86,6 +86,11 @@ class PluginInstance : public base::RefCountedThreadSafe<PluginInstance> {
   // Default is false.
   bool windowless() { return windowless_; }
   void set_windowless(bool value) { windowless_ = value; }
+#if defined(TOOLKIT_MEEGOTOUCH)
+  bool paused() { return paused_; };
+  void set_pause(bool value);
+  bool is_flash();
+#endif
 
   // Get/Set whether this instance is transparent.
   // This only applies to windowless plugins.  Transparent
@@ -289,6 +294,9 @@ class PluginInstance : public base::RefCountedThreadSafe<PluginInstance> {
   std::vector<scoped_refptr<PluginStream> > open_streams_;
   gfx::PluginWindowHandle                  window_handle_;
   bool                                     windowless_;
+#if defined(TOOLKIT_MEEGOTOUCH)
+  bool                                     paused_;
+#endif
   bool                                     transparent_;
   WebPlugin*                               webplugin_;
   std::string                              mime_type_;

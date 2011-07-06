@@ -104,6 +104,11 @@ IPC_MESSAGE_ROUTED3(PluginProcessHostMsg_DownloadUrl,
                     HWND /* caller window */)
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+IPC_MESSAGE_ROUTED1(PluginProcessHostMsg_InhibitScreenSaver,
+                    bool /* inhibit */)
+#endif
+
 #if defined(USE_X11)
 // On X11, the mapping between NativeViewId and X window ids
 // is known only to the browser.  This message lets the plugin process

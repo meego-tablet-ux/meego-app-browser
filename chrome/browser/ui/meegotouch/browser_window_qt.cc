@@ -669,5 +669,11 @@ void BrowserWindowQt::CancelInstantFade() {
     rwhv->SetVisuallyDeemphasized(NULL, false);
 }
 
+void BrowserWindowQt::InhibitScreenSaver(bool inhibit) {
+  extern LauncherWindow* g_main_window;
+  DLOG(INFO) << "Inhibit screen saver " << inhibit;
+
+  g_main_window->setInhibitScreenSaver(inhibit);
+}
 
 #include "moc_browser_window_qt.cc"

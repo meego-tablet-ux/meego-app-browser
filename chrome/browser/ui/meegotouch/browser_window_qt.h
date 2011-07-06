@@ -215,6 +215,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   TabContentsContainerQt* GetTabContentsContainer() { return contents_container_.get(); }
 
   NewTabUIQt* GetNewTabUIQt(); 
+  static void InhibitScreenSaver(bool inhibit);
  protected:
   bool CanClose();
   virtual void DestroyBrowser();

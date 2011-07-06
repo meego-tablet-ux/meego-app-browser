@@ -8,6 +8,8 @@
 #include "base/message_loop.h"
 #include "base/metrics/stats_counters.h"
 #include "base/string_util.h"
+#include "content/common/plugin_messages.h"
+#include "content/plugin/plugin_thread.h"
 #include "webkit/glue/webkit_glue.h"
 #include "webkit/plugins/npapi/plugin_instance.h"
 #include "webkit/plugins/npapi/plugin_host.h"
@@ -72,6 +74,9 @@ PluginLib::PluginLib(const WebPluginInfo& info,
       initialized_(false),
       saved_data_(0),
       instance_count_(0),
+#if defined(TOOLKIT_MEEGOTOUCH)
+      flash_playing_count_(0),
+#endif
       skip_unload_(false) {
   base::StatsCounter(kPluginLibrariesLoadedCounter).Increment();
   memset(static_cast<void*>(&plugin_funcs_), 0, sizeof(plugin_funcs_));
@@ -157,11 +162,36 @@ void PluginLib::PreventLibraryUnload() {
   skip_unload_ = true;
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginLib::OnFlashInstancePaused(bool paused) {
+  bool old_playing, new_playing;
+  old_playing = (flash_playing_count_ > 0);
+
+  if (paused)
+    flash_playing_count_--;
+  else
+    flash_playing_count_++;
+
+  new_playing = (flash_playing_count_ > 0);
+
+  DLOG(INFO) << "Playing flash instance number: " << flash_playing_count_;
+  if (old_playing == new_playing)
+    return;
+
+  PluginThread::current()->Send(new PluginProcessHostMsg_InhibitScreenSaver(MSG_ROUTING_NONE, new_playing));
+}
+#endif
+
 PluginInstance* PluginLib::CreateInstance(const std::string& mime_type) {
   PluginInstance* new_instance = new PluginInstance(this, mime_type);
   instance_count_++;
   base::StatsCounter(kPluginInstancesActiveCounter).Increment();
   DCHECK_NE(static_cast<PluginInstance*>(NULL), new_instance);
+#if defined(TOOLKIT_MEEGOTOUCH)
+  if (new_instance->is_flash()) {
+    new_instance->set_pause(false);
+  }
+#endif
   return new_instance;
 }
 

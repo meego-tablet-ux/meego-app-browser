@@ -404,6 +404,10 @@ typedef enum {
 #if (MOZ_PLATFORM_MAEMO == 5) || (MOZ_PLATFORM_MAEMO == 6)
   , NPPVpluginWindowlessLocalBool = 2002
 #endif
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  , NPPVpluginPauseBool = 3001
+#endif
 } NPPVariable;
 
 /*
@@ -454,6 +458,9 @@ typedef enum {
 #endif
 #if (MOZ_PLATFORM_MAEMO == 5) || (MOZ_PLATFORM_MAEMO == 6)
   , NPNVSupportsWindowlessLocal = 2002
+#endif
+#if defined(TOOLKIT_MEEGOTOUCH)
+  , NPNVpluginPauseBool = 3001
 #endif
 } NPNVariable;
 

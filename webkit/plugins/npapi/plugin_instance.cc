@@ -32,6 +32,9 @@ PluginInstance::PluginInstance(PluginLib *plugin, const std::string &mime_type)
       npp_functions_(plugin->functions()),
       window_handle_(0),
       windowless_(false),
+#if defined(TOOLKIT_MEEGOTOUCH)
+      paused_(true),
+#endif
       transparent_(true),
       webplugin_(0),
       mime_type_(mime_type),
@@ -72,9 +75,26 @@ PluginInstance::~PluginInstance() {
     npp_ = 0;
   }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  set_pause(true);
+#endif
+
   if (plugin_)
     plugin_->CloseInstance();
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginInstance::set_pause(bool value) {
+    if ((paused_ == value) || !is_flash())
+      return;
+    paused_ = value;
+    plugin_->OnFlashInstancePaused(paused_);
+}
+
+bool PluginInstance::is_flash() {
+  return (mime_type_ == "application/x-shockwave-flash");
+}
+#endif
 
 PluginStreamUrl* PluginInstance::CreateStream(unsigned long resource_id,
                                               const GURL& url,
