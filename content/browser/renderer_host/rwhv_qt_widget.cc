@@ -2337,6 +2337,11 @@ void RWHVQtWidget::AdjustSize()
 void RWHVQtWidget::SetScrollPosition(const gfx::Point& scrollPosition)
 {
   QGraphicsObject* viewport = GetViewportItem();
+
+  //If host view is hidden, no need to update
+  //scroll position.
+  if(hostView() && hostView()->is_hidden_) return;
+
   if(viewport) {
     if (!is_enabled_) {
       viewport->setProperty("contentX", QVariant(scrollPosition.x() * scale()));
