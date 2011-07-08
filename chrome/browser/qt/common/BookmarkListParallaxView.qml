@@ -147,6 +147,7 @@ Item {
       onCurrentIndexChanged: {
         shadowtab.y = currentIndex * bmGlobal.listHeight + 8
         parallaxView.currentIndex = currentIndex
+        parallax.barContainer.enabled = !currentIndex
       }
 
       model: visualModel.children

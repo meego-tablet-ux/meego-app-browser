@@ -1461,13 +1461,35 @@ void BookmarkQtFilterProxyModel::popupMenu(int x, int y) {
 }
 
 void BookmarkQtFilterProxyModel::textChanged(QString text) {
-  setFilterFixedString(text); 
+  setFilterFixedString(text);
+  keyWord_ = text;
+  emit dataChanged(index(0, 0), index(this->rowCount() - 1, 0));
 }
 
-void BookmarkQtFilterProxyModel::backButtonTapped() { 
+void BookmarkQtFilterProxyModel::backButtonTapped() {
   impl_->backButtonTapped();
 }
 
+QVariant BookmarkQtFilterProxyModel::data ( const QModelIndex & index, int role ) const {
+    QVariant dat = QSortFilterProxyModel::data(index, role);
+    if (role == BookmarkQtImpl::TitleRole) {
+        QString title = dat.toString();
+        QString mark = "<font style=\"background-color:#2da5d1\" color=\"white\">";
+        title.remove(QRegExp("(" + mark + "|</font>)"));
+        if (!keyWord_.isEmpty()) {
+            int keyWordLen = keyWord_.length();
+            int markLen = mark.length();
+            int i = title.indexOf(keyWord_, 0, Qt::CaseInsensitive);
+            while (i != -1) {
+                title.insert(i, mark);
+                title.insert(i + markLen + keyWordLen, "</font>");
+                i = title.indexOf(keyWord_, i + markLen + keyWordLen + 7, Qt::CaseInsensitive);
+            }
+        }
+        return title;
+    }
+    return dat;
+}
 ////////////////////////////////////////////////////////////////////////////////
 // BookmarkListMenuModel
 

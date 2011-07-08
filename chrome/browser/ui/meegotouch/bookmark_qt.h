@@ -588,6 +588,7 @@ public:
     emit openItemInNewTab(); }
   void EditItem() { emit editItem(); }
   void RemoveItem() { emit removeItem(); }
+  virtual QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const ;
 
 Q_SIGNALS:
   void show();
@@ -627,6 +628,7 @@ public Q_SLOTS:
 private:
   //BookmarkQtGridImpl *impl_;
   BookmarkQtImpl *impl_;
+  QString keyWord_;
 
   // Helper function to convert filter's index to source's index
   int toSource(int idx) { return mapToSource(index(idx, 0)).row(); }
