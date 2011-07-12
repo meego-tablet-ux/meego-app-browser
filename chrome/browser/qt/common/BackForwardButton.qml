@@ -155,7 +155,9 @@ Item {
   }
   MouseArea {
     anchors.fill: parent
-    onPressed: backForwardIcon.pressed = true
+    onPressed: {
+      if(kind!=0 || active) backForwardIcon.pressed = true;
+    }
     onReleased: backForwardIcon.pressed = false
     onClicked: {
       if (!showqmlpanel) {
