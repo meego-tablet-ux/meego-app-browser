@@ -49,13 +49,15 @@ class SelectFileDialogQtImpl: public QObject {
   virtual ~SelectFileDialogQtImpl() {};
 
   void SetDialog(SelectFileDialogImpl* dialog);
+  void SetMultiSelection(bool multi_selection);
   void Popup();
   void Dismiss();
 
  public Q_SLOTS:
   void OnPickerSelected(QString uri);
+  void OnPickerMultiSelected(QString uri);
   void OnPickerCancelled();
-
+  bool IsMultiSelection();
  Q_SIGNALS:
   void popup();
   void dismiss();
@@ -63,6 +65,7 @@ class SelectFileDialogQtImpl: public QObject {
  private:
   SelectFileDialogImpl* dialog_;
   BrowserWindowQt* window_;
+  bool multi_selection_;
 };
 
 #endif  // CHROME_BROWSER_SELECT_FILE_DIALOG_QT_H_

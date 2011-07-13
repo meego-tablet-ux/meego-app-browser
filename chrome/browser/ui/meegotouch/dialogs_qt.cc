@@ -52,12 +52,9 @@ class SelectFileDialogImpl : public SelectFileDialog {
                           void* params);
   void FileNotSelected();
   void FileSelected(QString uri);
-
+  void MultiFilesSelected(const std::vector<FilePath>& files);
  private:
   virtual ~SelectFileDialogImpl();
-
-  // The listener to be notified of selection completion.
-  Listener* listener_;
 
   // QML interaction 
   SelectFileDialogQtImpl* impl_;
@@ -83,7 +80,6 @@ class SelectFileDialogImpl : public SelectFileDialog {
   QSet<QFileDialog*> dialogs_;
 
   void* PopParamsForDialog(QFileDialog* dialog);
-  void MultiFilesSelected(QFileDialog* dialog, const std::vector<FilePath>& files);
 
   void ProcessResult(QFileDialog* dialog, int result);
 
@@ -115,8 +111,7 @@ SelectFileDialog* SelectFileDialog::Create(Listener* listener) {
 }
 
 SelectFileDialogImpl::SelectFileDialogImpl(Listener* listener)
-    : SelectFileDialog(listener),
-      listener_(listener) {
+    : SelectFileDialog(listener) {
   if (!last_saved_path_) {
     last_saved_path_ = new FilePath();
     last_opened_path_ = new FilePath();
@@ -250,12 +245,11 @@ void SelectFileDialogImpl::FileSelected(QString uri) {
     listener_->FileSelected(FilePath(uri.toAscii().data()), 1, NULL);
 }
 
-void SelectFileDialogImpl::MultiFilesSelected(QFileDialog* dialog,
-    const std::vector<FilePath>& files) {
+void SelectFileDialogImpl::MultiFilesSelected(const std::vector<FilePath>& files) {
   *last_opened_path_ = files[0].DirName();
 
   if (listener_)
-    listener_->MultiFilesSelected(files, PopParamsForDialog(dialog));
+    listener_->MultiFilesSelected(files, NULL);
 }
 
 void SelectFileDialogImpl::ProcessResult(QFileDialog* dialog, int result) {
@@ -311,7 +305,6 @@ void SelectFileDialogImpl::SelectFileImpl(
     file_types_ = *file_types;
   else
     file_types_.include_all_files = true;
-
 #if 0
   QFileDialog* dialog = NULL;
   switch (type) {
@@ -349,10 +342,15 @@ void SelectFileDialogImpl::SelectFileImpl(
       break;
     case SELECT_OPEN_FILE:
       if (listener_) {
+        impl_->SetMultiSelection(false);
         impl_->Popup();
       }
       break;
     case SELECT_OPEN_MULTI_FILE:
+      if (listener_) {
+        impl_->SetMultiSelection(true);
+        impl_->Popup();
+      }
       break;
     case SELECT_SAVEAS_FILE:
       if (listener_) {
@@ -371,7 +369,8 @@ void SelectFileDialogImpl::SelectFileImpl(
 
 SelectFileDialogQtImpl::SelectFileDialogQtImpl(BrowserWindowQt *window)
     : window_(window),
-      dialog_(NULL) {
+      dialog_(NULL),
+      multi_selection_(false) {
   QDeclarativeView* view = window_->DeclarativeView();
   QDeclarativeContext *context = view->rootContext();
 
@@ -397,8 +396,26 @@ void SelectFileDialogQtImpl::OnPickerSelected(QString uri) {
   Dismiss();
 }
 
+void SelectFileDialogQtImpl::OnPickerMultiSelected(QString uris) {
+  QStringList list = uris.split(",file://", QString::SkipEmptyParts);
+  list.replaceInStrings("file://", "");
+  std::vector<FilePath> files;
+  for (int i = 0; i < list.length(); i ++) { 
+    files.push_back(FilePath(list[i].toAscii().data()));
+  }
+  dialog_->MultiFilesSelected(files);
+  Dismiss();
+}
+
 void SelectFileDialogQtImpl::OnPickerCancelled() {
   dialog_->FileNotSelected();
   Dismiss();
 }
 
+void SelectFileDialogQtImpl::SetMultiSelection(bool multi_selection) {
+  multi_selection_ = multi_selection;
+}
+
+bool SelectFileDialogQtImpl::IsMultiSelection() {
+  return multi_selection_;
+}

@@ -17,20 +17,24 @@ Item {
     }
 
     function pickerRejected () {
-        console.log ("Cancelled picker");
         selectFileDialogObject.OnPickerCancelled()
     }
 
     function pickerSelected (uri) {
-        console.log (uri + " selected");
         selectFileDialogObject.OnPickerSelected(uri)
+    }
+
+    function pickerMultiSelected (uri) {
+        selectFileDialogObject.OnPickerMultiSelected(uri)
     }
 
     function addPicker (pickerComponent) {
         var picker = pickerComponent.createObject (container);
+        picker.multiSelection = selectFileDialogObject.IsMultiSelection();
         picker.show ();
         picker.rejected.connect (pickerRejected);
         picker.selected.connect (pickerSelected);
+        picker.multiselected.connect (pickerMultiSelected);
     }
 
     ModalFogBrowser {}
@@ -125,9 +129,12 @@ Item {
             anchors.fill: parent
 
             signal selected (string uri)
-
+            signal multiselected (string uris)
             onPhotoSelected: {
                 selected (uri);
+            }
+            onMultiplePhotosSelected: {
+                multiselected (uris)           
             }
         }
     }
@@ -138,10 +145,14 @@ Item {
             anchors.fill: parent
 
             signal selected (string uri)
-
+            signal multiselected (string uris)
             onVideoSelected: {
                 selected (uri);
             }
+            onMultipleVideosSelected: {
+                multiselected (uris)
+            }
+
         }
     }
 }
