@@ -438,7 +438,9 @@ void RWHVQtWidget::focusOutEvent(QFocusEvent* event)
   ic->reset();
   QEvent sip_request(QEvent::CloseSoftwareInputPanel);
   ic->filterEvent(&sip_request);
-  hostView()->GetRenderWidgetHost()->SetInputMethodActive(false);
+  // comment following out because we still need imeUpdate to update
+  // is_enabled_, otherwise, the VKB behaviour would strange.
+  //hostView()->GetRenderWidgetHost()->SetInputMethodActive(false);
   vkb_flag_ = false;
   event->accept();
   return;
@@ -760,8 +762,9 @@ bool RWHVQtWidget::event(QEvent *event)
 }
 
 void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const gfx::Rect& caret_rect) {
-  if (!hasFocus())
-    return;
+  //If host view is hidden, no need to update
+  //imeUpdate.
+  if(hostView() && hostView()->is_hidden_) return;
   DLOG(INFO) << "imUpdateStatus x,y,w,h = " << caret_rect.x() << " - "
     << caret_rect.y() << " - "
     << caret_rect.width() << " - "
@@ -799,7 +802,7 @@ void RWHVQtWidget::imeUpdateTextInputState(WebKit::WebTextInputType type, const 
     }
   } else {
     // Enable the InputMethod if it's not enabled yet.
-    if (!im_enabled_) {
+    if (!im_enabled_ && hasFocus()) {
       ic->reset();
       setFlag(QGraphicsItem::ItemAcceptsInputMethod, true);
       QEvent sip_request(QEvent::RequestSoftwareInputPanel);

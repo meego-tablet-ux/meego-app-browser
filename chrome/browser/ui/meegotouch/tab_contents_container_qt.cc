@@ -170,13 +170,13 @@ void TabContentsContainerQt::SetTabContents(TabContents* tab_contents) {
 
       ViewportSizeChanged();
       
+      tab_widget->show();
+      impl_->FadeAnimation(viewport_item_);
+
       ///\todo: hack to pass focus out event to old rwhv
       RenderWidgetHostView* view = tab_contents_->GetRenderWidgetHostView();
       if (view)
         view->Focus();
-
-      tab_widget->show();
-      impl_->FadeAnimation(viewport_item_);
     }
   }
 }
