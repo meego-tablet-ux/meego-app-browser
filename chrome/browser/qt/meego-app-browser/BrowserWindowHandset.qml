@@ -499,6 +499,7 @@ Item {
       anchors { right: innerContent.right; top: innerContent.top; bottom: innerContent.bottom }
       pageSize: innerContent.visibleArea.heightRatio
       position: innerContent.visibleArea.yPosition
+      backgroundOpacity: 1.0
       opacity: 0
       states:
          State {
@@ -514,6 +515,7 @@ Item {
       anchors { right: innerContent.right; rightMargin: 8; left: innerContent.left; bottom: innerContent.bottom }
       pageSize: innerContent.visibleArea.widthRatio
       position: innerContent.visibleArea.xPosition
+      backgroundOpacity: 1.0
       opacity: 0
       states:
          State {

@@ -37,7 +37,7 @@ Item {
     id: main
     anchors.left: parent.left
     width: parent.width
-    height: getRowHeight()
+    height: getRowHeight()  + 1
 
     function getRowHeight() {
       if(newtab.width > newtab.height) {
@@ -58,17 +58,20 @@ Item {
     }
 
     BorderImage {
-      id: sector_bg
-      anchors.fill: parent
-      border.left:   12
-      border.top:    0
-      border.bottom: 0
-      border.right:  12
-      source: "image://themedimage/widgets/apps/browser/new-tabs-closed-bar-background"
-      visible: index%2 == 0
+      id: line
+      anchors.top: parent.top
+      width: parent.width - 30
+      anchors.horizontalCenter: parent.horizontalCenter
+      height: 1
+      source: "image://themedimage/widgets/common/dividers/divider-horizontal-single"
+      visible: index != 0
     }
+    Item {
+        anchors.top: line.bottom
+        width: parent.width
+        height: parent.height -1
 
-    Image { 
+        Image {
 	id: favIcon
         anchors.left: parent.left
         anchors.leftMargin: sector.getGridLeftMargin()
@@ -77,10 +80,10 @@ Item {
 	fillMode: Image.PreserveAspectFit
     }
 
-    Text { 
+        Text {
 	id: titleText
 	anchors.left: favIcon.right
-	anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenter: parent.verticalCenter
         anchors { leftMargin:15; rightMargin:25}
 	width: parent.width - favIcon.width - 40   // add margin
 	text: title
@@ -100,6 +103,7 @@ Item {
           }
 	]
 
+    }
     }
 
     MouseArea {

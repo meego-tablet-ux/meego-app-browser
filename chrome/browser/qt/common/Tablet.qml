@@ -232,16 +232,18 @@ BrowserWindowTablet {
       {			
         var map = webview.mapToItem(scene, x, y);
         contextLoader.source = "BrowserContextMenu.qml"
+        // -1 means default direction
         scene.openContextMenu(contextLoader,
-                              map.x, map.y, undefined, browserMenuModel);
+                              map.x, map.y, undefined, browserMenuModel, -1);
 
       }
       else
       {
         wrenchmenushown = true;
         contextLoader.source = "BrowserContextMenu.qml"
+        // 2 means up direction
         scene.openContextMenu(contextLoader,
-                              lastMousePos.mouseX, lastMousePos.mouseY, undefined, browserMenuModel);
+                              lastMousePos.mouseX, lastMousePos.mouseY, undefined, browserMenuModel, 2);
       }
     }
   }   
@@ -250,7 +252,7 @@ BrowserWindowTablet {
       return Math.max (min, Math.min (max, val));
   }
 
-  function openContextMenu(loader, mouseX, mouseY, payload,model)
+  function openContextMenu(loader, mouseX, mouseY, payload, model, fingerMode)
   {
       var parentContainer = screenlayer;
 
@@ -262,6 +264,7 @@ BrowserWindowTablet {
       menuContainer.height = parentContainer.height;
       menuContainer.z = 100;
       menuContainer.payload = payload;
+      menuContainer.forceFingerMode = fingerMode;
 
       var map = mapToItem (parentContainer, mouseX, mouseY);
       menuContainer.displayContextMenu (map.x, map.y);

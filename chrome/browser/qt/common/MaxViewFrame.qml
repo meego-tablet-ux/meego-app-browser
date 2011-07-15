@@ -44,13 +44,6 @@ Item {
     property QtObject gridModel
     width: parent.width
     height: maxViewLoader.height + category.height + getGridTopMargin()
-
-    Image {
-      id: sector_bg
-      anchors.fill: parent
-      fillMode: Image.Stretch
-      source: "image://themedimage/images/bg_application_p"
-    }
  
     Loader {
       id: maxViewLoader
@@ -100,18 +93,18 @@ Item {
     }
 
     Image {
-	id: category
-	anchors.top: parent.top
+        id: category
+        anchors.top: parent.top
 	anchors.left: parent.left
 	width: parent.width
 	height: getCategoryHeight()
-        source: "image://themedimage/images/bg_application_p"
+        source: "image://themedimage/widgets/common/backgrounds/content-subheader-reverse"
 	
 	Text {
-	    id: title
-	    anchors.bottom: parent.bottom
+            id: title
 	    anchors.left: parent.left
-	    anchors.leftMargin: getGridLeftMargin()
+            anchors.leftMargin: 10
+            anchors.verticalCenter: parent.verticalCenter
             font.pixelSize: theme_fontPixelSizeLarge
 	    font.family: "Droid Sans"
 	    color: theme_fontColorNormal
@@ -135,16 +128,16 @@ Item {
           }
         }
 /*
-	Rectangle {
-	    id: line
-	    anchors.left: title.right
-	    anchors.leftMargin: 20
-     	    anchors.verticalCenter: title.verticalCenter
-	    width: sector.width - title.width - arrow.width - 50
-	    height: 2
-	    color: theme_fontColorNormal
-	    //radius: 1
-	}
+        Rectangle {
+            id: line
+            anchors.left: title.right
+            anchors.leftMargin: 20
+            anchors.verticalCenter: title.verticalCenter
+            width: sector.width - title.width - arrow.width - 50
+            height: 2
+            color: theme_fontColorNormal
+            //radius: 1
+        }
 */
 
     }
@@ -153,12 +146,12 @@ Item {
 	State {
 	    name: "non-collapsed"
 	    when: collapseState == 1
-	    PropertyChanges { target: maxViewLoader; sourceComponent: maxView }
+            PropertyChanges { target: maxViewLoader; anchors.topMargin: getGridTopMargin(); sourceComponent: maxView }
 	},
 	State {
 	    name: "list"
 	    when: collapseState == 3
-	    PropertyChanges { target: maxViewLoader; sourceComponent: listView }
+            PropertyChanges { target: maxViewLoader; anchors.topMargin: 0; sourceComponent: listView }
         }
     ]
 
@@ -437,7 +430,7 @@ Item {
 
     Component {
 	id: listView
-	Item {
+        Item {
 	    property int viewHeight: list.height + list.anchors.topMargin
             property int itemWidth: getItemWidth();
             property int itemHMargin: getItemHMargin();
@@ -495,20 +488,37 @@ Item {
                   return 20;
               }
             }
-            
-	    ListView {
-		id: list
-                anchors.topMargin: getListViewTopMargin()
-                width: parent.width
-		height: newtab.height - mostVisited.height - line.height - line.anchors.topMargin - category.height - anchors.topMargin
-                anchors.left: parent.left
-		orientation: ListView.Vertical
-		delegate: ListViewDelegate { }
-		model: sector.gridModel
-		interactive: true
-	    }
-	}
-    }
 
+            ListView {
+              id: list
+              anchors.topMargin: getListViewTopMargin()
+              width: parent.width
+              height: newtab.height - mostVisited.height - category.height - anchors.topMargin
+              anchors.left: parent.left
+              orientation: ListView.Vertical
+              delegate: ListViewDelegate { }
+              model: sector.gridModel
+              interactive: count * ( getRowHeight() +1 ) > height ? true : false
+              clip: true
+            }
+            function getRowHeight() {
+              if(newtab.width > newtab.height) {
+                if(newtab.width>1200)  //For 1280x800
+                  return 44;
+                else if(newtab.width<1000)  //For handset
+                  return 28;
+                else			//For 1024x600
+                  return 35;
+              }else{
+                if(newtab.width>750)  //For 1280x800
+                  return 44;
+                else if(newtab.width<550)  //For handset
+                  return 28;
+                else			//For 1024x600
+                  return 35;
+              }
+            }
+        }
+    }
 }
 

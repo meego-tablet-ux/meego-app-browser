@@ -199,7 +199,6 @@ Item {
               font.family: defaultFont
               verticalAlignment:Text.AlignVCenter
             }
-
             GroupBox {
               id: folderGroup
               anchors.left: parent.left

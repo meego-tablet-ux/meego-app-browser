@@ -41,10 +41,27 @@ Item {
   property bool loading : false
   
   Image {
+      id: reloadBg
+      anchors.centerIn: parent
+      height: parent.height
+      source:  ""
+      states: [
+          State {
+            name:  "pressed"
+            when:  reloadIcon.pressed
+            PropertyChanges {
+                target: reloadBg
+                source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-active"
+            }
+          }
+      ]
+  }
+
+  Image {
     id: reloadIcon
     height: parent.height
     anchors.centerIn: parent
-    source: "image://themedimage/images/browser/icn_refresh_up"
+    source: "image://themedimage/icons/toolbar/view-refresh"
     property bool pressed: false
     states: [
       State {
@@ -52,7 +69,7 @@ Item {
         when: reloadIcon.pressed && !loading && !showqmlpanel
         PropertyChanges {
           target: reloadIcon
-          source: "image://themedimage/images/browser/icn_refresh_dn"
+          source: "image://themedimage/icons/toolbar/view-refresh-active"
         }
       },
      State {
@@ -60,7 +77,7 @@ Item {
          when: !reloadIcon.pressed && !loading || showqmlpanel
          PropertyChanges {
              target: reloadIcon
-             source: "image://themedimage/images/browser/icn_refresh_up"
+             source: "image://themedimage/icons/toolbar/view-refresh"
          }
      }, 
     State {
@@ -68,7 +85,7 @@ Item {
         when: reloadIcon.pressed && loading && !showqmlpanel
         PropertyChanges {
             target: reloadIcon
-            source: "image://themedimage/images/browser/icn_stop_dn"
+            source: "image://themedimage/icons/toolbar/view-refresh-stop-active"
         }
     }, 
     State {
@@ -76,7 +93,7 @@ Item {
         when: !reloadIcon.pressed && loading && !showqmlpanel
         PropertyChanges {
             target: reloadIcon
-            source: "image://themedimage/images/browser/icn_stop_up"
+            source: "image://themedimage/icons/toolbar/view-refresh-stop"
         }
     }
     ]
@@ -88,7 +105,7 @@ Item {
       if (!showqmlpanel)
         browserToolbarModel.reloadButtonClicked()
     }
-    onPressed: reloadIcon.pressed = true
+    onPressed: if (!showqmlpanel) reloadIcon.pressed = true
     onReleased: reloadIcon.pressed = false
   }
 }

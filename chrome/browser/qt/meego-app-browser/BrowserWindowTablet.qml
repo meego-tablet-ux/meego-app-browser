@@ -101,6 +101,8 @@ Item {
     signal crumbTriggered(variant payload)
 
     signal statusBarTriggered()
+    
+    property int webViewBorderSize: 20
 
     property bool showStartupAnimation: false
     property bool tabChangeFromTabSideBar: false
@@ -343,11 +345,10 @@ Item {
         width: scene.width
         height: scene.height - statusbar.height
         clip:true
-        Image {
+        UX.ThemeImage {
             id: background
             anchors.fill: parent
-            fillMode: Image.Tile
-            source: "image://themedimage/images/bg_application_p"
+            source: "image://themedimage/widgets/apps/browser/scrolling-background"
         }
 
         BrowserToolbarTablet {
@@ -576,6 +577,21 @@ Item {
             Item {
                 id: webview
                 objectName: "webView"
+                BorderImage {
+                    id: webViewBorderImage
+                    anchors.top: webview.top
+                    anchors.topMargin: 0 - webViewBorderSize
+                    anchors.bottom: webview.bottom
+                    anchors.bottomMargin: 0 - webViewBorderSize
+                    anchors.left: webview.left
+                    anchors.leftMargin: 0 - webViewBorderSize
+                    anchors.right: webview.right
+                    anchors.rightMargin: 0 - webViewBorderSize
+                    border {left: webViewBorderSize; right: webViewBorderSize; top:webViewBorderSize ; bottom:webViewBorderSize }
+                    horizontalTileMode: BorderImage.Repeat
+                    verticalTileMode: BorderImage.Repeat
+                    source: "image://themedimage/widgets/apps/browser/scrolling-shadow"
+                }
             }
         }
 
@@ -585,6 +601,7 @@ Item {
             anchors { right: innerContent.right; top: innerContent.top; bottom: innerContent.bottom }
             pageSize: innerContent.visibleArea.heightRatio
             position: innerContent.visibleArea.yPosition
+            backgroundOpacity: 1.0
             opacity: 0
             states:  
                 State {
@@ -600,6 +617,7 @@ Item {
             anchors { right: innerContent.right; rightMargin: 8; left: innerContent.left; bottom: innerContent.bottom }
             pageSize: innerContent.visibleArea.widthRatio
             position: innerContent.visibleArea.xPosition
+            backgroundOpacity: 1.0
             opacity: 0
             states:  
                 State {

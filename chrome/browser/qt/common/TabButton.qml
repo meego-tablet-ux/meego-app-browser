@@ -41,10 +41,35 @@ Item {
   property int popupDirection: 0 // 0 up, 1 down, 2 left, 3 right
 
   Image {
+      id: tabIconBg
+      anchors.centerIn: parent
+      height: parent.height
+      source:  ""
+      states: [
+          State {
+            name:  "pressed"
+            when:  tabIcon.pressed
+            PropertyChanges {
+                target: tabIconBg
+                source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-active"
+            }
+          },
+          State {
+            name:  "selected"
+            when:  tabSidebar.showItem
+            PropertyChanges {
+                target: tabIconBg
+                source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-selected"
+            }
+          }
+      ]
+  }
+
+  Image {
     id: tabIcon
     height: parent.height
     anchors.centerIn: parent
-    source: "image://themedimage/images/browser/icn_toolbar_tabs_button_up"
+    source: "image://themedimage/icons/toolbar/view-change"
     property bool pressed: false
     states: [
       State {
@@ -52,7 +77,7 @@ Item {
         when: tabIcon.pressed
         PropertyChanges {
           target: tabIcon
-          source: "image://themedimage/images/browser/icn_toolbar_tabs_button_dn"
+          source: "image://themedimage/icons/toolbar/view-change-active"
         }
       },
       State {
@@ -60,7 +85,7 @@ Item {
         when: tabSidebar.showItem
         PropertyChanges {
             target: tabIcon
-            source: "image://themedimage/images/browser/icn_toolbar_tabs_button_dn"
+            source: "image://themedimage/icons/toolbar/view-change-selected"
         }
       }
     ]

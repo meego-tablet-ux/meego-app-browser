@@ -50,20 +50,12 @@ Item {
     anchors.fill: parent
     anchors.margins: 5
     
-  Image {
-    id: left
-    height: parent.height
-    anchors.verticalCenter: parent.verticalCenter
-    source: "image://themedimage/images/browser/urlinputbar_left"
-  }
-  BorderImage {
+  ThemeImage {
     id: omniBox
-    width: parent.width - left.width - right.width
+    width: parent.width
     height: parent.height
-    z: parent.z + 1 //to avoid hlight overlap by left and right
     anchors.verticalCenter: parent.verticalCenter
-    horizontalTileMode: BorderImage.Stretch
-    source: "image://themedimage/images/browser/urlinputbar_middle"
+    source: "image://themedimage/widgets/common/text-area/text-area-background"
     Loader {
       id: autocompletePopupLoader
 //      width: scene.isLandscapeView() ? parent.width : toolbar.width * 0.9
@@ -88,8 +80,6 @@ Item {
         id: hlight
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.leftMargin: -3 // to cover left
-        anchors.rightMargin: -3 // to cover right
         height: parent.height
         border.color: "#2CACE3"
         border.width:3
@@ -298,12 +288,12 @@ Item {
       width: {!showqmlpanel? starButtonWidth:0}
       opacity: {!showqmlpanel? 1:0}
       anchors.right: parent.right
-      anchors.rightMargin: -1 * right.width
+      anchors.rightMargin: -1
       Image {
         id: starIcon
         anchors.verticalCenter: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
-        source: "image://themedimage/images/browser/icn_favourite_off"
+        source: "image://themedimage/widgets/apps/browser/favourite-inactive"
         property bool pressed: false
         states: [
           State {
@@ -311,7 +301,7 @@ Item {
             when: starIcon.pressed
             PropertyChanges {
               target: starIcon
-              source: "image://themedimage/images/browser/icn_favourite_on"
+              source: "image://themedimage/widgets/apps/browser/favorite-active"
             }
           }
         ]
@@ -342,9 +332,9 @@ Item {
         target: browserToolbarModel
         onUpdateStarButton: {
           if(is_starred)
-            starIcon.source = "image://themedimage/images/browser/icn_favourite_on"
+            starIcon.source = "image://themedimage/widgets/apps/browser/favorite-active"
           else
-            starIcon.source = "image://themedimage/images/browser/icn_favourite_off"
+            starIcon.source = "image://themedimage/widgets/apps/browser/favourite-inactive"
         }
         onShowStarButton: {
           if (!show) {
@@ -364,7 +354,7 @@ Item {
       width: indicatorWidth
       height: parent.height
       anchors.right: parent.right
-      anchors.rightMargin: -1 * right.width
+      anchors.rightMargin: -1
       visible: false
       Spinner{
         id: processIndicator
@@ -396,13 +386,6 @@ Item {
         }
       }
     }//end of processContainer Item
-  }
-
-  Image {
-     id: right
-     height: parent.height
-     source: "image://themedimage/images/browser/urlinputbar_right"
-     anchors.verticalCenter: parent.verticalCenter
   }
   }
 /*

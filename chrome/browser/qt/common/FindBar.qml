@@ -51,7 +51,7 @@ Item {
 
   BorderImage {
     id: background
-    source: "image://themedimage/images/titlebar_l"
+    source: "image://themedimage/widgets/common/toolbar/toolbar-background"
     anchors.fill: parent
 
     TextEntry {
@@ -66,6 +66,9 @@ Item {
       textInput.width: textInput.parent.width - horizontalMargins * 2 - matchesLabel.width
       textInput.anchors.right: matchesLabel.left
       textInput.anchors.rightMargin: 10
+      color: "#383838"
+      font.family: "Droid Sans"
+      font.pixelSize: 18
       
       Item {
         id: matchesLabel
@@ -101,9 +104,26 @@ Item {
       width: height
       anchors.right: divider2.left
       Image {
+        id: prevIconBg
+        anchors.centerIn: parent
+        height: parent.height
+        width:  parent.width
+        source:  ""
+        states: [
+          State {
+            name:  "pressed"
+            when:  prevIcon.pressed
+            PropertyChanges {
+              target: prevIconBg
+              source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-active"
+            }
+          }
+        ]
+      }
+      Image {
         id: prevIcon
         anchors.centerIn: parent
-        source: "image://themedimage/images/browser/btn_findbar_prev"
+        source: "image://themedimage/icons/toolbar/go-up"
         property bool pressed: false
         states: [
           State {
@@ -111,7 +131,7 @@ Item {
             when: prevIcon.pressed
             PropertyChanges {
               target: prevIcon
-              source: "image://themedimage/images/browser/btn_findbar_prev_dn"
+              source: "image://themedimage/icons/toolbar/go-up-active"
             }
           }
         ]
@@ -136,9 +156,26 @@ Item {
       width: height
       anchors.right: divider3.left
       Image {
+        id: nextIconBg
+        anchors.centerIn: parent
+        height: parent.height
+        width:  parent.width
+        source:  ""
+        states: [
+          State {
+            name:  "pressed"
+            when:  nextIcon.pressed
+            PropertyChanges {
+              target: nextIconBg
+              source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-active"
+            }
+          }
+        ]
+      }
+      Image {
         id: nextIcon
         anchors.centerIn: parent
-        source: "image://themedimage/images/browser/btn_findbar_next"
+        source: "image://themedimage/icons/toolbar/go-down"
         property bool pressed: false
         states: [
           State {
@@ -146,7 +183,7 @@ Item {
             when: nextIcon.pressed
             PropertyChanges {
               target: nextIcon
-              source: "image://themedimage/images/browser/btn_findbar_next_dn"
+              source: "image://themedimage/icons/toolbar/go-down-active"
             }
           }
         ]
@@ -172,9 +209,26 @@ Item {
       width: height
       anchors.right: parent.right
       Image {
+        id: closeIconBg
+        anchors.centerIn: parent
+        height: parent.height
+        width:  parent.width
+        source:  ""
+        states: [
+          State {
+            name:  "pressed"
+            when:  closeIcon.pressed
+            PropertyChanges {
+              target: closeIconBg
+              source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-active"
+            }
+          }
+        ]
+      }
+      Image {
         id: closeIcon
         anchors.centerIn: parent
-        source: "image://themedimage/images/browser/btn_findbar_close"
+        source: "image://themedimage/icons/toolbar/view-refresh-stop"
         property bool pressed: false
         states: [
           State {
@@ -182,7 +236,7 @@ Item {
             when: closeIcon.pressed
             PropertyChanges {
               target: closeIcon
-              source: "image://themedimage/images/browser/btn_findbar_close_dn"
+              source: "image://themedimage/icons/toolbar/view-refresh-stop-active"
             }
           }
         ]

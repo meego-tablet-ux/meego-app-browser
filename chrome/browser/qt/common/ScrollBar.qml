@@ -50,13 +50,15 @@
      property real position
      property real pageSize
      property variant orientation : Qt.Vertical
+     property real backgroundOpacity: 0.3
+     property real scrollOpacity: 0.7 
      // A light, semi-transparent background
      Rectangle {
          id: background
          anchors.fill: parent
          radius: orientation == Qt.Vertical ? (width/2 - 1) : (height/2 - 1)
          color: "gray"
-         opacity: 0.3
+         opacity: backgroundOpacity
      }
 
      // Size the bar to the required size, depending upon the orientation.
@@ -67,7 +69,7 @@
          height: orientation == Qt.Vertical ? (scrollBar.pageSize * (scrollBar.height-2)) : (parent.height-2)
          radius: orientation == Qt.Vertical ? (width/2 - 1) : (height/2 - 1)
          color: "white"
-         opacity: 0.7
+         opacity: scrollOpacity
      }
  }
 

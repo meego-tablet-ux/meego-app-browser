@@ -8,7 +8,7 @@ function debug(msg) {
 </script>
 <style>
 body {
-  background-color: rgb(128, 128, 128);
+  background-color: rgb(246, 246, 246);
   margin: 0;
   text-align: center;
   font-family: sans-serif;
@@ -34,7 +34,7 @@ h1 {
 }
 
 #plugin_icon {
-  opacity: .4;
+  opacity: 1.0;
 }
 
 #outer:hover #plugin_icon {
@@ -95,7 +95,7 @@ FIXME: This causes flickering on hover.
 <body id="t" onSelectStart="return false;">
 <div i18n-values="title:name" id="outer" onclick="plugin.load()">
 <div id="inner">
-<div><img id="plugin_icon" src="plugin_blocked.png" /></div>
+<div><img id="plugin_icon" src="missing-plugin-small.png" /></div>
 <h1 i18n-content="message">PLUGIN_LOAD</h1>
 <p id="debug"> </p>
 </div>

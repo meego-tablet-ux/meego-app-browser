@@ -31,6 +31,7 @@
 #include "chrome/browser/profiles/profile.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/common/jstemplate_builder.h"
+#include "chrome/common/time_format.h"
 #include "chrome/common/url_constants.h"
 #include "grit/browser_resources.h"
 #include "grit/generated_resources.h"
@@ -69,12 +70,13 @@ class DownloadViewItem
 {
 
 public:
-  DownloadViewItem(QString& title, QString& url, int status, QString& progress, QString& date, int type):
+  DownloadViewItem(QString& title, QString& url, int status, QString& progress, QString& date, QString& relative_date, int type):
     title_(title),
     url_(url),
     status_(status),
     progress_(progress),
     date_(date),
+    relative_date_(relative_date),
     type_(type)
     {
     }
@@ -118,6 +120,10 @@ public:
   {
     show_date_ = show;
   }
+  QString relative_date() const
+  {
+      return relative_date_;
+  }
 
   DownloadViewItem& operator=(const DownloadViewItem& download)
   {
@@ -129,6 +135,7 @@ public:
     progress_ = download.progress();
     date_ = download.date();
     type_ = download.type();
+    relative_date_ = download.relative_date();
     return *this;
   }
 
@@ -142,6 +149,7 @@ private:
   int status_;
   QString progress_;
   QString date_;
+  QString relative_date_;
   int type_;
   int show_date_;
 };
@@ -156,20 +164,22 @@ public:
     ProgressRole,
     ShowDateRole,
     DateRole,
-    TypeRole
+    TypeRole,
+    RelativeDateRole
   };
   DownloadsQtImpl(DownloadsQtHandler* downloads_handler, QObject *parent = 0):
     QAbstractListModel(parent),
     downloads_handler_(downloads_handler)
   {
     QHash<int, QByteArray> roles;
-    roles[TitleRole] = "title";
-    roles[UrlRole] = "url";
-    roles[StatusRole] = "s";
-    roles[ProgressRole] = "progress";
-    roles[ShowDateRole]= "show_date";
-    roles[DateRole] = "downloadDate";
-    roles[TypeRole] = "type";
+    roles[TitleRole] = "dl_title";
+    roles[UrlRole] = "dl_url";
+    roles[StatusRole] = "dl_status";
+    roles[ProgressRole] = "dl_progress";
+    roles[ShowDateRole]= "dl_show_date";
+    roles[DateRole] = "dl_date";
+    roles[TypeRole] = "dl_type";
+    roles[RelativeDateRole] = "dl_relative_date";
     setRoleNames(roles);
   }
 
@@ -183,7 +193,7 @@ public:
 
   bool downloadItemUpdated(DownloadViewItem item, int id)
   {
-    //int item_index = m_downloadList.indexOf(item);
+   //int item_index = m_downloadList.indexOf(item);
     int item_index = id;
     m_downloadList[item_index] = item;
     if (item_index >=0 && item_index < m_downloadList.size())
@@ -216,6 +226,8 @@ public:
       return download.show_date();
     else if (role ==  DateRole)
       return download.date();
+    else if (role ==  RelativeDateRole)
+      return download.relative_date();
     else if (role == TypeRole)
       return download.type();
     else return QVariant();
@@ -517,11 +529,14 @@ DownloadViewItem* DownloadsQtHandler::CreateDownloadViewItem(DownloadItem* downl
   const std::string& date = UTF16ToUTF8(base::TimeFormatShortDate(download->start_time()));
   QString q_date = QString::fromStdString(date); 
 
+  const std::string& relative_date = UTF16ToUTF8(TimeFormat::RelativeDate(download->start_time(), NULL));
+  QString q_relative_date = QString::fromStdString(relative_date);
+
   //add type feature
   string16 file_path = download->full_path().LossyDisplayName();
   const std::string& path = UTF16ToUTF8(file_path);
   int i_type = FetchMimetypeIconID(path);
-  DownloadViewItem* Item = new DownloadViewItem(q_title, q_url, i_status, q_progress, q_date, i_type);
+  DownloadViewItem* Item = new DownloadViewItem(q_title, q_url, i_status, q_progress, q_date, q_relative_date, i_type);
   return Item;
 }
 

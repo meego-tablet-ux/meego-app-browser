@@ -39,7 +39,7 @@ Item {
   property int itemMaxWidth: 200
   property int itemMinWidth: 60
   property int containerHeight: 51
-  property int titleFontSize: 13
+  property int titleFontSize: 16
   property bool showInstruction: false
   parent: outerContent
   property bool bookmarkBarHasContents: false
@@ -129,13 +129,14 @@ Item {
           anchors.fill: parent
           anchors.leftMargin: 18
           anchors.rightMargin: 18
-          color: "#383838"
+          color: "lightgray"
           elide: Text.ElideRight
           verticalAlignment: Text.AlignVCenter
           horizontalAlignment: Text.AlignHCenter
           font.pixelSize: titleFontSize
           font.bold: false
           font.family: "Droid Sans"
+          style: Text.Raised
           text: title
           wrapMode: Text.NoWrap
           clip: true

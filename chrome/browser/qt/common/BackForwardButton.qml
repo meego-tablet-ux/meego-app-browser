@@ -49,20 +49,45 @@ Item {
   // whether the button is active, only affect when button is of backward button
   property bool active: false
   property Item popup
+
+  Image {
+      id: backForwardBg
+      anchors.centerIn: parent
+      height: parent.height
+      source:  ""
+      states: [
+          State {
+            name:  "pressed"
+            when:  backForwardIcon.pressed
+            PropertyChanges {
+                target: backForwardBg
+                source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-active"
+                }
+            },
+          State {
+            name: "selected"
+            when:  popup.showed && !showqmlpanel
+            PropertyChanges {
+                target: backForwardBg
+                source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-selected"
+                }
+            }
+      ]
+  }
+
   Image {
     id: backForwardIcon
     anchors.centerIn: parent
     height: parent.height
-    source: "image://themedimage/images/browser/icn_toolbar_back_button_up"
+    source: "image://themedimage/icons/toolbar/go-back"
     property bool pressed: false
-    opacity: {showqmlpanel? 0.5:1}
     states: [
       State {
         name: "popupShown"
           when: popup.showed && !showqmlpanel
           PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_back_forward_dn"
+            source: "image://themedimage/icons/toolbar/go-back-forward-selected"
           }
       },
       // backward inactive icon
@@ -71,7 +96,7 @@ Item {
         when: ((kind == 0 && !active) || showqmlpanel) && !backForwardIcon.pressed
         PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_back_button_up"
+            source: "image://themedimage/icons/toolbar/go-back-inactive"
             opacity: 0.5
         }
       },
@@ -80,7 +105,7 @@ Item {
         when: (kind == 0 && active) && !backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_back_button_up"
+            source: "image://themedimage/icons/toolbar/go-back"
         }
       },
       // backward active icon
@@ -89,7 +114,7 @@ Item {
         when: kind == 0 && backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_back_button_dn"
+            source: "image://themedimage/icons/toolbar/go-back-active"
         }
       },
       State {
@@ -97,7 +122,7 @@ Item {
         when: kind == 1 && !backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_forward_button_up"
+            source: "image://themedimage/icons/toolbar/go-forward"
         }
       },
       // forward icon
@@ -106,7 +131,7 @@ Item {
         when: kind == 1 && backForwardIcon.pressed && !showqmlpanel
         PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_forward_button_dn"
+            source: "image://themedimage/icons/toolbar/go-forward-active"
         }
       },
       State {
@@ -114,7 +139,7 @@ Item {
           when: kind == 2 && !backForwardIcon.pressed && !showqmlpanel
           PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_back_forward_up"
+            source: "image://themedimage/icons/toolbar/go-back-forward"
           }
       },
       // backforward icon
@@ -123,7 +148,7 @@ Item {
           when: kind == 2 && backForwardIcon.pressed && !showqmlpanel
           PropertyChanges {
             target: backForwardIcon
-            source: "image://themedimage/images/browser/icn_toolbar_back_forward_dn"
+            source: "image://themedimage/icons/toolbar/go-back-forward-active"
           }
       }
     ]

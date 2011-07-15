@@ -46,9 +46,10 @@ size_t GetUTF8Offset(const std::wstring& wide_text, size_t wide_text_offset) {
 class SuggestionItem
 {
 public:
-  SuggestionItem(int icon, QString& url, int line):
+  SuggestionItem(int icon, QString& url, QString& desc, int line):
     icon_(icon),
     url_(url),
+    desc_(desc),
     line_(line)
     {
     }
@@ -63,6 +64,11 @@ public:
     return url_;
   }
 
+  QString desc() const
+  {
+    return desc_;
+  }
+  
   int line() const
   {
     return line_;
@@ -71,6 +77,7 @@ public:
 private:
   int icon_;
   QString url_;
+  QString desc_;
   int line_;
 };
 
@@ -81,6 +88,7 @@ public:
   enum SuggestionRoles {
     IconRole = Qt::UserRole + 1,
     UrlRole,
+    DescRole,
     LineRole
   };
 
@@ -91,6 +99,7 @@ public:
     QHash<int, QByteArray> roles;
     roles[IconRole] = "icon";
     roles[UrlRole] = "url";
+    roles[DescRole] = "desc";
     roles[LineRole] = "line";
      
     setRoleNames(roles);
@@ -128,6 +137,8 @@ public:
       return suggestion.icon();
     else if (role == UrlRole)
       return suggestion.url();
+    else if (role == DescRole)
+      return suggestion.desc();
     else if (role == LineRole)
       return suggestion.line();
     return QVariant();
@@ -233,7 +244,8 @@ void AutocompletePopupViewQt::Observe(NotificationType type,
 }
 
 static const int kMaxSuggestionItems = 20;
-static const int kMaxSuggestionTextLen = 100;
+static const int kMaxSuggestionTextLen = 200;
+static const int kConnectorTextLen = 3; // " - "
 
 void AutocompletePopupViewQt::Show(size_t num_results) {
   const AutocompleteResult& result = model_->result();
@@ -241,6 +253,7 @@ void AutocompletePopupViewQt::Show(size_t num_results) {
   impl_->clear();
   
   for (int line = 0; line < result.size() && line < kMaxSuggestionItems; line++) {
+    int textLenRemain = 0;
     const AutocompleteMatch& match = result.match_at(line);
     
     QString content = QString::fromStdWString(UTF16ToWide(match.contents));
@@ -249,14 +262,17 @@ void AutocompletePopupViewQt::Show(size_t num_results) {
     DLOG(INFO) << "line : " << line;
     DLOG(INFO) << "content : " << match.contents;
     DLOG(INFO) << "desr : " << match.description;
-    
-    QString str;
-    if (desr.isEmpty()) str = content;
-    else str = content + " - " + desr;
-
+  
     ///\todo: is there a better way to do
-    // if the string is too long, crash in listview.
-    str.truncate(kMaxSuggestionTextLen);
+    if(content.size() >= kMaxSuggestionTextLen - kConnectorTextLen){
+        content.truncate(kMaxSuggestionTextLen);
+        desr.truncate(0);
+    }
+    else{
+        textLenRemain = kMaxSuggestionTextLen - content.size() - kConnectorTextLen;
+        desr.truncate(textLenRemain);
+        desr = " - " + desr;
+    }
     
     int icon = match.starred?
       IDR_OMNIBOX_STAR : AutocompleteMatch::TypeToIcon(match.type);
@@ -273,7 +289,7 @@ void AutocompletePopupViewQt::Show(size_t num_results) {
     case IDR_OMNIBOX_STAR:
       icon_id = 4; break;
     }
-    impl_->addSuggestion(SuggestionItem(icon_id, str, line));
+    impl_->addSuggestion(SuggestionItem(icon_id, content, desr, line));
   }
   DLOG(INFO) << "result size = " << result.size();
       

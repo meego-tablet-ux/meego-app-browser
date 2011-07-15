@@ -46,6 +46,7 @@ Item {
   property alias model: view.model
   property int itemHeight: suggestionItemHeight
   property int maxHeight: maxPopupHeight
+  property int iconWidth: 40
   //width: parent.width
 
   // Space left for autocomplete popup view when taking vkb's area into account
@@ -53,53 +54,37 @@ Item {
 
   //The margin size of menu items
   property int textMargin: 20
+  //inner menu shadow margin
+  property int shadowMargin: 4
  
   Image {
     id: finger
-    source: "image://themedimage/images/popupbox_arrow_top"
+    source: "image://themedimage/widgets/common/menu/default-dropdown-triangle-top"
     anchors.top: parent.top
     anchors.horizontalCenter: parent.horizontalCenter
+    z: menu.z + 1  // finger needs to be drawn on top of the menu shadow
   }
 
   Item {
     id: menu
     width: parent.width
-    height: Math.min (container.maxHeight, view.count * container.itemHeight, 
-                        spaceOutOfVkb - spaceOutOfVkb % container.itemHeight)
+    height: shadowMargin*2 + viewContainer.height
     anchors.top: finger.bottom
-    clip: true
+    anchors.topMargin: -shadowMargin //eliminate the gap between finger and shadow margin
 
-	BorderImage {
-    	id: borderImage1
-	    source: "image://themedimage/images/popupbox_1"
-		border.left: 10
-		border.right: 10
-		//border.top: 5
-		width: parent.width
-		anchors.top: parent.top
-	}
-	
-    BorderImage {
-		anchors.top: borderImage1.bottom
-		anchors.bottom: borderImage2.top
-		source: "image://themedimage/images/popupbox_2"
-		verticalTileMode: BorderImage.Repeat
-		width: parent.width
-		clip: true
-		height: parent.height - borderImage1.height - borderImage2.height
-		border.left: 10
-		border.right: 10
-	}
-	
-	BorderImage {
-		id: borderImage2
-		anchors.bottom: parent.bottom
-		source: "image://themedimage/images/popupbox_3"
-		width: parent.width
-		border.left: 10
-		border.right: 10
-		//border.bottom: 34
-	}
+    ThemeImage {
+        // menu shadow
+        id: menuShadow
+        source: "image://themedimage/widgets/common/menu/menu-background-shadow"
+        anchors.fill: parent
+        // menu background inside the shadow
+        ThemeImage {
+             id: menuBg
+             source: "image://themedimage/widgets/common/menu/menu-background"
+             anchors.fill: parent
+             anchors.margins: shadowMargin
+         }
+    }
 
     Component {
       id: suggestionDelegate
@@ -109,42 +94,91 @@ Item {
         opacity: 1
           Text {
             id: urltext
-	        x: textMargin
-            width: parent.width-textMargin*2
             height: parent.height - 1
+            anchors.left : urlIconWrapper.right
             color: theme_blockColorHighlight
 	        elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
             font.pixelSize: theme_fontPixelSizeNormal
             text: url
+
+            Component.onCompleted: {
+                if (paintedWidth > parent.width - urlIconWrapper.width - textMargin ){
+                    width = parent.width - urlIconWrapper.width - textMargin;
+                }else{
+                    width = paintedWidth;
+                }
+            }
           }
-	  Image {
+          
+          Text {
+            id: urlDescription
+            height: parent.height - 1
+            anchors.left: urltext.right
+            anchors.right: parent.right
+            anchors.rightMargin: textMargin;
+            anchors.top: parent.top
+            color: theme_contextMenuFontColor
+	        elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+            font.pixelSize: theme_fontPixelSizeNormal
+            text: desc
+          }
+          
+          Item {
+            id: urlIconWrapper
+            width: iconWidth
+            height: parent.height - 1
+            anchors.left: parent.left
+            anchors.top: parent.top
+            Image {
+                id: urlIcon
+                fillMode: Image.PreserveAspectFit
+                anchors.centerIn: parent
+                source: icon == 0 ? "image://themedimage/widgets/apps/browser/web-favorite-small" :
+                        icon == 1 ? "image://themedimage/widgets/apps/browser/web-favorite-small" :
+                        icon == 2 ? "image://themedimage/widgets/apps/browser/search" :
+                        "image://themedimage/widgets/apps/browser/favourite-inactive"; //icon == 4
+            }
+          }
+    	  Image {
             id: divider
             anchors.top : urltext.bottom
-            width: parent.width
+            width: parent.width - shadowMargin
+            anchors.horizontalCenter: parent.horizontalCenter
             height: 1
-            source: "image://themedimage/images/menu_item_separator"
+            source: "image://themedimage/widgets/common/menu/menu-item-separator"
             visible: index < view.count -1
           }
-        MouseArea {
-          anchors.fill: parent
-          onClicked: {
-            container.model.openLine(line);
-            innerContent.forceActiveFocus();
+          MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                container.model.openLine(line);
+                innerContent.forceActiveFocus();
+            }
           }
-        }
       }
     }
 
-    ListView {
-      id: view
-      anchors.fill: parent
-      delegate: suggestionDelegate
-      model: autocompletePopupViewModel
-      focus: false
-      opacity: 0.5
+    Item{
+        id:viewContainer
+        width: parent.width
+        height: Math.min (container.maxHeight, view.count * container.itemHeight,
+                        spaceOutOfVkb - spaceOutOfVkb % container.itemHeight)
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.topMargin: shadowMargin
+        anchors.leftMargin: shadowMargin
+        ListView {
+        id: view
+        anchors.fill: parent
+        delegate: suggestionDelegate
+        model: autocompletePopupViewModel
+        focus: false
+        opacity: 0.5
+        clip: true
+        interactive: count > 4 ? true : false
+      }
     }
-
   }
 
   /*Connections {

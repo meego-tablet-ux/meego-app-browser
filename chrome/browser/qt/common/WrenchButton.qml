@@ -41,10 +41,36 @@ Item {
   property bool shown: false
   property int popupDirection: 0 // 0 up, 1 down, 2 left, 3 right
   property int offsetHeight: 8
+
+  Image {
+      id: wrenchIconBg
+      anchors.centerIn: parent
+      height: parent.height
+      source:  ""
+      states: [
+          State {
+            name:  "pressed"
+            when:  wrenchIcon.pressed
+            PropertyChanges {
+                target: wrenchIconBg
+                source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-active"
+            }
+          },
+          State {
+            name:  "selected"
+            when:  shown
+            PropertyChanges {
+                target: wrenchIconBg
+                source: "image://themedimage/widgets/common/toolbar-item/toolbar-item-background-selected"
+            }
+          }
+      ]
+  }
+
   Image {
     id: wrenchIcon
     anchors.verticalCenter: parent.verticalCenter
-    source: "image://themedimage/images/icn_toolbar_applicationpage_menu_up"
+    source: "image://themedimage/icons/toolbar/view-actions"
     property bool pressed: false
     states: [
       State {
@@ -52,7 +78,7 @@ Item {
         when: wrenchIcon.pressed
         PropertyChanges {
           target: wrenchIcon
-          source: "image://themedimage/images/icn_toolbar_applicationpage_menu_dn"
+          source: "image://themedimage/icons/toolbar/view-actions-active"
           height: parent.height
         }
       },
@@ -61,7 +87,7 @@ Item {
         when: shown
         PropertyChanges {
           target: wrenchIcon
-          source: "image://themedimage/images/icn_toolbar_applicationpage_menu_dn"
+          source: "image://themedimage/icons/toolbar/view-actions-selected"
           height: parent.height
         }
       }

@@ -128,8 +128,11 @@ void TabContentsContainerQt::SetTabContents(TabContents* tab_contents) {
   
   if (!webview_item_)
     return;
-  
+
+  bool animation_on = false;
+
   if (tab_contents_) {
+    animation_on = true;
     QGraphicsWidget* tab_widget = tab_contents_->GetNativeView();
     if (tab_widget)
     {
@@ -171,7 +174,8 @@ void TabContentsContainerQt::SetTabContents(TabContents* tab_contents) {
       ViewportSizeChanged();
       
       tab_widget->show();
-      impl_->FadeAnimation(viewport_item_);
+      if (animation_on)
+        impl_->FadeAnimation(viewport_item_);
 
       ///\todo: hack to pass focus out event to old rwhv
       RenderWidgetHostView* view = tab_contents_->GetRenderWidgetHostView();

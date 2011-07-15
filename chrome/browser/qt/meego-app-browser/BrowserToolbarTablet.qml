@@ -97,7 +97,7 @@ Item {
 */
     BorderImage {
         id: background
-        source: "image://themedimage/images/titlebar_l"
+        source: "image://themedimage/widgets/common/toolbar/toolbar-background"
         width: parent.width
         height: parent.height
 

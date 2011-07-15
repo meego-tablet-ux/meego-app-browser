@@ -182,6 +182,8 @@ Item {
   }
 
   ModalDialog {
+    maxWidth: 400
+    sizeHintHeight: 240
     id: bmItemDeleteDialog
     title: qsTr("Delete bookmark")
     acceptButtonText: qsTr("Delete")

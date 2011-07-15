@@ -40,11 +40,14 @@ Item {
   property alias mostVisitedModel: mostVisited.gridModel;
   property alias recentlyClosedModel: recentlyClosed.gridModel;
 
-  Image {
+  BorderImage {
     id: background
     anchors.fill: parent
-    fillMode: Image.Stretch
-    source: "image://themedimage/images/bg_application_p"
+    border.left:   8
+    border.top:    8
+    border.bottom: 20
+    border.right:  8
+    source: "image://themedimage/widgets/common/backgrounds/content-background-with-header-reverse"
   }
 
   GestureArea {
@@ -83,24 +86,7 @@ Item {
     id: recentlyClosed
     enableDrag: false
     width: parent.width
-    anchors.top: line.bottom 
-  }
-
-  Image {
-    id: line
-    width: parent.width
-    height: getLineTopMargin() + 1
     anchors.top: mostVisited.bottom
-    fillMode: Image.Stretch
-    source: "image://themedimage/images/bg_application_p"
-
-    Image{
-      width: parent.width
-      height: 2
-      fillMode: Image.Stretch
-      anchors.bottom: parent.bottom
-      source: "image://themedimage/widgets/common/menu/menu-item-separator"
-    }
   }
  
   function getLineTopMargin() {

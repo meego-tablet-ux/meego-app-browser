@@ -49,9 +49,10 @@ Item {
   anchors.right: parent.right
 
   // default margin is 5
-  property int commonMargin: 5
+  property int commonMargin: 10
   property int innerCommonMargin: 1
   property int textMargin: 10
+  property int shadowImageBorderSize: 7
 
   // delegate to show thumbnail of each web page in the history list
   Component {
@@ -59,47 +60,45 @@ Item {
     Item {
       id: innerItem
 
-      height: container.itemHeight
-      width: container.itemWidth
+      height: container.itemHeight + shadowImageBorderSize*2
+      width: container.itemWidth + shadowImageBorderSize*2
 
       // flag to indicate whether the current item is the highlighted one in the list
       property bool isCurrent: false
-      Rectangle {
-        id: historyItem
-        height: parent.height
-        border.width: innerCommonMargin
-        border.color: "grey"
 
-        width: parent.width
-        anchors.fill: parent
-        anchors.margins: innerCommonMargin
-
-        Rectangle {
-            id: image 
-            height: parent.height - historyTitle.height - innerCommonMargin
-            width:  parent.width - innerCommonMargin 
-
-            anchors.top: parent.top
+      BorderImage {
+            id: itemShadowImage
+            anchors.top: parent.top 
+            anchors.bottom: parent.bottom
             anchors.left: parent.left
-            anchors.leftMargin: innerCommonMargin
-            anchors.topMargin: innerCommonMargin
+            anchors.right: parent.right
+            border{left: shadowImageBorderSize; 
+                   right: shadowImageBorderSize; 
+                   top: shadowImageBorderSize;
+                   bottom: shadowImageBorderSize}
+            horizontalTileMode: BorderImage.Stretch
+            verticalTileMode: BorderImage.Stretch
+            source: "image://themedimage/widgets/apps/browser/tabs-border-overlay"
+      }
 
-            Image {
-              height: parent.height
-              width: parent.width                      
-              id: thumbImage               
-              source: thumbSrc             
-              smooth: true
-            }
+
+      Item {
+        id: historyItem
+        anchors.fill: parent
+        anchors.margins: shadowImageBorderSize - 1
+
+        Image {
+            id: thumbImage               
+            anchors.fill: parent              
+            source: thumbSrc        
+            smooth: true
         }
-
-        Rectangle {
+        Item {
             id: historyTitle
             height: 30
-            width: parent.width - innerCommonMargin
+            width: parent.width
             anchors.bottom: parent.bottom
             anchors.left: parent.left	
-            anchors.leftMargin: innerCommonMargin
             Image {
               id: textBg
               source: "image://themedimage/widgets/apps/browser/tabs-background"
@@ -123,7 +122,7 @@ Item {
             }     
         }
 
-          MouseArea {
+        MouseArea {
             anchors.fill: parent
             onClicked: {
               console.log("click page " + index)
@@ -132,9 +131,10 @@ Item {
               historyView.currentIndex = index
               timer.running = true
             }
-          }
-          // timer to delay some time to show the new clicked thumbnail
-          Timer {
+        }
+        
+        // timer to delay some time to show the new clicked thumbnail
+        Timer {
             id: timer
             interval: 100
             running: false
@@ -142,30 +142,24 @@ Item {
               console.log("timer is ended")
               historyView.model.openPage(index)
             }
-          }
+        }
       }
       // highlighted the selected current thumbnail with a border
       states: State {
         name: "highlight"
         when: innerItem.ListView.isCurrentItem
+    	PropertyChanges {
+	      target: titleText
+    	  color: "#ffffff"
+    	}
+    	PropertyChanges {
+    	  target: textBg
+    	  source: "image://themedimage/widgets/apps/browser/tabs-background-active"
+    	}
         PropertyChanges {
-          target: historyItem
-          radius: 2
-          border.width: 1
-          border.color: "#2CACE3"
+          target: itemShadowImage
+          source: "image://themedimage/widgets/apps/browser/tabs-border-overlay-active"
         }
-	PropertyChanges {
-	  target: titleText
-	  color: "#383838"
-	}
-	PropertyChanges {
-	  target: historyTitle
-	  color: "white"
-	}
-	PropertyChanges {
-	  target: textBg
-	  source: "image://themedimage/widgets/apps/browser/tabs-background-active"
-	}
       }
     }
   }
@@ -173,10 +167,10 @@ Item {
   ListView {
     id: historyView
     anchors.fill: parent
-    spacing: 5
-    anchors.topMargin: commonMargin*2
-    anchors.bottomMargin: commonMargin*2
-    anchors.leftMargin: commonMargin
+    spacing: commonMargin - shadowImageBorderSize*2
+    anchors.topMargin: commonMargin - shadowImageBorderSize
+    anchors.bottomMargin: commonMargin - shadowImageBorderSize
+    anchors.leftMargin: commonMargin -shadowImageBorderSize
     delegate: historyItemDelegate
     model: historyStackModel
     focus: true

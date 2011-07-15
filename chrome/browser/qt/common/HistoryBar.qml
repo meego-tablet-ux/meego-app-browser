@@ -40,64 +40,57 @@ Item {
     anchors.fill: parent
     property bool showed: false
     property int itemCount: 0
-    property int commonMargin: 5
+    property int commonMargin: 10
     property int parentWidth: 0
-    property int showWidth: (itemCount * 180 + commonMargin * (itemCount + 1)) < parentWidth ? itemCount * 180 + commonMargin * (itemCount + 1): parentWidth
+    property int itemWidth: 180 + itemShadowWidth*2
+    property int itemShadowWidth: 7
+    property int spaceWidth: commonMargin - itemShadowWidth*2
+    property int showWidth: (itemCount * itemWidth + (commonMargin - itemShadowWidth)*2 + (itemCount - 1) * spaceWidth) < parentWidth ? 
+        itemCount * itemWidth + (commonMargin - itemShadowWidth)*2 + (itemCount - 1) * spaceWidth: 
+        parentWidth;
     //property alias historyBarY: historyBar.y
     z: 10
     opacity: 0
     property int fingerX: 0
     property int fingerY: 0
+    property int stackImageBorderWidth: 11
+    property int stackImageBlankSpaceWidth: 6
 
-    ModalFogBrowser {}
+    //ModalFogBrowser {}
 
     Item {
       id: historyContainer
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.top: parent.top 
-      anchors.topMargin: 55
+      anchors.topMargin: 55 + stackImageBlankSpaceWidth/2
       height: historyBar.height
       z: parent.z
 
-    BorderImage {
-        id: borderImage1
-        source: "image://themedimage/images/popupbox_1"
-        border.left: 20
-        border.right: 20
-        border.top: 5
-        width: showWidth
+      BorderImage {
+        id: historyStackBorderImage
+        border.left : stackImageBorderWidth
+        border.right: stackImageBorderWidth
+        border.top: stackImageBorderWidth
+        border.bottom: stackImageBorderWidth
+        width: showWidth + 2*stackImageBlankSpaceWidth
         anchors.top: parent.top
-    }
-    
-    BorderImage {
-        anchors.top: borderImage1.bottom
-        anchors.bottom: borderImage2.top
-        source: "image://themedimage/images/popupbox_2"
-        verticalTileMode: BorderImage.Repeat
-        width: showWidth
-        clip: true
-        height: parent.height - borderImage1.height - borderImage2.height
-        border.left: 20
-        border.right: 20
-    }
-    
-    BorderImage {
-        id: borderImage2
+        anchors.topMargin: 0 - stackImageBlankSpaceWidth
         anchors.bottom: parent.bottom
-        source: "image://themedimage/images/popupbox_3"
-        width: showWidth
-        border.left: 20
-        border.right: 20
-        border.bottom: 34
-    }
-    HistoryView {
+        anchors.bottomMargin: 0 - stackImageBlankSpaceWidth
+        anchors.left: parent.left
+        anchors.leftMargin: 0 - stackImageBlankSpaceWidth
+        verticalTileMode: BorderImage.Stretch
+        horizontalTileMode: BorderImage.Stretch
+        source : "image://themedimage/widgets/apps/browser/stacks-background"
+      }
+
+      HistoryView {
         id: historyBar
         width: parent.width
         // y: toolbar.y + toolbar.height
         z: parent.z + 1
-    }
-
+      }
     }
 
     GestureArea {

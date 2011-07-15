@@ -36,12 +36,17 @@ import MeeGo.Components 0.1
 import Qt.labs.gestures 2.0
 
 Item {
-  id: downloadsContainer//; width: 640; height: 480
+  id: downloadsContainer
   property variant model: downloadsObject
   anchors.fill: parent
   property int headTextPixel: 21
+  property int headTopMargin: 20
+  property int headLeftMargin: 20
+  property int headRightMargin: 30
+  property int bodyMargin: 40
   property alias textFocus: searchEdit.textFocus
   property bool showed: false
+  property bool isLandscape: scene.isLandscapeView()
   opacity: 0
 
   GestureArea {
@@ -67,9 +72,9 @@ Item {
   Rectangle {
     id: controlContainer
     width: parent.width
-    height: 100
+    height: 150
     anchors.top: parent.top
-    anchors.topMargin: 10
+    anchors.topMargin: headTopMargin
     Image {
       id: controlBackground
       anchors.fill: parent
@@ -78,19 +83,19 @@ Item {
     }
     Text {
       id: head
-      height: 50
       text: downloadTitle
-      anchors {top: parent.top; left: parent.left; leftMargin: 20;} 
+      anchors {top: parent.top; left: parent.left; leftMargin: headLeftMargin;} 
       font { pixelSize: headTextPixel }
+      font.family: theme_fontFamily
     }
 
     Text {
       id: clearAll
       height: 50
-      anchors {top: parent.top; right: parent.right; rightMargin: 10;}
+      anchors {bottom: parent.bottom; right: parent.right; rightMargin: 30;}
       text: downloadClearAll
-      color: "blue"
-      font { bold: true; pixelSize: 20;underline:true; }
+      color: "red"
+      font { family: theme_fontFamily; pixelSize: 20;underline:true; }
       MouseArea {
         anchors.fill: parent
         onClicked: { downloadsContainer.model.clearAllItem()}
@@ -99,18 +104,39 @@ Item {
  
     TextEntry {
       id: searchEdit
-      width: parent.width/2
-      anchors { left: parent.left; leftMargin: 20; top: head.bottom;  bottom:parent.bottom; bottomMargin: 10;}
+      width: isLandscape? parent.width/2 : (parent.width*2)/3
+      height: 40
+      anchors { left: parent.left; leftMargin:headLeftMargin; top: head.bottom; topMargin: 20}
       defaultText: downloadSearch
       onTextChanged: {
         downloadsContainer.model.textChanged(text);
       }
     }
+    
+    //this item is deleted, because of string freeze.    
+    /***
+    TextButton {
+      id: sendRequest
+      width: isLandscape? parent.width/5 : parent.width/4
+      height: 40
+      anchors.left: searchEdit.right
+      anchors.leftMargin: 20
+      anchors.top: head.bottom
+      anchors.topMargin: 20
+      textColor: "white"
+      fontSize: 20
+      btnColor: "#2CACE3"
+      text: "Send"
+      onClicked: {
+        downloadsContainer.model.textChanged(searchEdit.text);
+      }
+    }
+    */
   }
 
   DefaultDivider {
     id: divide
-    anchors { left: parent.left; leftMargin: 25; right: parent.right; rightMargin: 25; top: controlContainer.bottom }
+    anchors { left: parent.left; leftMargin: 30; right: parent.right; rightMargin: 30; top: controlContainer.bottom }
   }
 
   DownloadShelf {
