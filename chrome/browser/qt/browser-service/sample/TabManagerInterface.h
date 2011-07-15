@@ -70,6 +70,12 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("showBrowser"), argumentList);
     }
 
+    inline QDBusPendingReply<> refreshTabList()
+    {
+        QList<QVariant> argumentList;
+        return asyncCallWithArgumentList(QLatin1String("refreshTabList"), argumentList);
+    }
+
     inline QDBusPendingReply<> updateCurrentTab()
     {
         QList<QVariant> argumentList;

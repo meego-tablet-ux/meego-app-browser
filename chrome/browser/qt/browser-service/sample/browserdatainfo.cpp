@@ -60,6 +60,11 @@ bool BrowserDataInfo::closeTab(int index)
     }
 }
 
+void BrowserDataInfo::refreshTabList()
+{
+  m_interface->refreshTabList();
+}
+
 void BrowserDataInfo::openBrowser(BrowserDataInfo::OpenMode mode, const QString &target)
 {
   QString browser_path;
@@ -126,27 +131,34 @@ void BrowserDataInfo::dbusBrowserLaunched()
     emit browserLaunched();
 }
 
-void BrowserDataInfo::dbusTabInfoUpdated(int index)
+void BrowserDataInfo::dbusTabInfoUpdated(int tabid)
 {
-    if (index < 0 || index >= m_dataInfoList.size())
+    int index = 0, size = m_dataInfoList.size();
+    for (; index < size; index++) {
+        int id = m_dataInfoList[index].tab_id;
+        if (id == tabid)
+            break;
+    }
+
+    if (index == size)
         return;
 
     if (m_db.isOpen()) {
         QSqlQuery query;
         QString sqlString;
-        sqlString.sprintf("select * from current_tabs where tab_id=%d", index);
+        sqlString.sprintf("select * from current_tabs where tab_id=%d", tabid);
         query.exec(sqlString);
         query.next();
 
         TabInfo & tabinfo = m_dataInfoList[index];
-        tabinfo.tab_id = index;
+        tabinfo.tab_id = tabid;
         tabinfo.url = query.value(3).toString();
         tabinfo.title = query.value(4).toString();
         tabinfo.thumbnail = getPicPath(tabinfo.url);
         tabinfo.win_id = 0;
     }
 
-    emit tabInfoUpdated(index);
+    emit tabInfoUpdated(tabid);
 }
 
 void BrowserDataInfo::dbusTabListUpdated()

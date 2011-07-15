@@ -55,12 +55,14 @@ public:
     void updateCurrentTab();
     // Get the list of TabInfo object.
     const QList<TabInfo> & getDataInfoList() const;
+    // refresh tab list
+    void refreshTabList();
 
 public Q_SLOTS:
     // DBus singal handler
     void dbusBrowserClosed();
     void dbusBrowserLaunched();
-    void dbusTabInfoUpdated(int index);
+    void dbusTabInfoUpdated(int tabid);
     void dbusTabListUpdated();
 
 Q_SIGNALS:

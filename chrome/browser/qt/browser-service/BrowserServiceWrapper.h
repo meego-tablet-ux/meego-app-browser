@@ -14,6 +14,7 @@
 #include "chrome/browser/tabs/tab_strip_model_observer.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/ui/browser_window.h"
 #include "content/browser/tab_contents/navigation_entry.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "chrome/browser/tabs/tab_strip_model.h"
@@ -129,6 +130,10 @@ public:
   void GetThumbnail(TabContents* contents, const GURL& url, int index);
   void GetFavIcon(const GURL &url);
   void OnBrowserClosing();
+  void OnBrowserWindowMinimized(BrowserWindow* window);
+  void ReloadTabList();
+  void UpdateTabListAndThumbnails(bool update_thumbnail = true);
+  void UpdateTabInfo(TabContents* contents, bool update_thumbnail = true);
 
 private:
   void ClearSnapshotList();
@@ -147,5 +152,7 @@ private:
   QList<SnapshotTaker*> snapshotList_;
 
   QMap<GURL, qint64> url2timestamp_; 
+  QList<GURL> urlcaptured_;
+  bool onBrowserClosingCalled_;
 };
 #endif

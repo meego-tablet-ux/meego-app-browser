@@ -90,10 +90,12 @@ public:
 
     // TabManager API
     void updateCurrentTab();
+    void refreshTabList();
     void showBrowser(const char * mode, const char *target);
     void closeTab(int index);
     int getCurrentTabIndex();
     void emitBrowserCloseSignal();
+    void emitTabListUpdatedSignal();
 
 private:
     void init_db();

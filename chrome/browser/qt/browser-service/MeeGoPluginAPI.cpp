@@ -129,12 +129,6 @@ void MeeGoPluginAPI::init_browser_service()
   return;
 }
 
-static void UpdateAlreadyOpenedTab(BrowserServiceWrapper* wrapper)
-{
-  if(wrapper)
-    wrapper->AddOpenedTab();
-}
-
 MeeGoPluginAPI::MeeGoPluginAPI(BrowserServiceWrapper* wrapper):
     wrapper_(wrapper),
     m_panel_db(NULL),
@@ -145,9 +139,6 @@ MeeGoPluginAPI::MeeGoPluginAPI(BrowserServiceWrapper* wrapper):
   init_db();
   init_browser_service();
   g_signal_emit_by_name(m_browserService, "browser_launched");
-
-  BrowserThread::PostTask(BrowserThread::UI, FROM_HERE, NewRunnableFunction(
-        UpdateAlreadyOpenedTab, wrapper_));
 }
 
 MeeGoPluginAPI::~MeeGoPluginAPI()
@@ -212,7 +203,6 @@ void MeeGoPluginAPI::init_db()
     sqlite3_exec(m_panel_db, "CREATE INDEX url ON favicons(url)", NULL, NULL, NULL);
 
     sqlite3_exec(m_panel_db, CREATE_TABS_TABLE_STMT, NULL, NULL, NULL);
-    sqlite3_exec(m_panel_db, "DELETE FROM current_tabs", NULL, NULL, NULL);
     sqlite3_busy_timeout(m_panel_db, 100);
   }
   else 
@@ -266,11 +256,17 @@ void MeeGoPluginAPI::cleanupObsoleteHistoryItem(int count)
 {
   if(count < 0) return;
 
+  // Select the url item to be deleted. 
+  // A number of recently visited pages will be reserved. The parameter count indicate
+  // how many pages will be reserved
+  // Note that if the url item is still opened in tabs, it won't not be deleted.
   const char* select_sql = 
-    "SELECT url FROM urls WHERE url NOT IN (SELECT url FROM urls ORDER BY last_visit_time DESC LIMIT ?)";
+    "SELECT url FROM urls WHERE url NOT IN (SELECT url FROM urls ORDER BY last_visit_time DESC LIMIT ?) "
+    "AND url NOT IN (SELECT url FROM current_tabs)";
 
   const char* cleanup_sql =
-    "DELETE FROM urls WHERE id NOT IN (SELECT id FROM urls ORDER BY last_visit_time DESC LIMIT ?)";
+    "DELETE FROM urls WHERE id NOT IN (SELECT id FROM urls ORDER BY last_visit_time DESC LIMIT ?) "
+    "AND url NOT in (SELECT url FROM current_tabs)";
 
   // Remove thumbnail and favicons from local file system
   sqlite3_stmt* select_stmt = NULL;
@@ -507,7 +503,6 @@ void MeeGoPluginAPI::addThumbnailItem(int tab_id, std::string url, long long las
   if(fp) fclose(fp);
 
   g_signal_emit_by_name(m_browserService, "thumbnail_updated", url.c_str());
-  g_signal_emit_by_name(m_browserService, "tab_info_updated", tab_id);
 
   return;
 }
@@ -518,25 +513,13 @@ void MeeGoPluginAPI::addTabItem(int tab_id, int win_id, std::string url,
 {
   bool success = false;
 	if(!m_panel_db) return;
-
-  char* errmsg = NULL;
-  if(sqlite3_exec(m_panel_db, "BEGIN IMMEDIATE TRANSACTION", 0, 0, NULL) != SQLITE_OK)
-  {
-    g_warning("failed to start a sqlite3 transaction: %s", errmsg);
-    g_free(errmsg);
-    return;
-  }
-  
-  // Update tab_id field according to the tab insertion mechanism used in chromium
-  // New tab will inserted adjacent to the tab that opened the new one
-  char* update_sql = g_strdup_printf("UPDATE current_tabs SET tab_id=tab_id+1 WHERE tab_id>=%d", tab_id);
-  sqlite3_stmt *select_stmt = NULL;
-  if(sqlite3_exec(m_panel_db, update_sql, 0,0,&errmsg) == SQLITE_OK) 
-  {
+  { 
+    char* errmsg = NULL;
     const char* sql =
       "INSERT INTO current_tabs(tab_id, win_id, url, title, favicon_url) "
       "VALUES(?, ?, ?, ?, ?)";
 
+    sqlite3_stmt* select_stmt = NULL;
     if(sqlite3_prepare_v2(m_panel_db, sql, -1, &select_stmt, NULL) == SQLITE_OK
         && sqlite3_bind_int(select_stmt, 1, tab_id) == SQLITE_OK 
         && sqlite3_bind_int(select_stmt, 2, win_id) == SQLITE_OK
@@ -544,23 +527,15 @@ void MeeGoPluginAPI::addTabItem(int tab_id, int win_id, std::string url,
         && sqlite3_bind_text(select_stmt, 4, title.c_str(), -1, SQLITE_STATIC) == SQLITE_OK
         && sqlite3_bind_text(select_stmt, 5, faviconUrl.c_str(), -1, SQLITE_STATIC) == SQLITE_OK
         && sqlite3_step(select_stmt) == SQLITE_DONE) {
-        success = true;
-      } else {
-        success = false;
-      }
+      success = true;
+    } else {
+      success = false;
+    }
+
+    if(select_stmt) sqlite3_finalize(select_stmt);
+    if(errmsg) g_free(errmsg);
   }
 
-  if(success) {
-      sqlite3_exec(m_panel_db, "COMMIT TRANSACTION", 0, 0, NULL);
-      g_signal_emit_by_name(m_browserService, "tab_list_updated");
-  } else {
-    sqlite3_exec(m_panel_db, "ROLLBACK TRANSACTION", 0, 0, NULL);
-  }
-
-	if(select_stmt) sqlite3_finalize(select_stmt);
-  if(errmsg) g_free(errmsg);
-  g_free(update_sql);
- 
   return;
 }
 
@@ -672,7 +647,6 @@ void MeeGoPluginAPI::removeTabItem(int tab_id)
 
   if(success) {
     sqlite3_exec(m_panel_db, "COMMIT TRANSACTION", NULL, NULL, NULL);
-    g_signal_emit_by_name(m_browserService, "tab_list_updated");
   } else {
     sqlite3_exec(m_panel_db, "ROLLBACK TRANACTION", NULL, NULL, NULL);
   }
@@ -781,6 +755,11 @@ void MeeGoPluginAPI::removeBookmarkItem(int64 id)
 	if(stmt) sqlite3_finalize(stmt);
 }
 
+void MeeGoPluginAPI::refreshTabList()
+{
+  wrapper_->ReloadTabList();
+}
+
 void MeeGoPluginAPI::updateCurrentTab()
 {
     wrapper_->updateCurrentTab();
@@ -807,3 +786,8 @@ void MeeGoPluginAPI::emitBrowserCloseSignal()
     m_browser_closing = true;
 }
 
+void MeeGoPluginAPI::emitTabListUpdatedSignal()
+{
+  g_signal_emit_by_name(m_browserService, "tab_list_updated");
+  return;
+}

@@ -146,13 +146,22 @@ gboolean browser_service_remove_url(BrowserService* self, const char* url)
   return TRUE;
 }
 
-gboolean browser_service_update_current_tab(BrowserService * self, GError **error)
+gboolean browser_service_update_current_tab(BrowserService * self)
 {
     DBG("browser_service_close_tab");
     MeeGoPluginAPI* plugin = static_cast<MeeGoPluginAPI*>(self->provider);
     if(plugin)
         plugin->updateCurrentTab();
     return TRUE;
+}
+
+gboolean browser_service_refresh_tab_list(BrowserService* self)
+{
+  DBG("browser_service_refresh_tab_list");
+  MeeGoPluginAPI* plugin = static_cast<MeeGoPluginAPI*>(self->provider);
+  if(plugin)
+    plugin->refreshTabList();
+  return TRUE;
 }
 
 gboolean browser_service_show_browser(BrowserService * self, const char * mode, const char * target)

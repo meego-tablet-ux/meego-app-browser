@@ -52,19 +52,8 @@ void MainWindow::onBtnRefreshDBClicked()
 {
     int size = m_dataInfo.getTabCount();
     this->ui->labelTabCount->setText(QString::number(size));
-
     ui->spinBoxTabIndex->setRange(0, size);
-
-    TabInfo * tabInfo = m_dataInfo.getTabAt(ui->spinBoxDBIndex->value());
-
-    if (tabInfo) {
-        this->ui->lineEditDbUrl->setText(tabInfo->url);
-        this->ui->lineEditTitle->setText(tabInfo->title);
-        this->ui->lineEditThumbnailPath->setText(tabInfo->thumbnail);
-
-        QPixmap pm(ui->lineEditThumbnailPath->text());
-        this->ui->labelImage->setPixmap(pm);
-    }
+    //m_dataInfo.refreshTabList();
 }
 
 void MainWindow::onSpinBoxValueChanged(int index)
@@ -78,6 +67,7 @@ void MainWindow::onSpinBoxValueChanged(int index)
       this->ui->lineEditDbUrl->setText(tabInfo->url);
       this->ui->lineEditTitle->setText(tabInfo->title);
       this->ui->lineEditThumbnailPath->setText(tabInfo->thumbnail);
+      this->ui->lineEditTabID->setText(QString::number(tabInfo->tab_id));
 
       QPixmap pm(ui->lineEditThumbnailPath->text());
       this->ui->labelImage->setPixmap(pm);
@@ -95,18 +85,21 @@ void MainWindow::browserLaunched()
     ui->textEditSignalLog->insertPlainText("browser launched message handled\n");
 }
 
-void MainWindow::tabInfoUpdated(int index)
+void MainWindow::tabInfoUpdated(int tabid)
 {
     QString log;
-    log.sprintf("tab info updated message handled: %d\n", index);
+    log.sprintf("tab info updated message handled: %d\n", tabid);
     ui->textEditSignalLog->insertPlainText(log);
-    ui->spinBoxDBIndex->setValue(index);
-    onSpinBoxValueChanged(index);
+    //ui->spinBoxDBIndex->setValue(index);
+    //onSpinBoxValueChanged(index);
 }
 
 void MainWindow::tabListUpdated()
 {
     ui->textEditSignalLog->insertPlainText("tab list updated message handled\n");
-    onBtnRefreshDBClicked();
+    //onBtnRefreshDBClicked();
+    int size = m_dataInfo.getTabCount();
+    this->ui->labelTabCount->setText(QString::number(size));
+    ui->spinBoxTabIndex->setRange(0, size);
 }
 

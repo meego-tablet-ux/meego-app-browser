@@ -174,6 +174,13 @@ class BrowserWindowQtImpl : public QObject
     if (event->type() == QEvent::Close) {
       window_->browser_->ExecuteCommandWithDisposition(IDC_CLOSE_WINDOW, CURRENT_TAB);
     }
+    if(event->type() == QEvent::WindowStateChange && 
+        window_->window()->windowState() == Qt::WindowMinimized) {
+      NotificationService::current()->Notify(
+        NotificationType::BROWSER_WINDOW_MINIMIZED,
+        Source<BrowserWindow>(window_),
+        NotificationService::NoDetails());
+    }
     return QObject::eventFilter(obj, event);
   }
 
@@ -456,6 +463,7 @@ void BrowserWindowQt::UpdateTitleBar() {
 void BrowserWindowQt::MinimizeWindow()
 {
   window_->goHome();
+
 }
 
 void BrowserWindowQt::TabDetachedAt(TabContentsWrapper* contents, int index) {

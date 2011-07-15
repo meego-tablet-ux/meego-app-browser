@@ -190,6 +190,11 @@ class NotificationType {
     // containing the affected Browser.  No details are expected.
     BROWSER_WINDOW_READY,
 
+    // This message is sent once the browser window is minimized. The source
+    // is a Source<BrowserWindow> containing the affected Browser window. No
+    // details are expected
+    BROWSER_WINDOW_MINIMIZED,
+
     // This message is sent when a browser is closing. The source is a
     // Source<Browser> containing the affected Browser. Details is a boolean
     // that if true indicates that the application will be closed as a result of
