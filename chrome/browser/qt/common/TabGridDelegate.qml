@@ -6,7 +6,7 @@ import Qt 4.7
 Component {
 
     Item {
-        anchors.bottomMargin: 10
+        anchors.bottomMargin: 5
         width: gridView.cellWidth
         height: gridView.cellHeight
 
@@ -25,44 +25,44 @@ Component {
         BorderImage {
             id: tabContainer
             source:"image://themedimage/widgets/apps/browser/tabs-border-overlay"
-            height: 114
+            height: 124
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: divide0.bottom
-            anchors.topMargin: 10
-            anchors.leftMargin: 5
-            anchors.rightMargin: 5
+            anchors.topMargin: 5
+            //anchors.leftMargin: 2
+            //anchors.rightMargin: 2
             verticalTileMode: BorderImage.Repeat
             horizontalTileMode: BorderImage.Repeat
 
-            border.top: 2
-            border.bottom: 2
-            border.left: 2
-            border.right: 2
+            border.top: 8
+            border.bottom: 8
+            border.left: 8
+            border.right: 8
             smooth: true
 
             property bool isCurrentTab: false
             property string thumbnailPath: selectThumbnail (pageType, index, thumbnail)
             function selectThumbnail (pageType, index, thumbnail) {
-                thumbnails.width = tabContainer.width - 4
+                thumbnails.width = tabContainer.width - tabContainer.border.left - tabContainer.border.right
                 thumbnails.anchors.left = tabContainer.left
                 thumbnails.anchors.top = tabContainer.top
-                thumbnails.anchors.leftMargin = 2
-                thumbnails.anchors.topMargin = 2
+                thumbnails.anchors.leftMargin = tabContainer.border.left
+                thumbnails.anchors.topMargin = tabContainer.border.top
                 if (pageType == "newtab") {
-                    thumbnails.height = tabContainer.height - titleRect.height - 4
+                    thumbnails.height = tabContainer.height - titleRect.height - tabContainer.border.top - tabContainer.border.bottom
                     newtabBg.visible = true
                     return "image://themedimage/widgets/apps/browser/web-favorite-medium"
                 } else if (pageType == "bookmarks") {
-                    thumbnails.height = tabContainer.height - titleRect.height - 4
+                    thumbnails.height = tabContainer.height - titleRect.height - tabContainer.border.top - tabContainer.border.bottom
                     newtabBg.visible = true
                     return "image://themedimage/widgets/apps/browser/web-favorite-medium"
                 } else if (pageType == "downloads") {
-                    thumbnails.height = tabContainer.height - titleRect.height - 4
+                    thumbnails.height = tabContainer.height - titleRect.height - tabContainer.border.top - tabContainer.border.bottom
                     newtabBg.visible = true
                     return "image://themedimage/widgets/apps/browser/web-favorite-medium"
                 }
-                thumbnails.height = tabContainer.height - 4
+                thumbnails.height = tabContainer.height - tabContainer.border.top - tabContainer.border.bottom
                 newtabBg.visible = false
                 return "image://tabsidebar/thumbnail_" + index + "_" + thumbnail
             }
@@ -79,23 +79,24 @@ Component {
             Image {
                 id: newtabBg
                 anchors.fill: parent
-                anchors.leftMargin: 2
-                anchors.rightMargin: 2
-                anchors.topMargin: 2
+                anchors.leftMargin: tabContainer.border.left
+                anchors.rightMargin: tabContainer.border.right
+                anchors.topMargin: tabContainer.border.top
+                anchors.bottomMargin: tabContainer.border.bottom
                 source: "image://themedimage/widgets/apps/browser/new-tab-background"
                 visible: false
             }
 
             // title of the tab
-            Rectangle {
+            Item {
                 id: titleRect                
                 height: 30
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
-                anchors.leftMargin: 2
-                anchors.rightMargin: 2
-                anchors.bottomMargin: 2
+                anchors.leftMargin: tabContainer.border.left
+                anchors.rightMargin: tabContainer.border.right
+                anchors.bottomMargin: tabContainer.border.bottom
                 z: 1
                 Image {
                     id: textBg
@@ -175,7 +176,7 @@ Component {
                         onReleased: closeIcon.pressed = false
                     }
                 } // Close button Item
-            } // Title Rectangle
+            } // Title
 
             MouseArea {
                 anchors.fill: parent
