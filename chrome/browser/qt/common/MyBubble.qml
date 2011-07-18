@@ -220,6 +220,7 @@ Item {
                     width: parent.width
                     opacity: 0.5
                     font.pixelSize: 18
+                    elide: Text.ElideRight
                     height: folderGroup.initHeight
                     verticalAlignment: Text.AlignVCenter
                     MouseArea {
