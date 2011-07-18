@@ -143,8 +143,8 @@ BrowserWindowTablet {
     }
     onPopup: {
       selectFileDialogLoader.source = "AddAttachmentView.qml"
-      selectFileDialogLoader.item.parent = container
-      selectFileDialogLoader.item.z = 100
+      selectFileDialogLoader.item.parent = screenlayer;
+      selectFileDialogLoader.item.targetContainer = screenlayer;
     }
   }
 

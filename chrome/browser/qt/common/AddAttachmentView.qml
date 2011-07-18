@@ -4,6 +4,7 @@ import Qt.labs.gestures 2.0
 
 Item {
     id: container
+    property Item targetContainer : null
 
     anchors.fill: parent
 
@@ -112,6 +113,7 @@ Item {
         id: musicPicker
         MusicPicker {
             anchors.fill: parent
+            targetContainer: container.targetContainer
 
             showPlaylists: false
             showAlbums: false
@@ -127,6 +129,7 @@ Item {
         id: photoPicker
         PhotoPicker {
             anchors.fill: parent
+            targetContainer: container.targetContainer
 
             signal selected (string uri)
             signal multiselected (string uris)
@@ -143,6 +146,7 @@ Item {
         id: videoPicker
         VideoPicker {
             anchors.fill: parent
+            targetContainer: container.targetContainer
 
             signal selected (string uri)
             signal multiselected (string uris)
