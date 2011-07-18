@@ -42,7 +42,7 @@ Rectangle {
     property alias fontSize: title.font.pixelSize
     signal clicked
 
-    width: title.width + 20; height: title.height + 6
+    width: 150; height: 45
     smooth: true
     radius: 5
 
@@ -61,8 +61,13 @@ Rectangle {
 
     Text {
         id: title
+        width: parent.width-20
+	height: parent.height-6
         anchors.centerIn: parent
         font.pixelSize: 22
+        horizontalAlignment: Text.AlignHCenter	
+        verticalAlignment: Text.AlignVCenter
+        elide: Text.ElideRight
      //   text:  
     }
 
