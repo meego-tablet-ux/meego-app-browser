@@ -156,6 +156,8 @@ protected Q_SLOTS:
 
   // scrollable area check
   bool inScrollableArea();
+
+  bool isScalablePage();
   
   //gestureEvent
   void gestureEvent(QGestureEvent* event);

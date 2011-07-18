@@ -655,6 +655,17 @@ bool RWHVQtWidget::inScrollableArea()
   return (node_info & WebKit::WebWidget::NODE_INFO_IS_SCROLLABLE_AREA);
 }
 
+bool RWHVQtWidget::isScalablePage()
+{
+  int node_info = hostView()->webkit_node_info_;
+  
+  if (hostView()->IsPopup())
+    return false;
+
+  return !(node_info & WebKit::WebWidget::NODE_INFO_IS_NOT_SCALABLE_PAGE);
+
+}
+
 bool RWHVQtWidget::shouldDeliverHoverEnterEvent()
 {
   int node_info = hostView()->webkit_node_info_;
@@ -1404,6 +1415,8 @@ void RWHVQtWidget::onAnimationFinished()
 
 void RWHVQtWidget::pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture)
 {
+  if(!isScalablePage()) return;
+
   QPointF pos;
   if (is_modifing_selection_)
     return;
@@ -1635,6 +1648,7 @@ QVariant RWHVQtWidget::inputMethodQuery(Qt::InputMethodQuery query) const
 void RWHVQtWidget::doubleTapAction(const QPointF& pos)
 {
   if(is_doing_double_tap_) return;
+  if(!isScalablePage()) return;
   
   RenderWidgetHost* host = hostView()->host_;
   if(!host) return;
