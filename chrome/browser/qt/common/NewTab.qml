@@ -42,10 +42,10 @@ Item {
       PropertyChanges{
         target: newtab
         source: "image://themedimage/widgets/common/button/button-default"
-        border.left: 6
-        border.right: 6
-        border.top: 6
-        border.bottom: 6
+        border.left: 12
+        border.right: 12
+        border.top: 12
+        border.bottom: 12
         newTabEnabled: true
       }
       PropertyChanges{
@@ -80,10 +80,10 @@ Item {
     id: newtab
     source: "image://themedimage/widgets/common/button/button-default"
     state: "normal"
-    border.left: 6
-    border.right: 6
-    border.top: 6
-    border.bottom: 6
+    border.left: 12
+    border.right: 12
+    border.top: 12
+    border.bottom: 12
     anchors.fill : parent
     property bool newTabEnabled: true
 
