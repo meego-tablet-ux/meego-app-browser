@@ -54,7 +54,7 @@
 #endif
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-#include <launcherwindow.h>
+//#include <launcherwindow.h>
 #include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 #endif
 

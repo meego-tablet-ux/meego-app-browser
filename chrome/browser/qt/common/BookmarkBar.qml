@@ -194,6 +194,7 @@ Item {
   }
   Connections {
     target: bookmarkBarModel
+    ignoreUnknownSignals:true;
     onShowInstruction: container.showInstruction = true;
     onHideInstruction: container.showInstruction = false;
   }

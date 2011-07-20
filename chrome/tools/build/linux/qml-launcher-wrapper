@@ -1,0 +1,28 @@
+#!/bin/sh
+export LD_LIBRARY_PATH=`pwd`/lib.target:$LD_LIBRARY_PATH
+export QML_IMPORT_PATH=`pwd`
+PWD=`pwd`
+
+echo "Current working dir: $PWD"
+
+if [ ! -f $PWD/meego-browser-wrapper ]; then
+  echo "Error: No meego-browser-wrapper found."
+  exit 1;
+fi
+
+if [ ! -f $PWD/MeeGo/App/Browser/qmldir ]; then
+  echo "Error: No qmldir for browser plugin found in $PWD/MeeGo/App/Browser. "
+  exit 2
+fi
+
+if [ ! -d /usr/share/meego-app-browser ]; then
+  mkdir -p /usr/share/meego-app-browser
+fi
+
+echo "Copying qml files to /usr/share/meego-app-browser ..."
+find ../../chrome/browser/qt -name "*.qml" -exec cp -a {} /usr/share/meego-app-browser \;
+
+echo "Execute ..."
+exec meego-qml-launcher --app meego-app-browser --cdata "$@"
+
+

@@ -93,6 +93,7 @@ Item {
 
   Connections {
     target: bmGlobal.portrait ? bookmarkBarListModel : grid.model   // connects with menu->filter_
+    ignoreUnknownSignals:true;
 //    onMoveToAnother: { grid.model.moveToAnotherFolder(bmGlobal.idxHasMenu); }
     onOpenItemInNewTab: { grid.model.openBookmarkItem(bmGlobal.idHasMenu); }
     onRemoveItem: {

@@ -36,7 +36,6 @@
 #include "chrome/browser/ui/meegotouch/ssl_modal_dialog_qt.h"
 #include "chrome/browser/ui/meegotouch/selection_handler_qt.h"
 
-class LauncherWindow;
 class QDeclarativeView;
 class BookmarkBubbleQt;
 class Browser;
@@ -193,7 +192,7 @@ class BrowserWindowQt : //public MApplicationWindow,
                              int index);
   virtual void TabStripEmpty() {DNOTIMPLEMENTED();};
 
-  LauncherWindow* window() {return window_;};
+  QDeclarativeView* window() { return window_; }
 
   QDeclarativeView* DeclarativeView();
 
@@ -235,7 +234,7 @@ class BrowserWindowQt : //public MApplicationWindow,
   MLinearLayoutPolicy *policy;
 #endif
 
-  LauncherWindow* window_;
+  QDeclarativeView* window_;
   
   scoped_ptr<TabContentsContainerQt> contents_container_;
   scoped_ptr<BrowserToolbarQt> toolbar_;

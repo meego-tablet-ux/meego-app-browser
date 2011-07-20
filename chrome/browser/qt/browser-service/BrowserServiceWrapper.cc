@@ -31,7 +31,6 @@
 #include "chrome/common/url_constants.h"
 #include "ui/gfx/codec/jpeg_codec.h"
 #include "base/string16.h"
-#include <launcherwindow.h>
 
 #include "BrowserServiceWrapper.h"
 #include "MeeGoPluginAPI.h"

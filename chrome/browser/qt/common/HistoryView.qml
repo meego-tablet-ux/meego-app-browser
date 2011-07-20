@@ -125,7 +125,6 @@ Item {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-              console.log("click page " + index)
               // set current item is the highlighted one, and after some time,
               // open the page
               historyView.currentIndex = index
@@ -139,7 +138,6 @@ Item {
             interval: 100
             running: false
             onTriggered: {
-              console.log("timer is ended")
               historyView.model.openPage(index)
             }
         }
@@ -198,6 +196,7 @@ Item {
   }
   Connections {
     target: historyStackModel
+    ignoreUnknownSignals:true;
     onCurrent: {
         historyView.currentIndex = index
     }
@@ -206,6 +205,7 @@ Item {
   signal showOverlay
   Connections {
     target: historyStackModel
+    ignoreUnknownSignals:true;
     onShowHistory: {
         showOverlay()
     }

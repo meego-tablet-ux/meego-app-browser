@@ -88,6 +88,7 @@ Item {
         }
         Connections {
           target: findBarModel
+          ignoreUnknownSignals:true;
           onSetMatchesLabel: matchesText.text = text
         }
       }
@@ -257,6 +258,7 @@ Item {
   Connections {
     target: findBarModel
     //  findBarModel.positionUpdated(container.x, container.y, container.width, container.height);
+    ignoreUnknownSignals:true;
     onHide: container.showfindbar = false
     onSetX: {
       container.x = (x + width > toolbar.x + toolbar.width) ? container.x : x

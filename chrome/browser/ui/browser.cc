@@ -1971,6 +1971,8 @@ void Browser::OpenOptionsDialog() {
   browser::Navigate(&params);
 #else
   std::vector<std::string> argv;
+  argv.push_back("invoker");
+  argv.push_back("--type=l");
   argv.push_back("meego-qml-launcher");
   argv.push_back("--app");
   argv.push_back("meego-ux-settings");

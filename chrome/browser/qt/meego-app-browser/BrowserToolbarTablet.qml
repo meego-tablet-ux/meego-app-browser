@@ -95,7 +95,22 @@ Item {
         }
     ]
 */
-    BorderImage {
+    MouseArea {
+        id: maOverlay
+        anchors.fill: parent
+        enabled: true
+        z: 1000
+        Connections {
+            target: browserToolbarModel
+            ignoreUnknownSignals:true;
+            // Enable toolbar to avoid blocking events
+            onEnabled: {
+              maOverlay.enabled = false;
+              maOverlay.visible = false;
+            }
+        }
+    }
+    Image {
         id: background
         source: "image://themedimage/widgets/common/toolbar/toolbar-background"
         width: parent.width
@@ -112,6 +127,7 @@ Item {
             // change its icons to listen to signals from browserToolbarModel
             Connections {
                 target: browserToolbarModel
+                ignoreUnknownSignals:true;
                 onUpdateBfButton: {
                     backForwardButton.kind = kind
                     backForwardButton.active = active
@@ -134,6 +150,7 @@ Item {
 
             Connections {
                 target: browserToolbarModel
+                ignoreUnknownSignals:true;
                 onUpdateReloadButton: {
                     reloadButton.loading = is_loading
                 }

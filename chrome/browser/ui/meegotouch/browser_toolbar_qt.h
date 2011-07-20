@@ -71,6 +71,8 @@ class BrowserToolbarQt  : public CommandUpdater::CommandObserver,
  Profile* profile() { return profile_; }
  void SetProfile(Profile* profile);
 
+ void enableEvents();
+
  // Message that we should react to a state change.
  void UpdateTabContents(TabContents* contents, bool should_restore_state);
 

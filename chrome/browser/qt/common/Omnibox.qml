@@ -68,6 +68,7 @@ Item {
     }
     Connections {
       target: autocompletePopupViewModel
+      ignoreUnknownSignals:true
       onShow: {
           autocompletePopupLoader.source = "AutocompletePopupView.qml"
           autocompletePopupLoader.item.opacity = 1
@@ -247,6 +248,7 @@ Item {
       }
       Connections {
         target: autocompleteEditViewModel
+        ignoreUnknownSignals:true
         onSetFocus: urlTextInput.forceActiveFocus()
         onSetText: urlTextInput.text = text;
         onSetSelection: urlTextInput.select(start, end);
@@ -335,6 +337,7 @@ Item {
       }
       Connections {
         target: browserToolbarModel
+        ignoreUnknownSignals:true
         onUpdateStarButton: {
           if(is_starred)
             starIcon.source = "image://themedimage/widgets/apps/browser/favorite-active"
@@ -372,6 +375,7 @@ Item {
 
         Connections {
           target: browserToolbarModel
+          ignoreUnknownSignals:true
           onUpdateReloadButton: {
             if(is_loading){
               processContainer.visible = true;

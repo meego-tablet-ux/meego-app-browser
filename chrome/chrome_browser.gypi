@@ -4301,19 +4301,46 @@
             ['meegotouch==1', {
               'sources': [
               ],
-            'sources/': [
-              ['exclude', '_(chromeos|gtk)(_unittest)?\\.cc$'],
-              ['exclude', '/gtk/'],
-              ['exclude', '/(gtk)_[^/]*\\.cc$'],
-              ['exclude', '^browser/ui/toolbar/wrench_menu_model.cc'],
-              ['exclude', '^browser/ui/toolbar/wrench_menu_model.h'],
-              ['exclude', '^browser/tab_contents/render_view_context_menu.cc'],
-              ['exclude', '^browser/tab_contents/render_view_context_menu.h'],
-            ],
-            'dependencies': [
-                            '../build/linux/system.gyp:meegotouch',
-            ],
-            # TODO: need to implmenet a python script to generate multiple moc files
+              'sources/': [
+                ['exclude', '_(chromeos|gtk)(_unittest)?\\.cc$'],
+                ['exclude', '/gtk/'],
+                ['exclude', '/(gtk)_[^/]*\\.cc$'],
+                ['exclude', '^browser/ui/toolbar/wrench_menu_model.cc'],
+                ['exclude', '^browser/ui/toolbar/wrench_menu_model.h'],
+                ['exclude', '^browser/tab_contents/render_view_context_menu.cc'],
+                ['exclude', '^browser/tab_contents/render_view_context_menu.h'],
+               ],
+               'conditions': [
+                 ['buildqmlplugin==1', {
+                  'defines': [
+                    'BUILD_QML_PLUGIN=1',
+                  ],
+                  'sources': [
+                    'browser/browser_object_qt.h',
+                    'browser/browser_object_qt.cc',
+                  ],
+                  'actions':[
+                   {
+                    'action_name': 'moc_browser_object_qt.h',
+                    'inputs': [
+                      'browser/browser_object_qt.h',
+                    ],
+                    'outputs': [
+                      'browser/moc_browser_object_qt.cc',
+                    ],
+                    'action': [
+                      'moc',
+                    '<(_inputs)',
+                    '-o',
+                    '<(_outputs)',
+                    ],
+                   }],
+                }], #buildqmlplugin==1
+               ], #conditions
+               'dependencies': [
+                  '../build/linux/system.gyp:meegotouch',
+                ],
+             # TODO: need to implmenet a python script to generate multiple moc files
             'actions': [
               {
                 'action_name': 'moc_browser_window_qt.cc',

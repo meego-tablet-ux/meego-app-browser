@@ -125,6 +125,7 @@ Item {
     // listen to signals from historyBar to decide whether showing history overlay
     Connections {
         target: historyBar
+        ignoreUnknownSignals:true;
         onHideOverlay: {
             historyOverlay.showed = false
         }

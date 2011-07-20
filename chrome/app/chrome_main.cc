@@ -15,9 +15,12 @@
 #include <QDeclarativeContext>
 #include <cstdlib>
 
+#if !defined(BUILD_QML_PLUGIN)
 #include <launcherapp.h>
 #include <launcheratoms.h>
 #include <launcherwindow.h>
+#endif
+
 #endif
 
 #include "app/app_paths.h"
@@ -139,11 +142,11 @@ extern "C" {
 __attribute__((visibility("default")))
 int ChromeMain(int argc, char** argv);
 
+#if !defined(BUILD_QML_PLUGIN)
 LauncherApp* g_launcher_app = NULL;
 LauncherWindow* g_main_window = NULL;
+#endif
 
-#include <qapplication.h>
-  
 void gQtMessageOutput(QtMsgType type, const char *msg)
 {
   switch (type) {
@@ -162,6 +165,7 @@ void gQtMessageOutput(QtMsgType type, const char *msg)
   }
 }
 
+#if !defined(BUILD_QML_PLUGIN)
 void InitQmlLauncher(const std::string process_type, int& argc, char** argv)
 {
   if (process_type != "")
@@ -314,6 +318,8 @@ void FiniQmlLauncher(const std::string process_type)
   delete g_main_window;
   delete g_launcher_app;
 }
+#endif
+
 }
 #endif
 
@@ -722,6 +728,56 @@ int ChromeMain(int argc, char** argv) {
   // The exit manager is in charge of calling the dtors of singleton objects.
   base::AtExitManager exit_manager;
 
+#if defined(BUILD_QML_PLUGIN)
+  // have to set this after exit_manager is created
+  QString subProcessPath("--");
+  subProcessPath += switches::kBrowserSubprocessPath;
+  subProcessPath += "=";
+  // here we reset 'DIR_EXE' and 'FILE_EXE' for the main process of browser
+  // will be launched by meego-qml-launcher and other background processes
+  // are launched internally
+  QString userDataDir = QString("--") + switches::kUserDataDir + "=";
+  QString appName, appUrl;
+  bool found1 = false, found2 = false, found3 = false, found4 = false;
+  for (int i = argc - 1; i >= 0; i--) {
+    QString s(argv[i]);
+    if (s.startsWith(subProcessPath, Qt::CaseInsensitive)) {
+      std::string path = s.right(s.size() - subProcessPath.size()).toUtf8().data();
+      PathService::Override(base::DIR_EXE, FilePath(path).DirName());
+      PathService::Override(base::DIR_MODULE, FilePath(path).DirName());
+      PathService::Override(base::FILE_EXE, FilePath(path));
+      PathService::Override(base::FILE_MODULE, FilePath(path));
+      found1 = true;
+    } else if (s.startsWith(userDataDir, Qt::CaseInsensitive)) {
+      found2 = true;
+    } else if (!found2 && s.startsWith("--app=", Qt::CaseInsensitive)) {
+      // only get app url and name when dir user data is not set
+      appUrl = s.right(s.size() - 6);
+      found3 = true;
+    } else if (!found2 && s.startsWith("--appname=", Qt::CaseInsensitive)) {
+      appName = s.right(s.size() - 10);
+      found4 = true;
+    }
+
+    if (found1 && found2 && found3 && found4) {
+      break;
+    }
+  }
+
+  //for app mode support, it should have different data directory other than browser
+  FilePath userDir;
+  if (!found2 && found3) {
+    if (appName.length() == 0)
+      appName = appUrl;
+
+    if (!appName.isEmpty()) {
+      userDir = file_util::GetHomeDir().Append(".config/" + appName.toStdString());
+      PathService::Override(chrome::DIR_USER_DATA, userDir);
+    }
+  }
+
+#endif
+
   // We need this pool for all the objects created before we get to the
   // event loop, but we don't want to leave them hanging around until the
   // app quits. Each "main" needs to flush this pool right before it goes into
@@ -1011,7 +1067,7 @@ int ChromeMain(int argc, char** argv) {
   // as our process name since we exec() via that to be update-safe.
 #endif
 
-#if defined(TOOLKIT_MEEGOTOUCH)
+#if defined(TOOLKIT_MEEGOTOUCH) && !defined(BUILD_QML_PLUGIN)
   InitQmlLauncher(process_type, argc, argv);
 #endif
 

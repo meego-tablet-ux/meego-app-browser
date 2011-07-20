@@ -194,6 +194,7 @@ Item {
 
   Connections {
     target: mainWindow
+    ignoreUnknownSignals:true;
     onVkbHeight: {
       var map = menu.mapToItem(scene, 0, 0)
       spaceOutOfVkb = screenHeight - map.y - height

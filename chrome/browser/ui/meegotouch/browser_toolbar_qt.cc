@@ -126,6 +126,13 @@ class BrowserToolbarQtImpl: public QObject
     emit updateReloadButton(is_loading);
   }
 
+public:
+  void enableEvents()
+  {
+    // enable toolbar
+    emit enabled();
+  }
+
 Q_SIGNALS:
   // update SatButton
   void updateStarButton(bool is_starred);
@@ -138,6 +145,8 @@ Q_SIGNALS:
   void updateReloadButton(bool is_loading);
 
   void showHistoryStack(int count);
+
+  void enabled();
 
  private:
   BrowserToolbarQt* toolbar_;
@@ -172,6 +181,11 @@ void BrowserToolbarQt::Init(Profile* profile) {
   // Make sure to tell the location bar the profile before calling its Init.
   SetProfile(profile);
   location_bar_->Init(false);  
+}
+
+void BrowserToolbarQt::enableEvents()
+{
+  impl_->enableEvents();
 }
 
 void BrowserToolbarQt::ShowWrenchMenu()

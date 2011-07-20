@@ -92,6 +92,7 @@ Item {
 
   Connections {
     target: tabSideBarModel
+    ignoreUnknownSignals:true;
     onSelectTab: {
         gridView.currentIndex = index
     }

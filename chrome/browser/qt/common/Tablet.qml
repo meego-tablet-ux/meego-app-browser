@@ -53,6 +53,7 @@ BrowserWindowTablet {
 
   Connections {
     target: browserNewTabObject
+    ignoreUnknownSignals:true;
     onHideNewTab: { 
       newTabLoader.sourceComponent = undefined;
     }
@@ -79,6 +80,7 @@ BrowserWindowTablet {
 
   Connections {
     target: browserCrashTabObject
+    ignoreUnknownSignals:true;
     onDismiss: { 
       crashTabLoader.sourceComponent = undefined; 
     }
@@ -102,6 +104,7 @@ BrowserWindowTablet {
   
   Connections {
     target: browserDialogObject
+    ignoreUnknownSignals:true;
     onDismiss: dialogLoader.sourceComponent = undefined
     onPopup: {
       scene.showDialog(dialogLoader, browserDialogModel);
@@ -138,6 +141,7 @@ BrowserWindowTablet {
 
   Connections {
     target: selectFileDialogObject
+    ignoreUnknownSignals:true;
     onDismiss: {
       selectFileDialogLoader.sourceComponent = undefined
     }
@@ -157,6 +161,7 @@ BrowserWindowTablet {
   property int infobarOldY
   Connections {
     target: fullscreenBubbleObject
+    ignoreUnknownSignals:true;
     onExitFullscreen: {
       fullscreenBubbleLoader.sourceComponent = undefined
       if (scene.hasfindbar) {
@@ -184,6 +189,7 @@ BrowserWindowTablet {
 
   Connections {
     target: PopupListModel
+    ignoreUnknownSignals:true;
     onShowPopup: {
       //console.log("onShowPopupList, x-y : " + hx + "-" + hy);
       //var mappedPos = scene.mapToItem (outerContent, scene.lastMousePos.mouseX, scene.lastMousePos.mouseY);
@@ -228,6 +234,7 @@ BrowserWindowTablet {
 
   Connections {
     target: browserMenuObject
+    ignoreUnknownSignals:true;
     onPopupAt: {
       if (x != 0 || y != 0)
       {			
@@ -282,6 +289,7 @@ BrowserWindowTablet {
 
   Connections {
     target: bookmarkBubbleObject
+    ignoreUnknownSignals:true;
     onPopupAt: {
       if (x == -1 && y == -1) {
         bubbleLoader.source = "MyBubble.qml"

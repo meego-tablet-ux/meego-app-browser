@@ -32,22 +32,12 @@
  ****************************************************************************/
 import Qt 4.7
 import MeeGo.Components 0.1
-import MeeGo.Components 0.1 as UX
-import MeeGo.App.BrowserWrapper 1.0
 
 Item {
   id: entrance
   width: screenWidth
   height: screenHeight
   
-  BrowserWrapper {
-    id: browserWrapper
-    Component.onCompleted: {
-      // transfer mainWindow(QDeclarativeView) to native code
-      browserWrapper.transfer(mainWindow);
-    }
-  }
-
   Connections {
     target: qApp
     onOrientationChanged: {
@@ -58,24 +48,9 @@ Item {
       mainWindow.actualOrientation = qApp.orientation;
     }
   }
-  Connections {
-    target: mainWindow
-    onCall: {
-      browserWrapper.arguments(parameters);
-    }
-  }
   Loader {
     id: holder
     source: {screenWidth*25.4/dpiX > 140 && screenHeight*25.4/dpiY > 93? "Tablet.qml":"Handset.qml"}
-  }
-  Loader {
-    id: browserLoader
-  }
-  Connections {
-    target: browserWrapper
-    onLoad: {
-      browserLoader.source = "BrowserObject.qml"
-      browserLoader.item.runMain(parameters, mainWindow);
-    }
+    //source: "Handset.qml"
   }
 }

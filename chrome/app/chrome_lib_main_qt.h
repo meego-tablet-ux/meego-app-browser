@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/app/chrome_lib_main_qt.h"
+#ifndef CHROME_EXE_MAIN_QT_H
+#define CHROME_EXE_MAIN_QT_H
 
-int main(int argc, const char** argv)
-{
-  return RunChromeMain(argc, argv);
-}
+__attribute__((visibility("default")))
+int RunChromeMain(int argc, const char** argv);
+#endif
+
+

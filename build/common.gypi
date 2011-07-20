@@ -31,6 +31,9 @@
         # Enable meegotouch support by default.
         'meegotouch%': '1',
 
+        # Build chromium as a QML plugin
+        'buildqmlplugin%': '0',
+
         # To do a shared build on linux we need to be able to choose between
         # type static_library and shared_library. We default to doing a static
         # build but you can override this with "gyp -Dlibrary=shared_library"
@@ -86,6 +89,8 @@
       'target_arch%': '<(host_arch)',
 
       'meegotouch%': '<(meegotouch)',
+
+      'buildqmlplugin%': '<(buildqmlplugin)',
 
       # This variable tells WebCore.gyp and JavaScriptCore.gyp whether they are
       # are built under a chromium full build (1) or a webkit.org chromium
@@ -192,6 +197,7 @@
     'chromeos%': '<(chromeos)',
     'touchui%': '<(touchui)',
     'meegotouch%': '<(meegotouch)',
+    'buildqmlplugin%': '<(buildqmlplugin)',
     'file_manager_extension%': '<(file_manager_extension)',
     'inside_chromium_build%': '<(inside_chromium_build)',
     'fastbuild%': '<(fastbuild)',
@@ -611,6 +617,9 @@
       }],
       ['meegotouch==1', {
         'defines': ['OS_MEEGO=1', 'TOOLKIT_MEEGOTOUCH=1'],
+      }],
+      ['buildqmlplugin==1', {
+        'defines': ['BUILD_QML_PLUGIN=1'],
       }],
       ['profiling==1', {
         'defines': ['ENABLE_PROFILING=1'],

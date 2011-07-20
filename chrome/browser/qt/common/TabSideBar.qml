@@ -117,6 +117,7 @@ Item {
 
     Connections {
       target: tabSideBarModel
+      ignoreUnknownSignals:true;
       onSetNewTabEnabled: {
         if (enabled) {
           newtab.state = "normal"

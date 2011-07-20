@@ -92,8 +92,14 @@
 
 #include <QDeclarativeContext>
 #include <QDeclarativeView>
+
+#if !defined(BUILD_QML_PLUGIN)
 #include <launcherwindow.h>
 #include <launcherapp.h>
+#else
+#include "chrome/browser/browser_object_qt.h"
+#include <QGenericReturnArgument>
+#endif
 
 #include <QOrientationSensor>
 #include <QOrientationFilter>
@@ -116,7 +122,8 @@ class BrowserWindowQtImpl : public QObject
  public:
   BrowserWindowQtImpl(BrowserWindowQt* window):
       QObject(),
-      window_(window)
+      window_(window),
+      browserWindowShow_(false)
   {
   }
   void HideAllPanel()
@@ -138,7 +145,10 @@ class BrowserWindowQtImpl : public QObject
    void hideAllPanel();
    void showBookmarks(bool is_show);
    void showDownloads(bool is_show);
+   void browserWindowShow();
+
  public Q_SLOTS:
+#if !defined(BUILD_QML_PLUGIN)
   void onCalled(const QStringList& parameters)
   {
     for (int i = 0 ; i < parameters.size(); i++)
@@ -150,6 +160,18 @@ class BrowserWindowQtImpl : public QObject
                                  GURL(), NEW_FOREGROUND_TAB, PageTransition::LINK);
     }
   }
+#else
+ void onCalled(const QStringList& parameters)
+ {
+   for (int i = 0; i < parameters.size(); i++)
+   {
+     // Only care about URL parameter which is not started with '--'
+     if(parameters[i].startsWith("--")) continue;
+      window_->browser_->OpenURL(URLFixerUpper::FixupURL(parameters[i].toStdString(), std::string()),
+                                 GURL(), NEW_FOREGROUND_TAB, PageTransition::LINK);
+   }
+ }
+#endif
 
   void OrientationStart()
   {
@@ -170,10 +192,18 @@ class BrowserWindowQtImpl : public QObject
   /*Get LauncherApp 's foreground WinId change signal*/
   void handleForegroundWindowChange()
   {
+#if !defined(BUILD_QML_PLUGIN)
     LauncherApp *app = static_cast<LauncherApp *>(qApp);
+#else
+    QApplication* app = g_browser_object->getApplication();
+#endif
+    int app_win_id = app->property("foregroundWindow").toInt();
+    
+    QDeclarativeView* view = window_->window();
+    int view_win_id = view->property("winId").toInt();
 
     /*IPC to render tab for media player control*/
-    if(window_->window_->winId() != app->getForegroundWindow()) {
+    if(app_win_id != view_win_id){
       window_->OnForegroundChanged();
     }
   }
@@ -183,6 +213,9 @@ class BrowserWindowQtImpl : public QObject
   {
     if (event->type() == QEvent::Close) {
       window_->browser_->ExecuteCommandWithDisposition(IDC_CLOSE_WINDOW, CURRENT_TAB);
+    } else if (!browserWindowShow_ && event->type() == QEvent::UpdateRequest) {
+      browserWindowShow_ = true;
+      emit browserWindowShow();
     }
     if(event->type() == QEvent::WindowStateChange && 
         window_->window()->windowState() == Qt::WindowMinimized) {
@@ -196,6 +229,7 @@ class BrowserWindowQtImpl : public QObject
 
  private:
   BrowserWindowQt* window_;
+  bool browserWindowShow_;
 };
 
 class OrientationSensorFilter : public QOrientationFilter
@@ -227,9 +261,7 @@ class OrientationSensorFilter : public QOrientationFilter
         for(int i = 0; i < listeners_.size(); i++) {
           listeners_[i]->OrientationStart();
         }
-
-        ((LauncherApp*)qApp)->setOrientation(qmlOrient);
-
+        qApp->setProperty("orientation", QVariant(qmlOrient));
         // Need to tell the MInputContext plugin to rotate the VKB too
         QMetaObject::invokeMethod(qApp->inputContext(),
                                   "notifyOrientationChange",
@@ -282,28 +314,30 @@ BrowserWindowQt::~BrowserWindowQt()
 
 QDeclarativeView* BrowserWindowQt::DeclarativeView()
 {
-  return window_->getDeclarativeView();
+  return window_;
 }
 
 void BrowserWindowQt::InitWidget()
 {
+  QDeclarativeContext* context;
+  QApplication* app;
+
+#if !defined(BUILD_QML_PLUGIN)
   extern LauncherWindow* g_main_window;
-
+  app = qApp;
   window_ = g_main_window;
-  window_->installEventFilter(impl_);
-  bool result = impl_->connect(window_, SIGNAL(call(const QStringList&)),
-                               impl_, SLOT(onCalled(const QStringList&)));
-
-  QDeclarativeContext *context = window_->getDeclarativeView()->rootContext();
+  context = window_->rootContext();
 
   // Set modal as NULL to avoid QML warnings
   bool fullscreen = false;
   context->setContextProperty("is_fullscreen", fullscreen);
   context->setContextProperty("browserWindow", impl_);
 
-  LauncherApp *app = static_cast<LauncherApp *>(qApp);
+  impl_->connect(window_, SIGNAL(call(const QStringList&)),
+          impl_, SLOT(onCalled(const QStringList&)));
+
   //hardcode appname for multiprocess
-  QString mainQml = "meego-app-browser/main.qml";
+  QString mainQml = "meego-app-browser/exemain.qml";
   QString sharePath;
   if (QFile::exists(mainQml))
   {
@@ -318,7 +352,21 @@ void BrowserWindowQt::InitWidget()
     }
   }
 
-  impl_->connect(app, SIGNAL(foregroundWindowChanged()),impl_, SLOT(handleForegroundWindowChange()));
+#else
+  DCHECK(g_browser_object);
+  app = g_browser_object->getApplication();
+  window_ = g_browser_object->getDeclarativeView();
+  context = window_->rootContext();
+  context->setContextProperty("browserWindow", impl_);
+  impl_->connect(g_browser_object, SIGNAL(call(const QStringList&)),
+          impl_, SLOT(onCalled(const QStringList&)));
+#endif
+  
+  impl_->connect(app, SIGNAL(foregroundWindowChanged()),
+                 impl_, SLOT(handleForegroundWindowChange()));
+
+  window_->installEventFilter(impl_);
+  
   // Expose the DPI to QML
   context->setContextProperty("dpiX", app->desktop()->logicalDpiX());
   context->setContextProperty("dpiY", app->desktop()->logicalDpiY());
@@ -344,8 +392,10 @@ void BrowserWindowQt::InitWidget()
   DownloadManager* dlm = browser_->profile()->GetDownloadManager();
   download_handler_.reset(new DownloadsQtHandler(this, browser_.get(), dlm));
 
-  // set the srouce at the end to make sure every model is ready now
-  window_->getDeclarativeView()->setSource(QUrl(sharePath + mainQml));
+#if !defined(BUILD_QML_PLUGIN)
+  window_->setSource(QUrl(sharePath + mainQml));
+#endif
+  toolbar_->enableEvents();
 
   // any item object binding code should be after set source
   contents_container_->Init();
@@ -501,8 +551,7 @@ void BrowserWindowQt::UpdateTitleBar() {
 
 void BrowserWindowQt::MinimizeWindow()
 {
-  window_->goHome();
-
+  DCHECK(QMetaObject::invokeMethod(window_, "goHome", Qt::DirectConnection));
 }
 
 void BrowserWindowQt::TabDetachedAt(TabContentsWrapper* contents, int index) {
@@ -720,10 +769,16 @@ void BrowserWindowQt::CancelInstantFade() {
 }
 
 void BrowserWindowQt::InhibitScreenSaver(bool inhibit) {
+#if defined(BUILD_QML_PLUGIN)
+  QObject* window = g_browser_object->getDeclarativeView();
+  QMetaObject::invokeMethod(window, "setInhibitScreenSaver", Qt::DirectConnection,
+      QGenericReturnArgument(), Q_ARG(bool, inhibit)); 
+#else
   extern LauncherWindow* g_main_window;
   DLOG(INFO) << "Inhibit screen saver " << inhibit;
 
   g_main_window->setInhibitScreenSaver(inhibit);
+#endif
 }
 
 #include "moc_browser_window_qt.cc"

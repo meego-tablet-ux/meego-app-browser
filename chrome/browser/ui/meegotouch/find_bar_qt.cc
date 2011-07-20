@@ -34,7 +34,6 @@
 #include <QDeclarativeContext>
 #include <QDeclarativeItem>
 #include <QGraphicsLineItem>
-#include <launcherwindow.h>
 
 class FindBarQtImpl: public QObject
 {

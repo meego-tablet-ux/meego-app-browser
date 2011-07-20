@@ -34,18 +34,38 @@
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
-            'cflags': [
-              '<!@(<(pkg-config) --cflags mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher)',
-              '-I/usr/include/QtMobility -I/usr/include/QtSensors',
-            ],
+            'conditions': [
+              ['buildqmlplugin==1', { # No meegoqmllauncher used
+                  'cflags': [
+                    '<!@(<(pkg-config) --cflags mlite QtCore QtDBus QtDeclarative QtNetwork QtOpenGL)', 
+                    '-I. -I/usr/include/QtMobility -I/usr/include/QtSensors',
+                   ],
+                }, { #buildqmlplugin==0
+                  'cflags': [
+                    '<!@(<(pkg-config) --cflags mlite QtCore QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher)',
+                    '-I. -I/usr/include/QtMobility -I/usr/include/QtSensors',
+                   ],
+                }
+              ],
+            ]
           },
           'link_settings': {
-            'ldflags': [
-              '<!@(<(pkg-config) --libs-only-L --libs-only-other mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher libresource0 libresource0-glib)',
-            ],
-            'libraries': [
-              '<!@(<(pkg-config) --libs-only-l mlite QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher libresource0 libresource0-glib)',
-              '-lQtSensors',
+            'conditions':[
+              ['buildqmlplugin==1', {
+                'ldflags': [
+                  '<!@(<(pkg-config) --libs-only-L --libs-only-other mlite QtCore QtDBus QtDeclarative QtNetwork QtOpenGL libresource0 libresource0-glib)',
+                ],
+                'libraries': [
+                  '<!@(<(pkg-config) --libs-only-l mlite QtCore QtDBus QtDeclarative QtNetwork QtOpenGL libresource0 libresource0-glib)',
+                  '-lQtSensors',
+                ]}, {
+                'ldflags': [
+                  '<!@(<(pkg-config) --libs-only-L --libs-only-other mlite QtCore QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher libresource0 libresource0-glib)',],
+                'libraries': [
+                  '<!@(<(pkg-config) --libs-only-l mlite QtCore QtDBus QtDeclarative QtNetwork QtOpenGL meegoqmllauncher libresource0 libresource0-glib)',
+                  '-lQtSensors',
+                 ]},
+              ],
             ],
           },
       }]]

@@ -48,8 +48,6 @@
 #include "content/common/native_web_keyboard_event.h"
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebWidget.h"
 
-#include <launcherapp.h>
-
 #undef pow
 #include <cmath> // for std::pow
 
@@ -158,8 +156,9 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
 
   cursor_rect_ = QRect();
 
-  LauncherApp* app = reinterpret_cast<LauncherApp*>(qApp);
-  connect(app, SIGNAL(orientationChanged()), this, SLOT(onOrientationAngleChanged()));
+  bool success = connect(qApp, SIGNAL(orientationChanged()), this, SLOT(onOrientationAngleChanged()));
+  DCHECK(success);
+
   onOrientationAngleChanged();
 
   if (!hostView()->IsPopup()) {
@@ -368,8 +367,12 @@ void RWHVQtWidget::setOrientationAngle(QtMobility::QOrientationReading::Orientat
 
 
 void RWHVQtWidget::onOrientationAngleChanged() {
-  LauncherApp* app = reinterpret_cast<LauncherApp*>(qApp);
-  int orientation = app->getOrientation();
+  QVariant var = qApp->property("orientation");
+  DCHECK(var.isValid());
+  if(!var.isValid()) return;
+
+  int orientation = var.toInt();
+
   QtMobility::QOrientationReading::Orientation angle =
       QtMobility::QOrientationReading::TopUp;
 

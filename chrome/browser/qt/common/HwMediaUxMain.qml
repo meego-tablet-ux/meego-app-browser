@@ -500,6 +500,7 @@ Item {
 
         Connections {
             target: fmenuObject
+            ignoreUnknownSignals:true;
             onVideoRun: {
                 if(current>total) current = total;
                 else if(current<0 || total<0) current = 0;

@@ -31,51 +31,24 @@
  **
  ****************************************************************************/
 import Qt 4.7
-import MeeGo.Components 0.1
-import MeeGo.Components 0.1 as UX
-import MeeGo.App.BrowserWrapper 1.0
+import MeeGo.App.Browser 1.0
 
 Item {
-  id: entrance
-  width: screenWidth
-  height: screenHeight
-  
-  BrowserWrapper {
-    id: browserWrapper
-    Component.onCompleted: {
-      // transfer mainWindow(QDeclarativeView) to native code
-      browserWrapper.transfer(mainWindow);
-    }
+  width: 0
+  height: 0
+  visible: false
+  BrowserObject{
+    id: browserObject
   }
 
-  Connections {
-    target: qApp
-    onOrientationChanged: {
-      // Since an application can lock it's orientation, various overlay windows
-      // like the task switcher and the status indicator menu observe the published
-      // orientation attribute on the top level window of the active application.
-      // This is accomplished from QML via the mainWindow.actualOrientation property
-      mainWindow.actualOrientation = qApp.orientation;
-    }
-  }
-  Connections {
-    target: mainWindow
-    onCall: {
-      browserWrapper.arguments(parameters);
-    }
-  }
-  Loader {
-    id: holder
-    source: {screenWidth*25.4/dpiX > 140 && screenHeight*25.4/dpiY > 93? "Tablet.qml":"Handset.qml"}
-  }
-  Loader {
-    id: browserLoader
+  function runMain(args, obj)
+  {
+    browserObject.runMain(args, obj)
   }
   Connections {
     target: browserWrapper
-    onLoad: {
-      browserLoader.source = "BrowserObject.qml"
-      browserLoader.item.runMain(parameters, mainWindow);
+    onCall: {
+      browserObject.handleCall(parameters)
     }
   }
 }

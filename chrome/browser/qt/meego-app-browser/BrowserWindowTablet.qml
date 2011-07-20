@@ -131,6 +131,7 @@ Item {
 
     Connections {
         target: qApp
+        ignoreUnknownSignals:true;
         onOrientationChanged: {
             if (!scene.orientationLocked)
             {
@@ -141,6 +142,7 @@ Item {
 
     Connections {
       target: browserWindow
+      ignoreUnknownSignals:true;
       onHideAllPanel: {
         if (tabSideBarLoader.item && !tabChangeFromTabSideBar) {
           tabSideBarLoader.source = "";
@@ -363,6 +365,7 @@ Item {
         }
         Connections {
           target: bookmarkBarModel
+          ignoreUnknownSignals:true;
           onShow: {
             if (appmode)
               return;
@@ -387,6 +390,7 @@ Item {
         }
         Connections {
           target: infobarContainerModel
+          ignoreUnknownSignals:true;
           onShow: {
             if (!appmode)
               infobarLoader.source = "InfoBarContainer.qml"
@@ -401,6 +405,7 @@ Item {
         }
         Connections {
           target: sslDialogModel
+          ignoreUnknownSignals:true;
           onShow: {
             sslDialogLoader.source = "SslDialog.qml"
             ssldialog.msgHeadline =  headline
@@ -465,6 +470,7 @@ Item {
         }
         Connections {
             target: selectionHandler
+            ignoreUnknownSignals:true;
             onShow: {
                 selectionHandlerLoader.source = "SelectionHandler.qml"
                 selectionhandler.parent = webview
@@ -481,6 +487,7 @@ Item {
         }
         Connections {
             target: findBarModel
+            ignoreUnknownSignals:true;
             onShow: {
               if (!showqmlpanel) {
                 findBarLoader.source = "FindBar.qml"
@@ -526,6 +533,7 @@ Item {
         }
         Connections {
             target: tabSideBarModel
+            ignoreUnknownSignals:true;
             onShow: {
                 tabSideBarLoader.source = "TabSideBar.qml" 
             }
@@ -551,6 +559,7 @@ Item {
         }
         Connections {
           target: downloadsObject
+          ignoreUnknownSignals:true;
           onShow: {
             var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
             downloadsLoader.opacity = 1
@@ -636,6 +645,7 @@ Item {
 
         Connections {
             target: browserToolbarModel
+            ignoreUnknownSignals:true;
             onShowHistoryStack: {
                 var mappedPos = scene.mapToItem (outerContent, scene.lastMousePos.mouseX, scene.lastMousePos.mouseY);
                 historyLoader.source = "HistoryBar.qml"
