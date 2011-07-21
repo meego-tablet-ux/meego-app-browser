@@ -24,7 +24,7 @@ body #outer:active {
 }
 
 h1 {
-  padding: 0pt 10pt;
+  padding: 0pt 1pt;
   font-size: 10pt;
   font-weight: normal;
 }
@@ -65,7 +65,7 @@ FIXME: This causes flickering on hover.
 #inner {
   position: relative;
   top: 50%;
-  margin-top: -70px;
+  margin-top: -55px;
 }
 
 #close {
@@ -95,7 +95,7 @@ FIXME: This causes flickering on hover.
 <body id="t" onSelectStart="return false;">
 <div i18n-values="title:name" id="outer" onclick="plugin.load()">
 <div id="inner">
-<div><img id="plugin_icon" src="missing-plugin-small.png" /></div>
+<div><img id="plugin_icon" src="missing-plugin-small.png" onload="resizeImage(this)"/></div>
 <h1 i18n-content="message">PLUGIN_LOAD</h1>
 <p id="debug"> </p>
 </div>
@@ -107,6 +107,33 @@ style = getComputedStyle(size);
 if (parseInt(style.width) < 32 && parseInt(style.height) < 32) {
   i = document.getElementById('close');
   i.parentNode.removeChild(i);
+}
+
+function resizeImage(obj){
+  border_outer = document.getElementById('outer');
+  border_rect = getComputedStyle(border_outer);
+  inner_style = document.getElementById('inner');
+  border_height = parseInt(border_rect.height);
+  border_width = parseInt(border_rect.width);
+
+  if( border_height < 80 || border_width < 80 ){
+    obj.parentNode.removeChild(obj);
+    inner_style.style.marginTop = "-10px";
+    return ;
+  }
+
+  else if( border_height < 150 ){
+    obj.height = border_height - 50;
+    obj.width = ( obj.height * 5 ) / 4 ;
+    top_str = "-" + ( border_height - 20 )/2 + "px";
+    inner_style.style.marginTop = top_str;
+    return ;
+  }
+  else if( border_width < 100){
+    obj.width = border_width ;
+    obj.height = (obj.width * 4) / 5 ;
+    return ;
+  }
 }
 </script>
 </body>
