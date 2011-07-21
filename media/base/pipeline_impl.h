@@ -127,7 +127,7 @@ class PipelineImpl : public Pipeline, public FilterHost {
 
   void SetClockForTesting(Clock* clock);
 
-  unsigned int GetVideoCodecID() {return video_decoder_->codec_id_;}
+  unsigned int GetVideoCodecID() {if(video_decoder_){return video_decoder_->codec_id_;}else{return 0;};}
 
  private:
   // Pipeline states, as described above.
