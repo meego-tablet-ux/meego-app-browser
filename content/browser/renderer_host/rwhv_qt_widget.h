@@ -121,6 +121,7 @@ protected Q_SLOTS:
   void onAnimationFinished();
   void onDoubleTapped();
   void deliverMouseClickEvent();
+  void onFlickStarted();
  private:
 
   typedef enum {

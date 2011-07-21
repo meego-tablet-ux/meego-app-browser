@@ -193,6 +193,9 @@ RWHVQtWidget::RWHVQtWidget(RenderWidgetHostViewQt* host_view, QGraphicsItem* Par
   vkb_flag_ = false;
   connect((const QObject*)qApp->inputContext(), SIGNAL(inputMethodAreaChanged(QRect)),
             this, SLOT(handleInputMethodAreaChanged(QRect)));
+
+  QGraphicsObject* viewport_item = GetViewportItem();
+  connect((const QObject*)viewport_item, SIGNAL(movementStarted()), this, SLOT(onFlickStarted()));
 }
 
 RWHVQtWidget::~RWHVQtWidget()
@@ -1225,6 +1228,20 @@ void RWHVQtWidget::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 done:
   event->accept();
+}
+
+// Flickable steals mouse move and mouse release event when the flickable
+// recognizes a drag movement. But, sometimes (e.g. for tap link highlight)
+// the release event is needed. So generate a left button release event at
+// (0, 0), and forward this event when flickable begins moving.
+void RWHVQtWidget::onFlickStarted() {
+  WebKit::WebMouseEvent event = EventUtilQt::ToWebMouseEvent(
+      QEvent::GraphicsSceneMouseRelease,
+      Qt::LeftButton, Qt::NoModifier,
+      0, 0, 0, 0, scale());
+  if(hostView()->host_) {
+    hostView()->host_->ForwardMouseEvent(event);
+  }
 }
 
 void RWHVQtWidget::CommitSelection() {
