@@ -8,6 +8,7 @@
 #include "base/string_number_conversions.h"
 #include "base/string_util.h"
 #include "base/utf_string_conversions.h"
+#include "grit/generated_resources.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/find_bar/find_bar_controller.h"
@@ -200,9 +201,9 @@ void FindBarQt::UpdateUIForFindResult(const FindNotificationDetails& result,
   }
 
   if (!find_text.empty() && have_valid_range) {
-    impl_->SetMatchesLabel(QString("%1 of %2")
-                          .arg(result.active_match_ordinal())
-                          .arg(result.number_of_matches()));
+    impl_->SetMatchesLabel(QString::fromUtf16(l10n_util::GetStringFUTF16(IDS_FIND_IN_PAGE_COUNT,
+                                                              base::IntToString16(result.active_match_ordinal()),
+                                                              base::IntToString16(result.number_of_matches())).c_str()));
   } else {
     // If there was no text entered, we don't show anything in the result count
     // area.
