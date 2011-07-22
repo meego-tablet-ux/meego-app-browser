@@ -1907,7 +1907,10 @@ def process_grd_diff(grd_diff):
     if re.search('^\+', line) and state == 'begin-':
       state = 'begin-+'
       continue
-    if re.search('\<\/message\>', line) and state == 'begin-+':
+    if re.search('^\+', line) and state == 'begin':
+      state = 'begin+'
+      continue
+    if re.search('\<\/message\>', line) and (state == 'begin-+' or state == 'begin+'):
       result = re.findall('name\=\".*\" desc=', message)
       #print message[result.start():result.end()]
       id = result[0][6:-7]
