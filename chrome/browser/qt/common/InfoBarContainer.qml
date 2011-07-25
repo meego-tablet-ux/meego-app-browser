@@ -40,14 +40,14 @@ Item {
   height: infobarContainer.height
   property alias model: view.model
   property int maxItems: 3
-  property int itemHeight: 40
-  property int buttonMargin: 2
+  property int itemHeight: 65
+  property int buttonMargin: 5
 
   Image {
     id: infobarContainer
     width: parent.width
     height: {(view.count  > container.maxItems ? maxItems * container.itemHeight : view.count * container.itemHeight)}
-    source: "image://themedimage/images/navigationBar_l"
+    source: "image://themedimage/widgets/app/browser/infobar-navbar-background"
 
     clip: true
 
@@ -63,12 +63,15 @@ Item {
           id: infolabel
           anchors.verticalCenter: parent.verticalCenter
           anchors.left: parent.left
-          anchors.leftMargin: 10
+          anchors.leftMargin: buttonMargin
+          anchors.rightMargin: buttonMargin * 2
           anchors.right: acceptButton.left
-          color: theme_buttonFontColor
+          color: "white"
+          font.pixelSize: theme_fontPixelSizeNormal
+          font.family: theme_fontFamily
           elide: Text.ElideRight
           verticalAlignment: Text.AlignVCenter
-          font.pixelSize: container.itemHeight * 0.6
+          horizontalAlignment: Text.AlignRight
           text: info
         }
 
@@ -76,12 +79,15 @@ Item {
           id: acceptButton
           anchors.right: cancelButton.left
           objectName: "acceptButton"
-          bgSourceUp: "image://themedimage/images/btn_blue_up"
-          bgSourceDn: "image://themedimage/images/btn_blue_dn"
-          y: buttonMargin
+          anchors.verticalCenter: parent.verticalCenter
+          bgSourceUp: "image://themedimage/widgets/common/button/button-default"
+          bgSourceDn: "image://themedimage/widgets/common/button/button-default-pressed"
+          width: 120
           height: parent.height - buttonMargin * 2
           text: acceptLabel
-          font.pixelSize: container.itemHeight * 0.6
+          textColor: "white"
+          font.pixelSize: theme_fontPixelSizeLarge
+          font.family: theme_fontFamily
 
           Component.onCompleted: { 
               if (acceptLabel == "") {
@@ -97,14 +103,18 @@ Item {
 
         Button {
           id: cancelButton
-          anchors.right: closeButton.left
+          anchors.right: vSeperatorImage.left
           objectName: "cancelButton"
-          bgSourceUp: "image://themedimage/images/btn_red_up"
-          bgSourceDn: "image://themedimage/images/btn_red_dn"
-          y: buttonMargin
+          bgSourceUp: "image://themedimage/widgets/common/button/button"
+          bgSourceDn: "image://themedimage/widgets/common/button/button-pressed"
+          anchors.rightMargin: buttonMargin
+          anchors.verticalCenter: parent.verticalCenter
+          width: 120
           height: parent.height - buttonMargin * 2
           text: cancelLabel
-          font.pixelSize: container.itemHeight * 0.6
+          textColor: "white"
+          font.pixelSize: theme_fontPixelSizeLarge
+          font.family: theme_fontFamily
 
           Component.onCompleted: { 
               if (cancelLabel == "") {
@@ -117,14 +127,20 @@ Item {
             infobarContainerModel.infobarInvoked(index, "ButtonCancel")
           }
         }
+        
+        Image {
+          id: vSeperatorImage
+          anchors.right: closeButton.left
+          height: parent.height
+          source: "image://themedimage/widgets/common/action-bar/action-bar-separator"
+        }
 
         Item {
           id: closeButton
           objectName: "closeButton"
           anchors.right: parent.right
-          anchors.rightMargin: 10
           height: parent.height
-          width: height
+          width: height 
           z: 10
           Image {
             id: closeIcon
