@@ -67,6 +67,20 @@ void PluginLib::ShutdownAllPlugins() {
   }
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginLib::OnOrientationChanged(int orientation)
+{
+  if (g_loaded_libs) {
+    // PluginLib::Unload() can remove items from the list and even delete
+    // the list when it removes the last item, so we must work with a copy
+    // of the list so that we don't get the carpet removed under our feet.
+    std::vector<scoped_refptr<PluginLib> > loaded_libs(*g_loaded_libs);
+    for (size_t i = 0; i < loaded_libs.size(); ++i)
+      loaded_libs[i]->NP_SetOrientation(orientation);
+  }
+}
+#endif
+
 PluginLib::PluginLib(const WebPluginInfo& info,
                      const PluginEntryPoints* entry_points)
     : web_plugin_info_(info),
@@ -158,6 +172,18 @@ char** PluginLib::NP_GetSitesWithData() {
   return NULL;
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginLib::NP_SetOrientation(int orientation) {
+  DCHECK(initialized_);
+  if (entry_points_.np_setorientation != 0) {
+    DLOG(INFO) << "Orientation changed to : " << orientation;
+    entry_points_.np_setorientation(orientation);
+  } else {
+    DLOG(WARNING) << "Plugin does not support Set_Orientation api : " << orientation;
+  }
+}
+#endif
+
 void PluginLib::PreventLibraryUnload() {
   skip_unload_ = true;
 }
@@ -174,7 +200,7 @@ void PluginLib::OnFlashInstancePaused(bool paused) {
 
   new_playing = (flash_playing_count_ > 0);
 
-  DLOG(INFO) << "Playing flash instance number: " << flash_playing_count_;
+  LOG(INFO) << "Playing flash instance number: " << flash_playing_count_;
   if (old_playing == new_playing)
     return;
 
@@ -265,6 +291,11 @@ bool PluginLib::Load() {
             "NP_Shutdown");
     if (entry_points_.np_shutdown == 0)
       rv = false;
+#if defined(TOOLKIT_MEEGOTOUCH)
+    entry_points_.np_setorientation=
+        (NP_SetOrientationFunc)base::GetFunctionPointerFromNativeLibrary(library,
+            "NP_SetOrientation");
+#endif
   } else {
     rv = true;
   }

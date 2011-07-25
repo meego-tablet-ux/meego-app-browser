@@ -107,6 +107,8 @@ IPC_MESSAGE_ROUTED3(PluginProcessHostMsg_DownloadUrl,
 #if defined(TOOLKIT_MEEGOTOUCH)
 IPC_MESSAGE_ROUTED1(PluginProcessHostMsg_InhibitScreenSaver,
                     bool /* inhibit */)
+IPC_MESSAGE_CONTROL1(PluginProcessMsg_ChangeOrientation,
+                     int /* orientation */)
 #endif
 
 #if defined(USE_X11)

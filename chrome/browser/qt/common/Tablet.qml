@@ -209,6 +209,7 @@ BrowserWindowTablet {
     objectName: "contextLoader"
     property int menuWidth : 400
     function close() {
+      browserMenuObject.close();
       contextLoader.sourceComponent = undefined;
       wrenchmenushown = false;
     }

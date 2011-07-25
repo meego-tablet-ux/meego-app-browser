@@ -52,6 +52,10 @@ class PluginLib : public base::RefCounted<PluginLib> {
   // Shuts down all loaded plugin instances.
   static void ShutdownAllPlugins();
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  static void OnOrientationChanged(int orientation);
+#endif
+
   // Get the Plugin's function pointer table.
   NPPluginFuncs* functions();
 
@@ -84,6 +88,11 @@ class PluginLib : public base::RefCounted<PluginLib> {
   // NPAPI method to get a NULL-terminated list of all sites under which data
   // is stored.
   char** NP_GetSitesWithData();
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  // NPAPI method to set orientation for all instances
+  void NP_SetOrientation(int orientation);
+#endif
 
   int instance_count() const { return instance_count_; }
 #if defined(TOOLKIT_MEEGOTOUCH)

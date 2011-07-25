@@ -93,6 +93,9 @@ void TabContentsContainerQt::ViewportSizeChanged()
 {
   if (in_orientation_) {
     DLOG(INFO) << "in orientation, don't adjust contents size now";
+    // Hide flash window when rotating
+    gfx::Rect rect(0, 0, 0, 0);
+    window_->ComposeEmbededFlashWindow(rect);
     return;
   }
 
@@ -276,6 +279,8 @@ void TabContentsContainerQt::OrientationEnd()
 {
   in_orientation_ = false;
   ViewportSizeChanged();
+
+  window_->ReshowEmbededFlashWindow();
 }
 
 #include "moc_tab_contents_container_qt.cc"

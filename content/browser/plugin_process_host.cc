@@ -385,3 +385,10 @@ void PluginProcessHost::OnGetPluginFinderUrl(std::string* plugin_finder_url) {
     plugin_finder_url->clear();
   }
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginProcessHost::OnOrientationChanged(int orientation)
+{
+   Send(new PluginProcessMsg_ChangeOrientation(orientation));
+}
+#endif

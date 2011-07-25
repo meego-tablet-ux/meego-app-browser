@@ -890,7 +890,9 @@ NPError NPN_SetValue(NPP id, NPPVariable variable, void* value) {
 
   scoped_refptr<PluginInstance> plugin(FindInstance(id));
   if (!plugin.get()) {
+#if !defined(TOOLKIT_MEEGOTOUCH)
     NOTREACHED();
+#endif
     return NPERR_INVALID_INSTANCE_ERROR;
   }
   switch(variable) {

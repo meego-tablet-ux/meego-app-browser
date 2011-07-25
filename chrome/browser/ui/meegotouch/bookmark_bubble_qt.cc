@@ -211,10 +211,7 @@ void BookmarkBubbleQt::Apply() {
 }
 
 void BookmarkBubbleQt::Cancel(){
-  BookmarkModel* model = profile_->GetBookmarkModel();
-  const BookmarkNode* node = model->GetMostRecentlyAddedNodeForURL(url_);
-  if (node && newly_bookmarked_)
-    model->Remove(node->parent(), node->parent()->GetIndexOf(node));
+  window_->ReshowEmbededFlashWindow ();
 }
 
 void BookmarkBubbleQt::OnRemoveClicked() {
@@ -223,6 +220,7 @@ void BookmarkBubbleQt::OnRemoveClicked() {
 
   apply_edits_ = false;
   remove_bookmark_ = true;
+  window_->ReshowEmbededFlashWindow ();
   Apply();
 }
 
@@ -304,6 +302,7 @@ std::string BookmarkBubbleQt::GetTitle() {
 void BookmarkBubbleQt::OnDoneClicked() {
   apply_edits_ = true;
   remove_bookmark_ = false;
+  window_->ReshowEmbededFlashWindow ();
   Apply();
 }
 
@@ -323,6 +322,10 @@ void BookmarkBubbleQt::InitFolderComboModel() {
 // Displays the bubble at the given coords. |point| is intentionally not const.
 void BookmarkBubbleQt::PopupAt(gfx::Point point)
 {
+  // TODO: compose embeded flash window with correct menu rect
+  gfx::Rect rect(point.x(), point.y(), 0, 0);
+
+  window_->ComposeEmbededFlashWindow(rect);
   impl_->PopupAt(point.x(), point.y());
 }
 

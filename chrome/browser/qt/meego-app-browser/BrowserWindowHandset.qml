@@ -682,7 +682,7 @@ Item {
               }
               ScriptAction {
                 script: {
-                  browserWindow.OrientationEnd();
+                  browserWindow.OrientationEnd(scene.orientation);
                 }
               }
             }

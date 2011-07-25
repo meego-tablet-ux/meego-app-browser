@@ -209,7 +209,7 @@ void TabListQt::CheckTabsLimit()
 }
 
 
-TabListQt::TabListQt(Browser* browser, BrowserWindow* window):
+TabListQt::TabListQt(Browser* browser, BrowserWindowQt* window):
     QDeclarativeImageProvider(QDeclarativeImageProvider::Image),
     browser_(browser),
     window_(window),
@@ -386,6 +386,10 @@ void TabListQt::Show()
 
   emit show();
 
+  // TODO: compose embeded flash window with correct rect
+  gfx::Rect rect(0, 0, 0, 0);
+  window_->ComposeEmbededFlashWindow(rect);
+
   // set the selected tab
   TabItem* item = NULL;
   TabContentsWrapper* current = model->GetSelectedTabContents();
@@ -414,6 +418,7 @@ void TabListQt::Hide()
   model->RemoveObserver(this);
 
   emit hide();
+  window_->ReshowEmbededFlashWindow ();
 }
 
 void TabListQt::hideSideBar()

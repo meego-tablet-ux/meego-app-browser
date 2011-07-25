@@ -197,6 +197,8 @@ class BrowserWindowQt : //public MApplicationWindow,
 
   QDeclarativeView* DeclarativeView();
 
+  void ComposeEmbededFlashWindow(const gfx::Rect &r);
+  void ReshowEmbededFlashWindow();
   void ShowContextMenu(ui::MenuModel* model, gfx::Point p);
   void ShowDialog(DialogQtModel* model, DialogQtResultListener* listener);
   // Show or hide the bookmark bar.

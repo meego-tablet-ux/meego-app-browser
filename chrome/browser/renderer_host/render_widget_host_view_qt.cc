@@ -95,7 +95,7 @@ void RenderWidgetHostViewQt::InitAsPopup(
   RenderWidgetHost* host = parent_host_view_->GetRenderWidgetHost();
   if(host) {
     scale = flatScaleByStep(host->GetScaleFactor());
-    host_->SetScaleFactor(scale);
+    SetScaleFactor(scale);
   }
 
   // Set contents size and preferred size for popup widget
@@ -122,6 +122,17 @@ void RenderWidgetHostViewQt::InitAsPopup(
   view_ = widget;
   
   host_->WasResized();
+}
+
+void RenderWidgetHostViewQt::SetScaleFactor(double factor)
+{
+  if (!host_)
+    return;
+  host_->SetScaleFactor(factor);
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  if (plugin_container_manager_)
+    plugin_container_manager_->SetScaleFactor(factor);
+#endif
 }
 
 void RenderWidgetHostViewQt::DidBecomeSelected() {
@@ -191,6 +202,24 @@ void RenderWidgetHostViewQt::SetPreferredSize(const gfx::Size& size)
 {
   if(host_)
     host_->SetPreferredSize(size);
+
+// we assume that when orientation is changed, this function will been called when animation is done
+// thus we update the clip rect for plugin contatiner manager.
+// And we do need to relocate plugin container, if the PreferredSize changed without orientation change,
+// this will happen when we toggle full screen mode.
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+
+    if(!view_)
+      return;
+
+    QRectF rect = reinterpret_cast<RWHVQtWidget*>(view_)->GetViewPortRectInScene();
+    plugin_container_manager_->SetClipRect(rect.toAlignedRect());
+
+    QPointF offset = view_->scenePos();
+    scene_pos_ = gfx::Point(int(offset.x()), int(offset.y()));
+    plugin_container_manager_->RelocatePluginContainers(scene_pos_);
+
+#endif
 }
 
 gfx::NativeView RenderWidgetHostViewQt::GetNativeView() {
@@ -241,8 +270,9 @@ gfx::Size RenderWidgetHostViewQt::CalPluginWindowSize() {
   resolution = CalFSWinSize();
 
   pw_size = gfx::Size(resolution.width() - reserved_width, resolution.height() - reserved_height);
-  return pw_size;
 #endif
+
+  return pw_size;
 }
 
 gfx::Size RenderWidgetHostViewQt::GetFSPluginWindowSize() {
@@ -498,9 +528,16 @@ void RenderWidgetHostViewQt::CreatePluginContainer(
 #if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
   if(!view_)
     return;
-  if(view_->scene())
+  plugin_container_manager_->set_native_view(view_);
+
+  if(view_->scene()) {
     plugin_container_manager_->set_host_widget(view_->scene()->views().at(0));
-  LOG(ERROR) << "view scene " << view_->scene();
+    QRectF rect = reinterpret_cast<RWHVQtWidget*>(view_)->GetViewPortRectInScene();
+
+#if !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+    plugin_container_manager_->SetClipRect(rect.toAlignedRect());
+#endif
+  }
 
   plugin_container_manager_->SetFSWindowSize(CalFSWinSize());
   plugin_container_manager_->CreatePluginContainer(id);
@@ -723,4 +760,12 @@ void RenderWidgetHostViewQt::DestroyVideoWidget(unsigned int id)
   
   delete video_widgets_map_.value(id);
   video_widgets_map_.remove(id);
+}
+
+void RenderWidgetHostViewQt::ComposeEmbededFlashWindow(const gfx::Rect& rect) {
+  plugin_container_manager_->ComposeEmbededFlashWindow(rect);
+}
+
+void RenderWidgetHostViewQt::ReShowEmbededFlashWindow() {
+  plugin_container_manager_->ReShowEmbededFlashWindow();
 }

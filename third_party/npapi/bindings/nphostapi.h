@@ -26,6 +26,9 @@ typedef NPError (API_CALL * NP_InitializeFunc)(NPNetscapeFuncs* pFuncs);
 typedef NPError (API_CALL * NP_GetEntryPointsFunc)(NPPluginFuncs* pFuncs);
 #endif
 typedef NPError (API_CALL * NP_ShutdownFunc)(void);
+#if defined(TOOLKIT_MEEGOTOUCH)
+typedef void    (API_CALL * NP_SetOrientationFunc)(int orientation);
+#endif
 
 #ifdef __cplusplus
 } // extern "C"

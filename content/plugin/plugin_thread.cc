@@ -113,6 +113,9 @@ bool PluginThread::OnControlMessageReceived(const IPC::Message& msg) {
     IPC_MESSAGE_HANDLER(PluginProcessMsg_CreateChannel, OnCreateChannel)
     IPC_MESSAGE_HANDLER(PluginProcessMsg_NotifyRenderersOfPendingShutdown,
                         OnNotifyRenderersOfPendingShutdown)
+#if defined(TOOLKIT_MEEGOTOUCH)
+    IPC_MESSAGE_HANDLER(PluginProcessMsg_ChangeOrientation, OnOrientationChanged)
+#endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
   return handled;
@@ -138,6 +141,12 @@ void PluginThread::OnCreateChannel(int renderer_id,
 void PluginThread::OnNotifyRenderersOfPendingShutdown() {
   PluginChannel::NotifyRenderersOfPendingShutdown();
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginThread::OnOrientationChanged(int orientation) {
+  webkit::npapi::PluginLib::OnOrientationChanged(orientation);
+}
+#endif
 
 namespace webkit_glue {
 

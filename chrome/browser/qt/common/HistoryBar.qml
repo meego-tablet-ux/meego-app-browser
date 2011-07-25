@@ -107,6 +107,7 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: {
             historyOverlay.showed = false
+            historyStackModel.OnOverlayHide()
         }
     }
 

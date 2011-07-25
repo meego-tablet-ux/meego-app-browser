@@ -51,6 +51,7 @@ class PopupListQt {
   void setCurrentView(TabContentsViewQt* view) { view_ = view; }
   TabContentsViewQt* currentView() { return view_; }
   void show();
+  void ReshowEmbededFlashWindow();
 
  private:
   TabContentsViewQt* view_;

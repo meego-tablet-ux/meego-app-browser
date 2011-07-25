@@ -34,6 +34,7 @@
 #include "chrome/browser/history/history.h"
 #include "chrome/browser/prefs/pref_service.h"
 #include "chrome/browser/tabs/tab_strip_model.h"
+#include "chrome/browser/ui/meegotouch/browser_window_qt.h"
 
 #include <QList>
 #include <QAbstractListModel>
@@ -89,7 +90,7 @@ class TabListQt :  public QAbstractListModel,
   Q_OBJECT
 
  public:
-  TabListQt(Browser* browser, BrowserWindow* window);
+  TabListQt(Browser* browser, BrowserWindowQt* window);
   ~TabListQt();
 
   enum TabRoles {
@@ -163,7 +164,7 @@ class TabListQt :  public QAbstractListModel,
   
  private:
   Browser* browser_;
-  BrowserWindow* window_;
+  BrowserWindowQt* window_;
   bool is_shown_;
 
   typedef QMap<TabContentsWrapper*, TabItem*> TabContentsToItemMap;

@@ -47,6 +47,12 @@
 #include "webkit/plugins/npapi/webplugin_delegate.h"
 #include "webkit/plugins/npapi/webplugin_page_delegate.h"
 
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+#include "chrome/common/render_messages.h"
+#include "content/renderer/render_view.h"
+#include "chrome/common/render_tiling.h"
+#endif
+
 using appcache::WebApplicationCacheHostImpl;
 using WebKit::WebCanvas;
 using WebKit::WebConsoleMessage;
@@ -288,9 +294,8 @@ void WebPluginImpl::updateGeometry(
   for (size_t i = 0; i < cutout_rects.size(); ++i)
     new_geometry.cutout_rects.push_back(cutout_rects[i]);
 
-
-#if defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
-  // for windowed mode
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+// for windowed plugin's full screen mode
   if (window_ && page_delegate_) {
     WebRect fs_rect = page_delegate_->PluginFullScreenRect();
     new_geometry.window_rect = fs_rect;
@@ -316,7 +321,25 @@ void WebPluginImpl::updateGeometry(
       new_geometry.window_rect != geometry_.window_rect ||
       new_geometry.clip_rect != geometry_.clip_rect) {
     // Notify the plugin that its parameters have changed.
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  if (window_) {
+    WebPluginGeometry scaled_geometry = new_geometry;
+    scaled_geometry.window_rect.SetRect(new_geometry.window_rect.x() * scale_factor_,
+                new_geometry.window_rect.y() * scale_factor_,
+                new_geometry.window_rect.width() * scale_factor_,
+                new_geometry.window_rect.height() * scale_factor_);
+    scaled_geometry.clip_rect.SetRect(new_geometry.clip_rect.x() * scale_factor_,
+                new_geometry.clip_rect.y() * scale_factor_,
+                new_geometry.clip_rect.width() * scale_factor_,
+                new_geometry.clip_rect.height() * scale_factor_);
+
+    delegate_->UpdateGeometry(scaled_geometry.window_rect, scaled_geometry.clip_rect);
+  } else {
     delegate_->UpdateGeometry(new_geometry.window_rect, new_geometry.clip_rect);
+  }
+#else
+    delegate_->UpdateGeometry(new_geometry.window_rect, new_geometry.clip_rect);
+#endif
   }
 
   // Initiate a download on the plugin url. This should be done for the
@@ -513,6 +536,10 @@ void WebPluginImpl::stopFind() {
 // -----------------------------------------------------------------------------
 
 WebPluginImpl::WebPluginImpl(
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+    RenderView* render_view,
+    double scale,
+#endif
     WebFrame* webframe,
     const WebPluginParams& params,
     const FilePath& file_path,
@@ -523,6 +550,10 @@ WebPluginImpl::WebPluginImpl(
       accepts_input_events_(false),
       page_delegate_(page_delegate),
       webframe_(webframe),
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+      RenderViewObserver(render_view),
+      scale_factor_(scale),
+#endif
       delegate_(NULL),
       container_(NULL),
       plugin_url_(params.url),
@@ -547,6 +578,40 @@ WebPluginImpl::WebPluginImpl(
 
 WebPluginImpl::~WebPluginImpl() {
 }
+
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+bool WebPluginImpl::OnMessageReceived(const IPC::Message& message)
+{
+  if (message.type() == ViewMsg_SetScaleFactor::ID) {
+    ViewMsg_SetScaleFactor::Dispatch(&message, this, this, &WebPluginImpl::OnSetScaleFactor);
+  }
+  return false;
+}
+
+void WebPluginImpl::OnSetScaleFactor(double factor)
+{
+  if(scale_factor_ == factor)
+    return;
+
+  scale_factor_ = flatScaleByStep(factor);
+
+  if (window_ && page_delegate_) {
+    WebPluginGeometry new_geometry = geometry_;
+    new_geometry.window_rect.SetRect(new_geometry.window_rect.x() * scale_factor_,
+                new_geometry.window_rect.y() * scale_factor_,
+                new_geometry.window_rect.width() * scale_factor_,
+                new_geometry.window_rect.height() * scale_factor_);
+
+    new_geometry.clip_rect.SetRect(new_geometry.window_rect.x() * scale_factor_,
+                new_geometry.clip_rect.y() * scale_factor_,
+                new_geometry.clip_rect.width() * scale_factor_,
+                new_geometry.clip_rect.height() * scale_factor_);
+
+    delegate_->UpdateGeometry(new_geometry.window_rect, new_geometry.clip_rect);
+  }
+}
+
+#endif
 
 void WebPluginImpl::SetWindow(gfx::PluginWindowHandle window) {
 #if defined(OS_MACOSX)

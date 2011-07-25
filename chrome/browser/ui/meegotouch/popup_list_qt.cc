@@ -84,7 +84,7 @@ class PopupListQtImpl : public QAbstractListModel
 
   void setSelectedIndex(int index) {selected_index_ = index;}
   void show(int hx, int hy, int hw, int hh) { Q_EMIT showPopup(hx, hy, hw, hh); }
-  void hide() { Q_EMIT hidePopup(); }
+  void hide() { popup_list_->ReshowEmbededFlashWindow (); Q_EMIT hidePopup(); }
 
   Q_INVOKABLE int currentSelectedItem();
 
@@ -151,13 +151,14 @@ void PopupListQtImpl::itemInvoked(int index)
 
   popup_list_->currentView()->selectPopupItem(index);
   hide();
-  
+
   //DNOTIMPLEMENTED();
 }
 
 void PopupListQtImpl::uiCanceled()
 {
   popup_list_->currentView()->selectPopupItem(-1);
+  popup_list_->ReshowEmbededFlashWindow();
   // we don't need to hide UI, since ui already been canceled.
 }
 
@@ -246,7 +247,16 @@ void PopupListQt::show()
   QDeclarativeContext *context = view->rootContext();
   context->setContextProperty("PopupListModel", impl_);
 
+  // TODO: compose embeded flash window with correct rect
+  gfx::Rect rect(0, 0, 0, 0);
+  window_->ComposeEmbededFlashWindow(rect);
+
   impl_->show(header_bounds_.x(), header_bounds_.y(), header_bounds_.width(), header_bounds_.height());
+}
+
+void PopupListQt::ReshowEmbededFlashWindow()
+{
+  window_->ReshowEmbededFlashWindow();
 }
 
 #include "moc_popup_list_qt.cc"

@@ -14,6 +14,7 @@
 #include <QDeclarativeItem>
 #include <QGraphicsLineItem>
 #include "webkit/glue/hwfmenu_qt.h"
+#include "base/meegotouch_config.h"
 #endif
 
 #include <algorithm>
@@ -3463,8 +3464,14 @@ WebPlugin* RenderView::CreateNPAPIPlugin(
     const WebPluginParams& params,
     const FilePath& path,
     const std::string& mime_type) {
+
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  return new webkit::npapi::WebPluginImpl(
+      this, x_scale_, frame, params, path, mime_type, AsWeakPtr());
+#else
   return new webkit::npapi::WebPluginImpl(
       frame, params, path, mime_type, AsWeakPtr());
+#endif
 }
 
 void RenderView::OnZoom(PageZoom::Function function) {

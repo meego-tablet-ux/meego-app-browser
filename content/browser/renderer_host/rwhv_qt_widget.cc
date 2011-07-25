@@ -1397,15 +1397,11 @@ void RWHVQtWidget::onAnimationFinished()
   }
 
   if(pending_scale_ < scale_to_screen_factor_) {
-    host_view_->host_->SetScaleFactor(scale_to_screen_factor_);
     pinch_scale_factor_ = scale_to_screen_factor_/scale_;
     pending_scale_ = scale_to_screen_factor_;
   } else if(pending_scale_ > kMaxContentsScale) {
-    host_view_->host_->SetScaleFactor(kMaxContentsScale);
     pinch_scale_factor_ = kMaxContentsScale/scale_;
     pending_scale_ = kMaxContentsScale;
-  } else {
-    host_view_->host_->SetScaleFactor(pending_scale_);
   }
  
   this->SetScaleFactor(pending_scale_);
@@ -1624,9 +1620,9 @@ void RWHVQtWidget::SetScaleFactor(double scale)
   scale_ = scale;
 
   RenderWidgetHost *host = hostView()->host_;
+  hostView()->SetScaleFactor(scale);
 
   if(host) {
-    host->SetScaleFactor(scale);
     BackingStoreX* backing_store = static_cast<BackingStoreX*>(
         host->GetBackingStore(false));
 #if defined(TILED_BACKING_STORE)
@@ -1864,8 +1860,6 @@ void RWHVQtWidget::doubleTapAction(const QPointF& pos)
   topLeft_ = QPointF(-viewport_item->property("contentX").toInt(),
                   -viewport_item->property("contentY").toInt());
    
-  host_view_->host_->SetScaleFactor(pending_scale_);
-
   this->SetScaleFactor(pending_scale_);
 
   scale_animation_->setDuration(200);
@@ -2280,6 +2274,24 @@ QRect RWHVQtWidget::GetVisibleRect()
   return itemRect.toAlignedRect();
 }
 
+
+QRect RWHVQtWidget::GetViewPortRectInScene()
+{
+  QGraphicsObject* viewport_item = GetViewportItem();
+
+  if (viewport_item == NULL)
+    return QRect();
+
+  QRectF viewport_rect = viewport_item->sceneBoundingRect(); //mapToScene(viewport_item->boundingRect());
+
+  DLOG(INFO) << "vp x-y-w-h = " << viewport_rect.x() << "-"
+    << viewport_rect.y() << "-"
+    << viewport_rect.width() << "-"
+    << viewport_rect.height();
+
+  return viewport_rect.toAlignedRect();
+}
+
 void RWHVQtWidget::DidBackingStoreScale()
 {
   if (pending_webview_rect_ != QRectF())
@@ -2352,8 +2364,7 @@ bool RWHVQtWidget::CheckContentsSize(gfx::Size& desired_preferred_size)
   // the contents scale
   if(scale_ > 1.1) return true;
 
-  if(host_view_->host_)
-    host_view_->host_->SetScaleFactor(scale_to_screen_factor_);
+  host_view_->SetScaleFactor(scale_to_screen_factor_);
 
   this->SetScaleFactor(scale_to_screen_factor_);
   return true;

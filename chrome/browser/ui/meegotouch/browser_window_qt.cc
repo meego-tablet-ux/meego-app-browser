@@ -47,6 +47,7 @@
 #include "content/browser/renderer_host/render_view_host.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "content/browser/tab_contents/tab_contents_view.h"
+#include "content/browser/plugin_service.h"
 #include "chrome/browser/ui/window_sizer.h"
 #include "chrome/browser/net/url_fixer_upper.h"
 #include "chrome/common/chrome_switches.h"
@@ -152,8 +153,14 @@ class BrowserWindowQtImpl : public QObject
     window_->GetTabContentsContainer()->OrientationStart();
   }
 
-  void OrientationEnd()
+  void OrientationEnd(int orientation)
   {
+#if !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+    BrowserThread::PostTask(
+        BrowserThread::IO, FROM_HERE,
+        NewRunnableFunction(PluginService::OnOrientationChanged,
+                            orientation));
+#endif
     window_->GetTabContentsContainer()->OrientationEnd();
   }
 
@@ -393,6 +400,31 @@ void BrowserWindowQt::MaybeShowBookmarkBar(TabContents* contents) {
   }
 }
 
+
+void BrowserWindowQt::ComposeEmbededFlashWindow(const gfx::Rect &r) {
+#ifndef MEEGO_FORCE_FULLSCREEN_PLUGIN
+  TabContents* contents = contents_container_->GetTabContents();
+  if (contents) {
+    RenderWidgetHostView* rwhv = contents->GetRenderWidgetHostView();
+    if (rwhv)
+      rwhv->ComposeEmbededFlashWindow(r);
+  }
+#endif
+}
+
+void BrowserWindowQt::ReshowEmbededFlashWindow() {
+#ifndef MEEGO_FORCE_FULLSCREEN_PLUGIN
+  if (GetTabContentsContainer()->in_orientation())
+    return;
+  TabContents* contents = contents_container_->GetTabContents();
+  if (contents) {
+    RenderWidgetHostView* rwhv = contents->GetRenderWidgetHostView();
+    if (rwhv)
+      rwhv->ReShowEmbededFlashWindow();
+  }
+#endif
+}
+
 void BrowserWindowQt::ShowContextMenu(ui::MenuModel* model, gfx::Point p)
 {
   menu_->SetModel(model);
@@ -403,6 +435,10 @@ void BrowserWindowQt::ShowDialog(DialogQtModel* model, DialogQtResultListener* l
 {
   dialog_->SetModelAndListener(model, listener);
   dialog_->Popup();
+
+  // TODO: compose embeded flash window with correct rect
+  gfx::Rect rect(0, 0, 0, 0);
+  ComposeEmbededFlashWindow(rect);
 }
 
 void BrowserWindowQt::Show()

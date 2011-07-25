@@ -5,6 +5,10 @@
 #ifndef WEBKIT_PLUGINS_NPAPI_WEBPLUGIN_IMPL_H_
 #define WEBKIT_PLUGINS_NPAPI_WEBPLUGIN_IMPL_H_
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "base/meegotouch_config.h"
+#endif
+
 #include <string>
 #include <map>
 #include <vector>
@@ -22,6 +26,12 @@
 #include "third_party/WebKit/Source/WebKit/chromium/public/WebVector.h"
 #include "ui/gfx/native_widget_types.h"
 #include "webkit/plugins/npapi/webplugin.h"
+
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+#include "content/renderer/render_view_observer.h"
+class RenderView;
+#endif
+
 
 class WebViewDelegate;
 
@@ -48,9 +58,16 @@ class WebPluginPageDelegate;
 // be in a different process.
 class WebPluginImpl : public WebPlugin,
                       public WebKit::WebPlugin,
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+                      public RenderViewObserver,
+#endif
                       public WebKit::WebURLLoaderClient {
  public:
   WebPluginImpl(
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+      RenderView* render_view,
+      double scale,
+#endif
       WebKit::WebFrame* frame,
       const WebKit::WebPluginParams& params,
       const FilePath& file_path,
@@ -66,6 +83,14 @@ class WebPluginImpl : public WebPlugin,
   virtual WebPluginDelegate* delegate();
 
  private:
+
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  void OnSetScaleFactor(double factor);
+
+  // RenderViewObserver methods:
+  virtual bool OnMessageReceived(const IPC::Message& message);
+#endif
+
   // WebKit::WebPlugin methods:
   virtual bool initialize(
       WebKit::WebPluginContainer* container);
@@ -281,6 +306,10 @@ class WebPluginImpl : public WebPlugin,
   WebKit::WebFrame* webframe_;
 
   WebPluginDelegate* delegate_;
+
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN) && !defined(MEEGO_FORCE_FULLSCREEN_PLUGIN)
+  double scale_factor_;
+#endif
 
   // This is just a weak reference.
   WebKit::WebPluginContainer* container_;

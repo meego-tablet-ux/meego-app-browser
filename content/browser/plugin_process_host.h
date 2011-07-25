@@ -92,6 +92,10 @@ class PluginProcessHost : public BrowserChildProcessHost {
   void AddWindow(HWND window);
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void OnOrientationChanged(int orientation);
+#endif
+
  private:
   // Sends a message to the plugin process to request creation of a new channel
   // for the given mime type.

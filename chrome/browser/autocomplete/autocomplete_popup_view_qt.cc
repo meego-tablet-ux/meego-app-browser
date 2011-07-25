@@ -293,12 +293,17 @@ void AutocompletePopupViewQt::Show(size_t num_results) {
   }
   DLOG(INFO) << "result size = " << result.size();
       
+  // TODO: compose embeded flash window with correct rect
+  gfx::Rect rect(0, 0, 0, 0);
+  window_->ComposeEmbededFlashWindow(rect);
+
   impl_->Show();
   opened_ = true;
 }
 
 void AutocompletePopupViewQt::Hide() {
   impl_->Hide();
+  window_->ReshowEmbededFlashWindow();
   opened_ = false;
 }
 

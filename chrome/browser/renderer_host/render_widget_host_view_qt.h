@@ -92,6 +92,7 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
 
 #if defined(TOOLKIT_MEEGOTOUCH)
   virtual void SetBounds(const gfx::Rect& rect);
+  virtual void SetScaleFactor(double factor);
 
   // this one is derived from QtPluginContainerManagerHostDelegate
   virtual void OnCloseFSPluginWindow(gfx::PluginWindowHandle id);
@@ -128,6 +129,9 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
   virtual void DestroyVideoWidgetPixmap(unsigned int id, unsigned int pixmap);
   virtual void DestroyVideoWidget(unsigned int id);
 
+  // For compose flash embeded window
+  virtual void ComposeEmbededFlashWindow(const gfx::Rect& rect);
+  virtual void ReShowEmbededFlashWindow();
 #endif
 
   gfx::NativeView native_view() const {return view_;}

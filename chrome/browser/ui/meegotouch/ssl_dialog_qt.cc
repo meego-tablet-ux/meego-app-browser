@@ -87,12 +87,16 @@ SSLDialogQt::~SSLDialogQt()
 void SSLDialogQt::CommandReceived(const std::string& command)
 {
     model_->ProcessCommand(command);
+    window_->ReshowEmbededFlashWindow();
 }
 
 void SSLDialogQt::Show()
 {
     impl_->SetDetails(model_->GetDetails());
     impl_->Show();
+    // TODO: compose embeded flash window with correct rect
+    gfx::Rect rect(0, 0, 0, 0);
+    window_->ComposeEmbededFlashWindow(rect);
 }
 
 #include "moc_ssl_dialog_qt.cc"

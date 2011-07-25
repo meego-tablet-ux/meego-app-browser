@@ -104,6 +104,10 @@ void JSModalDialogQt::HandleDialogResponse(int response_id, QString input, bool 
         NOTREACHED();
   }
 
+  Browser* browser = BrowserList::GetLastActive();
+  BrowserWindowQt* browser_window = (BrowserWindowQt*)browser->window();
+  browser_window->ReshowEmbededFlashWindow();
+
   // Now that the dialog is gone, delete itselt here.
   delete this;
 }

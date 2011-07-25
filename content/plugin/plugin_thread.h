@@ -37,6 +37,11 @@ class PluginThread : public ChildThread {
   void OnCreateChannel(int renderer_id, bool incognito);
   void OnPluginMessage(const std::vector<uint8> &data);
   void OnNotifyRenderersOfPendingShutdown();
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+  void OnOrientationChanged(int orientation);
+#endif
+
 #if defined(OS_MACOSX)
   void OnAppActivated();
   void OnPluginFocusNotify(uint32 instance_id);

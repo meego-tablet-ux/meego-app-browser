@@ -43,6 +43,9 @@ struct PluginEntryPoints {
 #endif
   NP_InitializeFunc np_initialize;
   NP_ShutdownFunc np_shutdown;
+#if defined(TOOLKIT_MEEGOTOUCH)
+  NP_SetOrientationFunc np_setorientation;
+#endif
 };
 
 // The PluginList is responsible for loading our NPAPI based plugins. It does

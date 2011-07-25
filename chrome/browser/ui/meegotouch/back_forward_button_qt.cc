@@ -35,6 +35,7 @@
 #include "base/utf_string_conversions.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/resource/resource_bundle.h"
+#include "ui/gfx/rect.h"
 #include "base/string_number_conversions.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/metrics/user_metrics.h"
@@ -289,7 +290,7 @@ public:
     }
 
     // emit a showHistory signal to QML
-    void show() { emit showHistory(); }
+    void show();
 
     // emit a hideHistory signal to QML
     void hide() { emit hideHistory(); }
@@ -309,6 +310,8 @@ public Q_SLOTS:
     // open specific page, called by QML element
     // It's called by QML element when user clicks one history entry in QML view
     void openPage(const int index);
+    // hide Overlay, called from QML
+    void OnOverlayHide();
 
 private:
     BackForwardButtonQtImpl* back_forward_;
@@ -358,6 +361,7 @@ public:
           window->UpdateTitleBar();
         }
     }
+
 
     void updateStatus()
     {
@@ -464,6 +468,18 @@ public:
         toolbar_->showHistory(count);
     }
 
+    void ComposeEmbededFlashWindow(const gfx::Rect& rect)
+    {
+        BrowserWindowQt* window = static_cast<BrowserWindowQt*>(browser_->window());
+        window->ComposeEmbededFlashWindow(rect);
+    }
+
+    void ReshowEmbededFlashWindow()
+    {
+        BrowserWindowQt* window = static_cast<BrowserWindowQt*>(browser_->window());
+        window->ReshowEmbededFlashWindow();
+    }
+
 private:
     BrowserToolbarQt* toolbar_;
     Browser* browser_;
@@ -555,6 +571,20 @@ void HistoryStackModel::openPage(const int index)
 {
     back_forward_->openPage(entryList_[index]->entry());
     hide();
+
+    back_forward_->ReshowEmbededFlashWindow();
+}
+
+void HistoryStackModel::show() {
+    // TODO: compose embeded flash window with correct rect
+    gfx::Rect rect(0, 0, 0, 0);
+    back_forward_->ComposeEmbededFlashWindow(rect);
+
+    emit showHistory();
+}
+
+void HistoryStackModel::OnOverlayHide() {
+    back_forward_->ReshowEmbededFlashWindow();
 }
 
 #include "moc_back_forward_button_qt.cc"

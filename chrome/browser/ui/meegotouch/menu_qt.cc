@@ -108,6 +108,10 @@ class MenuQtImpl: public QObject
     if(menu_->model_ && menu_->model_->IsEnabledAt(id_list_.at(index)))
       menu_->model_->ActivatedAt(id_list_.at(index));
   }
+  void close()
+  {
+    menu_->CloseMenu();
+  }
  signals:
   void popupAt(int x, int y);
  private:
@@ -188,17 +192,22 @@ void MenuQt::Popup()
   // Displays the menu at the given coords. |point| is intentionally not const.
 void MenuQt::PopupAt(gfx::Point point)
 {
+  // TODO: compose embeded flash window with correct menu rect
+  gfx::Rect rect(point.x(), point.y(), 0, 0);
+
+  window_->ComposeEmbededFlashWindow(rect);
   impl_->PopupAt(point.x(), point.y());
 }
 
 void MenuQt::PopupAsContextAt(unsigned int event_time, gfx::Point point)
 {
-  impl_->PopupAt(point.x(), point.y());
+  PopupAt(point);
 }
 
   // Closes the menu.
 void MenuQt::CloseMenu()
 {
+  window_->ReshowEmbededFlashWindow ();
 }
 
 #include "moc_menu_qt.cc"

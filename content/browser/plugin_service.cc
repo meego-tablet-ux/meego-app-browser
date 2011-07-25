@@ -551,3 +551,23 @@ void PluginService::RegisterFilePathWatcher(
   DCHECK(result);
 }
 #endif
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void PluginService::OnOrientationChanged(int orientation)
+{
+  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
+
+  for (BrowserChildProcessHost::Iterator iter(ChildProcessInfo::PLUGIN_PROCESS);
+       !iter.Done(); ++iter) {
+    PluginProcessHost* plugin = static_cast<PluginProcessHost*>(*iter);
+    for (size_t i = 0; i < plugin->info().mime_types.size(); ++i) {
+      const std::string &mime_type = plugin->info().mime_types[i].mime_type;
+      // We only support flash rotation
+      if (mime_type == "application/x-shockwave-flash" ) {
+        plugin->OnOrientationChanged(orientation);
+        break;
+      }
+    }
+  }
+}
+#endif

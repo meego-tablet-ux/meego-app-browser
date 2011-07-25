@@ -141,6 +141,10 @@ class PluginService
   // The UI thread's message loop
   MessageLoop* main_message_loop() { return main_message_loop_; }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  static void OnOrientationChanged(int orientation);
+#endif
+
  private:
   friend struct DefaultSingletonTraits<PluginService>;
 

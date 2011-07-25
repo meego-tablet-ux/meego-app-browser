@@ -43,6 +43,7 @@ class TabContentsContainerQt : public NotificationObserver
 
   void OrientationStart();
   void OrientationEnd();
+  bool in_orientation() {return in_orientation_;}
   
   void ContentPosChanged();
  private:

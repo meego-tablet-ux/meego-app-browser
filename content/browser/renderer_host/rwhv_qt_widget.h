@@ -68,6 +68,7 @@ class RWHVQtWidget : public QGraphicsWidget
   bool eventEmulatePinch(QEvent *event);
   void UnFrozen();
   QRect GetVisibleRect();
+  QRect GetViewPortRectInScene();
   void WasHidden();
   void DidBecomeSelected();
   void DidBackingStoreScale();

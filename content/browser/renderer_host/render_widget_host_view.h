@@ -112,6 +112,10 @@ class RenderWidgetHostView {
   virtual void EnableVideoWidget(unsigned int id, bool enabled) {}
   virtual void DestroyVideoWidgetPixmap(unsigned int id, unsigned int pixmap) {}
   virtual void DestroyVideoWidget(unsigned int id) {}
+
+  // For compose flash embeded window
+  virtual void ComposeEmbededFlashWindow(const gfx::Rect& rect) {};
+  virtual void ReShowEmbededFlashWindow() {};
   
 #endif
 

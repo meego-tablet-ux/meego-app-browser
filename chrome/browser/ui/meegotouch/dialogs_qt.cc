@@ -384,10 +384,14 @@ void SelectFileDialogQtImpl::SetDialog(SelectFileDialogImpl* dialog)
 
 void SelectFileDialogQtImpl::Popup() {
   Q_EMIT popup();
+  // TODO: compose embeded flash window with correct rect
+  gfx::Rect rect(0, 0, 0, 0);
+  window_->ComposeEmbededFlashWindow(rect);
 }
 
 void SelectFileDialogQtImpl::Dismiss() {
   Q_EMIT dismiss();
+  window_->ReshowEmbededFlashWindow();
 }
 
 void SelectFileDialogQtImpl::OnPickerSelected(QString uri) {
