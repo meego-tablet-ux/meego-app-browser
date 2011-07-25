@@ -83,7 +83,11 @@ static const int kThumbnailHeight = 132;
 static bool PaintViewIntoCanvas(WebView* view,
                                 skia::PlatformCanvas& canvas) {
   view->layout();
+#if !defined(TOOLKIT_MEEGOTOUCH)
   const WebSize& size = view->size();
+#else
+  const WebRect& size = view->actualVisibleContentRect();
+#endif
 
   if (!canvas.initialize(size.width, size.height, true))
     return false;
