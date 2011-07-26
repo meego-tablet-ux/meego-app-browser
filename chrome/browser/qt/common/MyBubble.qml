@@ -33,6 +33,7 @@
 
 import Qt 4.7
 import Qt.labs.gestures 2.0
+import MeeGo.Components 0.1
 
 Item {
   id: container
@@ -111,197 +112,331 @@ Item {
         x: container.bubbleX
         y: container.bubbleY
         width: container.bubbleWidth
-        height: 292
+        height: 320
         opacity: container.bubbleOpacity
         
-        Column {
-          id: bubbleColumn
-          width: parent.width
-          height: parent.height
-          BorderImage {
-            id: borderImage1
-            source: "image://themedimage/images/popupbox_1"
-            border.left: 20
-            border.right: 20
-            border.top: 5
+        Item {
+
+            id: bubbleColumn
             width: parent.width
-          }
-          BorderImage {
-            id: borderImageMiddle
-            source: "image://themedimage/images/popupbox_2"
-            verticalTileMode: BorderImage.Repeat
-            width: parent.width
-            clip: true
-            height: parent.height - borderImage1.height - borderImage2.height
-            border.left: 20
-            border.right: 20
-            Text {
-              id: title
-              width: parent.width
-              height: 55 - borderImage1.height - divide.height
-              anchors.left: parent.left
-              anchors.leftMargin: 20
-              anchors.top: parent.top
-              color: "#383838"
-              text: bubbleTitle
-              verticalAlignment:Text.AlignVCenter
-              font.bold: true
-              font.pixelSize: 18
-              font.family: defaultFont
-            }
-            Image {
-              id: divide
-              height: 2
-              width: parent.width
-              anchors.top: title.bottom
-              fillMode: Image.Stretch
-              source: "image://themedimage/widgets/common/menu/menu-item-separator"
-            }
-            Text {
-              id: nameLabel
-              width: parent.width
-              anchors.left: parent.left
-              anchors.leftMargin: 10
-              anchors.top: divide.bottom
-              text: bubbleName
-              color: "#383838"
-              height: 35
-              font.pixelSize: 13
-              font.bold: true
-              font.family: defaultFont
-              verticalAlignment:Text.AlignVCenter
-            }
-            BubbleInputBox {
-              id: nameEdit
-              text:  bubbleNameInput
-              textColor: "#383838"
-              height: itemHeight
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.leftMargin: 10
-              anchors.rightMargin: 10
-              anchors.top: nameLabel.bottom
-              onTextChanged: {
-                container.model.setTitle(text);
-              }
-            }
-            Text {
-              id: folderLabel
-              text: bubbleFolder
-              color: "#383838"
-              height: 35
-              width:parent.width
-              anchors.left: parent.left
-              anchors.leftMargin: 10
-              anchors.top: nameEdit.bottom
-              font.pixelSize: 13
-              font.bold: true
-              font.family: defaultFont
-              verticalAlignment:Text.AlignVCenter
-            }
-            GroupBox {
-              id: folderGroup
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.leftMargin: 10
-              anchors.rightMargin: 10
-              anchors.top: folderLabel.bottom
-              infoText: bubbleFolderInput
-              innerHeight: 135
-              initHeight: 45
-              loader.sourceComponent: folderCombo
-              Component {
-                id: folderCombo
-                ListView {
-                  id: view
-                  delegate: Text {
-                    id: folderItem
-                    text: modelData
-                    width: parent.width
-                    opacity: 0.5
-                    font.pixelSize: 18
-                    elide: Text.ElideRight
-                    height: folderGroup.initHeight
-                    verticalAlignment: Text.AlignVCenter
-                    MouseArea {
-                      anchors.fill: parent
-                      onClicked: {
-                        folderGroup.infoText = modelData;
-                        container.model.folderSelectedIndex(index);
-                        folderGroup.state = "elapsed";
-                        button.opacity = 1;
-                      }
+            height: parent.height
+          
+            Item {
+                id: titleWrapper
+                height: 55
+                width: parent.width
+
+                BorderImage {
+                    id: titleBorderImageShadow1
+                    height: parent.height - titleBorderImageShadow2.height
+                    anchors.left : parent.left
+                    anchors.leftMargin: -16
+                    anchors.right: parent.right
+                    anchors.rightMargin: -16    
+                    anchors.top : parent.top
+                    border {
+                        left: 16;
+                        right: 16;
                     }
-                  }
-                  model:  bubbleFolderModel
-                  focus: true
-                  orientation: ListView.Vertical
-                  opacity: 1
+                    source: "image://themedimage/images/popupbox_1_shadow"
                 }
-              }
-            }
-            Image {
-              id: divide2
-              height: 2
-              width: parent.width
-              anchors.top: folderGroup.bottom
-              anchors.topMargin: 10
-              fillMode: Image.Stretch
-              visible: folderGroup.state == "elapsed"
-              source: "image://themedimage/widgets/common/menu/menu-item-separator"
-            }
-            Row {
-              id: button
-              anchors.horizontalCenter: parent.horizontalCenter
-              anchors.bottom: parent.bottom
-              anchors.top: divide2.bottom
-              anchors.topMargin: 10
-              anchors.leftMargin: 10
-              anchors.rightMargin: 10
-              anchors.bottomMargin: 10
-              spacing: 10
-              height: itemHeight
-              TextButton {
-                id: doneButton
-                width:121
-                height:45
-                btnColor: "#2CACE3"
-                textColor: "white"
-                fontSize: 18
-                text: bubbleDone
-                onClicked: {
-                  container.model.setTitle(nameEdit.text);
-                  container.model.doneButtonClicked();
-                  container.close();
+
+                BorderImage {
+                    id: titleBorderImageShadow2
+                    height: 45
+                    anchors.left : parent.left
+                    anchors.leftMargin: -16
+                    anchors.right: parent.right
+                    anchors.rightMargin: -16    
+                    anchors.bottom: parent.bottom
+                    border {
+                        left: 16;
+                        right: 16;
+                    }
+                    source: "image://themedimage/images/popupbox_2_shadow"
                 }
-              }
-              TextButton {
-                id: removeAndCancelButton
-                width: 121
-                height: 45
-                btnColor: "red"
-                textColor: "white"
-                fontSize: 18
-                text: bubbleRemove
-                onClicked: {
-                  container.model.setTitle(nameEdit.text);
-                  container.model.removeButtonClicked();
-                  container.close();
+
+                BorderImage {
+                    id: titleBorderImage
+                    anchors.left: parent.left
+                    anchors.leftMargin: -5
+                    anchors.right: parent.right
+                    anchors.rightMargin: -5
+                    anchors.top: parent.top
+                    anchors.topMargin: -4
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: -6
+                    border{
+                        left: 10;
+                        right: 10;
+                        top: 9;
+                        bottom: 6
+                    }
+                    source: "image://themedimage/widgets/apps/browser/header-background"
                 }
-              }
+                Text {
+                    id: title
+                    width: parent.width
+                    height: parent.height
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.top: parent.top
+                    color: "#383838"
+                    text: bubbleTitle
+                    verticalAlignment:Text.AlignVCenter
+                    font.bold: true
+                    font.pixelSize: 18
+                    font.family: defaultFont
+                }
             }
 
-          }
-          BorderImage {
-            id: borderImage2
-            source: "image://themedimage/images/popupbox_3"
-            width: parent.width
-            border.left: 20
-            border.right: 20
-            border.bottom: 10
-          }
-        }
+            Image {
+                id: divide
+                height: 2
+                width: parent.width
+                anchors.top: titleWrapper.bottom
+                fillMode: Image.Stretch
+                source: "image://themedimage/widgets/common/menu/menu-item-separator"
+            }
+
+            BorderImage {
+                id: borderImageMiddle
+                width: parent.width
+                
+                anchors.top: titleWrapper.bottom
+                anchors.bottom: borderImageBottom.top
+                anchors.left: titleWrapper.left
+                border{
+                    left: 5;
+                    right: 5;
+                }
+                source: "image://themedimage/images/popupbox_2"
+            }
     
+            BorderImage {
+                id: borderImageMiddleShadow
+                anchors.top: borderImageMiddle.top
+                anchors.bottom: borderImageMiddle.bottom
+                anchors.right: borderImageMiddle.right
+                anchors.rightMargin: -16
+                anchors.left: borderImageMiddle.left
+                anchors.leftMargin: -16
+                border {
+                    left: 16;
+                    right: 16;
+                }
+                source: "image://themedimage/images/popupbox_2_shadow"
+            }
+            
+            BorderImage {
+                id: borderImageBottom
+                width: parent.width
+                height: 7
+                anchors.bottom: button.bottom
+                anchors.left: parent.left
+                border{
+                    left: 5;
+                    right: 5;
+                }
+                source: "image://themedimage/images/popupbox_3"
+            }
+
+            BorderImage {
+                id: borderImageBottomShadow
+                anchors.top: borderImageBottom.top
+                anchors.bottom: borderImageBottom.bottom
+                anchors.bottomMargin: -29 
+                anchors.right: borderImageBottom.right
+                anchors.rightMargin: -15
+                anchors.left: borderImageBottom.left
+                anchors.leftMargin: -15
+                border {
+                    left: 19;
+                    right: 19;
+                    bottom: 32;
+                }
+                source: "image://themedimage/images/popupbox_3_shadow"
+            }
+
+            Item {
+                id: nameLabelAndEditWrapper
+                anchors.top: divide.bottom
+                width: parent.width
+                height: nameEdit.height + 45
+                
+                Item{
+                    id: nameLabelWrapper
+                    height: 35
+                    width: parent.width
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+
+                    Text {
+                        id: nameLabel
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 10
+                        text: bubbleName
+                        color: "#383838"
+                        font.pixelSize: 13
+                        font.bold: true
+                        font.family: defaultFont
+                    }
+                }
+
+                TextEntry {
+                    id: nameEdit
+                    text: bubbleNameInput
+                    color: "#383838"
+                    height: itemHeight
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    anchors.top: nameLabelWrapper.bottom
+
+                    onTextChanged: {
+                        container.model.setTitle(text);
+                    }
+                }
+            }
+
+            Image {   
+              id: nameEditAndFolderLabelDivide
+              height: 2
+              width: parent.width
+              anchors.top: nameLabelAndEditWrapper.bottom
+              fillMode: Image.Stretch
+              source: "image://themedimage/widgets/common/menu/menu-item-separator"
+            }
+
+            Item {
+
+                id: folderLabelAndGroupWrapper
+                width: parent.width
+                anchors.top: nameEditAndFolderLabelDivide.bottom 
+                height: 85 // 80 if uncomment folderGroup.anchors.topMargin
+                
+                Item {
+                    id: folderLabelWrapper
+                    height:35
+                    width:parent.width
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    Text {
+                        id: folderLabel
+                        text: bubbleFolder
+                        color: "#383838"
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 10
+                        font.pixelSize: 13
+                        font.bold: true
+                        font.family: defaultFont
+                    }
+                }
+
+                DropDown {
+
+                    id: folderGroup
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    anchors.bottom: folderLabelAndGroupWrapper.bottom
+                    anchors.top: folderLabelWrapper.bottom
+                    //anchors.topMargin: -5
+
+                    title: "DropDown"
+                    titleColor: "black"
+                    maxWidth: 300
+
+                    model: bubbleFolderModel
+
+                    iconRow: [
+                        Item {
+                            id: dummyItem
+                            height: parent.height
+                            width: 7
+                        }
+                    ]
+
+                    onTriggered: {
+                        container.model.folderSelectedIndex(selectedIndex);
+                    }
+
+                    Component.onCompleted: {
+                        selectedIndex = 0;
+                        container.model.folderSelectedIndex(selectedIndex);
+                    }
+                }
+            }
+            Image {
+                id: divide2
+                height: 2
+                width: parent.width
+                anchors.top: folderLabelAndGroupWrapper.bottom
+                anchors.topMargin: 5
+                fillMode: Image.Stretch
+                //visible: folderGroup.state == "elapsed"
+                source: "image://themedimage/widgets/common/menu/menu-item-separator"
+            }
+
+            Item {
+                id: button
+                anchors.top: divide2.bottom
+                anchors.left: parent.left
+                height: doneButton.height + 20
+                width: parent.width
+
+                ImageButton {
+                    id: doneButton
+                    anchors.left: parent.left
+                    anchors.leftMargin: 10
+                    anchors.top: parent.top
+                    anchors.topMargin: 10
+                    width: (parent.width - 30) / 2
+                    height:45
+                    btnColor: "#2CACE3"
+                    textColor: "white"
+                    fontSize: 18
+                    text: bubbleDone
+                    onClicked: {
+                        container.model.setTitle(nameEdit.text);
+                        container.model.doneButtonClicked();
+                        container.close();
+                    }
+                }
+
+                ImageButton {
+                    id: removeAndCancelButton
+                    anchors.right:parent.right
+                    anchors.rightMargin: 10
+                    anchors.top: parent.top
+                    anchors.topMargin: 10
+                    width: (parent.width - 30) / 2
+                    height: 45
+                    btnColor: "red"
+                    textColor: "white"
+                    fontSize: 18
+                    text: bubbleRemove
+                    imageSource: "image://themedimage/icons/menus/delete-active"
+                    imageLeftBlankSpace: 5
+                    onClicked: {
+                        container.model.setTitle(nameEdit.text);
+                        container.model.removeButtonClicked();
+                        container.close();
+                    }
+                }
+            }
+        }
+  
         Behavior on opacity {
           PropertyAnimation { duration: 500 }
         }
@@ -328,7 +463,7 @@ Item {
             when: container.fingerMode == 1
             PropertyChanges {
               target: finger
-              x: container.bubbleWidth - borderImage1.border.right + 5
+              x: container.bubbleWidth + 5
               y: container.fingerY - finger.height / 2
               source: "image://themedimage/images/popupbox_arrow_right"
             }

@@ -44,11 +44,11 @@ Item {
     property int currentIndex : 0
     property Item targetContainer : null
     property Item contentItem: null
-    property int screenHeight: scene.height
-    property int toolbarHeight: 85
+    property int screenHeight: 0
     property int contextMenuExtraHeight: 60
-    property int midOfPage: (screenHeight - toolbarHeight)/2 + toolbarHeight
     property int maxAllowedHeight: 0
+    property int ddd: 85
+    property int fff: 0
     anchors.fill : parent
     visible : false
 
@@ -79,24 +79,33 @@ Item {
     Component {
         id : popupholder
 
+
         ContextMenu {
             id: webPopupListContext
             targetContainer: container.targetContainer
-           
+
+            property int toolbarHeight: 0
             function display(x, y) {
-                if (y > midOfPage){
-                    webPopupListContext.forceFingerMode = 3
-                    if(y - toolbarHeight > contextMenuExtraHeight + constMaxPopupListHeight){
+
+                console.log("full:" + scene.fullscreen);
+                console.log("height:" + toolbarHeight);
+                console.log("sh:" + screenHeight);
+                var pageSize = screenHeight - toolbarHeight;
+                var midOfPage = (screenHeight - toolbarHeight)/2 + toolbarHeight;
+
+                if (y> midOfPage){
+                    webPopupListContext.forceFingerMode = 3;
+                    if(y - midOfPage + pageSize/2 > contextMenuExtraHeight + constMaxPopupListHeight){
                         maxAllowedHeight = constMaxPopupListHeight;
                     }else{
-                        maxAllowedHeight = y - toolbarHeight - contextMenuExtraHeight;
+                        maxAllowedHeight = y - midOfPage + pageSize/2 - contextMenuExtraHeight;
                     }
                 }else{
-                    webPopupListContext.forceFingerMode = 2
-                    if(y + constMaxPopupListHeight + contextMenuExtraHeight < screenHeight){
+                    webPopupListContext.forceFingerMode = 2;
+                    if(midOfPage - y + pageSize/2 > constMaxPopupListHeight + contextMenuExtraHeight){
                         maxAllowedHeight = constMaxPopupListHeight;
                     }else{
-                        maxAllowedHeight = screenHeight - y - contextMenuExtraHeight;
+                        maxAllowedHeight = midOfPage - y + pageSize/2 - contextMenuExtraHeight;
                     }
                 }
 
@@ -136,6 +145,46 @@ Item {
                     container.selectItem(index);
                 }
             }
+            states: [
+                State {
+                    name: "fullscreen"
+                    when: scene.fullscreen
+                    PropertyChanges {
+                        target: webPopupListContext
+                        toolbarHeight : 0
+                    }
+                },
+
+                State {
+                    name: "unfullscreen"
+                    when: !scene.fullscreen
+                    PropertyChanges{
+                        target: webPopupListContext
+                        toolbarHeight: 85
+                    }
+                }
+            ]
         }
     }
+
+
+    states: [
+        State {
+            name: "horizontal"
+            when: scene.orientation == 1 || scene.orientation == 3
+            PropertyChanges {
+                target: container
+                screenHeight: scene.height
+            }
+        },
+
+        State {
+            name: "vertical"
+            when: scene.orientation == 2 || scene.orientation == 0
+            PropertyChanges {
+                target: container
+                screenHeight: scene.width
+            }
+        }
+    ]
 }

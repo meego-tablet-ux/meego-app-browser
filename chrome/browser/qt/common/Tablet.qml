@@ -274,7 +274,7 @@ BrowserWindowTablet {
   Loader {
     id: bubbleLoader
     objectName: "bubbleLoader"
-    property int bubbleWidth : 272
+    property int bubbleWidth : 330
     function close() {
       bubbleLoader.sourceComponent = undefined
     }

@@ -52,7 +52,7 @@ Item {
   property int commonMargin: 10
   property int innerCommonMargin: 1
   property int textMargin: 10
-  property int shadowImageBorderSize: 7
+  property int shadowImageBorderSize: 8
 
   // delegate to show thumbnail of each web page in the history list
   Component {
@@ -85,7 +85,7 @@ Item {
       Item {
         id: historyItem
         anchors.fill: parent
-        anchors.margins: shadowImageBorderSize - 1
+        anchors.margins: shadowImageBorderSize - 2
 
         Image {
             id: thumbImage               

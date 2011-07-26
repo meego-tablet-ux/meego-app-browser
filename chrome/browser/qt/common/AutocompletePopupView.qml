@@ -134,11 +134,16 @@ Item {
             Image {
                 id: urlIcon
                 fillMode: Image.PreserveAspectFit
-                anchors.centerIn: parent
+                anchors.left: parent.left;
+                anchors.top: parent.top;
                 source: icon == 0 ? "image://themedimage/widgets/apps/browser/web-favorite-small" :
                         icon == 1 ? "image://themedimage/widgets/apps/browser/web-favorite-small" :
                         icon == 2 ? "image://themedimage/widgets/apps/browser/search" :
                         "image://themedimage/widgets/apps/browser/favourite-inactive"; //icon == 4
+            }
+            Component.onCompleted: {
+                urlIcon.anchors.leftMargin = (urlIconWrapper.width - urlIcon.paintedWidth)/2 + 3 // 3 is for the space that shadow border covers
+                urlIcon.anchors.topMargin = (urlIconWrapper.height - urlIcon.paintedHeight)/2
             }
           }
     	  Image {

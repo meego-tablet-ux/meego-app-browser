@@ -43,7 +43,7 @@ Item {
     property int commonMargin: 10
     property int parentWidth: 0
     property int itemWidth: 180 + itemShadowWidth*2
-    property int itemShadowWidth: 7
+    property int itemShadowWidth: 8
     property int spaceWidth: commonMargin - itemShadowWidth*2
     property int showWidth: (itemCount * itemWidth + (commonMargin - itemShadowWidth)*2 + (itemCount - 1) * spaceWidth) < parentWidth ? 
         itemCount * itemWidth + (commonMargin - itemShadowWidth)*2 + (itemCount - 1) * spaceWidth: 
