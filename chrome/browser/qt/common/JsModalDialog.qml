@@ -35,9 +35,12 @@ import Qt 4.7
 import MeeGo.Components 0.1
 
 Item {
-    id: container
+    id: window
     property alias targetContainer: jsDialog.targetContainer
     anchors.fill: parent
+
+    // Dummy signal used to remove qml warning because we don't use window.qml as app window.
+    signal contentVerticalShiftChanged()
 
     function show() {
         jsDialog.show()

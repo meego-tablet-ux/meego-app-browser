@@ -84,51 +84,51 @@ const int kInstructionsPadding = 6;
 
 ////////////////////////////////////////////////////////////////////////////////
 // BookmarkGridItem
-
-void BookmarkGridItem::RequestImg(int index) {
-  index_=index;
-  GURL url(WideToUTF8(url_.toStdWString()));
-  history::TopSites* ts = browser_->profile()->GetTopSites();
-  if (ts) {
-    scoped_refptr<RefCountedBytes> jpeg_data;
-    ts->GetPageThumbnail(url, &jpeg_data);
-    if(jpeg_data.get()) {
-      HandleThumbnailData(jpeg_data);
-      return;
-    }
-    history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
-                            ts->GetRecentAndBookmarkThumbnails();
-    if(recentThumbnails) {
-       recentThumbnails->GetRecentPageThumbnail(url, &consumer_,
-                        NewCallback(static_cast<BookmarkGridItem*>(this),
-                        &BookmarkGridItem::OnThumbnailDataAvailable));
-    }
-  }
-  else {
-    HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
-    hs->GetPageThumbnail(url, &consumer_, NewCallback(static_cast<BookmarkGridItem*>(this),
-                                                 &BookmarkGridItem::OnThumbnailDataAvailable));
-  }
-}
-
-void BookmarkGridItem::OnThumbnailDataAvailable(HistoryService::Handle request_handle, 
-                                                scoped_refptr<RefCountedBytes> jpeg_data) {
-  HandleThumbnailData(jpeg_data);
-}
-
-void BookmarkGridItem::HandleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data) {
-//  model_->beginReset();
-  if (jpeg_data.get()) {
-    std::vector<unsigned char> thumbnail_data;
-    std::copy(jpeg_data->data.begin(), jpeg_data->data.end(),
-              std::back_inserter(thumbnail_data));
-    QImage image = QImage::fromData(thumbnail_data.data(), thumbnail_data.size());
-    model_->Provider()->addImage(QString::number(id_), image);
-  }
-//  model_->endReset();
-  // Note that if the callback never returns, bookmark will failed to add
-  model_->addBookmark(this, index_); 
-}
+//
+//void BookmarkGridItem::RequestImg(int index) {
+//  index_=index;
+//  GURL url(WideToUTF8(url_.toStdWString()));
+//  history::TopSites* ts = browser_->profile()->GetTopSites();
+//  if (ts) {
+//    scoped_refptr<RefCountedBytes> jpeg_data;
+//    ts->GetPageThumbnail(url, &jpeg_data);
+//    if(jpeg_data.get()) {
+//      HandleThumbnailData(jpeg_data);
+//      return;
+//    }
+//    history::RecentAndBookmarkThumbnailsQt * recentThumbnails =
+//                            ts->GetRecentAndBookmarkThumbnails();
+//    if(recentThumbnails) {
+//       recentThumbnails->GetRecentPageThumbnail(url, &consumer_,
+//                        NewCallback(static_cast<BookmarkGridItem*>(this),
+//                        &BookmarkGridItem::OnThumbnailDataAvailable));
+//    }
+//  }
+//  else {
+//    HistoryService* hs = browser_->profile()->GetHistoryService(Profile::EXPLICIT_ACCESS);
+//    hs->GetPageThumbnail(url, &consumer_, NewCallback(static_cast<BookmarkGridItem*>(this),
+//                                                 &BookmarkGridItem::OnThumbnailDataAvailable));
+//  }
+//}
+//
+//void BookmarkGridItem::OnThumbnailDataAvailable(HistoryService::Handle request_handle, 
+//                                                scoped_refptr<RefCountedBytes> jpeg_data) {
+//  HandleThumbnailData(jpeg_data);
+//}
+//
+//void BookmarkGridItem::HandleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data) {
+////  model_->beginReset();
+//  if (jpeg_data.get()) {
+//    std::vector<unsigned char> thumbnail_data;
+//    std::copy(jpeg_data->data.begin(), jpeg_data->data.end(),
+//              std::back_inserter(thumbnail_data));
+//    QImage image = QImage::fromData(thumbnail_data.data(), thumbnail_data.size());
+//    model_->Provider()->addImage(QString::number(id_), image);
+//  }
+////  model_->endReset();
+//  // Note that if the callback never returns, bookmark will failed to add
+//  model_->addBookmark(this, index_); 
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 // BookmarkQt
@@ -144,20 +144,20 @@ BookmarkQt::BookmarkQt(BrowserWindowQt* window,
       data_(data),
       another_folder_name_(anotherFolder)
 {
-  grid_impl_ = new BookmarkQtGridImpl(this);
+  //grid_impl_ = new BookmarkQtGridImpl(this);
   tree_impl_ = new BookmarkQtTreeImpl(this);
-  grid_filter_ = new BookmarkQtFilterProxyModel(grid_impl_);
+  //grid_filter_ = new BookmarkQtFilterProxyModel(grid_impl_);
   tree_filter_ = new BookmarkQtFilterProxyModel(tree_impl_);
-  bookmark_menu_ = new BookmarkListMenuModel(grid_filter_, tree_filter_);
+  bookmark_menu_ = new BookmarkListMenuModel(tree_filter_); //bookmark_menu_ = new BookmarkListMenuModel(grid_filter_, tree_filter_);
 }
 
 BookmarkQt::~BookmarkQt() {
   if (model_) 
     model_->RemoveObserver(this);
   RemoveAllBookmarkListItems();
-  delete grid_impl_;
+  //delete grid_impl_;
   delete tree_impl_;
-  delete grid_filter_;
+  //delete grid_filter_;
   delete tree_filter_;
   delete bookmark_menu_;
 }
@@ -242,9 +242,9 @@ void BookmarkQt::BookmarkNodeAdded(BookmarkModel* model,
   const BookmarkNode* node = parent->GetChild(index);
   DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__<<" node title "<<node->GetTitle()<<" of parent "<<parent->id()<<" pos "<<index;
 
-  BookmarkGridItem* griditem = CreateBookmarkGridItem(node);
+  //BookmarkGridItem* griditem = CreateBookmarkGridItem(node);
 //  grid_impl_->addBookmark(*griditem, index);
-  griditem->RequestImg(index);
+  //griditem->RequestImg(index);
 
   if (!tree_impl_->dragging_) {
     BookmarkItem* item = CreateBookmarkItem(node);
@@ -261,7 +261,7 @@ void BookmarkQt::BookmarkNodeRemoved(BookmarkModel* model,
   // Only handles grid items of Bookmark Manager 
   if (!BookmarkList::started || !IsMyParent(parent)) return;
   DLOG(INFO)<<"hdq"<<__PRETTY_FUNCTION__;
-  grid_impl_->removeBookmark(node);
+  //grid_impl_->removeBookmark(node);
   tree_impl_->removeBookmark(node);
 }
 
@@ -287,7 +287,7 @@ void BookmarkQt::BookmarkNodeChanged(BookmarkModel* model,
   QString title, url; int64 id;
   BookmarkNode::Type type;
   GetBookmarkProperties(node, title, url, id, type);
-  grid_impl_->updateBookmark(index, title, url, id, type);
+  //grid_impl_->updateBookmark(index, title, url, id, type);
   tree_impl_->updateBookmark(index, title, url, id, type);
 }
 
@@ -313,24 +313,24 @@ BookmarkItem* BookmarkQt::CreateBookmarkItem(const BookmarkNode* node) {
   return item;
 }
 
-BookmarkGridItem* BookmarkBarQt::CreateBookmarkGridItem(const BookmarkNode* node) {
-  QString title, url; int64 id;
-  BookmarkNode::Type type;
-  GetBookmarkProperties(node, title, url, id, type);
-  BookmarkGridItem* item = new BookmarkGridItem(browser_, grid_impl_, title, url, id, type);
-  item->root_type_ = QString("bar");
-  return item;
-}
-
-BookmarkGridItem* BookmarkOthersQt::CreateBookmarkGridItem(const BookmarkNode* node) {
-  QString title, url; int64 id;
-  BookmarkNode::Type type;
-  GetBookmarkProperties(node, title, url, id, type);
-  BookmarkGridItem* item = new BookmarkGridItem(browser_, grid_impl_, title, url, id, type);
-  item->root_type_ = QString("others");
-  return item;
-}
-
+//BookmarkGridItem* BookmarkBarQt::CreateBookmarkGridItem(const BookmarkNode* node) {
+//  QString title, url; int64 id;
+//  BookmarkNode::Type type;
+//  GetBookmarkProperties(node, title, url, id, type);
+//  BookmarkGridItem* item = new BookmarkGridItem(browser_, grid_impl_, title, url, id, type);
+//  item->root_type_ = QString("bar");
+//  return item;
+//}
+//
+//BookmarkGridItem* BookmarkOthersQt::CreateBookmarkGridItem(const BookmarkNode* node) {
+//  QString title, url; int64 id;
+//  BookmarkNode::Type type;
+//  GetBookmarkProperties(node, title, url, id, type);
+//  BookmarkGridItem* item = new BookmarkGridItem(browser_, grid_impl_, title, url, id, type);
+//  item->root_type_ = QString("others");
+//  return item;
+//}
+//
 void BookmarkQt::openBookmarkItem(QString id) {
   const BookmarkNode* node = model_->GetNodeByID(id.toLong());
   page_navigator_ = browser_->GetSelectedTabContents();
@@ -518,7 +518,8 @@ void BookmarkQt::urlChanged(QString id, QString url) {
 }
 
 void BookmarkQt::HideBookmarkManager() {
-  grid_filter_->CloseBookmarkManager();
+  //grid_filter_->CloseBookmarkManager();
+  tree_filter_->CloseBookmarkManager();
 }
 
 // Note that this function cannot get items in sub-folders
@@ -528,9 +529,9 @@ void BookmarkQt::CreateAllBookmarkListItems() {
     const BookmarkNode* node = GetParent()->GetChild(i);
 
     //\TODO if have sub-folder - skip folder here and bar buttons
-    BookmarkGridItem* griditem = CreateBookmarkGridItem(node);
+    //BookmarkGridItem* griditem = CreateBookmarkGridItem(node);
 //    grid_impl_->addBookmark(*griditem);
-    griditem->RequestImg(i);
+    //griditem->RequestImg(i);
     //\TODO if have sub-folder - we will have different levels here
 
     //\TODO if have sub-folder, do the same as above
@@ -542,7 +543,7 @@ void BookmarkQt::CreateAllBookmarkListItems() {
 }
 
 void BookmarkQt::RemoveAllBookmarkListItems() {
-  grid_impl_->clear();
+  //grid_impl_->clear();
   tree_impl_->clear();
 }
 
@@ -568,10 +569,10 @@ BookmarkBarQt::BookmarkBarQt(BrowserWindowQt* window,
   toolbar_impl_ = new BookmarkBarQtImpl(this);
   QDeclarativeView *view = window_->DeclarativeView();
   QDeclarativeContext *context = view->rootContext();
-  context->setContextProperty("bookmarkBarGridModel", grid_filter_);
+  //context->setContextProperty("bookmarkBarGridModel", grid_filter_);
   context->setContextProperty("bookmarkBarListModel", tree_filter_);
 
-  context->engine()->addImageProvider(QLatin1String("bookmark_bar"), grid_impl_->Provider());
+  //context->engine()->addImageProvider(QLatin1String("bookmark_bar"), grid_impl_->Provider());
   context->setContextProperty("bookmarkBarModel", toolbar_impl_);
 
   all_trees_impl_ = new BookmarkQtTreeImpl(this);
@@ -819,7 +820,8 @@ void BookmarkBarQt::ShowBookmarkManager() {
     CreateAllBookmarkTreeItems();
     BookmarkList::started = true;
   }
-  grid_filter_->OpenBookmarkManager();
+  tree_filter_->OpenBookmarkManager();
+  //grid_filter_->OpenBookmarkManager();
 }
 
 void BookmarkBarQt::Observe(NotificationType type,
@@ -915,9 +917,9 @@ BookmarkOthersQt::BookmarkOthersQt(BrowserWindowQt* window,
 
   QDeclarativeView *view = window_->DeclarativeView();
   QDeclarativeContext *context = view->rootContext();
-  context->setContextProperty("bookmarkOthersGridModel", grid_filter_);
+  //context->setContextProperty("bookmarkOthersGridModel", grid_filter_);
   context->setContextProperty("bookmarkOthersListModel", tree_filter_);
-  context->engine()->addImageProvider(QLatin1String("bookmark_others"), grid_impl_->Provider());
+  //context->engine()->addImageProvider(QLatin1String("bookmark_others"), grid_impl_->Provider());
   context->setContextProperty("bookmarkBarOtherFolderName", TOQTSTR(IDS_BOOMARK_BAR_OTHER_FOLDER_NAME));
 
 //  Init(profile);
@@ -1111,94 +1113,94 @@ void BookmarkBarQtImpl::removeInstruction() {
 
 ////////////////////////////////////////////////////////////////////////////////
 // BookmarkQtGridImpl
-
-BookmarkQtGridImpl::BookmarkQtGridImpl(BookmarkQt* bookmark_qt, QObject *parent)
-    : BookmarkQtImpl(bookmark_qt, parent),
-      returnedImages_(0) {
-  QHash<int, QByteArray> roles;
-  roles[TitleRole] = "title";
-  roles[UrlRole] = "url";
-  roles[ImageRole] = "image";
-  roles[IdRole] = "gridId";
-
-  setRoleNames(roles);
-}
-
-BookmarkQtGridImpl::~BookmarkQtGridImpl() {
-  clear();
-}
-
-QVariant BookmarkQtGridImpl::data(const QModelIndex& index, int role) const {
-  if(index.row() < 0 || index.row() > bookmarks_.count())
-    return QVariant();
-//  const BookmarkItem& bookmark = bookmarks_[index.row()];
-  if (role == ImageRole)
-    return bookmarks_[index.row()]->image();
-  return BookmarkQtImpl::data(index, role);
-}
-
-void BookmarkQtGridImpl::remove(QString id) {
-  //beginResetModel();
-  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq grid will remove "<<id.toStdString()<<" in folder "<<bookmark_qt_->GetParent()->id();
-  bookmark_qt_->removeBookmarkInModel(id);
-  //endResetModel();
-}
-
-void BookmarkQtGridImpl::moving(int from, int to) {
-  if (to == from) return;
-  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq grid moving "<< from << " ---> " << to;
-  beginMoveRows(QModelIndex(), from, from, QModelIndex(), to > from ? to+1 : to);
-  bookmarks_.move(from, to);
-  endMoveRows();
-  //BookmarkItem *item = bookmarks_[from]; // not a good solution, but don't know why
-                                        // beginMoveRows() not working correctly
-  //removeBookmark(item);
-  //addBookmark(item, to);
-}
-
-void BookmarkQtGridImpl::moveDone(int from, int to) {
-  if (from == to) return;
-  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq grid movedone "<< from << " ===> " << to;
-  bookmark_qt_->moveBookmarkInModel(from, to);
-}
-
-//void BookmarkQtGridImpl::beginReset() {
-//  returnedImages_++;
-//  DLOG(INFO) << "current returned images "<<returnedImages_<<" , we need "<<rowCount();
-//  if (returnedImages_ >= rowCount()) {
-//     beginResetModel();
-//  }
+//
+//BookmarkQtGridImpl::BookmarkQtGridImpl(BookmarkQt* bookmark_qt, QObject *parent)
+//    : BookmarkQtImpl(bookmark_qt, parent),
+//      returnedImages_(0) {
+//  QHash<int, QByteArray> roles;
+//  roles[TitleRole] = "title";
+//  roles[UrlRole] = "url";
+//  roles[ImageRole] = "image";
+//  roles[IdRole] = "gridId";
+//
+//  setRoleNames(roles);
 //}
 //
-//void BookmarkQtGridImpl::endReset() {
-//  if (returnedImages_ >= rowCount()) {
-//     endResetModel();
-//  }
+//BookmarkQtGridImpl::~BookmarkQtGridImpl() {
+//  clear();
 //}
 //
-void BookmarkQtGridImpl::clear() {
-  returnedImages_ = 0;
-  provider_.clear();
-  BookmarkQtImpl::clear();
-}
-
-void BookmarkQtGridImpl::titleChanged(QString id, QString title) {
-  bookmark_qt_->titleChanged(id, title); 
-}
-
-void BookmarkQtGridImpl::urlChanged(QString id, QString url) {
-  bookmark_qt_->urlChanged(id, url); 
-}
-
-//void BookmarkQtGridImpl::openBookmarkItem(int index) {
-//  bookmark_qt_->HideBookmarkManager();
-//  BookmarkQtImpl::openBookmarkItem(index);
+//QVariant BookmarkQtGridImpl::data(const QModelIndex& index, int role) const {
+//  if(index.row() < 0 || index.row() > bookmarks_.count())
+//    return QVariant();
+////  const BookmarkItem& bookmark = bookmarks_[index.row()];
+//  if (role == ImageRole)
+//    return bookmarks_[index.row()]->image();
+//  return BookmarkQtImpl::data(index, role);
 //}
 //
-void BookmarkQtGridImpl::PopupMenu(int x, int y) {
-  gfx::Point p(x,y);
-  bookmark_qt_->PopupMenu(p);
-}
+//void BookmarkQtGridImpl::remove(QString id) {
+//  //beginResetModel();
+//  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq grid will remove "<<id.toStdString()<<" in folder "<<bookmark_qt_->GetParent()->id();
+//  bookmark_qt_->removeBookmarkInModel(id);
+//  //endResetModel();
+//}
+//
+//void BookmarkQtGridImpl::moving(int from, int to) {
+//  if (to == from) return;
+//  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq grid moving "<< from << " ---> " << to;
+//  beginMoveRows(QModelIndex(), from, from, QModelIndex(), to > from ? to+1 : to);
+//  bookmarks_.move(from, to);
+//  endMoveRows();
+//  //BookmarkItem *item = bookmarks_[from]; // not a good solution, but don't know why
+//                                        // beginMoveRows() not working correctly
+//  //removeBookmark(item);
+//  //addBookmark(item, to);
+//}
+//
+//void BookmarkQtGridImpl::moveDone(int from, int to) {
+//  if (from == to) return;
+//  DLOG(INFO)<<__PRETTY_FUNCTION__<<"hdq grid movedone "<< from << " ===> " << to;
+//  bookmark_qt_->moveBookmarkInModel(from, to);
+//}
+//
+////void BookmarkQtGridImpl::beginReset() {
+////  returnedImages_++;
+////  DLOG(INFO) << "current returned images "<<returnedImages_<<" , we need "<<rowCount();
+////  if (returnedImages_ >= rowCount()) {
+////     beginResetModel();
+////  }
+////}
+////
+////void BookmarkQtGridImpl::endReset() {
+////  if (returnedImages_ >= rowCount()) {
+////     endResetModel();
+////  }
+////}
+////
+//void BookmarkQtGridImpl::clear() {
+//  returnedImages_ = 0;
+//  provider_.clear();
+//  BookmarkQtImpl::clear();
+//}
+//
+//void BookmarkQtGridImpl::titleChanged(QString id, QString title) {
+//  bookmark_qt_->titleChanged(id, title); 
+//}
+//
+//void BookmarkQtGridImpl::urlChanged(QString id, QString url) {
+//  bookmark_qt_->urlChanged(id, url); 
+//}
+//
+////void BookmarkQtGridImpl::openBookmarkItem(int index) {
+////  bookmark_qt_->HideBookmarkManager();
+////  BookmarkQtImpl::openBookmarkItem(index);
+////}
+////
+//void BookmarkQtGridImpl::PopupMenu(int x, int y) {
+//  gfx::Point p(x,y);
+//  bookmark_qt_->PopupMenu(p);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 // BookmarkQtTreeImpl
@@ -1493,10 +1495,11 @@ QVariant BookmarkQtFilterProxyModel::data ( const QModelIndex & index, int role 
 ////////////////////////////////////////////////////////////////////////////////
 // BookmarkListMenuModel
 
-BookmarkListMenuModel::BookmarkListMenuModel(BookmarkQtFilterProxyModel* gfilter,
+BookmarkListMenuModel::BookmarkListMenuModel(//BookmarkQtFilterProxyModel* gfilter,
                                              BookmarkQtFilterProxyModel* tfilter)
     : ALLOW_THIS_IN_INITIALIZER_LIST(ui::SimpleMenuModel(this)),
-      gfilter_(gfilter), tfilter_(tfilter) {
+      //gfilter_(gfilter), 
+      tfilter_(tfilter) {
 //  Build();
 }
 
@@ -1526,11 +1529,11 @@ bool BookmarkListMenuModel::GetAcceleratorForCommandId(
 void BookmarkListMenuModel::ExecuteCommand(int command_id) {
   switch (command_id) {
 //    case IDC_BOOKMARK_MOVETO: filter_->MoveToAnother(); break;
-    case IDC_BOOKMARK_OPEN:   gfilter_->OpenItemInNewTab();   
+    case IDC_BOOKMARK_OPEN:   //gfilter_->OpenItemInNewTab();   
                               tfilter_->OpenItemInNewTab();   break;
-    case IDC_BOOKMARK_EDIT:   gfilter_->EditItem();   
+    case IDC_BOOKMARK_EDIT:   //gfilter_->EditItem();   
                               tfilter_->EditItem();   break;
-    case IDC_BOOKMARK_REMOVE: gfilter_->RemoveItem(); 
+    case IDC_BOOKMARK_REMOVE: //gfilter_->RemoveItem(); 
                               tfilter_->RemoveItem(); break;
     default:
       LOG(WARNING) << "Received Unimplemented Command: " << command_id;

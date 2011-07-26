@@ -48,10 +48,10 @@ class Profile;
 class TabstripOriginProvider;
 
 class BookmarkItem;
-class BookmarkGridItem;
+//class BookmarkGridItem;
 class BookmarkQtImpl;
 class BookmarkBarQtImpl;
-class BookmarkQtGridImpl;
+//class BookmarkQtGridImpl;
 class BookmarkQtTreeImpl;
 class BookmarkQtFilterProxyModel;
 class BookmarkListMenuModel; 
@@ -158,25 +158,25 @@ protected:
   Browser* browser_;
 };
 
-class BookmarkGridItem : public BookmarkItem {
-
-public:
-  BookmarkGridItem(Browser* browser, BookmarkQtGridImpl* model, QString& title, QString& url, int64 id, BookmarkNode::Type type)
-    : BookmarkItem(browser, title, url, id, type),
-      model_(model)
-    {}
-  ~BookmarkGridItem() {}
-
-  void RequestImg(int index);
-  void HandleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data);
-  void OnThumbnailDataAvailable(HistoryService::Handle request_handle, scoped_refptr<RefCountedBytes> jpeg_data);
-
-protected:
-  CancelableRequestConsumer consumer_;
-  BookmarkQtGridImpl* model_;
-  int index_;
-};
-
+//class BookmarkGridItem : public BookmarkItem {
+//
+//public:
+//  BookmarkGridItem(Browser* browser, BookmarkQtGridImpl* model, QString& title, QString& url, int64 id, BookmarkNode::Type type)
+//    : BookmarkItem(browser, title, url, id, type),
+//      model_(model)
+//    {}
+//  ~BookmarkGridItem() {}
+//
+//  void RequestImg(int index);
+//  void HandleThumbnailData(scoped_refptr<RefCountedBytes> jpeg_data);
+//  void OnThumbnailDataAvailable(HistoryService::Handle request_handle, scoped_refptr<RefCountedBytes> jpeg_data);
+//
+//protected:
+//  CancelableRequestConsumer consumer_;
+//  BookmarkQtGridImpl* model_;
+//  int index_;
+//};
+//
 class BookmarkQt : //public AnimationDelegate,
                    //public ProfileSyncServiceObserver,
                    //public ui::AcceleratorProvider,
@@ -243,7 +243,7 @@ public:
                                          const BookmarkNode* node);
 
   BookmarkItem* CreateBookmarkItem(const BookmarkNode* node);
-  virtual BookmarkGridItem* CreateBookmarkGridItem(const BookmarkNode* node) = 0;
+//  virtual BookmarkGridItem* CreateBookmarkGridItem(const BookmarkNode* node) = 0;
 
   void openBookmarkItem(int index); 
   void openBookmarkItem(QString id);
@@ -279,9 +279,9 @@ protected:
   // shown. This is owned by the Profile.
   BookmarkModel* model_;
 
-  BookmarkQtGridImpl* grid_impl_;
+//  BookmarkQtGridImpl* grid_impl_;
   BookmarkQtTreeImpl* tree_impl_; 
-  BookmarkQtFilterProxyModel* grid_filter_;
+//  BookmarkQtFilterProxyModel* grid_filter_;
   BookmarkQtFilterProxyModel* tree_filter_;
   BookmarkListMenuModel* bookmark_menu_;
 
@@ -299,7 +299,7 @@ public:
   virtual const BookmarkNode* GetParent();
 
   void Init(Profile* profile);
-  BookmarkGridItem* CreateBookmarkGridItem(const BookmarkNode* node);
+//  BookmarkGridItem* CreateBookmarkGridItem(const BookmarkNode* node);
 
   DISALLOW_COPY_AND_ASSIGN(BookmarkOthersQt);
 };
@@ -334,7 +334,7 @@ private:
   // Helper function which generates GtkToolItems for |bookmark_toolbar_|.
   void CreateAllBookmarkButtons();
 
-  BookmarkGridItem* CreateBookmarkGridItem(const BookmarkNode* node);
+//  BookmarkGridItem* CreateBookmarkGridItem(const BookmarkNode* node);
   void CreateAllBookmarkTreeItems();
   void RemoveAllBookmarkTreeItems();
 
@@ -492,44 +492,44 @@ private:
   Q_DISABLE_COPY(BookmarkBarQtImpl);
 };
 
-// Showing Bookmark Items in Bookmark Manager in a grid view
-class BookmarkQtGridImpl : public BookmarkQtImpl
-{
-  Q_OBJECT
-public:
-  enum GridRoles {
-    ImageRole = HasChildrenRole + 1
-  };
-  BookmarkQtGridImpl(BookmarkQt* bookmark_qt, QObject *parent = 0);
-  virtual ~BookmarkQtGridImpl();
-  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-
-//  void beginReset();
-//  void endReset();
-  void clear();
-
-  BookmarkImageProvider* Provider() { return &provider_; }
-
-  //void openBookmarkItem(int index);
-  void PopupMenu(int x, int y);
-
-public Q_SLOTS:
-  void remove(QString id);
-  int64 id(int index) { return bookmarks_[index]->id_; }
-  void moving(int from, int to);
-  void moveDone(int from, int to);
-
-  void titleChanged(QString id, QString title);
-  void urlChanged(QString id, QString url);
-  void moveToAnotherFolder(int index) { bookmark_qt_->MoveToAnotherFolder(index); }
-
-private:
-  BookmarkImageProvider provider_;
-  int returnedImages_;
-private:
-  Q_DISABLE_COPY(BookmarkQtGridImpl);
-};
-
+//// Showing Bookmark Items in Bookmark Manager in a grid view
+//class BookmarkQtGridImpl : public BookmarkQtImpl
+//{
+//  Q_OBJECT
+//public:
+//  enum GridRoles {
+//    ImageRole = HasChildrenRole + 1
+//  };
+//  BookmarkQtGridImpl(BookmarkQt* bookmark_qt, QObject *parent = 0);
+//  virtual ~BookmarkQtGridImpl();
+//  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+//
+////  void beginReset();
+////  void endReset();
+//  void clear();
+//
+//  BookmarkImageProvider* Provider() { return &provider_; }
+//
+//  //void openBookmarkItem(int index);
+//  void PopupMenu(int x, int y);
+//
+//public Q_SLOTS:
+//  void remove(QString id);
+//  int64 id(int index) { return bookmarks_[index]->id_; }
+//  void moving(int from, int to);
+//  void moveDone(int from, int to);
+//
+//  void titleChanged(QString id, QString title);
+//  void urlChanged(QString id, QString url);
+//  void moveToAnotherFolder(int index) { bookmark_qt_->MoveToAnotherFolder(index); }
+//
+//private:
+//  BookmarkImageProvider provider_;
+//  int returnedImages_;
+//private:
+//  Q_DISABLE_COPY(BookmarkQtGridImpl);
+//};
+//
 // Showing all bookmarks and folders as a tree
 //   Currently implemented as a fake tree 
 //   - actually storing all first level items in a list (bookmarks_)
@@ -637,7 +637,7 @@ private:
 class BookmarkListMenuModel : public ui::SimpleMenuModel,
                               public ui::SimpleMenuModel::Delegate {
 public:
-  BookmarkListMenuModel(BookmarkQtFilterProxyModel *gfilter,
+  BookmarkListMenuModel(//BookmarkQtFilterProxyModel *gfilter,
                         BookmarkQtFilterProxyModel *tfilter); //ui::AcceleratorProvider* provider, Browser* browser);
   virtual ~BookmarkListMenuModel(){};
   void Build(const QString& anotherFolder);
@@ -650,7 +650,7 @@ public:
   virtual void ExecuteCommand(int command_id);
 
 private:
-  BookmarkQtFilterProxyModel* gfilter_;
+  //BookmarkQtFilterProxyModel* gfilter_;
   BookmarkQtFilterProxyModel* tfilter_;
 //  ui::AcceleratorProvider* provider_;  // weak
 //  Browser* browser_;  // weak

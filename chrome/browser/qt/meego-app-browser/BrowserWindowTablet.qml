@@ -436,26 +436,28 @@ Item {
                 property bool portrait : false
             }
         }
-        Connections {
-            target: bookmarkBarGridModel
-            onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
-            onOpenBookmarkManager: {
-              var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
-              bookmarkManagerLoader.opacity = 1
-              bookmarkManagerLoader.source = "BookmarkList.qml"
-              //bookmarkManagerLoader.item.portrait = !isLandscapeView()
-              bookmarkManagerHolder.initx = mappedPos.x
-              bookmarkManagerHolder.inity = mappedPos.y
-              showbookmarkmanager = true
-              panelstring  = bookmarkManagerTitle
-              if (downloadsLoader.item)
-                showdownloadmanager = false
-            }
-        }
-        Connections {
-            target: bookmarkOthersGridModel
-            onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
-        }
+        //Connections {
+        //    target: bookmarkBarGridModel
+        //    ignoreUnknownSignals:true;
+        //    onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
+        //    onOpenBookmarkManager: {
+        //      var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
+        //      bookmarkManagerLoader.opacity = 1
+        //      bookmarkManagerLoader.source = "BookmarkList.qml"
+        //      //bookmarkManagerLoader.item.portrait = !isLandscapeView()
+        //      bookmarkManagerHolder.initx = mappedPos.x
+        //      bookmarkManagerHolder.inity = mappedPos.y
+        //      showbookmarkmanager = true
+        //      panelstring  = bookmarkManagerTitle
+        //      if (downloadsLoader.item)
+        //        showdownloadmanager = false
+        //    }
+        //}
+        //Connections {
+        //    target: bookmarkOthersGridModel
+        //    ignoreUnknownSignals:true;
+        //    onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
+        //}
 
         Loader {
             id: selectionHandlerLoader

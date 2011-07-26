@@ -92,7 +92,7 @@ Component{
                           grid.model.openBookmarkItem(gridId);
                         }
                         onPressAndHold: {
-                          var map = mapToItem(bookmarkListRoot, mouseX, mouseY);
+                          var map = mapToItem(window, mouseX, mouseY);
                           //map.y-=115;
                           //bmGlobal.idxHasMenu = grid.indexAt(map.x-parallax.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
                           bmGlobal.idHasMenu = gridId

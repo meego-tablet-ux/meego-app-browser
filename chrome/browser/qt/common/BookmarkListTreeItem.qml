@@ -164,7 +164,7 @@ Component {
           }
           onPressAndHold: {
             if (0 == type || 1 == type) { // only show menu for URL and FOLDER, not for permanent nodes
-              var map = mapToItem(bookmarkListRoot, mouseX, mouseY);
+              var map = mapToItem(window, mouseX, mouseY);
               //bmGlobal.idxHasMenu = tree.indexAt(map.x-tree.width*(1-bmGlobal.parallaxWidthFactor), map.y-headHeight)
               bmGlobal.idHasMenu = bookmarkId
               bmGlobal.currentTitle = title

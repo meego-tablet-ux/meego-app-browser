@@ -78,8 +78,11 @@ import Qt.labs.gestures 2.0
 //Rectangle {  // for test in qmlviwer
 //  width: 800; height: 600 // for test in qmlviewer
 Item {
-  id: bookmarkListRoot
+  id: window 
   anchors.fill: parent
+
+  // Dummy signal used to remove qml warning because we don't use window.qml as app window.
+  signal contentVerticalShiftChanged()
 
   property bool portrait: bookmarkManagerLoader.portrait
   property int bottomMargin: 20
@@ -94,7 +97,7 @@ Item {
 
   Item {
     id: bmGlobal
-    property bool portrait: bookmarkListRoot.portrait
+    property bool portrait: window.portrait
     property bool dragging: false
     property bool exiting: false
     property bool exitDone: false
@@ -127,7 +130,7 @@ Item {
 
   Loader {
     id: listLoader
-    parent: bookmarkListRoot
+    parent: window
     width: parent.width; height: parent.height - topContainer.height
     anchors { top: topContainer.bottom }
     source: portrait ? "BookmarkListTreeAll.qml" : bmGlobal.gridShow ? "BookmarkListGridList.qml" : "BookmarkListTreeList.qml"

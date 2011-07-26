@@ -334,7 +334,7 @@ Item {
             }
         }
         Connections {
-            target: bookmarkBarGridModel
+            target: bookmarkBarTreeModel
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
             onOpenBookmarkManager: {
               var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
@@ -352,7 +352,7 @@ Item {
             }
         }
         Connections {
-            target: bookmarkOthersGridModel
+            target: bookmarkOthersTreeModel
             onCloseBookmarkManager: bookmarkManagerLoader.sourceComponent = undefined
         }
 
