@@ -117,6 +117,12 @@ void LocationBarViewQt::OnKillFocus() {
   BrowserWindowQt* browser_window = (BrowserWindowQt*)browser_->window();
   location_entry_->SetUserText(WideToUTF16(GetInputString()), GetTitle(), false);
   focused_ = false;
+
+  gfx::NativeView widget = browser_->GetSelectedTabContents()->GetContentNativeView();
+  if (widget) {
+    widget->setFocusPolicy(Qt::StrongFocus);
+  }
+  browser_->GetSelectedTabContents()->Focus();
 }
 
 void LocationBarViewQt::OnSetFocus() {
@@ -130,6 +136,10 @@ void LocationBarViewQt::OnSetFocus() {
   }
 
   focused_ = true;
+  gfx::NativeView widget = browser_->GetSelectedTabContents()->GetContentNativeView();
+  if (widget) {
+    widget->setFocusPolicy(Qt::NoFocus);
+  }
   // Update the keyword and search hint states.
 //  OnChanged();
 }

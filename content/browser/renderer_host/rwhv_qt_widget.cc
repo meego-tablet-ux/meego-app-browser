@@ -427,10 +427,6 @@ void RWHVQtWidget::focusInEvent(QFocusEvent* event)
 
 void RWHVQtWidget::focusOutEvent(QFocusEvent* event)
 {
-  // walkaround for focus issue with MTF VKB
-  // when focus out, it will not get focus until a mouse press event set it back
-  setFocusPolicy(Qt::NoFocus);
-  
   // If we are showing a context menu, maintain the illusion that webkit has
   // focus.
 
