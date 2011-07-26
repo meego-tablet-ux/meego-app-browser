@@ -95,6 +95,9 @@ Item {
   property string deleteColor: "#383838"
   property alias textFocus: searchBox.textFocus
 
+  //private properties for virtual keyboard shifting
+  property int currentVkbHeight: 0
+
   Item {
     id: bmGlobal
     property bool portrait: window.portrait
@@ -215,6 +218,7 @@ Item {
     title: qsTr("Edit bookmark"); //\"" + bmGlobal.currentTitle.toString().substring(0,30) + "\"");
     showCancelButton: false
     showAcceptButton: false
+    vkbHeight: currentVkbHeight
     property int innerHeight: 330
     property int folderHeight: 100
     buttonRow: Row {
@@ -254,7 +258,7 @@ Item {
           bmItemDeleteDialog.show()
         }
       }
-    }
+    } // end of EditDialog's Row
     content: Item {
       id: bmContent
       width: parent.width
@@ -314,7 +318,12 @@ Item {
             orientation: ListView.Vertical
           }
         }
-      }
-    }
+      } // end of folderGroup
+    } // end of EditDialog's content
+  } // end of EditDialog
+
+  Connections {
+    target: mainWindow
+    onVkbHeight: currentVkbHeight = height>width?width:height
   }
 }

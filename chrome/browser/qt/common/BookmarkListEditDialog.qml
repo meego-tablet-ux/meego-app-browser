@@ -160,6 +160,7 @@ ModalFog {
     property int decorationHeight: header.height + footer.height + topMargin + bottomMargin
 
     property int verticalOffset: topItem.topDecorationHeight
+    property int vkbHeight: 0
 
     property int h: 350
 
@@ -175,7 +176,11 @@ ModalFog {
         height: modalDialogBox.height
 
         x: ( topItem.topWidth - modalDialogBox.width ) / 2
-        y: ( topItem.topHeight - modalDialogBox.height + verticalOffset ) / 2
+        y: ( topItem.topHeight - modalDialogBox.height - vkbHeight + verticalOffset ) / 2
+
+        Behavior on y {
+            NumberAnimation { duration: 250; easing.type: Easing.OutQuart }
+        }
 
         border.left:   6
         border.top:    77
