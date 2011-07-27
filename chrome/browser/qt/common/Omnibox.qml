@@ -169,6 +169,11 @@ Item {
       autoScroll: false
       inputMethodHints: Qt.ImhUrlCharactersOnly
 
+      CCPContextArea {
+        editor: parent
+        visible: !parent.readOnly && parent.activeFocus
+      }
+
       // get mouseX from MouseArea, transfrom it to cursor position, and move cursor to that position
       function moveTo(mouseX) {
         mouseX = mouseX - sslArea.width - anchors.leftMargin - sslArea.anchors.leftMargin;
