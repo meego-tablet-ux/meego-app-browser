@@ -589,8 +589,6 @@ BookmarkBarQt::BookmarkBarQt(BrowserWindowQt* window,
 //  SetProfile(profile);
   registrar_.Add(this, NotificationType::BROWSER_THEME_CHANGED,
                  NotificationService::AllSources());
-  registrar_.Add(this, NotificationType::BOOKMARK_LIST_VISIBILITY_SHOW,
-                 NotificationService::AllSources());
 }
 
 BookmarkBarQt::~BookmarkBarQt() {
@@ -820,8 +818,6 @@ void BookmarkBarQt::ShowBookmarkManager() {
     CreateAllBookmarkTreeItems();
     BookmarkList::started = true;
   }
-  tree_filter_->OpenBookmarkManager();
-  //grid_filter_->OpenBookmarkManager();
 }
 
 void BookmarkBarQt::Observe(NotificationType type,
@@ -838,8 +834,6 @@ void BookmarkBarQt::Observe(NotificationType type,
                   << "don't have a BookmarkModel. Taking no action.";
     }
 
-  } else if (type == NotificationType::BOOKMARK_LIST_VISIBILITY_SHOW) {
-    ShowBookmarkManager();
   } else {
     NOTREACHED();
   }

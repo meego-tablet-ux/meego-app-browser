@@ -1892,10 +1892,6 @@ void Browser::ToggleBookmarkBar() {
 void Browser::OpenBookmarkManager() {
   UserMetrics::RecordAction(UserMetricsAction("ShowBookmarkManager"), profile_);
   ShowSingletonTab(GURL(chrome::kChromeUIBookmarksURL));
-  NotificationService::current()->Notify(
-    NotificationType::BOOKMARK_LIST_VISIBILITY_SHOW,
-    Source<Browser>(this),
-    NotificationService::NoDetails());
 }
 
 void Browser::ShowAppMenu() {

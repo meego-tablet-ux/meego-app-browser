@@ -184,7 +184,7 @@ Item {
             var mappedPos = scene.mapToItem (outerContent, 0, toolbar.height + statusbar.height)
             bookmarkManagerLoader.opacity = 1
             bookmarkManagerLoader.source = "BookmarkList.qml"
-            bookmarkManagerLoader.item.portrait = !isLandscapeView()
+            //bookmarkManagerLoader.item.portrait = !isLandscapeView()
             bookmarkManagerHolder.initx = mappedPos.x
             bookmarkManagerHolder.inity = mappedPos.y
           }

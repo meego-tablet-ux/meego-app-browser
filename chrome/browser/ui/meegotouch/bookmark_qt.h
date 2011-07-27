@@ -579,7 +579,6 @@ public:
   BookmarkQtFilterProxyModel(BookmarkQtImpl *impl, QObject *parent = 0);
   void Show() { emit show(); }
   void Hide() { emit hide(); }
-  void OpenBookmarkManager() { emit openBookmarkManager(); }
   void CloseBookmarkManager(){ emit closeBookmarkManager(); }
 //  void MoveToAnother() { emit moveToAnother(); }
 
@@ -593,7 +592,6 @@ public:
 Q_SIGNALS:
   void show();
   void hide();
-  void openBookmarkManager();
   void closeBookmarkManager();
 //  void moveToAnother();
 //
