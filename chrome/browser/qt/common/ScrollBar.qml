@@ -63,13 +63,43 @@
 
      // Size the bar to the required size, depending upon the orientation.
      Rectangle {
-         x: orientation == Qt.Vertical ? 1 : (scrollBar.position * (scrollBar.width-2) + 1)
-         y: orientation == Qt.Vertical ? (scrollBar.position * (scrollBar.height-2) + 1) : 1
-         width: orientation == Qt.Vertical ? (parent.width-2) : (scrollBar.pageSize * (scrollBar.width-2))
-         height: orientation == Qt.Vertical ? (scrollBar.pageSize * (scrollBar.height-2)) : (parent.height-2)
+         x: orientation == Qt.Vertical ? 1 : scrollBarPos(scrollBar.width)
+         y: orientation == Qt.Vertical ? scrollBarPos(scrollBar.height) : 1
+         width: orientation == Qt.Vertical ? (parent.width-2) : scrollBarLen(scrollBar.width)
+         height: orientation == Qt.Vertical ? scrollBarLen(scrollBar.height) : (parent.height-2)
          radius: orientation == Qt.Vertical ? (width/2 - 1) : (height/2 - 1)
          color: "white"
          opacity: scrollOpacity
+     }
+
+     function scrollBarPos(len) {
+         var rad = orientation == Qt.Vertical ? (width/2 - 1) : (height/2 - 1)
+         var maxPos = len - rad*2 - 1
+         var ret = scrollBar.position * (len-2) + 1
+         if ( ret < 1 ) {             // Not exceeding top
+            ret = 1
+         } else if ( ret > maxPos ) {  // Not exceeding bottom
+            ret = maxPos
+         }
+         return ret
+     }
+
+     function scrollBarLen(len) {
+        var rad = orientation == Qt.Vertical ? (width/2 - 1) : (height/2 - 1) // radius of bar
+        var pos = scrollBar.position * (len-2) + 1 // position of bar, normally
+        var ret = scrollBar.pageSize * (len-2) // size of bar, normally
+        if ( pos < 0 ) {  // shrink size of bar when page moves out of top
+            if ( (pos + ret - rad*2 - 1) < 0 ) {  // min size of bar at the top
+                ret = rad*2
+            } else {
+                ret += pos
+            }
+        } else if ( pos > (len - rad*2 - 1) ) {  // min size of bar in the bottom
+            ret = rad*2
+        } else if ( pos > (len - ret - 1) ) {  // shrink size of bar when page moves out of bottom
+            ret = len - pos - 1
+        }
+        return ret
      }
  }
 
