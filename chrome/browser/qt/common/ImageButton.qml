@@ -42,6 +42,7 @@ Rectangle {
     property alias fontSize: title.font.pixelSize
     property alias imageSource: buttonImage.source
     property int imageLeftBlankSpace: 0
+    property int widthNeed: imageSource == ""? buttonImage.paintedWidth + title.paintedWidth - imageLeftBlankSpace + 20 : buttonImage.paintedWidth + title.paintedWidth - imageLeftBlankSpace + 10
     signal clicked
 
     width: 150; height: 45
@@ -72,7 +73,7 @@ Rectangle {
         anchors.left: buttonImage.right
         anchors.top: parent.top
         font.pixelSize: 22
-        elide: Text.ElideRight;
+        elide: Text.ElideRight
     }
 
     Component.onCompleted: {

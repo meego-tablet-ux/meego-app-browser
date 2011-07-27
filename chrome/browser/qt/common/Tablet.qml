@@ -298,6 +298,8 @@ BrowserWindowTablet {
     loader.item.model = model;
 
     var bubbleContainer = loader.item;
+    bubbleContainer.fingerX = mouseX;
+    bubbleContainer.fingerY = mouseY;
     bubbleContainer.width = parentContainer.width;
     bubbleContainer.height = parentContainer.height;
     bubbleContainer.z = content.z + 1;
@@ -380,7 +382,5 @@ BrowserWindowTablet {
           break;
       }
 
-      bubbleContainer.fingerX = mouseX;
-      bubbleContainer.fingerY = mouseY;
   }
 }

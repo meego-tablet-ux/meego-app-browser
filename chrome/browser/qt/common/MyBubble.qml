@@ -59,6 +59,8 @@ Item {
   signal close()
   property Item bubbleItem: null
 
+  property int minWidth: 0
+
   GestureArea {
     anchors.fill: parent
     Tap {}
@@ -218,9 +220,9 @@ Item {
                 anchors.top: borderImageMiddle.top
                 anchors.bottom: borderImageMiddle.bottom
                 anchors.right: borderImageMiddle.right
-                anchors.rightMargin: -16
+                anchors.rightMargin: -15
                 anchors.left: borderImageMiddle.left
-                anchors.leftMargin: -16
+                anchors.leftMargin: -15
                 border {
                     left: 16;
                     right: 16;
@@ -347,15 +349,15 @@ Item {
                     id: folderGroup
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
+                    anchors.leftMargin: 6
+                    anchors.rightMargin: 6
                     anchors.bottom: folderLabelAndGroupWrapper.bottom
                     anchors.top: folderLabelWrapper.bottom
                     //anchors.topMargin: -5
 
                     title: "DropDown"
                     titleColor: "black"
-                    maxWidth: 300
+                    maxWidth: parent.width
 
                     model: bubbleFolderModel
 
@@ -401,7 +403,6 @@ Item {
                     anchors.leftMargin: 10
                     anchors.top: parent.top
                     anchors.topMargin: 10
-                    width: (parent.width - 30) / 2
                     height:45
                     btnColor: "#2CACE3"
                     textColor: "white"
@@ -420,7 +421,6 @@ Item {
                     anchors.rightMargin: 10
                     anchors.top: parent.top
                     anchors.topMargin: 10
-                    width: (parent.width - 30) / 2
                     height: 45
                     btnColor: "red"
                     textColor: "white"
@@ -433,6 +433,44 @@ Item {
                         container.model.removeButtonClicked();
                         container.close();
                     }
+                }
+               
+                Component.onCompleted: {
+                    // record the origin width
+                    if ( minWidth == 0 )
+                    {
+                        minWidth = parent.width;
+                    }
+                    var targetWidth = parent.width;
+                    var minMarginInScreen = 30;
+                    // widthNeed is the width to show all content in ImageButton
+                    // buttonWidth is the larger widthNeed of done and remove button
+                    var buttonWidth = doneButton.widthNeed;
+                    if ( buttonWidth < removeAndCancelButton.widthNeed) {
+                        buttonWidth = removeAndCancelButton.widthNeed;
+                    }
+                    if ( buttonWidth > (targetWidth - 30) / 2 ) {
+                        targetWidth = buttonWidth * 2 + 30;
+                    }                    
+                    var maxWidth = screenlayer.width - 2 * minMarginInScreen;
+                    if ( targetWidth > maxWidth ) {
+                        targetWidth = maxWidth
+                    }
+                    var widthGrow = targetWidth - parent.width;
+                    // calculate how much space is remained in the right side, 30 is the offset of bubble's right and finger, hard coded in Tablet.qml
+                    var canStrechRight =  screenlayer.width - container.fingerX - minMarginInScreen - parent.width - parent.x + minWidth - 30;
+                    if ( widthGrow < 2 * canStrechRight )
+                    {
+                        // right side is wide enough to contain half of the width grown
+                        parent.x = parent.x - widthGrow / 2;
+                    } else
+                    {
+                        parent.x = parent.x - widthGrow + canStrechRight;
+                    }
+                    parent.width = targetWidth;
+                    buttonWidth = (targetWidth - 30) / 2;
+                    removeAndCancelButton.width = buttonWidth;
+                    doneButton.width = buttonWidth;
                 }
             }
         }
