@@ -168,6 +168,7 @@ protected Q_SLOTS:
   void pinchGestureEvent(QGestureEvent* event, QPinchGesture* gesture);
 
   void doubleTapAction(const QPointF&);
+  void panBackingStore(float dx, float dy);
   // only scroll and zoom on first input method update.
   void scrollAndZoomForTextInput(const QRect& caret_rect, bool animation);
   // selection

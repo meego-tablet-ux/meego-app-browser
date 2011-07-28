@@ -240,9 +240,9 @@ WebKit::WebMouseWheelEvent EventUtilQt::ToMouseWheelEvent(const QGraphicsSceneMo
   result.globalX = static_cast<int>(qevent->screenPos().x());
   result.globalY = static_cast<int>(qevent->screenPos().y());
 
-  int dx = static_cast<int>(qevent->pos().x() - qevent->lastPos().x());
-  int dy = static_cast<int>(qevent->pos().y() - qevent->lastPos().y());
-  
+  float dx = (qevent->pos().x() - qevent->lastPos().x()) / scale;
+  float dy = (qevent->pos().y() - qevent->lastPos().y()) / scale;
+
   switch (angle) {
     case QtMobility::QOrientationReading::TopUp:
       result.deltaX = dx;

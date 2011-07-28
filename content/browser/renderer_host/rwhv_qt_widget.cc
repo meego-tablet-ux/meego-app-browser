@@ -1025,12 +1025,44 @@ void RWHVQtWidget::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
           event, orientationAngle(), scale());
       DLOG(INFO) << "wheelEvent " << wheelEvent.deltaX << " " << wheelEvent.deltaY;
       hostView()->host_->ForwardWheelEvent(wheelEvent);
+      if (scale() > 1) {
+        panBackingStore(event->scenePos().x() - event->lastScenePos().x(), event->scenePos().y() - event->lastScenePos().y());
+      }
+      qCritical()<<"dx: "<<event->scenePos().x() - event->lastScenePos().x()<<" dy: "<<event->scenePos().y() - event->lastScenePos().y();
+      qCritical()<<"dx: "<<event->screenPos().x() - event->lastScreenPos().x()<<" dy: "<<event->screenPos().y() - event->lastScreenPos().y();
       cancel_next_mouse_release_event_ = true;
     }
   }
 
 done:
   event->accept();
+}
+
+void RWHVQtWidget::panBackingStore(float dx, float dy)
+{
+  if (dx == 0 && dy == 0) return;
+
+  RenderWidgetHost *host = hostView()->host_;
+  if(!host) return;
+
+  BackingStoreX* backing_store = static_cast<BackingStoreX*>(
+      host->GetBackingStore(false));
+
+  QGraphicsObject* viewport_item = GetViewportItem();
+  QGraphicsObject* webview_item = GetWebViewItem();
+
+  int contentX = viewport_item->property("contentX").toInt();
+  int contentY = viewport_item->property("contentY").toInt();
+  int width = viewport_item->property("contentWidth").toInt();
+  int height = viewport_item->property("contentHeight").toInt();
+  
+  if (dx != 0 && contentX - dx >= 0 && contentX - dx + width / scale() <= width) {
+    viewport_item->setProperty("contentX", QVariant(contentX-dx));
+  }
+  if (dy != 0 && contentY - dy >= 0 && contentY - dy + height / scale() <= height) {
+    viewport_item->setProperty("contentY", QVariant(contentY-dy));
+  }
+  update();
 }
 
 void RWHVQtWidget::mousePressEvent(QGraphicsSceneMouseEvent* event)
