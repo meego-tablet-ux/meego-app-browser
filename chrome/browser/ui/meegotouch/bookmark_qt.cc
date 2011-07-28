@@ -23,6 +23,7 @@
 #include "chrome/browser/ntp_background_util.h"
 #include "chrome/browser/prefs/pref_service.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/common/url_constants.h"
 #include "content/browser/tab_contents/tab_contents.h"
 #include "content/browser/tab_contents/tab_contents_view.h"
 #include "content/common/notification_service.h"
@@ -338,6 +339,11 @@ void BookmarkQt::openBookmarkItem(QString id) {
   DCHECK(node->is_url());
   DCHECK(page_navigator_);
 
+  if(node->GetURL() == GURL(chrome::kChromeUINewTabURL))
+  {
+      browser()->NewOrActivateTab();
+      return;
+  }
   page_navigator_->OpenURL(
       node->GetURL(), GURL(),
       NEW_FOREGROUND_TAB,//gtk_util::DispositionForCurrentButtonPressEvent(),

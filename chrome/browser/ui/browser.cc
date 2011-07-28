@@ -1445,6 +1445,10 @@ void Browser::NewTab() {
 
 void Browser::NewOrActivateTab() {
   TabStripModel* model = tabstrip_model();
+
+  if(model->IsReachTabsLimit())
+      return;
+
   for(int i = 0; i < model->count(); i++)
   {
     if(model->ContainsIndex(i))
