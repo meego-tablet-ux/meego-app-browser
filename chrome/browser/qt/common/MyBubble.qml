@@ -357,7 +357,7 @@ Item {
 
                     title: "DropDown"
                     titleColor: "black"
-                    maxWidth: parent.width
+                    maxWidth: screenlayer.width - 40
 
                     model: bubbleFolderModel
 
@@ -443,6 +443,11 @@ Item {
                     }
                     var targetWidth = parent.width;
                     var minMarginInScreen = 30;
+                    // get the width of folderGroup's context menu to evaluate the width need for combobox, 50 is a hard code value base on testing
+                    var comboWidth = folderGroup.currentWidth + 50;
+                    if ( comboWidth > screenlayer.width / 2 )
+                        comboWidth = screenlayer.width / 2;
+                    targetWidth = comboWidth;
                     // widthNeed is the width to show all content in ImageButton
                     // buttonWidth is the larger widthNeed of done and remove button
                     var buttonWidth = doneButton.widthNeed;
@@ -467,6 +472,7 @@ Item {
                     {
                         parent.x = parent.x - widthGrow + canStrechRight;
                     }
+                    folderGroup.maxWidth = targetWidth - 12;
                     parent.width = targetWidth;
                     buttonWidth = (targetWidth - 30) / 2;
                     removeAndCancelButton.width = buttonWidth;
