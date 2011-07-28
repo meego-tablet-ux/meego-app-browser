@@ -125,7 +125,8 @@ class BrowserWindowQtImpl : public QObject
   }
   void ShowBookmarks(bool is_show)
   {
-     window_->bookmark_bar_->ShowBookmarkManager();
+     if(is_show)
+       window_->bookmark_bar_->ShowBookmarkManager();
      emit showBookmarks(is_show);
   }
   void ShowDownloads(bool is_show)
@@ -560,6 +561,9 @@ void BrowserWindowQt::TabSelectedAt(TabContentsWrapper* old_contents,
     impl_->ShowDownloads(true);
   } else if (new_contents->tab_contents()->GetURL() == GURL(chrome::kChromeUIBookmarksURL)) {
     impl_->ShowBookmarks(true);
+  }else {
+    impl_->ShowDownloads(false);
+    impl_->ShowBookmarks(false);
   }
 
 }
