@@ -46,6 +46,10 @@
 #include "webkit/plugins/npapi/webplugin.h"
 #include "webkit/plugins/npapi/qt_plugin_container_manager.h"
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+#include "content/browser/renderer_host/plugin_renderer_widget.h"
+#endif
+
 // static
 RenderWidgetHostView* RenderWidgetHostView::CreateViewForWidget(
     RenderWidgetHost* widget) {
@@ -699,6 +703,14 @@ void RenderWidgetHostViewQt::DidBackingStoreScale()
   {
     (*it)->setScaleFactor(host_->GetScaleFactor());
   }
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  QMap<unsigned int, PluginRendererWidget* >::iterator plugin_it = plugin_widgets_map_.begin();
+  for(; plugin_it != plugin_widgets_map_.end(); plugin_it++)
+  {
+    (*plugin_it)->setScaleFactor(host_->GetScaleFactor());
+  }
+#endif
 }
 
 void RenderWidgetHostViewQt::DidBackingStorePaint(const gfx::Rect& rect)
@@ -769,3 +781,38 @@ void RenderWidgetHostViewQt::ComposeEmbededFlashWindow(const gfx::Rect& rect) {
 void RenderWidgetHostViewQt::ReShowEmbededFlashWindow() {
   plugin_container_manager_->ReShowEmbededFlashWindow();
 }
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+void RenderWidgetHostViewQt::UpdatePluginWidget(unsigned int id,
+                                                unsigned int pixmap,
+                                                const gfx::Rect& rect,
+                                                unsigned int seq)
+{
+  if (plugin_widgets_map_.find(id) == plugin_widgets_map_.end())
+  {
+    // Create new plugin widget
+    plugin_widgets_map_.insert(id, new PluginRendererWidget(this, id, view_));
+  }
+
+  QRect qrect(rect.x(), rect.y(), rect.width(), rect.height());
+  plugin_widgets_map_.value(id)->updatePluginWidget(pixmap, qrect, seq);
+}
+
+void RenderWidgetHostViewQt::DestroyPluginWidget(unsigned int id)
+{
+  if (plugin_widgets_map_.find(id) == plugin_widgets_map_.end())
+    return;
+
+  delete plugin_widgets_map_.value(id);
+  plugin_widgets_map_.remove(id);
+}
+
+#endif
+
+void RenderWidgetHostViewQt::DidPaintPluginWidget(unsigned int id, unsigned int ack)
+{
+#if defined(PLUGIN_DIRECT_RENDERING)
+  host_->DidPaintPluginWidget(id, ack);
+#endif
+}
+

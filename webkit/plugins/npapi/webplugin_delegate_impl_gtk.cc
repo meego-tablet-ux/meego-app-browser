@@ -116,6 +116,102 @@ void WebPluginDelegateImpl::Paint(WebKit::WebCanvas* canvas,
   skia::EndPlatformPaint(canvas);
 }
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+void WebPluginDelegateImpl::Paint(XID target_pixmap, const gfx::Rect& damage_rect) {
+  if (!windowless_)
+    return;
+
+  gfx::Rect draw_rect = window_rect_.Intersect(damage_rect);
+
+  // clip_rect_ is relative to the plugin
+  gfx::Rect clip_rect_window = clip_rect_;
+  clip_rect_window.Offset(window_rect_.x(), window_rect_.y());
+  draw_rect = draw_rect.Intersect(clip_rect_window);
+
+  // These offsets represent by how much the view is shifted to accomodate
+  // Flash (the coordinates of X relative to O in the diagram above).
+  int offset_x = 0;
+  int offset_y = 0;
+  if (quirks_ & PLUGIN_QUIRK_WINDOWLESS_OFFSET_WINDOW_TO_DRAW) {
+    offset_x = -draw_rect.x();
+    offset_y = -draw_rect.y();
+    window_.clipRect.top = 0;
+    window_.clipRect.left = 0;
+    window_.clipRect.bottom = draw_rect.height();
+    window_.clipRect.right = draw_rect.width();
+    window_.height = window_rect_.height();
+    window_.width = window_rect_.width();
+    window_.x = window_rect_.x() - draw_rect.x();
+    window_.y = window_rect_.y() - draw_rect.y();
+    window_.type = NPWindowTypeDrawable;
+    DCHECK(window_.ws_info);
+    NPError err = instance()->NPP_SetWindow(&window_);
+    DCHECK_EQ(err, NPERR_NO_ERROR);
+  }
+
+  gfx::Rect pixmap_draw_rect = draw_rect;
+  pixmap_draw_rect.Offset(offset_x, offset_y);
+
+  gfx::Rect pixmap_rect(0, 0,
+                        pixmap_draw_rect.right(),
+                        pixmap_draw_rect.bottom());
+
+  // Construct the paint message, targeting the pixmap.
+  NPEvent np_event = {0};
+  XGraphicsExposeEvent &event = np_event.xgraphicsexpose;
+  event.type = GraphicsExpose;
+  event.x = pixmap_draw_rect.x();
+  event.y = pixmap_draw_rect.y();
+  event.width = pixmap_draw_rect.width();
+  event.height = pixmap_draw_rect.height();
+  event.display = GDK_DISPLAY();
+
+  Pixmap pixmap = None;
+  GC xgc = NULL;
+  Display* display = event.display;
+  gfx::Rect plugin_draw_rect = draw_rect;
+
+  // Make plugin_draw_rect relative to the plugin window.
+  plugin_draw_rect.Offset(-window_rect_.x(), -window_rect_.y());
+
+  // In case the drawing area does not start with the plugin window origin,
+  // we can not let the plugin directly draw over the shared memory pixmap.
+  if (plugin_draw_rect.x() != pixmap_draw_rect.x() ||
+      plugin_draw_rect.y() != pixmap_draw_rect.y()) {
+    pixmap = XCreatePixmap(display, target_pixmap,
+                           std::max(1, pixmap_rect.width()),
+                           std::max(1, pixmap_rect.height()),
+                           DefaultDepth(display, 0));
+    xgc = XCreateGC(display, target_pixmap, 0, NULL);
+
+    event.drawable = pixmap;
+  } else {
+    event.drawable = target_pixmap;
+  }
+
+  // Tell the plugin to paint into the pixmap.
+  NPError err = instance()->NPP_HandleEvent(&np_event);
+  DCHECK_EQ(err, NPERR_NO_ERROR);
+
+  if (pixmap != None) {
+    // Copy the rendered image pixmap back into the shm pixmap
+    // and thus the drawing buffer.
+    XCopyArea(display, pixmap, target_pixmap, xgc,
+              pixmap_draw_rect.x(), pixmap_draw_rect.y(),
+              pixmap_draw_rect.width(), pixmap_draw_rect.height(),
+              plugin_draw_rect.x(), plugin_draw_rect.y());
+    XSync(display, FALSE);
+    if (xgc)
+      XFreeGC(display, xgc);
+    XFreePixmap(display, pixmap);
+  } else {
+    XSync(display, FALSE);
+  }
+
+}
+
+#endif
+
 void WebPluginDelegateImpl::InstallMissingPlugin() {
   NOTIMPLEMENTED();
 }

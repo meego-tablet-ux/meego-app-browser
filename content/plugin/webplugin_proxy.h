@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string>
+#include <queue>
 
 #include "base/hash_tables.h"
 #include "base/memory/ref_counted.h"
@@ -24,6 +25,7 @@
 #endif
 #include "ui/gfx/surface/transport_dib.h"
 #include "webkit/plugins/npapi/webplugin.h"
+#include "base/meegotouch_config.h"
 
 class PluginChannel;
 
@@ -32,6 +34,15 @@ namespace npapi {
 class WebPluginDelegateImpl;
 }
 }
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+#define PLUGIN_DIRECT_RENDERING_MULTI_BUFFER 0
+#if PLUGIN_DIRECT_RENDERING_MULTI_BUFFER
+#define PLUGIN_PIXMAP_BUFFER_NUMBER 2
+#else
+#define PLUGIN_PIXMAP_BUFFER_NUMBER 1
+#endif
+#endif
 
 #if defined(OS_MACOSX)
 class WebPluginAcceleratedSurfaceProxy;
@@ -166,11 +177,25 @@ class WebPluginProxy : public webkit::npapi::WebPlugin {
 
   virtual void URLRedirectResponse(bool allow, int resource_id);
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void UpdatePluginWidget();
+  void DidPaintPluginWidget(unsigned int ack);
+  void DoDirectPaint(const gfx::Rect& damaged_rect);
+#endif
+
  private:
   bool Send(IPC::Message* msg);
 
   // Handler for sending over the paint event to the plugin.
   void OnPaint(const gfx::Rect& damaged_rect);
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void FreePluginPixmaps();
+  void PreparePluginPixmaps(const gfx::Rect& window_rect);
+  XID GetWindowlessPluginPixmap();
+  void FreeQueuedUpdateWidgetMsgs();
+  void DirectPaint(const gfx::Rect& damaged_rect);
+#endif
 
   // Updates the shared memory section where windowless plugins paint.
   void SetWindowlessBuffer(const TransportDIB::Handle& windowless_buffer,
@@ -214,6 +239,23 @@ class WebPluginProxy : public webkit::npapi::WebPlugin {
   XID windowless_shm_pixmap_;
 #endif
 
+#endif
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  XID plugin_widget_pixmaps_[PLUGIN_PIXMAP_BUFFER_NUMBER];
+  unsigned int plugin_widget_paint_seq_;
+  unsigned int plugin_widget_update_seq_;
+  unsigned int plugin_widget_update_ack_;
+
+  // Set this when the previous update msg is not acked yet.
+  bool waiting_for_ack_;
+
+  typedef struct {
+    unsigned int seq;
+    XID pixmap;
+  } UpdateWidgetMsg;
+
+  std::queue<UpdateWidgetMsg*> queued_update_widget_msgs_;
 #endif
 
   // Contains the routing id of the host render view.

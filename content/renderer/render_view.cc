@@ -761,7 +761,9 @@ bool RenderView::OnMessageReceived(const IPC::Message& message) {
 #if defined(ENABLE_FLAPPER_HACKS)
     IPC_MESSAGE_HANDLER(PepperMsg_ConnectTcpACK, OnConnectTcpACK)
 #endif
-
+#if defined(PLUGIN_DIRECT_RENDERING)
+    IPC_MESSAGE_HANDLER(ViewMsg_DidPaintPluginWidget, OnDidPaintPluginWidget)
+#endif
     // Have the super handle all other messages.
     IPC_MESSAGE_UNHANDLED(handled = RenderWidget::OnMessageReceived(message))
   IPC_END_MESSAGE_MAP()
@@ -3219,6 +3221,38 @@ webkit::npapi::WebPluginDelegate* RenderView::CreatePluginDelegate(
 
   return new WebPluginDelegateProxy(mime_type, AsWeakPtr());
 }
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+void RenderView::UpdatePluginWidget(
+    unsigned int pixmap_id,
+    const gfx::Rect& rect,
+    unsigned int seq,
+    WebPluginDelegateProxy* proxy)
+{
+  RenderThread::current()->Send(new ViewHostMsg_UpdatePluginWidget(
+      routing_id(), reinterpret_cast<unsigned int>(proxy), pixmap_id, rect, seq));
+}
+
+void RenderView::DestroyPluginWidget(WebPluginDelegateProxy* proxy)
+{
+  RenderThread::current()->Send(new ViewHostMsg_DestroyPluginWidget(
+      routing_id(), reinterpret_cast<unsigned int>(proxy)));
+}
+
+void RenderView::OnDidPaintPluginWidget(
+    unsigned int id,
+    unsigned int ack)
+{
+  std::set<WebPluginDelegateProxy*>::iterator plugin_it =
+      plugin_delegates_.find(reinterpret_cast<WebPluginDelegateProxy*>(id));
+
+  if (plugin_it == plugin_delegates_.end())
+    return;
+
+  (*plugin_it)->DidPaintPluginWidget(ack);
+}
+
+#endif
 
 void RenderView::CreatedPluginWindow(gfx::PluginWindowHandle window) {
 #if defined(USE_X11)

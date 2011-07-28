@@ -19,6 +19,7 @@
 #include "webkit/plugins/npapi/plugin_lib.h"
 #include "webkit/plugins/npapi/plugin_list.h"
 #include "webkit/plugins/npapi/plugin_stream_url.h"
+#include "base/meegotouch_config.h"
 
 using WebKit::WebCursorInfo;
 using WebKit::WebKeyboardEvent;
@@ -74,18 +75,43 @@ bool WebPluginDelegateImpl::Initialize(
     webkit_glue::SetForcefullyTerminatePluginProcess(true);
 
   int argc = 0;
+#if defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
   scoped_array<char*> argn(new char*[arg_names.size()]);
   scoped_array<char*> argv(new char*[arg_names.size()]);
+#else
+  scoped_array<char*> argn(new char*[arg_names.size() + 1]);
+  scoped_array<char*> argv(new char*[arg_names.size() + 1]);
+  bool is_windowless = false;
+#endif
   for (size_t i = 0; i < arg_names.size(); ++i) {
     if (quirks_ & PLUGIN_QUIRK_NO_WINDOWLESS &&
         LowerCaseEqualsASCII(arg_names[i], "windowlessvideo")) {
       continue;
     }
 
+#if !defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
+    if (LowerCaseEqualsASCII(arg_names[i], "wmode") &&
+        ( LowerCaseEqualsASCII(arg_values[i], "opaque") ||
+          LowerCaseEqualsASCII(arg_values[i], "transparent"))) {
+      is_windowless = true;
+    }
+#endif
+
     argn[argc] = const_cast<char*>(arg_names[i].c_str());
     argv[argc] = const_cast<char*>(arg_values[i].c_str());
     argc++;
   }
+
+#if !defined(MEEGO_ENABLE_WINDOWED_PLUGIN)
+  std::string wmode("wmode");
+  std::string value("opaque");
+  if (instance_->mime_type() == "application/x-shockwave-flash" &&
+      !is_windowless) {
+    argn[argc] = const_cast<char*>(wmode.c_str());
+    argv[argc] = const_cast<char*>(value.c_str());
+    argc++;
+  }
+#endif
 
   creation_succeeded_ = instance_->Start(
       url, argn.get(), argv.get(), argc, load_manually);

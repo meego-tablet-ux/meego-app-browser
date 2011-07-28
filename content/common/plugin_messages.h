@@ -12,6 +12,7 @@
 #include "ui/gfx/native_widget_types.h"
 #include "ui/gfx/rect.h"
 #include "webkit/glue/webcursor.h"
+#include "base/meegotouch_config.h"
 
 #if defined(OS_POSIX)
 #include "base/file_descriptor_posix.h"
@@ -296,6 +297,10 @@ IPC_MESSAGE_CONTROL3(PluginMsg_ClearSiteData,
                      uint64, /* flags */
                      base::Time /* begin_time */)
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+IPC_MESSAGE_ROUTED1(PluginMsg_DidPaintPluginWidget,
+                    unsigned int /* ack num */)
+#endif
 
 //-----------------------------------------------------------------------------
 // PluginHost messages
@@ -433,6 +438,12 @@ IPC_MESSAGE_ROUTED2(PluginHostMsg_URLRedirectResponse,
                     bool /* allow */,
                     int  /* resource_id */)
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+IPC_MESSAGE_ROUTED3(PluginHostMsg_UpdatePluginWidget,
+                    unsigned int /* pixmap */,
+                    gfx::Rect /* rect */,
+                    unsigned int /* seq */)
+#endif
 
 //-----------------------------------------------------------------------------
 // NPObject messages

@@ -32,6 +32,7 @@ class RenderWidgetHost;
 struct NativeWebKeyboardEvent;
 
 class VideoRendererWidget;
+class PluginRendererWidget;
 
 // -----------------------------------------------------------------------------
 // See comments in render_widget_host_view.h about this class and its members.
@@ -132,6 +133,16 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
   // For compose flash embeded window
   virtual void ComposeEmbededFlashWindow(const gfx::Rect& rect);
   virtual void ReShowEmbededFlashWindow();
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  virtual void UpdatePluginWidget(unsigned int id,
+                                  unsigned int pixmap,
+                                  const gfx::Rect& rect,
+                                  unsigned int seq);
+  virtual void DestroyPluginWidget(unsigned int id);
+#endif
+  void DidPaintPluginWidget(unsigned int id, unsigned int ack);
+
 #endif
 
   gfx::NativeView native_view() const {return view_;}
@@ -226,6 +237,10 @@ class RenderWidgetHostViewQt : public RenderWidgetHostView,
   unsigned int webkit_node_info_;
 
   QMap<unsigned int, VideoRendererWidget* > video_widgets_map_;
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  QMap<unsigned int, PluginRendererWidget*> plugin_widgets_map_;
+#endif
 };
 
 #endif  // CHROME_BROWSER_RENDERER_HOST_RENDER_WIDGET_HOST_VIEW_QT_H_

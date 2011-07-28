@@ -27,6 +27,7 @@
 #include "ui/gfx/rect.h"
 #include "ui/gfx/size.h"
 #include "ui/gfx/surface/transport_dib.h"
+#include "base/meegotouch_config.h"
 
 namespace gfx {
 class Rect;
@@ -433,6 +434,11 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void ResetPlugin(gfx::PluginWindowHandle id);
 #endif
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void DidPaintPluginWidget(unsigned int plugin_id,
+                            unsigned int ack);
+#endif
+
   void set_ignore_input_events(bool ignore_input_events) {
     ignore_input_events_ = ignore_input_events;
   }
@@ -545,6 +551,14 @@ class RenderWidgetHost : public IPC::Channel::Listener,
   void OnMsgImeCancelComposition();
 
   void OnMsgDidActivateAcceleratedCompositing(bool activated);
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void OnMsgUpdatePluginWidget(unsigned int plugin_id,
+                               unsigned int pixmap_id,
+                               const gfx::Rect& rect,
+                               unsigned int seq);
+  void OnMsgDestroyPluginWidget(unsigned int plugin_id);
+#endif
 
 #if defined(OS_MACOSX)
   void OnMsgGetScreenInfo(gfx::NativeViewId view,

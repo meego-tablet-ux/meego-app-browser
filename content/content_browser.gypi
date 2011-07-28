@@ -299,6 +299,9 @@
         'browser/renderer_host/video_renderer_widget.h',
         'browser/renderer_host/video_renderer_widget.cc',
         'browser/renderer_host/moc_video_renderer_widget.cc',
+        'browser/renderer_host/plugin_renderer_widget.h',
+        'browser/renderer_host/plugin_renderer_widget.cc',
+        'browser/renderer_host/moc_plugin_renderer_widget.cc',
         'browser/renderer_host/socket_stream_dispatcher_host.cc',
         'browser/renderer_host/socket_stream_dispatcher_host.h',
         'browser/renderer_host/socket_stream_host.cc',
@@ -418,6 +421,21 @@
                   ],
                   'outputs': [
                     'browser/renderer_host/moc_video_renderer_widget.cc',
+                  ],
+                  'action': [
+                    'moc',
+                    '<(_inputs)',
+                    '-o',
+                    '<(_outputs)',
+                  ],
+                },
+                {
+                  'action_name': 'moc_plugin_renderer_widget.h',
+                  'inputs': [
+                    'browser/renderer_host/plugin_renderer_widget.h',
+                  ],
+                  'outputs': [
+                    'browser/renderer_host/moc_plugin_renderer_widget.cc',
                   ],
                   'action': [
                     'moc',

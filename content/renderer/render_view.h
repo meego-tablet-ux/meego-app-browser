@@ -40,6 +40,7 @@
 #include "ui/gfx/surface/transport_dib.h"
 #include "webkit/glue/webpreferences.h"
 #include "webkit/plugins/npapi/webplugin_page_delegate.h"
+#include "base/meegotouch_config.h"
 
 #if defined(OS_WIN)
 // RenderView is a diamond-shaped hierarchy, with WebWidgetClient at the root.
@@ -601,6 +602,15 @@ class RenderView : public RenderWidget,
   virtual WebKit::WebRect PluginFullScreenRect();
 #endif
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void UpdatePluginWidget(
+      unsigned int pixmap_id,
+      const gfx::Rect& rect,
+      unsigned int seq,
+      WebPluginDelegateProxy* proxy);
+  void DestroyPluginWidget(WebPluginDelegateProxy* proxy);
+#endif
+
   // Please do not add your stuff randomly to the end here. If there is an
   // appropriate section, add it there. If not, there are some random functions
   // nearer to the top you can add it to.
@@ -630,6 +640,11 @@ class RenderView : public RenderWidget,
   virtual void OnWasHidden();
   virtual void OnWasRestored(bool needs_repainting);
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void OnDidPaintPluginWidget(
+      unsigned int id,
+      unsigned int ack);
+#endif
  private:
   // For unit tests.
   friend class ExternalPopupMenuTest;

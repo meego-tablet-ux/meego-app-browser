@@ -34,6 +34,7 @@
 #include "webkit/glue/webaccessibility.h"
 #include "webkit/plugins/npapi/webplugin.h"
 #include "webkit/plugins/npapi/webplugininfo.h"
+#include "base/meegotouch_config.h"
 
 #if defined(OS_MACOSX)
 #include "content/common/font_descriptor_mac.h"
@@ -1186,6 +1187,11 @@ IPC_MESSAGE_ROUTED0(ViewMsg_DisassociateFromPopupCount)
 // Tells the render view a prerendered page is about to be displayed.
 IPC_MESSAGE_ROUTED0(ViewMsg_DisplayPrerenderedPage)
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+IPC_MESSAGE_ROUTED2(ViewMsg_DidPaintPluginWidget,
+                    unsigned int /* plugin id */,
+                    unsigned int /* ack */)
+#endif
 
 // Messages sent from the renderer to the browser.
 
@@ -1656,6 +1662,17 @@ IPC_SYNC_MESSAGE_ROUTED1_0(ViewHostMsg_CreatePluginContainer,
 // to be destroyed.
 IPC_SYNC_MESSAGE_ROUTED1_0(ViewHostMsg_DestroyPluginContainer,
                            gfx::PluginWindowHandle /* id */)
+#endif
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+IPC_MESSAGE_ROUTED4(ViewHostMsg_UpdatePluginWidget,
+                    unsigned int /* plugin id */,
+                    unsigned int /* pixmap id */,
+                    gfx::Rect /* rect */,
+                    unsigned int /* seq */)
+
+IPC_MESSAGE_ROUTED1(ViewHostMsg_DestroyPluginWidget,
+                    unsigned int /* plugin id */)
 #endif
 
 #if defined(OS_MACOSX)

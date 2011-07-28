@@ -205,6 +205,11 @@ void WebPluginDelegateProxy::PluginDestroyed() {
   if (window_)
     WillDestroyWindow();
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  if (render_view_ && !window_)
+    render_view_->DestroyPluginWidget(this);
+#endif
+
   if (render_view_)
     render_view_->UnregisterPluginDelegate(this);
 
@@ -451,7 +456,10 @@ bool WebPluginDelegateProxy::OnMessageReceived(const IPC::Message& msg) {
                         OnInitiateHTTPRangeRequest)
     IPC_MESSAGE_HANDLER(PluginHostMsg_DeferResourceLoading,
                         OnDeferResourceLoading)
-
+#if defined(PLUGIN_DIRECT_RENDERING)
+    IPC_MESSAGE_HANDLER(PluginHostMsg_UpdatePluginWidget,
+                        OnUpdatePluginWidget)
+#endif
 #if defined(OS_MACOSX)
     IPC_MESSAGE_HANDLER(PluginHostMsg_FocusChanged,
                         OnFocusChanged);
@@ -482,6 +490,25 @@ bool WebPluginDelegateProxy::OnMessageReceived(const IPC::Message& msg) {
   return handled;
 }
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+void WebPluginDelegateProxy::OnUpdatePluginWidget(
+    unsigned int pixmap_id,
+    const gfx::Rect& rect,
+    unsigned int seq)
+{
+  if (render_view_)
+  {
+    render_view_->UpdatePluginWidget(pixmap_id, rect, seq, this);
+  }
+}
+
+void WebPluginDelegateProxy::DidPaintPluginWidget(
+    unsigned int ack)
+{
+  Send(new PluginMsg_DidPaintPluginWidget(instance_id_, ack));
+}
+#endif
+
 void WebPluginDelegateProxy::OnChannelError() {
   if (plugin_) {
     if (window_) {
@@ -491,6 +518,14 @@ void WebPluginDelegateProxy::OnChannelError() {
     }
     plugin_->Invalidate();
   }
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  if (render_view_ && !window_)
+  {
+    render_view_->DestroyPluginWidget(this);
+  }
+#endif
+
   if (!channel_host_->expecting_shutdown())
     render_view_->PluginCrashed(info_.path);
 

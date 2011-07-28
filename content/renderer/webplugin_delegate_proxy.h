@@ -20,6 +20,7 @@
 #include "ui/gfx/surface/transport_dib.h"
 #include "webkit/plugins/npapi/webplugininfo.h"
 #include "webkit/plugins/npapi/webplugin_delegate.h"
+#include "base/meegotouch_config.h"
 
 #if defined(OS_MACOSX)
 #include "base/hash_tables.h"
@@ -121,11 +122,22 @@ class WebPluginDelegateProxy
 
   gfx::PluginWindowHandle GetPluginWindowHandle();
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void DidPaintPluginWidget(
+      unsigned int ack);
+#endif
  protected:
   template<class WebPluginDelegateProxy> friend class DeleteTask;
   ~WebPluginDelegateProxy();
 
  private:
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void OnUpdatePluginWidget(
+    unsigned int pixmap_id,
+    const gfx::Rect& rect,
+    unsigned int seq);
+#endif
+
   // Message handlers for messages that proxy WebPlugin methods, which
   // we translate into calls to the real WebPlugin.
   void OnSetWindow(gfx::PluginWindowHandle window);

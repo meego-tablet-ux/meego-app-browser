@@ -13,6 +13,11 @@
 #include "base/task.h"
 #include "base/time.h"
 #include "base/timer.h"
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+#include "base/meegotouch_config.h"
+#endif
+
 #include "build/build_config.h"
 #include "third_party/npapi/bindings/npapi.h"
 #include "ui/gfx/native_widget_types.h"
@@ -101,6 +106,9 @@ class WebPluginDelegateImpl : public WebPluginDelegate {
   virtual void UpdateGeometry(const gfx::Rect& window_rect,
                               const gfx::Rect& clip_rect);
   virtual void Paint(WebKit::WebCanvas* canvas, const gfx::Rect& rect);
+#if defined(PLUGIN_DIRECT_RENDERING)
+  virtual void Paint(XID pixmap, const gfx::Rect& damage_rect);
+#endif
   virtual void SetFocus(bool focused);
   virtual bool HandleInputEvent(const WebKit::WebInputEvent& event,
                                 WebKit::WebCursorInfo* cursor_info);

@@ -16,6 +16,7 @@
 #include "third_party/npapi/bindings/npapi.h"
 #include "ui/gfx/native_widget_types.h"
 #include "ui/gfx/rect.h"
+#include "base/meegotouch_config.h"
 
 class PluginChannel;
 class WebPluginProxy;
@@ -101,6 +102,10 @@ class WebPluginDelegateStub : public IPC::Channel::Listener,
                                const GURL& url,
                                int notify_id);
   void OnHTTPRangeRequestReply(unsigned long resource_id, int range_request_id);
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  void OnDidPaintPluginWidget(unsigned int ack);
+#endif
 
   std::string mime_type_;
   int instance_id_;

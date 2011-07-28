@@ -130,6 +130,10 @@ bool WebPluginDelegateStub::OnMessageReceived(const IPC::Message& msg) {
     IPC_MESSAGE_HANDLER(PluginMsg_SetFakeAcceleratedSurfaceWindowHandle,
                         OnSetFakeAcceleratedSurfaceWindowHandle)
 #endif
+#if defined(PLUGIN_DIRECT_RENDERING)
+    IPC_MESSAGE_HANDLER(PluginMsg_DidPaintPluginWidget,
+                        OnDidPaintPluginWidget)
+#endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
 
@@ -254,12 +258,23 @@ void WebPluginDelegateStub::OnHandleInputEvent(
 }
 
 void WebPluginDelegateStub::OnPaint(const gfx::Rect& damaged_rect) {
+#if defined(PLUGIN_DIRECT_RENDERING)
+  webplugin_->DoDirectPaint(damaged_rect);
+#else
   webplugin_->Paint(damaged_rect);
+#endif
 }
 
 void WebPluginDelegateStub::OnDidPaint() {
   webplugin_->DidPaint();
 }
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+void WebPluginDelegateStub::OnDidPaintPluginWidget(unsigned int ack)
+{
+  webplugin_->DidPaintPluginWidget(ack);
+}
+#endif
 
 void WebPluginDelegateStub::OnUpdateGeometry(
     const PluginMsg_UpdateGeometry_Param& param) {

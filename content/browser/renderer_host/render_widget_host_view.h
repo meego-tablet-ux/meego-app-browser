@@ -22,6 +22,7 @@
 #include "ui/gfx/rect.h"
 #include "ui/gfx/size.h"
 #include "ui/gfx/surface/transport_dib.h"
+#include "base/meegotouch_config.h"
 
 namespace gfx {
 class Rect;
@@ -117,6 +118,14 @@ class RenderWidgetHostView {
   virtual void ComposeEmbededFlashWindow(const gfx::Rect& rect) {};
   virtual void ReShowEmbededFlashWindow() {};
   
+#if defined(PLUGIN_DIRECT_RENDERING)
+  virtual void UpdatePluginWidget(unsigned int id,
+                                  unsigned int pixmap,
+                                  const gfx::Rect& rect,
+                                  unsigned int seq) {}
+  virtual void DestroyPluginWidget(unsigned int id) {}
+#endif
+
 #endif
 
   // Returns the associated RenderWidgetHost.

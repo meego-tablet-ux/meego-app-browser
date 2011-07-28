@@ -80,12 +80,27 @@ WebPluginProxy::WebPluginProxy(
           use_shm_pixmap_ = true;
       }
 #endif
+#if defined(PLUGIN_DIRECT_RENDERING)
+      for (int i = 0; i < PLUGIN_PIXMAP_BUFFER_NUMBER; i++)
+        plugin_widget_pixmaps_[i] = None;
+
+      plugin_widget_paint_seq_ = 0;
+      plugin_widget_update_seq_ = 0;
+      plugin_widget_update_ack_ = 0;
+      waiting_for_ack_ = false;
+
+#endif
 }
 
 WebPluginProxy::~WebPluginProxy() {
 #if defined(USE_X11)
   if (windowless_shm_pixmap_ != None)
     XFreePixmap(ui::GetXDisplay(), windowless_shm_pixmap_);
+#endif
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+  FreePluginPixmaps();
+  FreeQueuedUpdateWidgetMsgs();
 #endif
 
 #if defined(OS_MACOSX)
@@ -175,6 +190,23 @@ void WebPluginProxy::InvalidateRect(const gfx::Rect& rect) {
       !delegate_->GetClipRect().Intersects(damaged_rect_))
     return;
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  if (!waiting_for_paint_) {
+    if (plugin_widget_paint_seq_ - plugin_widget_update_ack_ >= PLUGIN_PIXMAP_BUFFER_NUMBER) {
+      // do nothing;
+    } else {
+      plugin_widget_paint_seq_++;
+
+      if (plugin_widget_paint_seq_ - plugin_widget_update_ack_ >= PLUGIN_PIXMAP_BUFFER_NUMBER)
+        waiting_for_paint_ = true;
+
+      MessageLoop::current()->PostTask(FROM_HERE,
+          runnable_method_factory_.NewRunnableMethod(
+              &WebPluginProxy::OnPaint, damaged_rect_));
+      damaged_rect_ = gfx::Rect();
+    }
+  }
+#else
   // Only send a single InvalidateRect message at a time.  From DidPaint we
   // will dispatch an additional InvalidateRect message if necessary.
   if (!waiting_for_paint_) {
@@ -186,6 +218,7 @@ void WebPluginProxy::InvalidateRect(const gfx::Rect& rect) {
             &WebPluginProxy::OnPaint, damaged_rect_));
     damaged_rect_ = gfx::Rect();
   }
+#endif
 }
 
 NPObject* WebPluginProxy::GetWindowScriptNPObject() {
@@ -417,6 +450,20 @@ void WebPluginProxy::UpdateGeometry(
     SetWindowlessBuffer(windowless_buffer, background_buffer, window_rect);
   }
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  if (delegate_->IsWindowless()) {
+    // TODO: we might need to send a PluginHostMsg_UpdatePluginWidget without increase the seq here.
+
+    gfx::Rect old_rect = delegate_->GetRect();
+    if (old_rect.size() != window_rect.size()) {
+      // recreate pixmap
+      PreparePluginPixmaps(window_rect);
+      // empty unsent update msg queue
+      FreeQueuedUpdateWidgetMsgs();
+    }
+  }
+#endif
+
 #if defined(OS_MACOSX)
   delegate_->UpdateGeometryAndContext(window_rect, clip_rect,
                                       windowless_context_);
@@ -626,11 +673,136 @@ void WebPluginProxy::FreeSurfaceDIB(TransportDIB::Id dib_id) {
 }
 #endif
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+
+void WebPluginProxy::FreePluginPixmaps()
+{
+  Display* display = ui::GetXDisplay();
+
+  for (int i = 0; i < PLUGIN_PIXMAP_BUFFER_NUMBER; i++) {
+    if (plugin_widget_pixmaps_[i] != None) {
+      XFreePixmap(display, plugin_widget_pixmaps_[i]);
+      plugin_widget_pixmaps_[i] = None;
+    }
+  }
+}
+
+void WebPluginProxy::FreeQueuedUpdateWidgetMsgs()
+{
+  while (!queued_update_widget_msgs_.empty()) {
+    delete queued_update_widget_msgs_.front();
+    queued_update_widget_msgs_.pop();
+  }
+}
+
+void WebPluginProxy::PreparePluginPixmaps(const gfx::Rect& window_rect)
+{
+  //TODO: need to sync with the Render/Browser Process that pixmap is changed.
+
+  Display* display = ui::GetXDisplay();
+  XID root_window = ui::GetX11RootWindow();
+
+  int width = window_rect.width();
+  int height = window_rect.height();
+
+  FreePluginPixmaps();
+
+  for (int i = 0; i < PLUGIN_PIXMAP_BUFFER_NUMBER; i++) {
+    plugin_widget_pixmaps_[i] = XCreatePixmap(display, root_window,
+                                              width, height,
+                                              DefaultDepth(display, 0));
+
+  }
+}
+
+XID WebPluginProxy::GetWindowlessPluginPixmap()
+{
+  return (plugin_widget_pixmaps_[plugin_widget_update_seq_ % PLUGIN_PIXMAP_BUFFER_NUMBER]);
+}
+
+
+void WebPluginProxy::UpdatePluginWidget()
+{
+  UpdateWidgetMsg *msg;
+
+  if (waiting_for_ack_)
+    return;
+
+  if (!queued_update_widget_msgs_.empty()) {
+    gfx::Rect rect = delegate_->GetRect();
+    msg = queued_update_widget_msgs_.front();
+    Send(new PluginHostMsg_UpdatePluginWidget(route_id_, msg->pixmap,
+                                            rect, msg->seq));
+    queued_update_widget_msgs_.pop();
+    waiting_for_ack_ = true;
+  }
+}
+
+void WebPluginProxy::DidPaintPluginWidget(unsigned int ack)
+{
+  waiting_for_ack_ = false;
+  waiting_for_paint_ = false;
+
+  plugin_widget_update_ack_ = ack;
+
+  // send update plugin widget msg if there are any pending one.
+  UpdatePluginWidget();
+
+  if (!damaged_rect_.IsEmpty())
+    InvalidateRect(damaged_rect_);
+}
+
+void WebPluginProxy::DoDirectPaint(const gfx::Rect& damaged_rect)
+{
+  damaged_rect_ = damaged_rect_.Union(damaged_rect);
+
+  if (plugin_widget_paint_seq_ - plugin_widget_update_ack_ >= PLUGIN_PIXMAP_BUFFER_NUMBER)
+      return;
+
+  plugin_widget_paint_seq_++;
+  if (plugin_widget_paint_seq_ - plugin_widget_update_ack_ >= PLUGIN_PIXMAP_BUFFER_NUMBER)
+      waiting_for_paint_ = true;
+
+// direct paint might lead to invalidate event, thus we clear damaged_rect_ before we do the paint;
+  gfx::Rect rect = damaged_rect_;
+  damaged_rect_ = gfx::Rect();
+  DirectPaint(rect);
+}
+
+void WebPluginProxy::DirectPaint(const gfx::Rect& damaged_rect)
+{
+  // Fallback to original Paint path when we are in transparent mode
+  if (background_canvas_.get()) {
+      Paint(damaged_rect);
+      Send(new PluginHostMsg_InvalidateRect(route_id_, damaged_rect));
+      return;
+  }
+
+  plugin_widget_update_seq_++;
+  XID pixmap = GetWindowlessPluginPixmap();
+
+  gfx::Rect offset_rect = damaged_rect;
+  offset_rect.Offset(delegate_->GetRect().origin());
+
+  delegate_->Paint(pixmap, offset_rect);
+
+  UpdateWidgetMsg *msg = new UpdateWidgetMsg;
+  msg->seq = plugin_widget_update_seq_;
+  msg->pixmap = pixmap;
+  queued_update_widget_msgs_.push(msg);
+  UpdatePluginWidget();
+}
+#endif
+
 void WebPluginProxy::OnPaint(const gfx::Rect& damaged_rect) {
   content::GetContentClient()->SetActiveURL(page_url_);
 
+#if defined(PLUGIN_DIRECT_RENDERING)
+  DirectPaint(damaged_rect);
+#else
   Paint(damaged_rect);
   Send(new PluginHostMsg_InvalidateRect(route_id_, damaged_rect));
+#endif
 }
 
 bool WebPluginProxy::IsOffTheRecord() {

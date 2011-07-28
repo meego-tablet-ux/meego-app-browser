@@ -230,7 +230,12 @@ bool RenderWidgetHost::OnMessageReceived(const IPC::Message &msg) {
     IPC_MESSAGE_HANDLER(ViewHostMsg_DestroyVideoWidget,
                         OnMsgDestroyVideoWidget)
 #endif
-
+#if defined(PLUGIN_DIRECT_RENDERING)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_UpdatePluginWidget,
+                        OnMsgUpdatePluginWidget)
+    IPC_MESSAGE_HANDLER(ViewHostMsg_DestroyPluginWidget,
+                        OnMsgDestroyPluginWidget)
+#endif
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP_EX()
 
@@ -1375,6 +1380,33 @@ void RenderWidgetHost::OnMsgDidContentsSizeChanged(const gfx::Size& size)
     return;
   view_->UpdateContentsSize(size);
 }
+
+#if defined(PLUGIN_DIRECT_RENDERING)
+void RenderWidgetHost::OnMsgUpdatePluginWidget(unsigned int plugin_id,
+                                               unsigned int pixmap_id,
+                                               const gfx::Rect& rect,
+                                               unsigned int seq)
+{
+  if (view_)
+  {
+    view_->UpdatePluginWidget(plugin_id, pixmap_id, rect, seq);
+  }
+}
+
+void RenderWidgetHost::OnMsgDestroyPluginWidget(unsigned int plugin_id)
+{
+  if (view_)
+  {
+    view_->DestroyPluginWidget(plugin_id);
+  }
+}
+
+void RenderWidgetHost::DidPaintPluginWidget(unsigned int plugin_id,
+                                            unsigned int ack)
+{
+  Send(new ViewMsg_DidPaintPluginWidget(routing_id(), plugin_id, ack));
+}
+#endif
 
 void RenderWidgetHost::OnMsgCreateVideoWidget(unsigned int video_id, const gfx::Size& size)
 {
