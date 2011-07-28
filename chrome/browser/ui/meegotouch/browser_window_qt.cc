@@ -142,6 +142,8 @@ class BrowserWindowQtImpl : public QObject
   {
     for (int i = 0 ; i < parameters.size(); i++)
     {
+      if(parameters[i] == "restore")
+          continue;
       DLOG(INFO) << "BrowserWindowQtImpl::onCalled " << parameters[i].toStdString();
       window_->browser_->OpenURL(URLFixerUpper::FixupURL(parameters[i].toStdString(), std::string()),
                                  GURL(), NEW_FOREGROUND_TAB, PageTransition::LINK);

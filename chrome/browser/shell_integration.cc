@@ -6,6 +6,7 @@
 
 #include "base/command_line.h"
 #include "base/file_util.h"
+#include "base/i18n/file_util_icu.h"
 #include "base/path_service.h"
 #include "base/string_util.h"
 #include "base/utf_string_conversions.h"
@@ -46,6 +47,11 @@ CommandLine ShellIntegration::CommandLineArgsForLauncher(
     new_cmd_line.AppendSwitchPath(switches::kLoginProfile, profile);
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+  new_cmd_line.AppendSwitch("fullscreen");
+  new_cmd_line.AppendSwitch("opengl");
+#endif
+
   // If |extension_app_id| is present, we use the kAppId switch rather than
   // the kApp switch (the launch url will be read from the extension app
   // during launch.
@@ -56,6 +62,13 @@ CommandLine ShellIntegration::CommandLineArgsForLauncher(
     // chrome.
     // Note: Do not change this flag!  Old Gears shortcuts will break if you do!
     new_cmd_line.AppendSwitchASCII(switches::kApp, url.spec());
+#if defined(TOOLKIT_MEEGOTOUCH)
+    // Use '--appname=AppName' to identify each web application
+    std::string binaryName = "web-app-" + url.spec();
+    file_util::ReplaceIllegalCharactersInPath(&binaryName, '_');
+    new_cmd_line.AppendSwitchASCII("appname",binaryName);
+#endif
+
   }
   return new_cmd_line;
 }

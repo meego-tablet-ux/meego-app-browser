@@ -347,8 +347,15 @@ bool ShellIntegration::GetDesktopShortcutTemplate(
 // static
 FilePath ShellIntegration::GetDesktopShortcutFilename(const GURL& url) {
   // Use a prefix, because xdg-desktop-menu requires it.
-  std::string filename =
-      std::string(chrome::kBrowserProcessExecutableName) + "-" + url.spec();
+  // Keep prefix in icon.
+  // Because system will recognize two web application as one if they have very simillar filename,
+  // So we need to make filename of .desktop as different as possible from each other, cut off protocal head here
+  std::string filename = url.spec();
+  int protocal_head_pos = filename.find_first_of("://");
+  if(protocal_head_pos!=std::string::npos)
+  {
+    filename = filename.substr(protocal_head_pos+3);
+  }
   file_util::ReplaceIllegalCharactersInPath(&filename, '_');
 
   FilePath desktop_path;
@@ -411,8 +418,52 @@ std::string ShellIntegration::GetDesktopFileContents(
                                                          "=" + i->second);
         }
       }
-      output_buffer += std::string("Exec=") +
-                       EscapeStringForDesktopFile(final_path) + "\n";
+
+      // Create Bash script file for exec, to distinguish from normal browser
+      // if failed to create script file, keep complete exec path in .desktop file
+      FilePath desktop_path;
+      std::string binaryName = cmd_line.GetSwitchValueASCII("appname");
+      if (!PathService::Get(chrome::DIR_USER_DESKTOP, &desktop_path))
+      {        
+        output_buffer += std::string("Exec=") +
+                         EscapeStringForDesktopFile(final_path) + "\n";
+        continue;
+      }
+      int desktop_fd = open(desktop_path.value().c_str(), O_RDONLY | O_DIRECTORY);
+      if (desktop_fd < 0)
+      {
+        output_buffer += std::string("Exec=") +
+                         EscapeStringForDesktopFile(final_path) + "\n";
+        continue;
+      }
+      int fd = openat(desktop_fd, binaryName.c_str(),
+                      O_CREAT | O_EXCL | O_WRONLY,
+                      S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+      if (fd < 0) {
+        if (HANDLE_EINTR(close(desktop_fd)) < 0)
+          PLOG(ERROR) << "close";
+        output_buffer += std::string("Exec=") +
+                         EscapeStringForDesktopFile(final_path) + "\n";
+        continue;
+      }
+      std::string binaryContent = "#!/bin/sh\nexec " + final_path;
+      ssize_t bytes_written = file_util::WriteFileDescriptor(fd, binaryContent.c_str(),
+                                                             binaryContent.length());
+      if (HANDLE_EINTR(close(fd)) < 0)
+        PLOG(ERROR) << "close";
+
+      if (bytes_written != static_cast<ssize_t>(binaryContent.length())) {
+        // Delete the file
+        unlinkat(desktop_fd, binaryName.c_str(), 0);
+        output_buffer += std::string("Exec=") +
+                         EscapeStringForDesktopFile(final_path) + "\n";
+      } else {
+        output_buffer += std::string("Exec=") + desktop_path.value() + "/" + binaryName
+                          + "\n";
+      }
+
+      if (HANDLE_EINTR(close(desktop_fd)) < 0)
+        PLOG(ERROR) << "close";
     } else if (tokenizer.token().substr(0, 5) == "Name=") {
       std::string final_title = UTF16ToUTF8(title);
       // Make sure no endline characters can slip in and possibly introduce
@@ -424,6 +475,8 @@ std::string ShellIntegration::GetDesktopFileContents(
         final_title = url.spec();
       }
       output_buffer += StringPrintf("Name=%s\n", final_title.c_str());
+    } else if (tokenizer.token().substr(0, 5) == "Name[") {
+      // Skip names for i18n
     } else if (tokenizer.token().substr(0, 11) == "GenericName" ||
                tokenizer.token().substr(0, 7) == "Comment" ||
                tokenizer.token().substr(0, 1) == "#") {
@@ -445,6 +498,8 @@ std::string ShellIntegration::GetDesktopFileContents(
 #else
       output_buffer += StringPrintf("Icon=%s\n", icon_name.c_str());
 #endif
+    } else if (tokenizer.token().size()>11 && tokenizer.token().substr(0, 11) == "X-MEEGO-APP") {
+        // Skip field for the place of the icon in app grid
     } else {
       output_buffer += tokenizer.token() + "\n";
     }
@@ -471,7 +526,10 @@ void ShellIntegration::CreateDesktopShortcut(
   if (shortcut_filename.empty())
     return;
 
-  std::string icon_name = CreateShortcutIcon(shortcut_info, shortcut_filename);
+  //icon must start with "chrome-", chrome could be replaced with any String I guess
+  FilePath icon_filename = shortcut_filename.DirName().Append(std::string(chrome::kBrowserProcessExecutableName)
+                                                              + "-" +shortcut_filename.BaseName().value());
+  std::string icon_name = CreateShortcutIcon(shortcut_info, icon_filename);
 
   std::string app_name =
       web_app::GenerateApplicationNameFromInfo(shortcut_info);
