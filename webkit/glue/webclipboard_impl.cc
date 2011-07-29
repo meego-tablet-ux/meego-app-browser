@@ -145,7 +145,7 @@ void WebClipboardImpl::writeHTML(
     const WebString& html_text, const WebURL& source_url,
     const WebString& plain_text, bool write_smart_paste) {
   ScopedClipboardWriterGlue scw(ClipboardGetClipboard());
-  scw.WriteHTML(html_text, source_url.spec());
+//  scw.WriteHTML(html_text, source_url.spec());
   scw.WriteText(plain_text);
 
   if (write_smart_paste)
